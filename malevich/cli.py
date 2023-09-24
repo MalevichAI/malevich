@@ -6,8 +6,9 @@ import typer
 from malevich._utility.ask_core.image_info import get_image_info
 from malevich._utility.git.clone import clone_python_files
 from malevich._utility.scan import scan
-from malevich.install.create import create_processor
-from malevich.install.mimic import mimic_package
+
+# from malevich.install.create import create_processors
+# from malevich.install.mimic import mimic_package
 
 app = typer.Typer()
 
@@ -95,6 +96,7 @@ def use(
     Helps you to acquire Malevich elements from a Git repository or Docker image and
     make them available for use in your project.
     """
+    # TODO: Implement install with Space
     if link.startswith("git") or link.startswith("http"):
         files = clone_python_files(
             link,
@@ -116,29 +118,38 @@ def use(
         typer.echo(f"\t{len(inputs)} inputs")
         typer.echo(f"\t{len(outputs)} outputs")
         typer.echo(f"\t{len(inits)} inits")
+
+        # TODO: Install using GitInstaller
     else:
         if not (core_host and core_username and core_password_token):
             raise typer.BadParameter(
                 "Core host, username and password/token are required for Docker images"
             )
+        typer.echo(f"Acquiring image info from {link}")
         info = get_image_info(
             link,
-            (core_username, core_password_token),
-            (core_username, core_password_token),
-            core_host,
+            image_auth=(username, password_token),
+            core_auth=(core_username, core_password_token),
+            host=core_host,
         )
-        functions = []
+        typer.echo(f"Found {len(info['processors'])} processors")
+        processors = []
         for name, processor in info['processors'].items():
-            typer.echo(f"Found processor {processor['name']}")
+            typer.echo(f"Found processor {processor['id']}")
             args = [(arg, 'DFS' in arg[1]) for arg in processor['arguments']]
-            functions.append(
-                create_processor(
-                    name,
-                    args
-                )
-            )
-        mimic_package(alias, functions)
-        pass
+            processors.append((name, args))
+        # typer.echo("Creating metascripts...")
+        # meta = create_processors(
+        #     [name for name, _ in processors],
+        #     link,
+        #     (username, password_token),
+        #     [args for _, args in processors],
+        # )
+        # typer.echo("Installing package...")
+        # mimic_package(alias, meta)
+        # TODO: Install using DockerInstaller
+
+
 
 
 @app.command()
