@@ -15,5 +15,5 @@ class Installer(ABC):
         import importlib.util
         import os
 
-        return os.path.dirname(importlib.util.find_spec('malevich').origin).parent
+        return os.path.dirname(importlib.util.find_spec('malevich').origin)
 
