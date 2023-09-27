@@ -3,8 +3,11 @@ from typing import Annotated
 
 import typer
 
-from malevich.utility.git.clone import clone_python_files
-from malevich.utility.scan import scan
+from malevich._utility.ask_core.image_info import get_image_info
+from malevich._utility.git.clone import clone_python_files
+from malevich._utility.scan import scan
+from malevich.install.create import create_processor
+from malevich.install.mimic import mimic_package
 
 app = typer.Typer()
 
@@ -13,6 +16,13 @@ app = typer.Typer()
 def use(
     link: Annotated[
         str, typer.Argument(..., help="Link to Git repository or Docker image")
+    ],
+    alias: Annotated[
+        str,
+        typer.Argument(
+            ...,
+            help="Alias that will be used to refer to the acquired elements",
+        ),
     ],
     username: Annotated[
         str,
@@ -56,6 +66,29 @@ def use(
             help="Filter to apply to the files. Defaults to `*.py`.",
         ),
     ] = "*.py",
+    core_host: Annotated[
+        str,
+        typer.Option(
+            "--core-host",
+            help="Core host to use for acquiring Malevich elements.",
+        ),
+        # TODO: Default core host
+    ] = None,
+    core_username: Annotated[
+        str,
+        typer.Option(
+            "--core-username",
+            help="Core username to use for acquiring Malevich elements.",
+        ),
+    ] = None,
+    core_password_token: Annotated[
+        str,
+        typer.Option(
+            "--core-password",
+            "--core-token",
+            help="Core password or token to use for acquiring Malevich elements.",
+        ),
+    ] = None,
 ) -> None:
     """Scan a Git repository or Docker image for Malevich elements.
 
@@ -84,7 +117,27 @@ def use(
         typer.echo(f"\t{len(outputs)} outputs")
         typer.echo(f"\t{len(inits)} inits")
     else:
-        # TODO: Implement Docker image support
+        if not (core_host and core_username and core_password_token):
+            raise typer.BadParameter(
+                "Core host, username and password/token are required for Docker images"
+            )
+        info = get_image_info(
+            link,
+            (core_username, core_password_token),
+            (core_username, core_password_token),
+            core_host,
+        )
+        functions = []
+        for name, processor in info['processors'].items():
+            typer.echo(f"Found processor {processor['name']}")
+            args = [(arg, 'DFS' in arg[1]) for arg in processor['arguments']]
+            functions.append(
+                create_processor(
+                    name,
+                    args
+                )
+            )
+        mimic_package(alias, functions)
         pass
 
 

@@ -2,3 +2,6 @@ typer[all]
 pydantic
 jls-utils
 pandas
+pre-commit
+pytest
+ruff
