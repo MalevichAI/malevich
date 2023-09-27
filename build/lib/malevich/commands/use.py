@@ -1,64 +1,62 @@
 import typer
-from typing import Annotated
-from malevich.utility.git.clone import clone_python_files
 
-app = typer.Typer()
+from malevich.install.image import ImageInstaller
+from malevich.manifest import ManifestManager
 
-@app.command()
-def use(
-    link: Annotated[
-        str, typer.Argument(..., help="Link to Git repository or Docker image")
-    ],
-    username: Annotated[
-        str,
-        typer.Option(
-            None,
-            "--username",
-            "-u",
-            help="Username for Git repository or Docker registry",
-        ),
-    ] = None,
-    password_token: Annotated[
-        str,
-        typer.Option(
-            None,
-            "--password",
-            "-p",
-            "--token",
-            "-t",
-            help="Password or token for Git repository or Docker registry",
-        ),
-    ] = None,
-    clone_to: Annotated[
-        str,
-        typer.Option(
-            None,
-            "--clone-to",
-            "-c",
-            help="Folder to clone into. Defaults to a temporary directory.",
-        ),
-    ] = None,
-    branch: Annotated[
-        str,
-        typer.Option(
-            None,
-            "--branch",
-            "-b",
-            help="Branch to clone. Defaults to the default branch.",
-        ),
-    ] = None,
-    
-):
-    if link.startswith("git") or link.startswith('http'):
-        files = clone_python_files(
-            link,
-            auth=(username, password_token),
-            branch=branch,
-            folder=clone_to,
-        )   
-        typer.echo(f"Cloned {len(files)} Python files to {clone_to}")
-        
+use = typer.Typer()
+
+@use.command('image')
+def install_from_image(
+    image_ref: str = typer.Argument(
+        ...,
+        help='Image reference in format <registry>/<image>:<tag>'
+    ),
+    package_name: str = typer.Argument(
+        ...,
+        help='Package name'
+    ),
+    image_auth_user: str =  typer.Argument(
+        ...,
+        help='Image registry auth user'
+    ),
+    image_auth_password: str = typer.Argument(
+        ...,
+        help='Image registry auth password'
+    ),
+    core_host: str = typer.Option(
+        default='https://core.onjulius.co',
+        help='Malevich Core hostname'
+    ),
+    core_user: str = typer.Option(
+        default=None,
+        help='Malevich Core user'
+    ),
+    core_token: str = typer.Option(
+        default=None,
+        help='Malevich Core token'
+    )
+) -> None:
+    installer = ImageInstaller(
+        package_name=package_name,
+        image_ref=image_ref,
+        image_auth=(image_auth_user, image_auth_password),
+        core_host=core_host,
+        core_auth=(core_user, core_token) if core_user and core_token else None
+    )
+    manifest_entry = installer.install()
+    manifest_manager = ManifestManager()
+    if manifest_manager.query('dependencies', package_name):
+        manifest_manager.put(
+            'dependencies',
+            package_name,
+            value=manifest_entry.model_dump(),
+
+        )
     else:
-        pass
-
-    
+        manifest_manager.put(
+            'dependencies',
+            value={
+                f'{package_name}': manifest_entry.model_dump()
+            },
+            append=True
+        )

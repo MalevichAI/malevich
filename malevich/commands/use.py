@@ -45,8 +45,18 @@ def install_from_image(
     )
     manifest_entry = installer.install()
     manifest_manager = ManifestManager()
-    manifest_manager.put(
-        'dependencies',
-        manifest_entry.package_id,
-        value=manifest_entry.model_dump()
-    )
+    if manifest_manager.query('dependencies', package_name):
+        manifest_manager.put(
+            'dependencies',
+            package_name,
+            value=manifest_entry.model_dump(),
+
+        )
+    else:
+        manifest_manager.put(
+            'dependencies',
+            value={
+                f'{package_name}': manifest_entry.model_dump()
+            },
+            append=True
+        )

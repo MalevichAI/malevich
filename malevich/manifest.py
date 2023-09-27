@@ -24,6 +24,35 @@ class ManifestManager(metaclass=SingletonMeta):
             self.__secrets = pydml.parse_yaml_file_as(Secrets, self.__secrets_path)
 
 
+    def cleanup_secrets(self):
+        secrets = re.findall(r'secret#[0-9]{1,6}', self.__manifest.model_dump_json(indent=4))
+        cleaned_secrets = Secrets(
+            secrets={
+                key: value for key, value
+                in self.__secrets.model_dump()['secrets'].items()
+                if key in secrets
+            }
+        )
+
+
+        return cleaned_secrets
+
+
+    def save(self):
+        try:
+            pydml.to_yaml_file(self.__path, self.__manifest)
+            self.__backup = self.__manifest.model_dump()
+        except Exception as e:
+            pydml.to_yaml_file(self.__path, Manifest(**self.__backup))
+            raise e
+        finally:
+            self.__manifest = pydml.parse_yaml_file_as(Manifest, self.__path)
+
+        self.__secrets = self.cleanup_secrets()
+        pydml.to_yaml_file(self.__secrets_path, self.__secrets)
+        self.__secrets = pydml.parse_yaml_file_as(Secrets, self.__secrets_path)
+
+
     def __query_list(
         self, __list: list[str | dict[str, Any]], __key: str
     ) -> Any:  # noqa: ANN401
@@ -77,12 +106,10 @@ class ManifestManager(metaclass=SingletonMeta):
                 cursor = cursor[key]
             else:
                 return None
-        if all([
-            resolve_secrets,
-            isinstance(cursor, str),
-            re.match(r'^secret#[0-9]{6}', cursor)
-        ]):
-            print(cursor)
+        if cursor is not None and \
+        resolve_secrets and \
+        isinstance(cursor, str) and \
+        re.match(r'^secret#[0-9]{1,6}', cursor):
             return self.query_secret(cursor)
         return cursor
 
@@ -93,28 +120,36 @@ class ManifestManager(metaclass=SingletonMeta):
         dump = self.__manifest.model_dump()
         cursor = dump
         for q in pre:
-            if key not in cursor:
+            if isinstance(cursor, list):
+                print('LIST')
+                for i, _c in enumerate(cursor):
+                    if q in _c:
+                        cursor = cursor[i][q]
+                        break
+                else:
+                    cursor.append({})
+                    cursor = cursor[-1]
+                    continue
+                raise ValueError(f"Cannot find key {q} in list")
+            if q not in cursor:
                 cursor[q] = {}
-            if isinstance(cursor[q], list) and append:
-                cursor[q].append({})
-                cursor = cursor[q][-1]
+            cursor = cursor[q]
+        if isinstance(cursor, list):
+            if append:
+                cursor.append(value)
             else:
-                cursor = cursor[q]
-        if append:
-            if key not in cursor:
-                cursor[key] = []
-            cursor[key].append(value)
+                for i, _c in enumerate(cursor):
+                    if key in _c:
+                        cursor[i][key] = value
+                        break
         else:
-            cursor[key] = value
+            if append:
+                cursor[key].append(value)
+            else:
+                cursor[key] = value
         self.__manifest = Manifest(**dump)
-        try:
-            pydml.to_yaml_file(self.__path, self.__manifest)
-            self.__backup = self.__manifest.model_dump()
-        except Exception as e:
-            pydml.to_yaml_file(self.__path, Manifest(**self.__backup))
-            raise e
-        finally:
-            self.__manifest = pydml.parse_yaml_file_as(Manifest, self.__path)
+        self.save()
+        return self.__manifest
 
 
     def put_secret(self, key: str, value: str, salt: str = None):
@@ -131,9 +166,17 @@ class ManifestManager(metaclass=SingletonMeta):
             salt=salt
         )
         self.__secrets = Secrets(**secrets)
-        pydml.to_yaml_file(self.__secrets_path, self.__secrets)
         return __key
 
+
+    def put_secrets(self, salt: str = None, **kwargs: dict[str, str]):
+        secrets = []
+        for key, value in kwargs.items():
+            if value:
+                secrets.append(self.put_secret(key, value, salt))
+            else:
+                secrets.append(None)
+        return secrets
 
     def query_secret(self, key: str) -> Secret | None:
         return self.__secrets.secrets.get(key, None)

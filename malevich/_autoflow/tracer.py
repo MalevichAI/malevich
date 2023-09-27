@@ -36,8 +36,8 @@ class autoflow(Generic[T]):  # noqa: N801
     def attach(self, component: T) -> None:
         self._component_ref = component
 
-    def calledby(self, caller: 'tracer') -> None:
-        self._tree_ref.put_edge(self._component_ref, caller._owner)
+    def calledby(self, caller: 'tracer', argument: str = None) -> None:
+        self._tree_ref.put_edge(self._component_ref, caller, argument)
 
 
 class tracer(Generic[T]):  # noqa: N801
@@ -51,7 +51,12 @@ class tracer(Generic[T]):  # noqa: N801
         ), "Tried to create a tracked variable outside of a flow"
         self._owner = owner
         self._autoflow = autoflow(Flow.flow_ref())
-        self._autoflow.attach(owner)
+        self._autoflow.attach(self)
+        
+    @property
+    def owner(self) -> T:
+        return self._owner
+
 
 
 class multitracer(tracer, list[T], Generic[T]):   # noqa: N801
