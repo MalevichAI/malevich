@@ -1,3 +1,4 @@
 typer[all]
 pydantic
 jls-utils
+pre-commit
