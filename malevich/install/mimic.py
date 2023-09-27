@@ -1,20 +1,28 @@
 import os
+from hashlib import sha256
 from pathlib import Path
 
 
-def _write(file_path: Path, content: str) -> None:
-    with open(file_path, 'w') as f:
-        f.write(content)
+def mimic_package(package: str, metascript: str) -> tuple[bool, str]:
+    # Creates a package with the given name and metascript
+    # to be available for import as malevic.<package>
+    import importlib
 
-
-def mimic_package(package_name: str, functions: list[str]) -> None:
     import malevich
 
-    malevich_path = Path(malevich.__file__).parent
-    os.makedirs(malevich_path / package_name, exist_ok=True)
-    content = '\n\n'.join(functions)
-    _write(malevich_path / package_name /\
-        '__init__.py', f'from malevich.{package_name}._f import *')
-    _write(malevich_path / package_name / '_f.py', content)
+    checksum = sha256(metascript.encode()).hexdigest()
 
 
+    package_path = Path(malevich.__file__).parent / package
+    os.makedirs(package_path, exist_ok=True)
+
+    with open(package_path / "__init__.py", "w") as f:
+        f.write(f"__checksum = {checksum}\n")
+        f.write(metascript)
+
+    try:
+        __pkg = importlib.import_module(f"malevich.{package}")
+        assert getattr(__pkg, "__checksum") == checksum
+    except (ImportError, AssertionError):
+        return False, checksum
+    return True, checksum

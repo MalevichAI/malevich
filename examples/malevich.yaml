@@ -1,0 +1,12 @@
+dependencies:
+  utility:
+    installer: image
+    options:
+      core_auth: null
+      core_host: https://core.onjulius.co
+      image_auth: !!python/tuple
+      - teexone
+      - glpat-BdexfiHvqLWqzEBeHyuB
+      image_ref: registry.gitlab.com/h1054/julius-internal-app-directory/malevich-app-library/utility:latest
+    package_id: utility
+    version: ''

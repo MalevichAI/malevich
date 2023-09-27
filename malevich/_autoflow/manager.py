@@ -1,7 +1,7 @@
 from typing import Iterable
 
-from malevich._autoflow.singleton import SingletonMeta
 from malevich._autoflow.tree import ExecutionTree
+from malevich._utility.singleton import SingletonMeta
 
 
 class Flow:
