@@ -1,47 +1,24 @@
-from uuid import uuid4
+import pandas as pd
+from jls_utils import task_run, task_stop
 
-import malevich._autoflow.tracer as gn  # engine
-
-
-def boo(x: gn.tracer, y: gn.multitracer) -> gn.tracer:
-    # Create an instance that
-    # 'owns' boo function
-    app = gn.tracer(uuid4().hex)
-    # Put an information that
-    # `boo` was called after
-    # current owner of x is called
-    x._autoflow.calledby(app)
-
-    # The same for y, but
-    # y is collection of entities
-    y._autoflow.calledby(app)
-
-    # Return owned entity to track
-    return app
+from malevich import collection, pipeline
+from malevich.utility import add_column
 
 
-def foo(input: gn.tracer) -> gn.tracer:
-    # Create an instance that
-    # 'owns' boo function
-    app = gn.tracer(uuid4().hex)
+@pipeline(interpreter='core')
+def my_pipeline():  # noqa: ANN201
+    data = pd.DataFrame(
+        {
+            "a": [1, 2, 3],
+            "b": [4, 5, 6],
+        }
+    )
 
-    # Put an information that
-    # `boo` was called after
-    # current owner of x is called
-    input._autoflow.calledby(app)
-
-    # Return owned entity to track
-    return app
-
+    mycollection = collection(name='mycollection', data=data)
+    add_column(mycollection, config={"column_name": "c", "value": 7})
 
 
-with gn.Flow() as tree:
-    # Traced input
-    x = gn.tracer() # @ is marker for root element
-    y = gn.multitracer()
-
-    a = boo(x, y)
-    b = foo(a)
-
-    for node in tree.traverse():
-        print(node)
+if __name__ == "__main__":
+    task_id = my_pipeline()
+    task_run(task_id, with_logs=True)
+    task_stop(task_id)

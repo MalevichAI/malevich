@@ -1,7 +1,6 @@
 from typing import Iterable
 
 from malevich._autoflow.tree import ExecutionTree
-from malevich._utility.singleton import SingletonMeta
 
 
 class Flow:
@@ -28,15 +27,3 @@ class Flow:
     def __exit__(self, *args: Iterable) -> None:
         Flow.__flow = None
 
-
-class Registry(metaclass=SingletonMeta):
-    _registry = {}
-
-    def register(self, key: str, value: object) -> None:
-        self._registry[key] = value
-
-    def get(self, key: str) -> object:
-        return self._registry[key]
-
-    def __getitem__(self, key: str) -> object:
-        return self._registry[key]

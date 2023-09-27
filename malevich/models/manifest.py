@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 
 from pydantic import BaseModel
 
@@ -11,9 +11,9 @@ class Dependency(BaseModel):
 
 
 class Manifest(BaseModel):
-    project_id : str
-    version: str
-    dependencies: dict[str, Dependency]
+    project_id : Optional[str] = None
+    version: Optional[str] = None
+    dependencies: list[dict[str, Dependency]] = []
 
 
 class ManifestUpdateEntry(BaseModel):
@@ -22,6 +22,14 @@ class ManifestUpdateEntry(BaseModel):
     installer: str
     options: dict[str, Any]
 
+
+class Secret(BaseModel):
+    secret_key: str
+    secret_value: str
+    salt: Optional[str] = None
+
+class Secrets(BaseModel):
+    secrets: dict[str, Secret] = {}
 
 
 

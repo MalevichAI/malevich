@@ -1,25 +1,51 @@
+"""
+Provides functionality to install packages from plain Docker images
+using Malevich Core capabilities
+"""
+
 import hashlib
-import os
 from uuid import uuid4
 
 import jls_utils as j
 
 from malevich.install.installer import Installer
+from malevich.install.mimic import mimic_package
+from malevich.manifest import ManifestManager
 from malevich.models.installers.image import ImageDependency, ImageOptions
 
 
 class Templates:
+    """Templates for creating a package from a Docker image"""
+
+
     imports =\
 """
 from malevich._autoflow.function import autotrace
+from malevich._utility.registry import Registry
 from uuid import uuid4
+"""
+    registry =\
+"""
+Registry().register("{operation_id}", {{
+    "image_ref": {image_ref},
+    "image_auth_user": {image_auth_user},
+    "image_auth_pass": {image_auth_pass},
+    "processor_id": "{processor_id}",
+}})
+"""
+    processor =\
+"""
+}})
 """
     processor =\
 """
 @autotrace
-def {name}({args}):
+def {name}({args}, config: dict = {{}}):
     __instance = uuid4().hex
-    return (__instance, "{operation_id}")
+    return (__instance, {{
+        "operation_id": "{operation_id}",
+        "app_cfg": config
+    }})
 
 """
     init = \
@@ -50,6 +76,14 @@ class ImageInstaller(Installer):
         core_host: str = "https://core.onjulius.co/",
         core_auth: tuple[str, str] = None,
     ) -> None:
+        """
+        Args:
+            package_name: Name of the package to be created
+            image_ref: Docker image reference
+            image_auth: Docker image credentials
+            core_host: Core host
+            core_auth: Core credentials
+        """
         super().__init__()
         self.__package_name = package_name
         self.__core_host = core_host
@@ -61,6 +95,14 @@ class ImageInstaller(Installer):
     def _scan_core(
         core_auth: str, core_host: str, image_ref: str, image_auth: tuple[str, str]
     ) -> j.abstract.AppFunctionsInfo:
+        """Scans Core for image info
+
+        Args:
+            core_auth: Core credentials
+            core_host: Core host
+            image_ref: Docker image reference
+            image_auth: Docker image credentials
+        """
         j.set_host_port(core_host)
         if core_auth is None:
             user, pass_ = uuid4().hex, uuid4().hex
@@ -102,20 +144,24 @@ class ImageInstaller(Installer):
     @staticmethod
     def create_operations(
         operations: j.abstract.AppFunctionsInfo,
-        file: str,
-    ) -> None:
+        package_name: str,
+    ) -> str:
+        """Generates Python code for package creation
+
+        Args:
+            operations: Operations info
+            package_name: Name of the package to be created
+        """
+        indexed_operations = {}
         salt = hashlib.sha256(operations.model_dump_json().encode()).hexdigest()
         contents = Templates.imports
         for id_, processor in operations.processors.items():
             args_ = []
 
             for arg_ in processor.arguments:
-                if 'return' in arg_[0]:
+                if 'return' in arg_[0] or(arg_[1] and 'Context' in arg_[1]):
                     continue
-                if arg_[1] and 'Context' in arg_[1]:
-                    args_.append('config=None')
-                elif arg_[0]:
-                    args_.append(f'{arg_[0]}')
+                args_.append(f'{arg_[0]}')
 
 
             args_str_ = ', '.join(args_)
@@ -124,6 +170,15 @@ class ImageInstaller(Installer):
                 (salt + processor.model_dump_json()).encode()
             ).hexdigest()
 
+            indexed_operations[checksum] = id_
+
+            contents += Templates.registry.format(
+                operation_id=checksum,
+                image_ref=('dependencies', package_name, 'options', 'image_ref'),
+                image_auth_user=('dependencies', package_name, 'options', 'image_auth_user'),
+                image_auth_pass=('dependencies', package_name, 'options', 'image_auth_pass'),
+                processor_id=id_
+            )
             contents += Templates.processor.format(
                 name=id_,
                 args=args_str_,
@@ -145,10 +200,7 @@ class ImageInstaller(Installer):
                 output_name=id_
             )
 
-        os.makedirs(os.path.dirname(file), exist_ok=True)
-        with open(file, 'w+') as file_:
-            file_.write(contents)
-
+        return contents, indexed_operations
 
 
     def install(self, *args, **kwargs) -> ImageDependency:  # noqa: ANN003, ANN002
@@ -156,13 +208,24 @@ class ImageInstaller(Installer):
             self.__core_auth, self.__core_host, self.__image_ref, self.__image_auth
         )
         checksum = hashlib.sha256(app_info.model_dump_json().encode()).hexdigest()
-        ImageInstaller.create_operations(
+        metascript, operations = ImageInstaller.create_operations(
             app_info,
-            os.path.join(
-                ImageInstaller.get_package_path(),
-                self.__package_name,
-                '__init__.py'
-            )
+            self.__package_name
+        )
+
+        mimic_package(
+            self.__package_name,
+            metascript,
+        )
+
+        m = ManifestManager()
+        iauth_user, iauth_pass, cauth_user, cauth_token, iref = m.put_secrets(
+            image_auth_user=self.__image_auth[0],
+            image_auth_password=self.__image_auth[1],
+            core_auth_user=self.__core_auth[0] if self.__core_auth else None,
+            core_auth_token=self.__core_auth[1] if self.__core_auth else None,
+            image_ref=self.__image_ref,
+            salt=checksum,
         )
 
         return ImageDependency(
@@ -170,11 +233,14 @@ class ImageInstaller(Installer):
             version='',
             installer='image',
             options=ImageOptions(
-                image_ref=self.__image_ref,
-                image_auth=self.__image_auth,
-                core_auth=self.__core_auth,
+                checksum=checksum,
                 core_host=self.__core_host,
-                checksum=checksum
+                core_auth_token=cauth_token,
+                core_auth_user=cauth_user,
+                image_auth_user=iauth_user,
+                image_auth_pass=iauth_pass,
+                image_ref=iref,
+                operations=operations,
             )
         )
 

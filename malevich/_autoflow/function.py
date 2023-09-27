@@ -14,8 +14,9 @@ def autotrace(func: Callable[C, R]) -> Callable[C, R]:
         result = gn.tracer(result) if not isinstance(result, gn.tracer) else result
         assert isinstance(result, gn.tracer), "Function must return a tracer"
         for arg in args:
+            argument_name = func.__code__.co_varnames[args.index(arg)]
             if isinstance(arg, gn.tracer):
-                arg._autoflow.calledby(result)
+                arg._autoflow.calledby(result, argument_name)
         return result
 
     return wrapper
