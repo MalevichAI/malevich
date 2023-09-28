@@ -40,7 +40,7 @@ class ExecutionTree(Generic[T]):
 
                 q.extend(
                     filter(
-                        lambda x: x[1][0] == r[1] and not visited[x[0]],
+                        lambda x: x[1][0] == node[1] and not visited[x[0]],
                         enumerate(graph)
                     )
                 )

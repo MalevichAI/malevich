@@ -4,6 +4,7 @@ from typing import Any, Optional, TypeVar, Callable
 import pandas as pd
 from uuid import uuid4
 from malevich.models.collection import Collection
+from malevich.models.task import Task
 
 
 
@@ -29,6 +30,7 @@ def collection(
 
 def pipeline(
     interpreter: Optional[str] = None,
+    core_host: Optional[str] = 'https://core.onjulius.co',
 ) -> Callable[[], str]:
 
     def wrapper(function: Callable[[], None]) -> Callable[[], str]:
@@ -42,7 +44,7 @@ def pipeline(
                         function(*args, **kwargs)
                         __tree = tree
                     __interpreter = CoreInterpreter()
-                    return __interpreter.interpret(__tree)
+                    return Task(__interpreter.interpret(__tree, core_host=core_host))
                 case _:
                     raise NotImplementedError(f"Interpreter {interpreter} not implemented")
         return fn

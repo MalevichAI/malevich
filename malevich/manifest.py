@@ -34,7 +34,6 @@ class ManifestManager(metaclass=SingletonMeta):
             }
         )
 
-
         return cleaned_secrets
 
 
@@ -121,7 +120,6 @@ class ManifestManager(metaclass=SingletonMeta):
         cursor = dump
         for q in pre:
             if isinstance(cursor, list):
-                print('LIST')
                 for i, _c in enumerate(cursor):
                     if q in _c:
                         cursor = cursor[i][q]
