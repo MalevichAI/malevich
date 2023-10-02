@@ -1,6 +1,5 @@
 import uuid
 from collections import defaultdict
-from enum import Enum
 from typing import Any
 
 import jls_utils as jls
@@ -13,22 +12,25 @@ from malevich.interpreter.abstract import Interpreter
 from malevich.manifest import ManifestManager
 
 
-class CoreEntityType(Enum):
-    APP = ("app",)
-    COLLECTION = ("collection",)
-
-
 class CoreInterpreter(Interpreter):
-    def __init__(self) -> None:
-        pass
+    """Inteprets the flow using Malevich Core API"""
 
     def interpret(
         self,
         tree: ExecutionTree[tracer],
         core_auth: str = None,
         core_host: str = "https://core.onjulius.co",
-    ) -> None:
+    ) -> str:
+        """Interprets the given execution tree using Malevich Core API
 
+        Args:
+            tree (ExecutionTree[tracer]): Execution tree to interpret
+            core_auth (str, optional): Core authentication. Defaults to None.
+            core_host (str, optional): Core host. Defaults to "https://core.onjulius.co".
+
+        Returns:
+            str: Operation ID
+        """
         jls.set_host_port(core_host)
         if core_auth is None:
             core_auth = (uuid.uuid4().hex, uuid.uuid4().hex)
@@ -83,15 +85,18 @@ class CoreInterpreter(Interpreter):
                 for d, link in depends[id]:
                     if d in collections:
                         coll, __id = collections[d]
-                        cfg.collections = {**cfg.collections, f"{coll.collection_id}": __id}
+                        cfg.collections = {
+                            **cfg.collections,
+                            f"{coll.collection_id}": __id,
+                        }
                         extra_colls[link] = coll.collection_id
-                __app_id = uuid.uuid4().hex
+                __app_id = uuid.uuid4().hex + f"-{__app['processor_id']}"
                 jls.create_app(
                     app_id=__app_id,
                     processor_id=__app["processor_id"],
                     image_auth=(image_auth_user, image_auth_pass),
                     image_ref=image_ref,
-                    collections_from=extra_colls,
+                    extra_collections_from=extra_colls,
                     app_cfg=app.get("app_cfg", {}),
                 )
                 core_apps[id] = __app_id
@@ -109,7 +114,9 @@ class CoreInterpreter(Interpreter):
             jls.create_task(
                 task_id=core_id,
                 app_id=core_id,
-                tasks_depends=[core_apps[x[0]] for x in depends[id] if x[0] in core_apps]
+                tasks_depends=[
+                    core_apps[x[0]] for x in depends[id] if x[0] in core_apps
+                ],
             )
 
         __cfg = uuid.uuid4().hex

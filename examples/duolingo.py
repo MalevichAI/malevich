@@ -11,6 +11,7 @@ storage_endpoint = os.getenv('S3_ENDPOINT')
 storage_access_key = os.getenv('S3_ACCESS_KEY')
 storage_secret_key = os.getenv('S3_SECRET_KEY')
 storage_bucket = os.getenv('S3_BUCKET')
+openai_key = os.getenv('OPENAI_KEY')
 
 
 @pipeline(interpreter='core', core_host='http://localhost:8080')

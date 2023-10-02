@@ -1,18 +1,32 @@
 
-import malevich._autoflow.tracer as gn
-from typing import Any, Optional, TypeVar, Callable
-import pandas as pd
+from typing import Callable, Optional
 from uuid import uuid4
+
+import pandas as pd
+
+import malevich._autoflow.tracer as gn
 from malevich.models.collection import Collection
 from malevich.models.task import Task
-
 
 
 def collection(
     name: Optional[str] = None,
     file: Optional[str] = None,
     data: Optional[pd.DataFrame] = None
-):
+) -> Collection:
+    """Creates a collection from a file or a dataframe
+
+    Args:
+        name (Optional[str], optional): Name of the collection. Defaults to None.
+        file (Optional[str], optional): Path to the file. Defaults to None.
+        data (Optional[pd.DataFrame], optional): Dataframe. Defaults to None.
+
+    Raises:
+        AssertionError: If both file and data are provided
+
+    Returns:
+        Collection: an object that is subject to be passed to processors
+    """
     assert any([file is not None, data is not None]), "Either file or data must be provided"
     if file:
         assert data is None, "Cannot provide both file and data"

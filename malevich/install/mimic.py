@@ -33,10 +33,10 @@ def mimic_package(package: str, metascript: str) -> tuple[bool, str]:
 
     # Create the package __init__.py file
     with open(package_path / "__init__.py", "w") as f:
-        # Write the checksum to the file
-        f.write(f"__checksum = '{checksum}'\n")
         # Write the metascript to the file
         f.write(metascript)
+        # Write the checksum to the file
+        f.write(f"\n__checksum = '{checksum}'\n")
 
     # Post-hoc check to make sure the package was created successfully
     try:

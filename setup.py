@@ -1,10 +1,11 @@
 from setuptools import setup
 
 requirements = open('requirements.txt').read().split()
+version = open('VERSION').read().strip()
 
 setup(
     name="malevich",
-    version="0.0.1",
+    version=version,
     description=(
         "A user-friendly interface to communicate with Malevich AI (malevich.ai)",
     ),

@@ -28,22 +28,22 @@ class ExecutionTree(Generic[T]):
         ]
 
         # Traverse
+        q = deque(maxlen=len(graph))
         for i, r in roots:
             # BFS
-            q = deque(maxlen=len(graph))
             q.append((i, r,))
 
-            while q:
-                j, node = q.pop()
-                yield node
-                visited[j] = True
+        while q:
+            j, node = q.pop()
+            yield node
+            visited[j] = True
 
-                q.extend(
-                    filter(
-                        lambda x: x[1][0] == node[1] and not visited[x[0]],
-                        enumerate(graph)
-                    )
+            q.extend(
+                filter(
+                    lambda x: x[1][0] == node[1] and not visited[x[0]],
+                    enumerate(graph)
                 )
+            )
 
 
     def leaves(self) -> Iterable[T]:
