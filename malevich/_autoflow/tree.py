@@ -1,5 +1,5 @@
 from collections import deque
-from typing import Any, Generator, Generic, Iterable, Iterator, TypeVar
+from typing import Any, Generic, Iterable, Iterator, TypeVar
 
 T = TypeVar("T")
 
@@ -7,7 +7,7 @@ class ExecutionTree(Generic[T]):
     tree: list[tuple[T, T]] = []
 
 
-    def put_edge(self, caller: T, callee: T, link: Any = None) -> None:
+    def put_edge(self, caller: T, callee: T, link: Any = None) -> None:  # noqa: ANN401
         self.tree.append((caller, callee, link))
 
     def traverse(self) -> Iterator[tuple[T, T, Any]]:

@@ -52,7 +52,7 @@ class tracer(Generic[T]):  # noqa: N801
         self._owner = owner
         self._autoflow = autoflow(Flow.flow_ref())
         self._autoflow.attach(self)
-        
+
     @property
     def owner(self) -> T:
         return self._owner

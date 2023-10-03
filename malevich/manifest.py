@@ -23,21 +23,21 @@ class ManifestManager(metaclass=SingletonMeta):
             self.__backup = self.__manifest.model_dump()
             self.__secrets = pydml.parse_yaml_file_as(Secrets, self.__secrets_path)
 
-
-    def cleanup_secrets(self):
-        secrets = re.findall(r'secret#[0-9]{1,6}', self.__manifest.model_dump_json(indent=4))
+    def cleanup_secrets(self) -> list[Secret]:
+        secrets = re.findall(
+            r"secret#[0-9]{1,6}", self.__manifest.model_dump_json(indent=4)
+        )
         cleaned_secrets = Secrets(
             secrets={
-                key: value for key, value
-                in self.__secrets.model_dump()['secrets'].items()
+                key: value
+                for key, value in self.__secrets.model_dump()["secrets"].items()
                 if key in secrets
             }
         )
 
         return cleaned_secrets
 
-
-    def save(self):
+    def save(self) -> None:
         try:
             pydml.to_yaml_file(self.__path, self.__manifest)
             self.__backup = self.__manifest.model_dump()
@@ -51,10 +51,9 @@ class ManifestManager(metaclass=SingletonMeta):
         pydml.to_yaml_file(self.__secrets_path, self.__secrets)
         self.__secrets = pydml.parse_yaml_file_as(Secrets, self.__secrets_path)
 
-
     def __query_list(
-        self, __list: list[str | dict[str, Any]], __key: str
-    ) -> Any:  # noqa: ANN401
+            self, __list: list[str | dict[str, Any]], __key: str
+        ) -> Any:  # noqa: ANN401
         # Iterate over list object
         # within the Manifest
         # If list item is a dict, we need to check
@@ -86,14 +85,16 @@ class ManifestManager(metaclass=SingletonMeta):
         # and return the first value that matches
         for value in __list:
             if isinstance(value, dict) and __key in value:
-                    return value[__key]
+                return value[__key]
             elif isinstance(value, str) and value == __key:
-                    return value
+                return value
             elif isinstance(value, list):
                 raise ValueError("Nested lists are not supported in Manifest")
         return None
 
-    def query(self, *query: Iterable[str], resolve_secrets=False) -> Any:  # noqa: ANN401
+    def query(
+        self, *query: Iterable[str], resolve_secrets: bool = False
+    ) -> Any:  # noqa: ANN401
         # Only iterate over dict representation of Manifest
         # for simplicity
         cursor = self.__manifest.model_dump()
@@ -105,15 +106,18 @@ class ManifestManager(metaclass=SingletonMeta):
                 cursor = cursor[key]
             else:
                 return None
-        if cursor is not None and \
-        resolve_secrets and \
-        isinstance(cursor, str) and \
-        re.match(r'^secret#[0-9]{1,6}', cursor):
+        if (
+            cursor is not None
+            and resolve_secrets
+            and isinstance(cursor, str)
+            and re.match(r"^secret#[0-9]{1,6}", cursor)
+        ):
             return self.query_secret(cursor)
         return cursor
 
-
-    def put(self, *path: Iterable[str], value: Any, append=False):
+    def put(
+        self, *path: Iterable[str], value: Any, append: bool = False  # noqa: ANN401
+    ) -> Manifest:  # noqa: ANN401
         pre = path[:-1]
         key = path[-1]
         dump = self.__manifest.model_dump()
@@ -149,25 +153,21 @@ class ManifestManager(metaclass=SingletonMeta):
         self.save()
         return self.__manifest
 
-
-    def put_secret(self, key: str, value: str, salt: str = None):
+    def put_secret(self, key: str, value: str, salt: str = None) -> str:
         # Create new secret and hash it with 6 digits
         if salt:
             secret_hash_id = hash(f'{key}="{value}"{salt}'.encode()) % 1000000
         else:
             secret_hash_id = hash(f'{key}="{value}"'.encode()) % 1000000
-        __key = f'secret#{secret_hash_id}'
+        __key = f"secret#{secret_hash_id}"
         secrets = self.__secrets.model_dump()
-        secrets['secrets'][__key] = Secret(
-            secret_key=key,
-            secret_value=value,
-            salt=salt
+        secrets["secrets"][__key] = Secret(
+            secret_key=key, secret_value=value, salt=salt
         )
         self.__secrets = Secrets(**secrets)
         return __key
 
-
-    def put_secrets(self, salt: str = None, **kwargs: dict[str, str]):
+    def put_secrets(self, salt: str = None, **kwargs: dict[str, str]) -> list[str]:
         secrets = []
         for key, value in kwargs.items():
             if value:

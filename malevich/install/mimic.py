@@ -19,7 +19,7 @@ def mimic_package(package: str, metascript: str) -> tuple[bool, str]:
         metascript (str): The contents of the package.
 
     Returns:
-        A tuple containing a boolean indicating whether the package was 
+        A tuple containing a boolean indicating whether the package was
         created successfully, and the checksum of the package.
     """
     # Calculate the checksum of the package contents

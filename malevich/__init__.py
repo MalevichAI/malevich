@@ -7,7 +7,7 @@ import pandas as pd
 import malevich._autoflow.tracer as gn
 from malevich._autoflow.manager import Flow
 from malevich.constants import DEFAULT_CORE_HOST
-from malevich.interpreter.viacore import CoreInterpreter
+from malevich.interpreter.core import CoreInterpreter
 from malevich.models.collection import Collection
 from malevich.models.task import Task
 
@@ -59,8 +59,9 @@ def flow(
                     with Flow() as tree:
                         function(*args, **kwargs)
                         __tree = tree
-                    __interpreter = CoreInterpreter()
-                    return Task(__interpreter.interpret(__tree, core_host=core_host))
+                    __interpreter = CoreInterpreter(core_host=core_host)
+                    __task, __cfg = __interpreter.interpret(__tree)
+                    return Task(task_id=__task, cfg=__cfg)
                 case _:
                     raise NotImplementedError(
                         f"Interpreter {interpreter} is not implemented"

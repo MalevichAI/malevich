@@ -5,7 +5,7 @@ Welcome to [bold magenta]Malevich Metascript[/bold magenta]! This is a CLI tool 
 allows you to create and run multitask pipelines using [yellow]Malevich API[/yellow].
 \n _____ \n
 The tool includes[i] autoflow [/i]engine, that analyzes your code and turns it into a human-readable
-pipeline;[i] installers [/i]that enable you to populate your flow with a huge variety of pre-built 
+pipeline;[i] installers [/i]that enable you to populate your flow with a huge variety of pre-built
 components; and finally[i] interpreters [/i]that run your code on Malevich backend freeing you
 from installing any dependency.
 

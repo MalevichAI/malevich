@@ -8,13 +8,13 @@ class Registry(metaclass=SingletonMeta):
     def register(self, key: str, value: object) -> None:
         self._registry[key] = value
 
-    def get(self, key: str, default=None) -> object | None:
+    def get(self, key: str, default=None) -> object | None:  # noqa: ANN001
         return self._registry.get(key, default)
 
     def __getitem__(self, key: str) -> object:
         return self._registry[key]
 
-    def merge_keys(self, key: str, value: dict):
+    def merge_keys(self, key: str, value: dict) -> None:
         if key not in self._registry:
             self._registry[key] = {}
         if not isinstance(self._registry[key], dict):
