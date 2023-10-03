@@ -9,9 +9,9 @@ class Task:
     def task_id(self) -> str:
         return "" + self.__task_id
 
-    def run(self, *args, **kwargs):
+    def run(self, *args, **kwargs):  # noqa: ANN201, ANN002, ANN003
         task_run(self.__task_id, *args, **kwargs)
 
-    def stop(self, *args, **kwargs):
+    def stop(self, *args, **kwargs):  # noqa: ANN201, ANN002, ANN003
         task_stop(self.__task_id, *args, **kwargs)
 

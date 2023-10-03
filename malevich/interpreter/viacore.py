@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from malevich._autoflow.tracer import tracer
 from malevich._autoflow.tree import ExecutionTree
 from malevich._utility.registry import Registry
+from malevich.constants import DEFAULT_CORE_HOST
 from malevich.interpreter.abstract import Interpreter
 from malevich.manifest import ManifestManager
 
@@ -19,14 +20,14 @@ class CoreInterpreter(Interpreter):
         self,
         tree: ExecutionTree[tracer],
         core_auth: str = None,
-        core_host: str = "https://core.onjulius.co",
+        core_host: str = DEFAULT_CORE_HOST
     ) -> str:
         """Interprets the given execution tree using Malevich Core API
 
         Args:
             tree (ExecutionTree[tracer]): Execution tree to interpret
             core_auth (str, optional): Core authentication. Defaults to None.
-            core_host (str, optional): Core host. Defaults to "https://core.onjulius.co".
+            core_host (str, optional): Core host. Defaults to DEFAULT_CORE_HOST.
 
         Returns:
             str: Operation ID

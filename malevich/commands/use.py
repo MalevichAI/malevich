@@ -1,11 +1,12 @@
 import typer
 
+from malevich.constants import USE_HELP, USE_IMAGE_HELP
 from malevich.install.image import ImageInstaller
 from malevich.manifest import ManifestManager
 
-use = typer.Typer()
+use = typer.Typer(help=USE_HELP, rich_markup_mode="rich")
 
-@use.command('image')
+@use.command('image', help=USE_IMAGE_HELP)
 def install_from_image(
     image_ref: str = typer.Argument(
         ...,

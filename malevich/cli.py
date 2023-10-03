@@ -1,8 +1,9 @@
 import typer
 
 from malevich.commands.use import use as use_app
+from malevich.constants import APP_HELP
 
-app = typer.Typer()
+app = typer.Typer(help=APP_HELP, rich_markup_mode="rich")
 app.add_typer(use_app, name="use")
 
 
