@@ -1,4 +1,5 @@
 
+from enum import Enum
 from typing import Callable, Optional
 from uuid import uuid4
 
@@ -10,6 +11,15 @@ from malevich.constants import DEFAULT_CORE_HOST
 from malevich.interpreter.core import CoreInterpreter
 from malevich.models.collection import Collection
 from malevich.models.task import Task
+
+
+class Platform(Enum):
+  CORE = "CORE"
+  SPACE = "SPACE"
+
+
+Core = Platform.CORE
+Space = Platform.SPACE
 
 
 def collection(
@@ -47,14 +57,14 @@ def collection(
 
 
 def flow(
-    interpreter: Optional[str] = None,
+    interpreter: Optional[Platform] = None,
     core_host: Optional[str] = DEFAULT_CORE_HOST
 ) -> Callable[[], str]:
 
     def wrapper(function: Callable[[], None]) -> Callable[[], str]:
         def fn(*args, **kwargs):  # noqa: ANN202, ANN002, ANN003
             match (interpreter):
-                case 'core':
+                case Platform.CORE:
                     __tree = None
                     with Flow() as tree:
                         function(*args, **kwargs)
