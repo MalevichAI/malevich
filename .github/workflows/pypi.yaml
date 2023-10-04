@@ -16,6 +16,10 @@ jobs:
             build
             setuptools
       - run: |
-          'python -m build' 
+          python -V
       - run: |
-          'python -m twine upload -u ${{secrets.PYPI_USER}} -p ${{secrets.PYPI_PASSWORD}} dist/* '
+          pip freeze
+      - run: |
+          python -m build
+      - run: |
+          python -m twine upload -u ${{secrets.PYPI_USER}} -p ${{secrets.PYPI_PASSWORD}} dist/* 
