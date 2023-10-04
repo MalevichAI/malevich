@@ -14,4 +14,4 @@ jobs:
       - run: |
           'python3 -m build --outdir dist/ .' 
       - run: |
-          'python3 -m twine upload -u ${{secrets.PYPI_USER}} -p ${{PYPI_PASSWORD}} dist/* '
+          'python3 -m twine upload -u ${{secrets.PYPI_USER}} -p ${{secrets.PYPI_PASSWORD}} dist/* '
