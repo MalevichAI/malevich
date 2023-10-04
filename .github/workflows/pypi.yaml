@@ -1,0 +1,17 @@
+name: PYPI
+on: push
+jobs:
+  build_and_push:
+    name: Build pip package and push to PYPI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - run: |
+          'pip install --upgrade twine build'
+      - run: |
+          'python3 -m build --outdir dist/ .' 
+      - run: |
+          'python3 -m twine upload -u ${{secrets.PYPI_USER}} -p ${{PYPI_PASSWORD}} dist/* '
