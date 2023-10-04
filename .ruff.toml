@@ -1,0 +1,2 @@
+select=["E", "F", "I", "W", "N", "UP", "ANN"]
+ignore=["ANN101"]

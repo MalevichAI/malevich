@@ -1,0 +1,6 @@
+__pycache__/
+.ruff_cache
+malevich.egg-info
+build/
+.vscode/
+.pytest_cache/

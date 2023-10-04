@@ -1,0 +1,5 @@
+typer[all]
+pydantic
+jls-utils
+pandas
+pydantic-yaml
