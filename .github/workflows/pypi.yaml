@@ -1,0 +1,27 @@
+name: PYPI
+on: 
+  push: 
+    branches: [main]
+jobs:
+  build_and_push:
+    name: Build pip package and push to PYPI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - uses: BSFishy/pip-action@v1
+        with: 
+          packages: |
+            twine
+            build
+            setuptools
+      - run: |
+          python -V
+      - run: |
+          pip freeze
+      - run: |
+          python -m build
+      - run: |
+          python -m twine upload -u ${{secrets.PYPI_USER}} -p ${{secrets.PYPI_PASSWORD}} dist/*
