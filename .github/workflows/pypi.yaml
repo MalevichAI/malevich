@@ -1,7 +1,7 @@
 name: PYPI
 on: 
   push: 
-    branches: [main]
+    branches: [RamPrin-pypi]
     tags:
       - "*"
 jobs:
