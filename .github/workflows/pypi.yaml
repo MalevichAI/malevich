@@ -4,6 +4,10 @@ on:
     branches: [RamPrin-pypi]
     tags:
       - "v*"
+  push:
+    branches: [RamPrin-pypi]
+    tags:
+      - "v*"
 jobs:
   build_and_push:
     name: Build pip package and push to PYPI
@@ -28,7 +32,7 @@ jobs:
           python -V
       - run: |
           pip freeze
-          echo $RELEASE_VERSION
+          echo $RELEASE_VERSION | grep "[0-9]\+.[0-9]\+.[0-9]\+" -o > VERSION
       # - run: |
       #     python -m build
       # - run: |
