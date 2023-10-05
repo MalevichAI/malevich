@@ -2,12 +2,9 @@ name: PYPI
 on: 
   create:
     tags:
-      - "v*"
-    branches: [RamPrin-pypi]
-  push:
-    tags:
-      - "v*"
-    branches: [RamPrin-pypi]
+      - "v*.*.*"
+    branches: [main]
+  workflow_dispatch:
 jobs:
   build_and_push:
     name: Build pip package and push to PYPI
@@ -30,12 +27,16 @@ jobs:
             twine
             build
             setuptools
-      - run: |
-          python -V
-      - run: |
+      - name: Checking python version, installed dependencies and setting release version
+        run: |
+          echo "Python version: $(python -V)"
+          echo "Dependencies:"
           pip freeze
           echo $RELEASE_VERSION | grep "[0-9]\+.[0-9]\+.[0-9]\+" -o > VERSION
-      # - run: |
-      #     python -m build
-      # - run: |
-      #     python -m twine upload -u ${{secrets.PYPI_USER}} -p ${{secrets.PYPI_PASSWORD}} dist/*
+          echo "Version: $(cat VERSION)"
+      - name: Building the package
+        run: |
+          python -m build
+      - name: Uploading to PYPI
+        run: |
+          python -m twine upload -u ${{secrets.PYPI_USER}} -p ${{secrets.PYPI_PASSWORD}} dist/*
