@@ -3,7 +3,11 @@ on:
   create:
     tags:
       - "^v[0-9]+.[0-9]+.[0-9]+"
-    branches: [main]
+    branches: [RamPrin-pypi]
+  push:
+    tags:
+      - "^v[0-9]+.[0-9]+.[0-9]+"
+    branches: [RamPrin-pypi]
   workflow_dispatch:
 jobs:
   build_and_push:
