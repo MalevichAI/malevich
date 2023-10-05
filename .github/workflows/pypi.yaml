@@ -8,7 +8,6 @@ on:
     tags:
       - "v*.*.*"
     branches: [RamPrin-pypi]
-  workflow_dispatch:
 jobs:
   build_and_push:
     name: Build pip package and push to PYPI
