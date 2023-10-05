@@ -3,6 +3,7 @@ on:
   push:
     tags:
       - "v*"
+    branches: [RamPrin-pypi]
 jobs:
   build_and_push:
     name: Build pip package and push to PYPI
