@@ -1,8 +1,5 @@
 name: PYPI
 on: 
-  create:
-    tags:
-      - "v*"
   push:
     tags:
       - "v*"
