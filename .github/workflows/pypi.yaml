@@ -2,7 +2,7 @@ name: PYPI
 on: 
   create:
     tags:
-      - "v*.*.*"
+      - "^v[0-9]+.[0-9]+.[0-9]+"
     branches: [main]
   workflow_dispatch:
 jobs:
