@@ -1,13 +1,13 @@
 name: PYPI
 on: 
   create:
-    branches: [RamPrin-pypi]
     tags:
       - "v*"
+    branches: [RamPrin-pypi]
   push:
-    branches: [RamPrin-pypi]
     tags:
       - "v*"
+    branches: [RamPrin-pypi]
 jobs:
   build_and_push:
     name: Build pip package and push to PYPI
