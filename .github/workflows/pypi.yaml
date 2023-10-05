@@ -3,11 +3,12 @@ on:
   create:
     tags:
       - "v*.*.*"
-    branches: [RamPrin-pypi]
+    branches:
+      ignore: "*"
   push:
     tags:
       - "v*.*.*"
-    branches: [RamPrin-pypi]
+    branches-ignore: "*"
 jobs:
   build_and_push:
     name: Build pip package and push to PYPI
