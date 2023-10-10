@@ -8,6 +8,7 @@ import json
 from uuid import uuid4
 
 import jls_utils as j
+from malevich.constants import DEFAULT_CORE_HOST
 
 from malevich.install.installer import Installer
 from malevich.install.mimic import mimic_package
@@ -84,32 +85,12 @@ def {name}({args}, config: dict = {{}}):
 class ImageInstaller(Installer):
     """Installs package using Docker image"""
 
-    def __init__(
-        self,
-        package_name: str,
-        image_ref: str,
-        image_auth: tuple[str, str],
-        core_host: str = "https://core.onjulius.co/",
-        core_auth: tuple[str, str] = None,
-    ) -> None:
-        """
-        Args:
-            package_name: Name of the package to be created
-            image_ref: Docker image reference
-            image_auth: Docker image credentials
-            core_host: Core host
-            core_auth: Core credentials
-        """
-        super().__init__()
-        self.__package_name = package_name
-        self.__core_host = core_host
-        self.__core_auth = core_auth
-        self.__image_ref = image_ref
-        self.__image_auth = image_auth
-
     @staticmethod
     def _scan_core(
-        core_auth: str, core_host: str, image_ref: str, image_auth: tuple[str, str]
+        core_auth: tuple[str, str],
+        core_host: str,
+        image_ref: str,
+        image_auth: tuple[str, str],
     ) -> j.abstract.AppFunctionsInfo:
         """Scans Core for image info
 
@@ -119,7 +100,7 @@ class ImageInstaller(Installer):
             image_ref: Docker image reference
             image_auth: Docker image credentials
         """
-        j.set_host_port(core_host)
+        j.set_host_port(core_host or DEFAULT_CORE_HOST)
         if core_auth is None:
             user, pass_ = uuid4().hex, uuid4().hex
             j.create_user(
@@ -150,16 +131,18 @@ class ImageInstaller(Installer):
         except AssertionError as err_assert:
             raise Exception(
                 f"Can't get info for image {image_ref}. Check that "
-                "host, port, core credentials are correct and user exists. "
+                "host, port, core credentials are correct and user exists.\n"
                 f"Error: {err_assert}"
             )
         except Exception as err:
             raise Exception(
                 f"Can't get info for image {image_ref}. Check that "
-                "image exists and credentials are correct."
+                "image exists and credentials are correct.\n"
                 f"Error: {err}"
             )
         else:
+            if core_auth is None:
+                j.delete_user((user, pass_))
             return info
 
     @staticmethod
@@ -186,8 +169,6 @@ class ImageInstaller(Installer):
                 if "type" in v.keys()
             }
 
-            # pseudo_dict = '{' + ', '.join([f'"{k}": ({v}, None)' for k, v in
-            # field_types.items() if k and v]) + '}'
             schema_definition = "\n".join(
                 [f"\t{k}: {v} = None" for k, v in field_types.items() if k and v]
             )
@@ -255,37 +236,47 @@ class ImageInstaller(Installer):
 
         return contents, indexed_operations
 
-    def install(self, *args, **kwargs) -> ImageDependency:  # noqa: ANN003, ANN002
+    def install(
+        self,
+        package_name: str,
+        image_ref: str,
+        image_auth: tuple[str, str],
+        core_host: str = DEFAULT_CORE_HOST,
+        core_auth: tuple[str, str] = None,
+    ) -> ImageDependency:
         app_info = ImageInstaller._scan_core(
-            self.__core_auth, self.__core_host, self.__image_ref, self.__image_auth
+            core_auth=core_auth,
+            core_host=core_host,
+            image_ref=image_ref,
+            image_auth=image_auth,
         )
         checksum = hashlib.sha256(app_info.model_dump_json().encode()).hexdigest()
         metascript, operations = ImageInstaller.create_operations(
-            app_info, self.__package_name
+            app_info, package_name
         )
 
         mimic_package(
-            self.__package_name,
+            package_name,
             metascript,
         )
 
         m = ManifestManager()
         iauth_user, iauth_pass, cauth_user, cauth_token, iref = m.put_secrets(
-            image_auth_user=self.__image_auth[0],
-            image_auth_password=self.__image_auth[1],
-            core_auth_user=self.__core_auth[0] if self.__core_auth else None,
-            core_auth_token=self.__core_auth[1] if self.__core_auth else None,
-            image_ref=self.__image_ref,
+            image_auth_user=image_auth[0],
+            image_auth_password=image_auth[1],
+            core_auth_user=core_auth[0] if core_auth else None,
+            core_auth_token=core_auth[1] if core_auth else None,
+            image_ref=image_ref,
             salt=checksum,
         )
 
         return ImageDependency(
-            package_id=self.__package_name,
+            package_id=package_name,
             version="",
             installer="image",
             options=ImageOptions(
                 checksum=checksum,
-                core_host=self.__core_host,
+                core_host=core_host,
                 core_auth_token=cauth_token,
                 core_auth_user=cauth_user,
                 image_auth_user=iauth_user,
@@ -294,3 +285,21 @@ class ImageInstaller(Installer):
                 operations=operations,
             ),
         )
+
+    def restore(self, dependency: ImageDependency) -> None:
+        return self.install(
+            package_name=dependency.package_id,
+            image_ref=dependency.options.image_ref,
+            image_auth=(
+                dependency.options.image_auth_user,
+                dependency.options.image_auth_pass
+            ),
+            core_host=dependency.options.core_host,
+            core_auth=(
+                dependency.options.core_auth_user,
+                dependency.options.core_auth_token
+            ),
+        )
+
+    def construct_dependency(self, object: dict) -> ImageDependency:
+        return ImageDependency(**object)

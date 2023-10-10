@@ -9,6 +9,7 @@ import malevich._autoflow.tracer as gn
 from malevich._autoflow.manager import Flow
 from malevich.constants import DEFAULT_CORE_HOST
 from malevich.interpreter.core import CoreInterpreter
+from malevich.manifest import ManifestManager
 from malevich.models.collection import Collection
 from malevich.models.task import Task
 
@@ -77,6 +78,8 @@ def flow(
                         f"Interpreter {interpreter} is not implemented"
                     )
         return fn
-
     return wrapper
+
+
+manifest = ManifestManager()
 

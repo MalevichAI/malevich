@@ -1,5 +1,6 @@
 import os
 import re
+from copy import deepcopy
 from typing import Any, Iterable
 
 import pydantic_yaml as pydml
@@ -9,6 +10,14 @@ from malevich.models.manifest import Manifest, Secret, Secrets
 
 
 class ManifestManager(metaclass=SingletonMeta):
+    @staticmethod
+    def secret_pattern() -> str:
+        return r"secret#[0-9]{1,6}"
+
+    @staticmethod
+    def is_secret(value: str) -> bool:
+        return re.match(ManifestManager.secret_pattern(), value) is not None
+
     def __init__(self) -> None:
         self.__path = os.path.join(os.getcwd(), "malevich.yaml")
         self.__secrets_path = os.path.join(os.getcwd(), "malevich.secrets.yaml")
@@ -47,7 +56,7 @@ class ManifestManager(metaclass=SingletonMeta):
         finally:
             self.__manifest = pydml.parse_yaml_file_as(Manifest, self.__path)
 
-        self.__secrets = self.cleanup_secrets()
+        # self.__secrets = self.cleanup_secrets()
         pydml.to_yaml_file(self.__secrets_path, self.__secrets)
         self.__secrets = pydml.parse_yaml_file_as(Secrets, self.__secrets_path)
 
@@ -124,6 +133,15 @@ class ManifestManager(metaclass=SingletonMeta):
         cursor = dump
         for q in pre:
             if isinstance(cursor, list):
+                try:
+                    q = int(q)
+                    __cursor = cursor[q]
+                except ValueError:
+                    pass
+                else:
+                    cursor = __cursor
+                    continue
+
                 for i, _c in enumerate(cursor):
                     if q in _c:
                         cursor = cursor[i][q]
@@ -132,7 +150,6 @@ class ManifestManager(metaclass=SingletonMeta):
                     cursor.append({})
                     cursor = cursor[-1]
                     continue
-                raise ValueError(f"Cannot find key {q} in list")
             if q not in cursor:
                 cursor[q] = {}
             cursor = cursor[q]
@@ -153,7 +170,13 @@ class ManifestManager(metaclass=SingletonMeta):
         self.save()
         return self.__manifest
 
-    def put_secret(self, key: str, value: str, salt: str = None) -> str:
+    def put_secret(
+        self,
+        key: str,
+        value: str,
+        salt: str = None,
+        external: bool = False
+    ) -> str:
         # Create new secret and hash it with 6 digits
         if salt:
             secret_hash_id = hash(f'{key}="{value}"{salt}'.encode()) % 1000000
@@ -162,7 +185,7 @@ class ManifestManager(metaclass=SingletonMeta):
         __key = f"secret#{secret_hash_id}"
         secrets = self.__secrets.model_dump()
         secrets["secrets"][__key] = Secret(
-            secret_key=key, secret_value=value, salt=salt
+            secret_key=key, secret_value=value, salt=salt, external=external
         )
         self.__secrets = Secrets(**secrets)
         return __key
@@ -178,3 +201,10 @@ class ManifestManager(metaclass=SingletonMeta):
 
     def query_secret(self, key: str) -> Secret | None:
         return self.__secrets.secrets.get(key, None)
+
+    def as_dict(self) -> dict[str,]:
+        return deepcopy(self.__manifest.model_dump())
+
+    def get_secrets(self) -> Secrets:
+        return deepcopy(self.__secrets.model_dump())
+

@@ -27,6 +27,7 @@ class Secret(BaseModel):
     secret_key: str
     secret_value: str
     salt: Optional[str] = None
+    external: Optional[bool] = False
 
 class Secrets(BaseModel):
     secrets: dict[str, Secret] = {}
