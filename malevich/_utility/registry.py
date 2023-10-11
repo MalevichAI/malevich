@@ -1,5 +1,5 @@
 
-from malevich._utility.singleton import SingletonMeta
+from .._utility.singleton import SingletonMeta
 
 
 class Registry(metaclass=SingletonMeta):

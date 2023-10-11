@@ -4,8 +4,8 @@ from typing import Any, Generic, Iterable, TypeVar, Union
 
 from pydantic import BaseModel, Field
 
-from malevich._autoflow.manager import Flow
-from malevich._autoflow.tree import ExecutionTree
+from .manager import Flow
+from .tree import ExecutionTree
 
 
 class root(BaseModel):   # noqa: N801

@@ -16,8 +16,7 @@ class ExecutionTree(Generic[T]):
         Returns:
             Generator[T]: Generator of nodes
         """
-        # Determenistic order of traversal
-        graph = [*sorted(self.tree, key=lambda x: hash(x))]
+        graph = self.tree
         # Mark visited nodes
         visited = [False] * len(graph)
 

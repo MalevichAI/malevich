@@ -9,7 +9,6 @@ from malevich._utility.registry import Registry
 from malevich.constants import DEFAULT_CORE_HOST
 from malevich.interpreter.abstract import Interpreter
 from malevich.manifest import ManifestManager
-from malevich.models.anomaly import DetectedAnomalyError, MultipleLeaves
 
 
 class CoreInterpreterState:
@@ -30,6 +29,8 @@ class CoreInterpreterState:
         self.collections: dict[str, str] = {}
         # Uploaded operations (key: operation_id, value: core_op_id)
         self.core_ops: dict[str, str] = {}
+        # Interpreter parameters
+        self.params: dict[str, Any] = {}
 
 
 class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
@@ -41,6 +42,11 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         super().__init__(CoreInterpreterState())
         self.__core_host = core_host
         self.__core_auth = core_auth
+        self._state.params["core_host"] = core_host
+        self._state.params["core_auth"] = core_auth
+
+        self.update_state()
+
 
     def create_node(
         self, state: CoreInterpreterState, tracer: tracer[tuple[str, dict]]
@@ -68,6 +74,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
             self.__core_auth = (uuid.uuid4().hex, uuid.uuid4().hex)
             jls.create_user(self.__core_auth)
         jls.update_core_credentials(self.__core_auth[0], self.__core_auth[1])
+        state.params["core_auth"] = self.__core_auth
         return state
 
     def after_interpret(self, state: CoreInterpreterState) -> CoreInterpreterState:
@@ -76,19 +83,19 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                 __app = state.reg.get(operation_id)
                 image_auth_user = state.manf.query(
                     *__app["image_auth_user"], resolve_secrets=True
-                ).secret_value
+                )
 
                 image_auth_pass = state.manf.query(
                     *__app["image_auth_pass"], resolve_secrets=True
-                ).secret_value
+                )
 
                 image_ref = state.manf.query(
                     *__app["image_ref"], resolve_secrets=True
-                ).secret_value
+                )
 
                 extra_colls = {}
 
-                for dependency, link in state.depends[id]:
+                for dependency, (link, _) in state.depends[id]:
                     if dependency in state.collections:
                         coll, __id = state.collections[dependency]
                         state.cfg.collections = {
@@ -123,19 +130,21 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         for id, core_id in sorted(
             state.core_ops.items(), key=lambda x: len(state.depends[x[0]])
         ):
+            depends = state.depends[id]
+            depends.sort(key=lambda x: x[1][1])
+            depends = [
+                state.core_ops[x[0]]
+                for x in depends
+                if x[0] in state.core_ops
+            ]
+
             jls.create_task(
                 task_id=core_id,
                 app_id=core_id,
-                tasks_depends=[
-                    state.core_ops[x[0]]
-                    for x in state.depends[id]
-                    if x[0] in state.core_ops
-                ],
+                tasks_depends=depends
             )
 
         __cfg = uuid.uuid4().hex
         jls.create_cfg(__cfg, state.cfg)
         leaves = [*self._tree.leaves()]
-        if len(leaves) > 1:
-            raise DetectedAnomalyError(MultipleLeaves())
         return state.core_ops[leaves[0].owner[0]], __cfg

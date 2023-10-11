@@ -8,12 +8,12 @@ import json
 from uuid import uuid4
 
 import jls_utils as j
-from malevich.constants import DEFAULT_CORE_HOST
 
-from malevich.install.installer import Installer
-from malevich.install.mimic import mimic_package
-from malevich.manifest import ManifestManager
-from malevich.models.installers.image import ImageDependency, ImageOptions
+from ..constants import DEFAULT_CORE_HOST
+from ..install.installer import Installer
+from ..install.mimic import mimic_package
+from ..manifest import ManifestManager
+from ..models.installers.image import ImageDependency, ImageOptions
 
 _pydantic_types = {
     "string": str.__name__,
@@ -261,12 +261,11 @@ class ImageInstaller(Installer):
         )
 
         m = ManifestManager()
-        iauth_user, iauth_pass, cauth_user, cauth_token, iref = m.put_secrets(
+        iauth_user, iauth_pass, cauth_user, cauth_token = m.put_secrets(
             image_auth_user=image_auth[0],
             image_auth_password=image_auth[1],
             core_auth_user=core_auth[0] if core_auth else None,
             core_auth_token=core_auth[1] if core_auth else None,
-            image_ref=image_ref,
             salt=checksum,
         )
 
@@ -281,24 +280,27 @@ class ImageInstaller(Installer):
                 core_auth_user=cauth_user,
                 image_auth_user=iauth_user,
                 image_auth_pass=iauth_pass,
-                image_ref=iref,
+                image_ref=image_ref,
                 operations=operations,
             ),
         )
 
     def restore(self, dependency: ImageDependency) -> None:
+        core_user = dependency.options.core_auth_user
+        core_token = dependency.options.core_auth_token
+
         return self.install(
             package_name=dependency.package_id,
             image_ref=dependency.options.image_ref,
             image_auth=(
-                dependency.options.image_auth_user,
-                dependency.options.image_auth_pass
+                dependency.options.image_auth_user or "",
+                dependency.options.image_auth_pass or ""
             ),
             core_host=dependency.options.core_host,
             core_auth=(
-                dependency.options.core_auth_user,
-                dependency.options.core_auth_token
-            ),
+                core_user,
+                core_token,
+            ) if core_user and core_token else None,
         )
 
     def construct_dependency(self, object: dict) -> ImageDependency:

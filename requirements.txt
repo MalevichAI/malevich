@@ -1,5 +1,5 @@
 typer[all]
 pydantic
-jls-utils
+jls-utils>=0.1.35
 pandas
 pydantic-yaml

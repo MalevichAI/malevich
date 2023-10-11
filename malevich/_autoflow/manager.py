@@ -1,6 +1,6 @@
 from typing import Iterable
 
-from malevich._autoflow.tree import ExecutionTree
+from .tree import ExecutionTree
 
 
 class Flow:

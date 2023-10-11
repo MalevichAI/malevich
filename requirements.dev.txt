@@ -6,3 +6,4 @@ pre-commit
 pytest
 ruff
 pydantic-yaml
+jls-utils>=0.1.35

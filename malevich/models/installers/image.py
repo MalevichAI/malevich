@@ -2,14 +2,15 @@ from typing import Optional
 
 from pydantic import BaseModel
 
+from malevich.constants import DEFAULT_CORE_HOST
 from malevich.models.manifest import Dependency
 
 
 class ImageOptions(BaseModel):
     image_ref: str
-    image_auth_user: str
-    image_auth_pass: str
-    core_host: str
+    image_auth_user: Optional[str]
+    image_auth_pass: Optional[str]
+    core_host: Optional[str] = DEFAULT_CORE_HOST
     core_auth_user: Optional[str]
     core_auth_token: Optional[str]
     checksum: str

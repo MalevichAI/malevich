@@ -65,7 +65,7 @@ def scan(
         rich.print(DISCLAIMER)
 
 
-@secrets.command("fix")
+@secrets.command("restore")
 def fix() -> None:
     manf = ManifestManager()
     flat = flatdict(manf.as_dict())
@@ -90,6 +90,13 @@ def fix() -> None:
         rich.print(f"\n[green]Secret updated: [/green] {secret[1]} -> {secret_key}\n")
 
 
+@app.command("query")
+def query(path: list[str], resolve_secrets: bool = False) -> None:
+    __q = ManifestManager().query(*path, resolve_secrets=resolve_secrets)
+    if __q is None:
+        rich.print("[red]Not found[/red]")
+    else:
+        rich.print(__q)
 
 
 app.add_typer(secrets, name="secrets")

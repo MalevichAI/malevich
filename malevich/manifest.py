@@ -121,7 +121,7 @@ class ManifestManager(metaclass=SingletonMeta):
             and isinstance(cursor, str)
             and re.match(r"^secret#[0-9]{1,6}", cursor)
         ):
-            return self.query_secret(cursor)
+            return self.query_secret(cursor).secret_value
         return cursor
 
     def put(
@@ -199,8 +199,11 @@ class ManifestManager(metaclass=SingletonMeta):
                 secrets.append(None)
         return secrets
 
-    def query_secret(self, key: str) -> Secret | None:
-        return self.__secrets.secrets.get(key, None)
+    def query_secret(self, key: str, only_value: bool = False) -> Secret | None:
+        _s =  self.__secrets.secrets.get(key, None)
+        if _s and only_value:
+            return _s.secret_value
+        return _s
 
     def as_dict(self) -> dict[str,]:
         return deepcopy(self.__manifest.model_dump())

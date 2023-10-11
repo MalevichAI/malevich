@@ -1,9 +1,8 @@
 """Installer interface."""
 
 from abc import ABC, abstractmethod
-from typing import Any
 
-from malevich.models.manifest import Dependency
+from ..models.manifest import Dependency
 
 
 class Installer(ABC):
