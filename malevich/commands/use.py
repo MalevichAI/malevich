@@ -1,7 +1,6 @@
 from typing import Annotated
 
 import typer
-from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from ..constants import DEFAULT_CORE_HOST, IMAGE_BASE, USE_HELP, USE_IMAGE_HELP
 from ..install.image import ImageInstaller
