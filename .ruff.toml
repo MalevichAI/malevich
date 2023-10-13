@@ -1,0 +1,5 @@
+select=["E", "F", "I", "W", "N", "UP", "ANN"]
+ignore=["ANN101"]
+
+[per-file-ignores]
+"__init__.py" = ["E402", "F", "I"]
