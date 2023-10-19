@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Any
 
 from malevich.models.types import FlowOutput
 
@@ -18,7 +17,7 @@ class BaseTask(ABC):
         return
 
     @abstractmethod
-    def results(self) -> None:
+    def results(self):  # noqa: ANN201
         return
 
     @abstractmethod
@@ -26,7 +25,7 @@ class BaseTask(ABC):
         return
 
 
-    def __call__(self) -> Any:
+    def __call__(self):  # noqa: ANN204
         self.prepare()
         self.run()
         self.stop()

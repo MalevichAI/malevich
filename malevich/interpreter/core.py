@@ -147,7 +147,9 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                 state.collections[op.uuid] = (collection_ref, uploaded_core_id)
         return state
 
-    def get_task(self, state: CoreInterpreterState) -> InterpretedTask[CoreInterpreterState]:
+    def get_task(
+        self, state: CoreInterpreterState
+    ) -> InterpretedTask[CoreInterpreterState]:
         task_kwargs = []
         config_kwargs = []
 
@@ -179,7 +181,9 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         core.create_cfg(__cfg, state.cfg)
         leaves = [*self._tree.leaves()]
 
-        def prepare(task: InterpretedTask[CoreInterpreterState], *args, **kwargs) -> None:
+        def prepare(
+            task: InterpretedTask[CoreInterpreterState], *args, **kwargs
+        ) -> None:
             for _kwargs in task_kwargs:
                 core.create_task(**_kwargs)
 

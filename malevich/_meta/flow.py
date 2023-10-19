@@ -1,10 +1,8 @@
 from functools import wraps
-from typing import Callable, Union
+from typing import Callable
 
 from .._autoflow.flow import Flow
-from .._autoflow.tracer import traced
 from .._utility.registry import Registry
-from ..models.nodes import TreeNode
 from ..models.task import PromisedTask
 
 reg = Registry()

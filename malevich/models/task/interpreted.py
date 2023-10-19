@@ -13,7 +13,7 @@ class InterpretedTask(Generic[State], BaseTask):
        prepare: Callable[['InterpretedTask'], State],
        run: Callable[['InterpretedTask'], None],
        stop: Callable[['InterpretedTask'], None],
-       results: Callable[['InterpretedTask', FlowOutput], Union[Iterable[pd.DataFrame], pd.DataFrame, None]],
+       results: Callable[['InterpretedTask', FlowOutput], Union[Iterable[pd.DataFrame], pd.DataFrame, None]],  # noqa: E501
        state: State,
        returned: FlowOutput = None,
    ) -> None:
@@ -33,10 +33,10 @@ class InterpretedTask(Generic[State], BaseTask):
     def stop(self) -> None:
         self.__stop(self)
 
-    def results(self):
+    def results(self):  # noqa: ANN201
         return self.__results(self, self.__returned)
 
-    def commit_returned(self, returned: FlowOutput):
+    def commit_returned(self, returned: FlowOutput):  # noqa: ANN201
         self.__returned = returned
 
     def __call__(self) -> Union[Iterable[pd.DataFrame], pd.DataFrame, None]:
