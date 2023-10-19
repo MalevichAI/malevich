@@ -4,8 +4,11 @@ from typing import Any, Generic, Iterable, Iterator, TypeVar
 T = TypeVar("T")
 
 class ExecutionTree(Generic[T]):
-    tree: list[tuple[T, T]] = []
+    tree: list[tuple[T, T, Any]] = []
 
+    def __init__(self, tree: list[tuple[T, T, Any]] = None) -> None:
+        if tree is not None:
+            self.tree = tree
 
     def put_edge(self, caller: T, callee: T, link: Any = None) -> None:  # noqa: ANN401
         self.tree.append((caller, callee, link))
@@ -33,7 +36,11 @@ class ExecutionTree(Generic[T]):
             q.append((i, r,))
 
         while q:
-            j, node = q.pop()
+            j, node = q.popleft()
+
+            if visited[j]:
+                continue
+
             yield node
             visited[j] = True
 
@@ -50,3 +57,13 @@ class ExecutionTree(Generic[T]):
             x[1] for x in self.traverse()
             if not any(y[0] == x[1] for y in self.tree)
         )
+
+
+    @staticmethod
+    def connected(a: 'ExecutionTree', b: 'ExecutionTree') -> bool:
+        return any(
+            x[0] == b and x[1] == a for x in a.traverse()
+        ) or any(
+            x[0] == a and x[1] == b for x in b.traverse()
+        )
+

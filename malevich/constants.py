@@ -1,4 +1,4 @@
-from malevich.models.platform import Platform
+from .models.platform import Platform
 
 DEFAULT_CORE_HOST = "https://core.malevich.ai"
 

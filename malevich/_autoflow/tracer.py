@@ -4,7 +4,7 @@ from typing import Any, Generic, Iterable, TypeVar, Union
 
 from pydantic import BaseModel, Field
 
-from .manager import Flow
+from .flow import Flow
 from .tree import ExecutionTree
 
 
@@ -36,11 +36,11 @@ class autoflow(Generic[T]):  # noqa: N801
     def attach(self, component: T) -> None:
         self._component_ref = component
 
-    def calledby(self, caller: 'tracer', argument: str = None) -> None:
+    def calledby(self, caller: 'traced', argument: str = None) -> None:
         self._tree_ref.put_edge(self._component_ref, caller, argument)
 
 
-class tracer(Generic[T]):  # noqa: N801
+class traced(Generic[T]):  # noqa: N801
     """Tracer is a special object that is used to track the execution of the pipeline"""
     def __init__(
         self,
@@ -57,9 +57,24 @@ class tracer(Generic[T]):  # noqa: N801
     def owner(self) -> T:
         return self._owner
 
+    def __str__(self) -> str:
+        if not isinstance(self.owner, traced):
+            return f'{self.owner.__str__()}ᵗ'
+        else:
+            raise RuntimeError(
+                "Traced object is not supposed to be nested"
+            )
+
+    def __repr__(self) -> str:
+        if not isinstance(self.owner, traced):
+            return f'{self.owner.__repr__()[1:-1]}ᵗ'
+        else:
+            raise RuntimeError(
+                "Traced object is not supposed to be nested"
+            )
 
 
-class multitracer(tracer, list[T], Generic[T]):   # noqa: N801
+class multitracer(traced, list[T], Generic[T]):   # noqa: N801
     """Multitracer is a tracer for collections"""
     def __init__(
         self,
@@ -70,10 +85,10 @@ class multitracer(tracer, list[T], Generic[T]):   # noqa: N801
         super().__init__(owner)
 
 
-def trace(x: T) -> Union[tracer[T], T]:
+def trace(x: T) -> Union[traced[T], T]:
     """Create a hidden tracer for the given object"""
     if isinstance(x, list):
         return multitracer.__init__(x)
     else:
-        tracer.__init__(x)
+        traced.__init__(x)
     return x

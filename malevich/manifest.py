@@ -5,8 +5,8 @@ from typing import Any, Iterable
 
 import pydantic_yaml as pydml
 
-from malevich._utility.singleton import SingletonMeta
-from malevich.models.manifest import Manifest, Secret, Secrets
+from ._utility.singleton import SingletonMeta
+from .models.manifest import Manifest, Secret, Secrets
 
 
 class ManifestManager(metaclass=SingletonMeta):
@@ -200,7 +200,7 @@ class ManifestManager(metaclass=SingletonMeta):
         return secrets
 
     def query_secret(self, key: str, only_value: bool = False) -> Secret | None:
-        _s =  self.__secrets.secrets.get(key, None)
+        _s =  self.__secrets.secrets.get(key, key)
         if _s and only_value:
             return _s.secret_value
         return _s

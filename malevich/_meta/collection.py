@@ -5,13 +5,14 @@ import pandas as pd
 
 from .._autoflow import tracer as gn  # engine
 from ..models.collection import Collection
+from ..models.nodes import CollectionNode
 
 
 def collection(
     name: Optional[str] = None,
     file: Optional[str] = None,
     data: Optional[pd.DataFrame] = None
-) -> Collection:
+) -> gn.traced[CollectionNode]:
     """Creates a collection from a file or a dataframe
 
     Args:
@@ -33,8 +34,8 @@ def collection(
         data = pd.read_csv(file)
 
     name = name or uuid4().hex
-
-    return gn.tracer((name, {
-            '__collection__': Collection(collection_id=name, collection_data=data),
-        }
-    ))
+    return gn.traced(
+        CollectionNode(
+            collection=Collection(collection_id=name, collection_data=data)
+        )
+    )
