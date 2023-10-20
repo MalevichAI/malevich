@@ -1,0 +1,40 @@
+name: PYPI
+on: 
+  push:
+    tags:
+      - "v*"
+jobs:
+  build_and_push:
+    name: Build pip package and push to PYPI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checking Repository
+        uses: actions/checkout@v3
+      - name: Setting env variable "RELEASE_VERSION"
+        run: |
+          echo "${GITHUB_REF#refs/*/}"
+          echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+      - name: Installing Pyhton 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Installing dependencies
+        uses: BSFishy/pip-action@v1
+        with: 
+          packages: |
+            twine
+            build
+            setuptools
+      - name: Checking python version, installed dependencies and setting release version
+        run: |
+          echo "Python version: $(python -V)"
+          echo "Dependencies:"
+          pip freeze
+          echo $RELEASE_VERSION | grep "[0-9]\+.[0-9]\+.[0-9]\+" -o > VERSION
+          echo "Version: $(cat VERSION)"
+      - name: Building the package
+        run: |
+          python -m build
+      - name: Uploading to PYPI
+        run: |
+          python -m twine upload -u ${{secrets.PYPI_USER}} -p ${{secrets.PYPI_PASSWORD}} dist/*
