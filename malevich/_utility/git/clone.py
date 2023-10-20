@@ -69,7 +69,6 @@ def clone_python_files(
         if file.endswith(".py")
     ]
 
-
 def clone(
     link: str,
     auth: tuple[str, str] = None,
