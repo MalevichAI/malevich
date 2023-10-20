@@ -101,7 +101,7 @@ class ImageInstaller(Installer):
         if core_auth is None:
             user, pass_ = uuid4().hex, uuid4().hex
             core.create_user(
-                (
+                auth=(
                     user,
                     pass_,
                 )
@@ -139,7 +139,7 @@ class ImageInstaller(Installer):
             )
         else:
             if core_auth is None:
-                core.delete_user((user, pass_))
+                core.delete_user(auth=(user, pass_))
             return info
 
     @staticmethod
