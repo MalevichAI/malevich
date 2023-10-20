@@ -5,3 +5,5 @@ malevich-space>=0.2.3
 pandas
 pydantic-yaml
 malevich-space
+PyGithub
+GitPython

@@ -7,3 +7,5 @@ pre-commit
 pytest
 ruff
 pydantic-yaml
+PyGithub
+GitPython
