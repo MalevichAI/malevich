@@ -1,0 +1,25 @@
+name: Malevich Auto CI at {BRANCH_NAME}
+on:  
+  push:
+    branches: {BRANCH_NAME}
+  workflow_dispatch:
+jobs:
+  build_push:
+    runs-on: ubuntu-latest
+    if: ${{{{ github.ref_type == 'branch' }}}} && ${{{{ github.ref == 'refs/heads/{BRANCH_NAME}' }}}}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.0
+        with:
+          fetch-depth: 0
+      - name: Malevich Actions
+        uses: MalevichAI/auto-ci@v0.2.0
+        with:
+          registry: ${{{{ secrets.REGISTRY_TYPE }}}}
+          registry_url: ${{{{ secrets.REGISTRY_URL }}}}
+          registry_id: ${{{{ secrets.REGISTRY_ID }}}}
+          username: ${{{{ secrets.IMAGE_USERNAME }}}}
+          password: ${{{{ secrets.IMAGE_PASSWORD }}}}
+          space_username: ${{{{ secrets.SPACE_USERNAME }}}}
+          space_password: ${{{{ secrets.SPACE_PASSWORD }}}}
+          api_url: ${{{{ secrets.API_URL }}}}

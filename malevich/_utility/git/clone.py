@@ -68,3 +68,40 @@ def clone_python_files(
         for file in files
         if file.endswith(".py")
     ]
+
+def clone(
+    link: str,
+    auth: tuple[str, str] = None,
+    branch: str = None,
+    folder: os.PathLike = tempfile.TemporaryDirectory().name,
+) -> None:
+    command = ["git", "clone",  "--filter=blob:none"]
+
+    # Add authentication if specified
+    if auth and auth[0] and auth[1]:
+        command += [f"https://{auth[0]}:{auth[1]}@{link}"]
+    else:
+        command += [link]
+
+
+    # Add branch if specified
+    if branch:
+        command += ["--branch", branch]
+
+    # Add folder to clone into
+    command += [os.path.abspath(
+        os.path.join(
+            os.getcwd(),
+            folder,
+        )
+    )]
+
+    # Run the command
+    run(command, check=True)
+
+    # Return list of all files
+    return [
+        os.path.join(root, file)
+        for root, dirs, files in os.walk(folder)
+        for file in files
+    ]
