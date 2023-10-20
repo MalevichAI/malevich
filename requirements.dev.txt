@@ -8,4 +8,8 @@ pytest
 ruff
 pydantic-yaml
 PyGithub
+<<<<<<< HEAD
 GitPython
+=======
+GitPython
+>>>>>>> b78905ce0663389139460f58f9d1f54d70f4914f

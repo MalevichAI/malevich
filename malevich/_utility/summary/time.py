@@ -17,8 +17,8 @@ class CoreTimeSummary(AbstractSummary[CoreInterpreterState]):
         core_ids = self._interpreter_state.core_ops.values()
 
         logs = logs_clickhouse(
-            self._interpreter_state.params["core_auth"],
-            self._interpreter_state.params["core_host"]
+            auth=self._interpreter_state.params["core_auth"],
+            conn_url=self._interpreter_state.params["core_host"]
         )
 
         parsed = json.loads(logs)
