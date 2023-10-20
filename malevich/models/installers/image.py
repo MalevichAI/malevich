@@ -2,8 +2,8 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from malevich.constants import DEFAULT_CORE_HOST
-from malevich.models.manifest import Dependency
+from ...constants import DEFAULT_CORE_HOST
+from ...models.manifest import Dependency
 
 
 class ImageOptions(BaseModel):

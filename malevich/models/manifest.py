@@ -1,5 +1,6 @@
 from typing import Any, Optional
 
+from malevich_space.schema import SpaceSetup
 from pydantic import BaseModel
 
 
@@ -13,6 +14,7 @@ class Dependency(BaseModel):
 class Manifest(BaseModel):
     project_id : Optional[str] = None
     version: Optional[str] = None
+    space: Optional[SpaceSetup] = None
     dependencies: list[dict[str, Dependency]] = []
 
 

@@ -2,7 +2,7 @@ import json
 
 import pandas as pd
 import rich
-from jls_utils import logs_clickhouse
+from malevich_coretools import logs_clickhouse
 from rich.table import Table
 
 from ..._utility.summary.abstract import AbstractSummary

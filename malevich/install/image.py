@@ -7,7 +7,7 @@ import hashlib
 import json
 from uuid import uuid4
 
-import jls_utils as j
+import malevich_coretools as core
 
 from ..constants import DEFAULT_CORE_HOST
 from ..install.installer import Installer
@@ -37,6 +37,7 @@ DO NOT MODIFY THIS FILE MANUALLY.
     imports = """
 from malevich._autoflow.function import autotrace
 from malevich._utility.registry import Registry
+from malevich.models.nodes import OperationNode
 
 from uuid import uuid4
 from pydantic import BaseModel
@@ -57,14 +58,10 @@ class {schema_name}(BaseModel):
 
     processor = """
 @autotrace
-def {name}({args}, config: dict = {{}}):
+def {name}({args}config: dict = {{}}):
     \"\"\"{docs}\"\"\"
     __instance = uuid4().hex
-    return (__instance, {{
-        "operation_id": "{operation_id}",
-        "app_cfg": config
-    }})
-
+    return OperationNode(operation_id="{operation_id}", config=config)
 """
     init = """
 # {init_name} = ...
@@ -91,7 +88,7 @@ class ImageInstaller(Installer):
         core_host: str,
         image_ref: str,
         image_auth: tuple[str, str],
-    ) -> j.abstract.AppFunctionsInfo:
+    ) -> core.abstract.AppFunctionsInfo:
         """Scans Core for image info
 
         Args:
@@ -100,10 +97,10 @@ class ImageInstaller(Installer):
             image_ref: Docker image reference
             image_auth: Docker image credentials
         """
-        j.set_host_port(core_host or DEFAULT_CORE_HOST)
+        core.set_host_port(core_host or DEFAULT_CORE_HOST)
         if core_auth is None:
             user, pass_ = uuid4().hex, uuid4().hex
-            j.create_user(
+            core.create_user(
                 (
                     user,
                     pass_,
@@ -111,12 +108,12 @@ class ImageInstaller(Installer):
             )
         else:
             user, pass_ = core_auth
-        j.update_core_credentials(user, pass_)
+        core.update_core_credentials(user, pass_)
         app_id = uuid4().hex
         try:
             # HACK: Call create_app with empty processor_id, input_id, output_id
             # to force Core to pull image and provide info about it
-            real_id = j.create_app(
+            real_id = core.create_app(
                 app_id=app_id,
                 processor_id="",
                 input_id="",
@@ -125,9 +122,9 @@ class ImageInstaller(Installer):
                 image_auth=image_auth,
             )
             # Retrieve info about app
-            info = j.get_app_info(app_id, parse=True)
+            info = core.get_app_info(app_id, parse=True)
             # Delete app to free resources
-            j.delete_app(real_id)
+            core.delete_app(real_id)
         except AssertionError as err_assert:
             raise Exception(
                 f"Can't get info for image {image_ref}. Check that "
@@ -142,12 +139,12 @@ class ImageInstaller(Installer):
             )
         else:
             if core_auth is None:
-                j.delete_user((user, pass_))
+                core.delete_user((user, pass_))
             return info
 
     @staticmethod
     def create_operations(
-        operations: j.abstract.AppFunctionsInfo,
+        operations: core.abstract.AppFunctionsInfo,
         package_name: str,
     ) -> str:
         """Generates Python code for package creation
@@ -194,6 +191,7 @@ class ImageInstaller(Installer):
                 args_.append(f"{arg_[0]}{': ' + schema if schema else ''}")
 
             args_str_ = ", ".join(args_)
+            args_str_ += ", " if args_str_ else ""
 
             checksum = hashlib.sha256(
                 (salt + processor.model_dump_json()).encode()

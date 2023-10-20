@@ -1,12 +1,12 @@
 import uuid
 
 import pandas as pd
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class Collection(BaseModel):
     collection_id: str
-    collection_data: pd.DataFrame
+    collection_data: pd.DataFrame = Field(..., repr=False)
     model_config = ConfigDict(
         arbitrary_types_allowed=True
     )

@@ -4,8 +4,8 @@ import typer
 from rich.prompt import Prompt
 from rich.table import Table
 
-from malevich._utility.dicts import flatdict
-from malevich.manifest import ManifestManager
+from .._utility.dicts import flatdict
+from ..manifest import ManifestManager
 
 app = typer.Typer(name="manifest")
 secrets = typer.Typer(name="secrets")

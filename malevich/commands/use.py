@@ -59,4 +59,3 @@ def install_from_image(
             value={f"{package_name}": manifest_entry.model_dump()},
             append=True,
         )
-

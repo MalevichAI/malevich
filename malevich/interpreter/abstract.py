@@ -1,9 +1,13 @@
 from abc import abstractmethod
 from copy import deepcopy
-from typing import Any, Generic, TypeVar
+from typing import Generic, Iterable, TypeVar
 
-from malevich._autoflow.tracer import tracer
-from malevich._autoflow.tree import ExecutionTree
+import pandas as pd
+
+from .._autoflow.tracer import traced
+from .._autoflow.tree import ExecutionTree
+from ..models.nodes import BaseNode, TreeNode
+from ..models.task import InterpretedTask
 
 State = TypeVar("State")
 Return = TypeVar("Return")
@@ -72,6 +76,35 @@ class Interpreter(Generic[State, Return]):
         self.__history = []
         self._tree = None
 
+    def _unwrap_tree(
+        self,
+        tree: ExecutionTree[traced[BaseNode]]
+    ) -> ExecutionTree[traced[BaseNode]]:
+        """Merges all subtrees into one tree
+
+        Args
+            tree (ExecutionTree): Tree of any depth
+
+        Returns:
+            ExecutionTree: Unwrapped tree
+        """
+        edges = []
+        for edge in tree.traverse():
+            if isinstance(edge, TreeNode):
+                edges.extend(self._unwrap_tree(edge).tree)
+            else:
+                edges.append(edge)
+        return ExecutionTree(edges)
+
+    @property
+    def state(self) -> State:
+        """Returns the current state
+
+        Returns:
+            State: Copy of the current state
+        """
+        return deepcopy(self._state)
+
     def update_state(self, state: State = None) -> None:
         """Updates the state
 
@@ -85,16 +118,7 @@ class Interpreter(Generic[State, Return]):
         else:
             self._state = self.state
 
-    @property
-    def state(self) -> State:
-        """Returns the current state
-
-        Returns:
-            State: Copy of the current state
-        """
-        return deepcopy(self._state)
-
-    def interpret(self, tree: ExecutionTree) -> Return:
+    def interpret(self, tree: ExecutionTree[traced[BaseNode]]) -> InterpretedTask:
         """Interprets the execution tree
 
         The interpretation process is divided into 5 steps:
@@ -102,7 +126,7 @@ class Interpreter(Generic[State, Return]):
         2. `create_node` - called when a new node is created
         3. `create_dependency` - called when a new dependency is created
         4. `after_interpret` - called after the interpretation process ends
-        5. `get_result` - called to get the result of the interpretation process
+        5. `get_task` - called to get the executable of the interpretation process
 
         Before starting of the interpretation the interpreted tree is saved in the
         `_tree` property.
@@ -111,9 +135,9 @@ class Interpreter(Generic[State, Return]):
             tree (ExecutionTree): Execution tree to interpret
 
         Returns:
-            Return: Result of the interpretation process
+            Task: Executable result of the interpretation
         """
-        self._tree = tree
+        self._tree = self._unwrap_tree(tree)
 
         self.update_state(self.before_interpret(self.state))
 
@@ -126,7 +150,7 @@ class Interpreter(Generic[State, Return]):
 
         self.update_state(self.after_interpret(self.state))
 
-        return self.get_result(self.state)
+        return self.get_task(self.state)
 
     @abstractmethod
     def before_interpret(self, state: State) -> State:
@@ -148,7 +172,11 @@ class Interpreter(Generic[State, Return]):
         pass
 
     @abstractmethod
-    def create_node(self, state: State, tracer: tracer) -> State:
+    def create_node(
+        self,
+        state: State,
+        tracer: traced[BaseNode]
+    ) -> State:
         """Called when a new node is created
 
         IMPORTANT: Ensure that the state is immutable. The state is copied and appended
@@ -169,7 +197,11 @@ class Interpreter(Generic[State, Return]):
 
     @abstractmethod
     def create_dependency(
-        self, state: State, callee: tracer, caller: tracer, link: Any  # noqa: ANN401
+        self,
+        state: State,
+        callee: traced[BaseNode],
+        caller: traced[BaseNode],
+        link: str,
     ) -> State:
         """Called when a new dependency is created
 
@@ -211,7 +243,21 @@ class Interpreter(Generic[State, Return]):
         pass
 
     @abstractmethod
-    def get_result(self, state: State) -> Return:
+    def get_task(self, state: State) -> InterpretedTask[State]:
+        """Called after the interpretation process ends
+
+        Args:
+            state (State): Current state
+
+        Returns:
+            Task: Task to run
+        """
+
+    @abstractmethod
+    def get_results(
+        self,
+        returned: Iterable[traced[BaseNode]] | traced[BaseNode] | None
+    ) -> Iterable[pd.DataFrame] | pd.DataFrame:
         """Returns the result of the interpretation process
 
         Args:
