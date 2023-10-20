@@ -1,2 +1,4 @@
 include requirements.txt
 include VERSION
+include *.yaml
+include *.yml

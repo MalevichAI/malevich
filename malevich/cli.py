@@ -20,35 +20,35 @@ logging.getLogger("gql.transport.aiohttp").setLevel(logging.ERROR)
 app = typer.Typer(help=APP_HELP, rich_markup_mode="rich")
 
 @app.command('install')
-def auto_use(package_name: str) -> None:
-    rich.print(f"\n\nAttempting automatic installation of package [b blue]{package_name}[/b blue]\n")  # noqa: E501
+def auto_use(package_names: list[str]) -> None:
+    rich.print(f"\n\nAttempting automatic installation of packages [b blue]{'[white], [/white]'.join(package_names)}[/b blue]\n")  # noqa: E501
     with Progress(
         SpinnerColumn(),
         TextColumn("{task.description}"),
     ) as progress:
-        task = progress.add_task(
-            f"Attempting to install [b blue]{package_name}[/b blue] with [i yellow]image[/i yellow] installer", total=1  # noqa: E501
-        )
-        try:
-            install_from_image(package_name=package_name)
-        except Exception:
-            # BUG: This is not a good way to handle errors
-            progress.update(
-                task,
-                description="[red]✘[/red] Failed with [yellow]image[/yellow] installer",
-                completed=1
-            )
-            progress.stop()
-            rich.print("\n\n[red]Installation failled[/red]")
-        else:
-            progress.update(
-                task,
-                description="[green]✔[/green] Success with [yellow]image[/yellow]",
-                completed=1
-            )
-            progress.stop()
-            rich.print(f"\n\nInstallation of [blue]{package_name}[/blue] with [yellow]image[/yellow] installer was [green]successful[/green]")  # noqa: E501
-        return
+        for package_name in package_names:
+                task = progress.add_task(
+                    f"Attempting to install [b blue]{package_name}[/b blue] with [i yellow]image[/i yellow] installer", total=1  # noqa: E501
+                )
+                try:
+                    install_from_image(package_name=package_name)
+                except Exception:
+                    # BUG: This is not a good way to handle errors
+                    progress.update(
+                        task,
+                        description="[red]✘[/red] Failed with [yellow]image[/yellow] installer [blue]({package_name})[/blue]",  # noqa: E501
+                        completed=1
+                    )
+                    progress.stop()
+                    rich.print("\n\n[red]Installation failled[/red]")
+                else:
+                    progress.update(
+                        task,
+                        description=f"[green]✔[/green] Success with [yellow]image[/yellow][blue] ({package_name})[/blue]",  # noqa: E501
+                        completed=1
+                    )
+        progress.stop()
+        rich.print(f"\n\nInstallation of [blue]{'[white], [/white]'.join(package_names)}[/blue] with [yellow]image[/yellow] installer was [green]successful[/green]")  # noqa: E501
 
 
 @app.command(name="restore")
