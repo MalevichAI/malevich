@@ -14,5 +14,6 @@ setup(
             'malevich = malevich.cli:main',
         ]
     },
-    install_requires=requirements
+    install_requires=requirements,
+    package_data={"malevich": ["**/*.yml"]}
 )
