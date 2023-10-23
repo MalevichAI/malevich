@@ -132,10 +132,10 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                     core.AppSettings(
                         appId=app_core_name,
                         taskId=app_core_name,
-                        saveCollectionsName=[self._result_collection_name(op.operation_id)],
+                        saveCollectionsName=[self._result_collection_name(op.uuid)],
                     )
                 )
-                state.results[op.uuid] = self._result_collection_name(op.operation_id)
+                state.results[op.uuid] = self._result_collection_name(op.uuid)
 
             elif isinstance(op, CollectionNode):
                 collection_ref = op.collection
@@ -250,7 +250,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                 results.append(node.collection.collection_data)
             elif isinstance(node, OperationNode):
                 collection_ids = core.get_collections_by_name(
-                    self._result_collection_name(node.operation_id)
+                    self._result_collection_name(node.uuid)
                 ).ownIds
 
                 results.append(core.get_collection_to_df(
