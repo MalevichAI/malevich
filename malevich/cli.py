@@ -1,5 +1,5 @@
-import logging
 import concurrent.futures
+import logging
 from typing import Annotated
 
 import pydantic_yaml as pdyml
@@ -151,7 +151,7 @@ def init(path_to_setup: Annotated[str, typer.Argument(...)]) -> None:
         setup = pdyml.parse_yaml_file_as(SpaceSetup, path_to_setup)
     except ValidationError as err:
         rich.print(
-            f"[b red]Setup file [white]{path_to_setup}[/white] is not a correct configuration[/b red]\n"
+            f"[b red]Setup file [white]{path_to_setup}[/white] is not a correct configuration[/b red]\n"  # noqa: E501
         )  # noqa: E501
         for _err in err.errors():
             rich.print(f"\t- {_err['msg']} at [pink]{_err['loc'][0]}[pink]")
@@ -163,7 +163,7 @@ def init(path_to_setup: Annotated[str, typer.Argument(...)]) -> None:
         ManifestManager().put("space", value=setup)
 
         rich.print(
-            "\nMalevich Space configuration [green]successfully[/green] added to the manifest\n"
+            "\nMalevich Space configuration [green]successfully[/green] added to the manifest\n"  # noqa: E501
         )  # noqa: E501
 
 

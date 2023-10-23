@@ -27,13 +27,3 @@ import malevich_coretools as core
 __logger = logging.getLogger("log")
 __logger.setLevel(logging.CRITICAL)
 core.set_logger(__logger)
-
-from importlib.machinery import SourceFileLoader
-
-globals()['utility'] = SourceFileLoader('utility', '/home/teexone/.malevich/envs/default/utility/__init__.py').load_module()
-import importlib.util
-import sys
-spec = importlib.util.spec_from_file_location("malevich.utility", "/home/teexone/.malevich/envs/default/utility/__init__.py")
-utility = importlib.util.module_from_spec(spec)
-sys.modules["malevich.utility"] = utility
-spec.loader.exec_module(utility)
