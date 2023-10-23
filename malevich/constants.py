@@ -1,6 +1,6 @@
 from .models.platform import Platform
 
-DEFAULT_CORE_HOST = "https://core.malevich.ai"
+DEFAULT_CORE_HOST = "https://core.malevich.ai/"
 
 APP_HELP = """
 Welcome to [bold magenta]Malevich Metascript[/bold magenta]! This is a CLI tool that

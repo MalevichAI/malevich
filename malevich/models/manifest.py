@@ -8,7 +8,12 @@ class Dependency(BaseModel):
     package_id: str
     version: str
     installer: str
-    options: dict[str, Any]
+    options: Any
+
+    def simple(self) -> dict[str, Any]:
+        return {
+            **self.options.model_dump()
+        }
 
 
 class Manifest(BaseModel):
