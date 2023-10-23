@@ -5,6 +5,7 @@ import rich
 from malevich_coretools import logs_clickhouse
 from rich.table import Table
 
+from ..._utility.host import fix_host
 from ..._utility.summary.abstract import AbstractSummary
 from ...interpreter.core import CoreInterpreterState
 
@@ -17,8 +18,8 @@ class CoreTimeSummary(AbstractSummary[CoreInterpreterState]):
         core_ids = self._interpreter_state.core_ops.values()
 
         logs = logs_clickhouse(
-            auth=self._interpreter_state.params["core_auth"],
-            conn_url=self._interpreter_state.params["core_host"]
+            auth=tuple(self._interpreter_state.params["core_auth"]),
+            conn_url=fix_host(self._interpreter_state.params["core_host"])
         )
 
         parsed = json.loads(logs)

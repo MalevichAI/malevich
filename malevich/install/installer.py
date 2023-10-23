@@ -6,6 +6,8 @@ from ..models.manifest import Dependency
 
 
 class Installer(ABC):
+    name: str
+
     """Abstract installer interface."""
     def __init__(self) -> None:
         super().__init__()

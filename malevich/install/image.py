@@ -5,10 +5,10 @@ using Malevich Core capabilities
 
 import hashlib
 import json
-from uuid import uuid4
 
 import malevich_coretools as core
 
+from .._utility.host import fix_host
 from ..constants import DEFAULT_CORE_HOST
 from ..install.installer import Installer
 from ..install.mimic import mimic_package
@@ -81,6 +81,7 @@ def {name}({args}config: dict = {{}}):
 
 class ImageInstaller(Installer):
     """Installs package using Docker image"""
+    name = "image"
 
     @staticmethod
     def _scan_core(
@@ -97,39 +98,13 @@ class ImageInstaller(Installer):
             image_ref: Docker image reference
             image_auth: Docker image credentials
         """
-        core.set_host_port(core_host or DEFAULT_CORE_HOST)
-        if core_auth is None:
-            user, pass_ = uuid4().hex, uuid4().hex
-            core.create_user(
-                auth=(
-                    user,
-                    pass_,
-                )
-            )
-        else:
-            user, pass_ = core_auth
-        core.update_core_credentials(user, pass_)
-        app_id = uuid4().hex
         try:
-            # HACK: Call create_app with empty processor_id, input_id, output_id
-            # to force Core to pull image and provide info about it
-            real_id = core.create_app(
-                app_id=app_id,
-                processor_id="",
-                input_id="",
-                output_id="",
-                image_ref=image_ref,
+            info = core.get_image_info(
+                image_ref,
                 image_auth=image_auth,
-            )
-            # Retrieve info about app
-            info = core.get_app_info(app_id, parse=True)
-            # Delete app to free resources
-            core.delete_app(real_id)
-        except AssertionError as err_assert:
-            raise Exception(
-                f"Can't get info for image {image_ref}. Check that "
-                "host, port, core credentials are correct and user exists.\n"
-                f"Error: {err_assert}"
+                conn_url=fix_host(core_host),
+                auth=core_auth,
+                parse=True
             )
         except Exception as err:
             raise Exception(
@@ -138,8 +113,6 @@ class ImageInstaller(Installer):
                 f"Error: {err}"
             )
         else:
-            if core_auth is None:
-                core.delete_user(auth=(user, pass_))
             return info
 
     @staticmethod
@@ -302,4 +275,22 @@ class ImageInstaller(Installer):
         )
 
     def construct_dependency(self, object: dict) -> ImageDependency:
-        return ImageDependency(**object)
+        manf = ManifestManager()
+        parsed = ImageDependency(**object)
+        parsed.options.image_auth_pass = manf.query_secret(
+                parsed.options.image_auth_pass,
+                only_value=True,
+            )
+        parsed.options.image_auth_user = manf.query_secret(
+            parsed.options.image_auth_user,
+            only_value=True,
+        )
+        parsed.options.core_auth_user = manf.query_secret(
+            parsed.options.core_auth_user,
+            only_value=True,
+        )
+        parsed.options.core_auth_token = manf.query_secret(
+            parsed.options.core_auth_token,
+            only_value=True,
+        )
+        return parsed
