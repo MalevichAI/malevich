@@ -1,7 +1,7 @@
 import os
 import tempfile
-import requests
 
+import requests
 from git import Repo
 from github import Github
 
@@ -65,7 +65,7 @@ class GithubCIOps(CIOps):
             registry_id (str): Docker Registry ID
             image_user (str): Username to access the Docker Image Registry
             image_token (str): TOKEN to access the Docker Image Registry
-            org_id (str): ORGANIZATION_ID 
+            org_id (str): ORGANIZATION_ID
             verbose (bool, optional): Verbose mode. Defaults to False.
         """
         g = Github(token)
@@ -75,10 +75,30 @@ class GithubCIOps(CIOps):
         repo.create_environment(branch)
         pub_key = repo.get_public_key()
         repo_id = repo.id
-        
-        keys = ["SPACE_USERNAME", "SPACE_PASSWORD", "API_URL", "IMAGE_USERNAME", "IMAGE_PASSWORD", "REGISTRY_URL", "REGISTRY_ID", "REGISTRY_TYPE", "SPACE_ORGANIZATION_ID"]
-        values = [space_user, space_token, space_url, image_user, image_token, registry_url, registry_id, 'ecr' if 'ecr' in registry_url else 'other', org_id]
-        
+
+        keys = [
+            "SPACE_USERNAME",
+            "SPACE_PASSWORD",
+            "API_URL",
+            "IMAGE_USERNAME",
+            "IMAGE_PASSWORD",
+            "REGISTRY_URL",
+            "REGISTRY_ID",
+            "REGISTRY_TYPE",
+            "SPACE_ORGANIZATION_ID"
+            ]
+        values = [
+            space_user,
+            space_token,
+            space_url,
+            image_user,
+            image_token,
+            registry_url,
+            registry_id,
+            'ecr' if 'ecr' in registry_url else 'other',
+            org_id
+            ]
+
         for key, value in zip(keys, values):
             payload = pub_key.encrypt(value)
             url = f'https://api.github.com/repositories/{repo_id}/environments/{branch}/secrets/{key}'
