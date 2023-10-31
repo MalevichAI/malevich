@@ -48,7 +48,6 @@ class GithubCIOps(CIOps):
         registry_id: str,
         image_user: str,
         image_token: str,
-        org_id: str,
         verbose: bool = False,
     ) -> None:
         """Setup CI for a Github repository
