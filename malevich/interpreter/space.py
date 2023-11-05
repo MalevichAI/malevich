@@ -124,7 +124,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
 
     def prettify_schema_id(self, schema_name: str) -> str:
         _s = re.sub(r'[\s_-]+', ' ', schema_name)
-        return _s.replace(' ', '-').lower()
+        return _s.replace(' ', '').lower()
 
     def prettify_component_name(self, component_name: str) -> str:
         _s = re.sub(r'[\s_-]+', ' ', component_name)
