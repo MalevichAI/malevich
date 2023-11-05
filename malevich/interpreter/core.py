@@ -77,10 +77,12 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
     def before_interpret(self, state: CoreInterpreterState) -> CoreInterpreterState:
         core.set_host_port(self.__core_host)
         core.update_core_credentials(self.__core_auth[0], self.__core_auth[1])
-        core.delete_apps()
-        core.delete_tasks()
-        core.delete_collections()
-        core.delete_cfgs()
+        # TODO: May end up with a lot of garbage in the core
+        # or even collisions
+        # core.delete_apps()
+        # core.delete_tasks()
+        # core.delete_collections()
+        # core.delete_cfgs()
         return state
 
     def after_interpret(self, state: CoreInterpreterState) -> CoreInterpreterState:
@@ -109,7 +111,6 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                 for node, (link, _) in state.depends[id]:
                     if isinstance(node, CollectionNode) and \
                         node.uuid in state.collections:
-
                         coll, uploaded_core_id = state.collections[node.uuid]
                         state.cfg.collections = {
                             **state.cfg.collections,
@@ -190,19 +191,28 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
             core.create_cfg(**config_kwargs)
 
             task_id = task.state.core_ops[leaves[0].owner.uuid]
-
-            task.state.params["task_id"] = core.task_prepare(
-                task_id=task_id,
-                cfg_id=config_kwargs['cfg_id'],
-                *args,
-                **kwargs
-            ).operationId
+            try:
+                task.state.params["task_id"] = core.task_prepare(
+                    task_id=task_id,
+                    cfg_id=config_kwargs['cfg_id'],
+                    *args,
+                    **kwargs
+                ).operationId
+            except Exception as e:
+                # Cleanup
+                core.task_stop(task_id)
+                raise e
 
         def run(task: InterpretedTask[CoreInterpreterState], *args, **kwargs) -> None:
             if "task_id" not in task.state.params:
                 raise Exception("Attempt to run a task which is not prepared. "
                                 "Please, run `.prepare()` first.")
-            core.task_run(task.state.params["task_id"], *args, **kwargs)
+            try:
+                core.task_run(task.state.params["task_id"], *args, **kwargs)
+            except Exception as e:
+                # Cleanup
+                core.task_stop(task.state.params["task_id"])
+                raise e
 
         def stop(
             task: InterpretedTask[CoreInterpreterState],

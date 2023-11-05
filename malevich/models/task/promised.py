@@ -11,12 +11,13 @@ class PromisedTask(BaseTask):
         self.__tree = tree
         self.__task = None
 
+
     def interpret(self, interpreter: Interpreter) -> None:
         task = interpreter.interpret(self.__tree)
         task.commit_returned(self.__results)
         self.__task = task
 
-    def prepare(self) -> None:
+    def prepare(self, *args, **kwargs) -> None:
         if not self.__task:
             raise Exception(
                 "Unable to prepare task, that has not been interpreted. "
@@ -24,10 +25,10 @@ class PromisedTask(BaseTask):
                 "a particular platform"
             )
 
-        return self.__task.prepare()
+        return self.__task.prepare(*args, **kwargs)
 
 
-    def run(self) -> None:
+    def run(self, *args, **kwargs) -> None:
         if not self.__task:
             raise Exception(
                 "Unable to run task, that has not been interpreted. "
@@ -36,10 +37,10 @@ class PromisedTask(BaseTask):
             )
         # TODO: try/except with error on this level
         # if task is not prepared
-        return self.__task.run()
+        return self.__task.run(*args, **kwargs)
 
 
-    def stop(self) -> None:
+    def stop(self, *args, **kwargs) -> None:
         if not self.__task:
             raise Exception(
                 "Unable to prepare task, that has not been interpreted. "
@@ -48,10 +49,10 @@ class PromisedTask(BaseTask):
             )
         # TODO: try/except with error on this level
         # if task is not prepared
-        return self.__task.stop()
+        return self.__task.stop(*args, **kwargs)
 
 
-    def results(self) -> None:
+    def results(self, *args, **kwargs) -> None:
         if not self.__task:
             raise Exception(
                 "Unable to get results of the task, that has not been interpreted. "
@@ -59,7 +60,7 @@ class PromisedTask(BaseTask):
                 "a particular platform"
             )
 
-        return self.__task.results()
+        return self.__task.results(*args, **kwargs)
 
 
     def commit_returned(self, returned: FlowOutput) -> None:

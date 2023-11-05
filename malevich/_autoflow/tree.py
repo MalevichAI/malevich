@@ -20,6 +20,7 @@ class ExecutionTree(Generic[T]):
             Generator[T]: Generator of nodes
         """
         graph = self.tree
+    
         # Mark visited nodes
         visited = [False] * len(graph)
 
@@ -36,17 +37,17 @@ class ExecutionTree(Generic[T]):
             q.append((i, r,))
 
         while q:
-            j, node = q.popleft()
+            j, edge = q.popleft()
 
             if visited[j]:
                 continue
 
-            yield node
+            yield edge
             visited[j] = True
 
             q.extend(
                 filter(
-                    lambda x: x[1][0] == node[1] and not visited[x[0]],
+                    lambda x: x[1][0] == edge[1] and not visited[x[0]],
                     enumerate(graph)
                 )
             )

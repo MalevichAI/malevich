@@ -11,9 +11,9 @@ import malevich_coretools as core
 from .._utility.host import fix_host
 from ..constants import DEFAULT_CORE_HOST
 from ..install.installer import Installer
-from ..install.mimic import mimic_package
 from ..manifest import ManifestManager
 from ..models.installers.image import ImageDependency, ImageOptions
+from .mimic import mimic_package
 
 _pydantic_types = {
     "string": str.__name__,
@@ -39,7 +39,6 @@ from malevich._autoflow.function import autotrace
 from malevich._utility.registry import Registry
 from malevich.models.nodes import OperationNode
 
-from uuid import uuid4
 from pydantic import BaseModel
 """
     registry = """
@@ -60,7 +59,6 @@ class {schema_name}(BaseModel):
 @autotrace
 def {name}({args}config: dict = {{}}):
     \"\"\"{docs}\"\"\"
-    __instance = uuid4().hex
     return OperationNode(operation_id="{operation_id}", config=config)
 """
     init = """
@@ -170,7 +168,7 @@ class ImageInstaller(Installer):
                 (salt + processor.model_dump_json()).encode()
             ).hexdigest()
 
-            indexed_operations[checksum] = id_
+            # indexed_operations[checksum] = id_
 
             contents += Templates.registry.format(
                 operation_id=checksum,
@@ -205,7 +203,7 @@ class ImageInstaller(Installer):
         for id_, output_ in operations.outputs.items():
             contents += Templates.output.format(output_name=id_)
 
-        return contents, indexed_operations
+        return contents#, indexed_operations
 
     def install(
         self,
@@ -222,7 +220,8 @@ class ImageInstaller(Installer):
             image_auth=image_auth,
         )
         checksum = hashlib.sha256(app_info.model_dump_json().encode()).hexdigest()
-        metascript, operations = ImageInstaller.create_operations(
+        # metascript, operations = ImageInstaller.create_operations(
+        metascript = ImageInstaller.create_operations(
             app_info, package_name
         )
 
@@ -252,7 +251,7 @@ class ImageInstaller(Installer):
                 image_auth_user=iauth_user,
                 image_auth_pass=iauth_pass,
                 image_ref=image_ref,
-                operations=operations,
+                #operations=operations,
             ),
         )
 

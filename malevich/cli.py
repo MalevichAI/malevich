@@ -6,13 +6,16 @@ import pydantic_yaml as pdyml
 import rich
 import typer
 from malevich_space.cli.cli import app as space_app
-from malevich_space.schema import SpaceSetup
+from malevich_space.schema import Setup
 from pydantic import ValidationError
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
+from malevich._utility.package import PackageManager
+
 from ._utility.args import parse_kv_args
+from .commands.ci import app as ci_app
 from .commands.manifest import app as manifest_app
-from .commands.use import install_from_image
+from .commands.use import _install_from_image, _install_from_space
 from .commands.use import use as use_app
 from .constants import APP_HELP
 from .install.image import ImageInstaller
@@ -33,7 +36,7 @@ __With_Args_Help = (
 @app.command("install", help="Install multiple packages using the image installer")
 def auto_use(
     package_names: Annotated[list[str], typer.Argument(...)],
-    using: Annotated[str, typer.Option(help="Installer to use")] = "image",
+    using: Annotated[str, typer.Option(help="Installer to use")] = "space",
     with_args: Annotated[str, typer.Option(help=__With_Args_Help)] = "",
 ) -> None:
     rich.print(
@@ -42,7 +45,6 @@ def auto_use(
     )
 
     args = parse_kv_args(with_args)
-
     if args:
         rich.print(
             "\n".join(
@@ -65,7 +67,7 @@ def auto_use(
                 try:
                     if "package_name" not in args:
                         args["package_name"] = package_name
-                    install_from_image(**args)
+                    _install_from_image(**args)
                     args.pop("package_name")
                 except Exception as err:
                     progress.update(
@@ -92,11 +94,51 @@ def auto_use(
                 "[/blue] with [yellow]image[/yellow] installer was "
                 "[green]successful[/green]"
             )
+
+        elif using == "space":
+            for package_name in package_names:
+                task = progress.add_task(
+                    f"Attempting to install [b blue]{package_name}[/b blue] with"
+                    " [i yellow]space[/i yellow] installer",
+                    total=1,
+                )
+                try:
+                    if "package_name" not in args:
+                        args["package_name"] = package_name
+                    args["reverse_id"] = package_name
+                    _install_from_space(**args)
+                    args.pop("package_name")
+                except Exception as err:
+                    progress.update(
+                        task,
+                        description="[red]✘[/red] Failed with "
+                        "[yellow]space[/yellow] installer "
+                        f"[blue]({package_name})[/blue]",
+                        completed=1,
+                    )
+                    progress.stop()
+                    rich.print("\n\n[red]Installation failled[/red]")
+                    raise err
+                    exit(-1)
+                else:
+                    progress.update(
+                        task,
+                        description="[green]✔[/green] Success with "
+                        f"[yellow]space[/yellow][blue] ({package_name})[/blue]",
+                        completed=1,
+                    )
+            progress.stop()
+            rich.print(
+                f"\n\nInstallation of [blue]{'[white], [/white]'.join(package_names)}"
+                "[/blue] with [yellow]space[/yellow] installer was "
+                "[green]successful[/green]"
+            )
         else:
             rich.print(
                 f"[red]Installer [yellow]{using}[/yellow] is not supported[/red]"
             )
             exit(-1)
+
 
 
 def _restore(installer: Installer, depedency: Dependency, progress: Progress) -> None:
@@ -148,7 +190,7 @@ def restore() -> None:
 @space_app.command()
 def init(path_to_setup: Annotated[str, typer.Argument(...)]) -> None:
     try:
-        setup = pdyml.parse_yaml_file_as(SpaceSetup, path_to_setup)
+        setup = pdyml.parse_yaml_file_as(Setup, path_to_setup)
     except ValidationError as err:
         rich.print(
             f"[b red]Setup file [white]{path_to_setup}[/white] is not a correct configuration[/b red]\n"  # noqa: E501
@@ -159,17 +201,36 @@ def init(path_to_setup: Annotated[str, typer.Argument(...)]) -> None:
     else:
         manf = ManifestManager()
 
-        setup.password = manf.put_secret("space_password", setup.password)
-        ManifestManager().put("space", value=setup)
+        setup.space.password = manf.put_secret("space_password", setup.space.password)
+        ManifestManager().put("space", value=setup.space)
 
         rich.print(
             "\nMalevich Space configuration [green]successfully[/green] added to the manifest\n"  # noqa: E501
         )  # noqa: E501
 
+@app.command('remove')
+def remove(
+    package_name: Annotated[str, typer.Argument(...)],
+) -> None:
+    try:
+        manf = ManifestManager()
+        manf.remove(
+            'dependencies',
+            package_name,
+        )
+        PackageManager().remove_stub(package_name)
+        rich.print(f"[green]Package [b]{package_name}[/b] removed[/green]")
+        rich.print(f"Bye, bye [b]{package_name}[/b]")
+    except Exception as e:
+        rich.print(f"[red]Failed to remove package [b]{package_name}[/b][/red]")
+        rich.print(e)
+        exit(-1)
+
 
 app.add_typer(use_app, name="use")
 app.add_typer(manifest_app, name="manifest")
 app.add_typer(space_app, name="space")
+app.add_typer(ci_app, name="ci")
 
 
 def main() -> None:

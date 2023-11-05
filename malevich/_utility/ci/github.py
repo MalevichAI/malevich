@@ -1,3 +1,4 @@
+import enum
 import os
 import tempfile
 
@@ -6,6 +7,14 @@ from git import Repo
 from github import Github
 
 from .base import CIOps
+
+
+class DockerRegistry(enum.Enum):
+    OTHER = "other"
+    PUBLIC_AWS_ECR = "ecr"
+    PRIVATE_AWS_ECR = "ecr-private"
+    YANDEX = "yandex"
+    GCR = "gcr"
 
 
 class GithubCIOps(CIOps):
@@ -18,10 +27,33 @@ class GithubCIOps(CIOps):
         os.makedirs(os.path.join(repo_dir, ".github", "workflows"), exist_ok=True)
 
         action_file_path = os.path.join(
-            repo_dir, ".github", "workflows", "malevich-ci.yml"
+            repo_dir, ".github", "workflows", f"malevich-ci_{branch}.yml"
         )
+
         template_file_path = os.path.join(
-            os.path.dirname(__file__), 'templates', 'malevich-ci.yml')
+            os.path.dirname(__file__), 'templates', 'malevich-ci.yml'
+        )
+
+        with open(action_file_path, "w") as action, \
+            open(template_file_path) as template:
+
+            action.write(template.read().format(
+                BRANCH_NAME=branch
+            ))
+
+        return action_file_path
+
+    def __create_manual_action(self, repo_dir: str, branch: str) -> str:
+        os.makedirs(os.path.join(repo_dir, ".github", "workflows"), exist_ok=True)
+
+        action_file_path = os.path.join(
+            repo_dir, ".github", "workflows", f"malevich-ci-manual_{branch}.yml"
+        )
+
+        template_file_path = os.path.join(
+            os.path.dirname(__file__), 'templates', 'malevich-ci-manual.yml'
+        )
+
         with open(action_file_path, "w") as action, \
             open(template_file_path) as template:
 
@@ -63,6 +95,7 @@ class GithubCIOps(CIOps):
             registry_url (str):
                 Docker Image Registry URL, for example `public.ecr.aws` or 'cr.yandex'
             registry_id (str): Docker Registry ID
+            registry_type (DockerRegistry): Docker Registry type
             image_user (str): Username to access the Docker Image Registry
             image_token (str): TOKEN to access the Docker Image Registry
             org_id (str): ORGANIZATION_ID
@@ -124,10 +157,14 @@ class GithubCIOps(CIOps):
             head.checkout()
             self._log(verbose, f"Checkouted to branch {branch}")
             action_file = self.__create_action(tmpdir, branch)
+            manual_action_file = self.__create_manual_action(tmpdir, branch)
             self._log(verbose, f"Created action file {action_file}")
             git_repo.index.add([action_file])
-            git_repo.index.commit("add: malevich-ci.yml")
-            self._log(verbose, f"Committed action file {action_file}")
+            git_repo.index.add([manual_action_file])
+            git_repo.index.commit("add: malevich-ci.yml && malevich-ci-manual.yml")
+            self._log(verbose,
+                f"Committed actions file {action_file}, {manual_action_file}"
+            )
             origin = git_repo.remote(name="origin")
             self._log(verbose, "Pushing to origin")
             origin.push(git_repo.active_branch)

@@ -1,18 +1,23 @@
-name: Malevich Auto CI at {BRANCH_NAME}
-on:  
-  push:
-    branches: {BRANCH_NAME}
+name: Malevich Manual CI
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'On which branch to run'
+        required: true
 jobs:
   build_push:
     environment: ${{{{ inputs.branch }}}}
     runs-on: ubuntu-latest
-    if: ${{{{ github.ref_type == 'branch' }}}} && ${{{{ github.ref == 'refs/heads/{BRANCH_NAME}' }}}}
+    if: ${{{{ github.ref_type == 'branch' }}}}
     steps:
       - name: Checkout
         uses: actions/checkout@v4.1.0
         with:
-          fetch-depth: 0
-      - name: Malevich Actions
+          ref: ${{{{ inputs.branch }}}}
+      - name: "Environment name"
+        run: echo "Runs in ${{{{ vars.ENV_NAME }}}}"
+      - name: Malevich CI Actions
         uses: MalevichAI/auto-ci@v0.2.0
         with:
           registry: ${{{{ secrets.REGISTRY_TYPE }}}}

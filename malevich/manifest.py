@@ -211,3 +211,40 @@ class ManifestManager(metaclass=SingletonMeta):
     def get_secrets(self) -> Secrets:
         return deepcopy(self.__secrets.model_dump())
 
+    def remove(self, *path: Iterable[str]) -> Manifest:
+        pre = path[:-1]
+        key = path[-1]
+        dump = self.__manifest.model_dump()
+        cursor = dump
+        for q in pre:
+            if isinstance(cursor, list):
+                try:
+                    q = int(q)
+                    __cursor = cursor[q]
+                except ValueError:
+                    pass
+                else:
+                    cursor = __cursor
+                    continue
+
+                for i, _c in enumerate(cursor):
+                    if q in _c:
+                        cursor = cursor[i][q]
+                        break
+                else:
+                    cursor.append({})
+                    cursor = cursor[-1]
+                    continue
+            if q not in cursor:
+                cursor[q] = {}
+            cursor = cursor[q]
+        if isinstance(cursor, list):
+            for i, _c in enumerate(cursor):
+                if key in _c:
+                    cursor.pop(i)
+                    break
+        else:
+            cursor.pop(key)
+        self.__manifest = Manifest(**dump)
+        self.save()
+        return self.__manifest

@@ -141,10 +141,16 @@ class Interpreter(Generic[State, Return]):
 
         self.update_state(self.before_interpret(self.state))
 
-        for from_, to, link in tree.traverse():
-            self.update_state(self.create_node(self.state, from_))
+        node_memory = {}
 
-            self.update_state(self.create_node(self.state, to))
+        for from_, to, link in tree.traverse():
+            if from_ not in node_memory:
+                node_memory[from_.owner.uuid] = from_
+                self.update_state(self.create_node(self.state, from_))
+
+            if to not in node_memory:
+                node_memory[to.owner.uuid] = to
+                self.update_state(self.create_node(self.state, to))
 
             self.update_state(self.create_dependency(self.state, from_, to, link))
 

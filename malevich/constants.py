@@ -1,6 +1,7 @@
 from .models.platform import Platform
 
 DEFAULT_CORE_HOST = "https://core.malevich.ai/"
+DEFAULT_SPACE_HOST = "https://api.malevich.ai"
 
 APP_HELP = """
 Welcome to [bold magenta]Malevich Metascript[/bold magenta]! This is a CLI tool that
@@ -24,6 +25,11 @@ Install apps to get access to the processors they provide
 """
 
 USE_IMAGE_HELP = """
+Install apps using published Docker images. The information about
+the functionality provided by them will be pulled and parsed accordingly.
+"""
+
+USE_SPACE_HELP = """
 Install apps using published Docker images. The information about
 the functionality provided by them will be pulled and parsed accordingly.
 """

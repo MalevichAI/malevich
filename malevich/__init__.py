@@ -9,6 +9,7 @@ from ._autoflow.flow import *
 from ._meta.collection import collection
 from ._meta.flow import flow
 from ._meta.config import config
+from ._meta.collection import collection
 
 # Manifest
 from .manifest import *
