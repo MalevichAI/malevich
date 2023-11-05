@@ -86,7 +86,8 @@ class GithubCIOps(CIOps):
             "REGISTRY_ID",
             "REGISTRY_TYPE",
             "SPACE_ORGANIZATION_ID"
-            ]
+        ]
+
         values = [
             space_user,
             space_token,
@@ -97,7 +98,7 @@ class GithubCIOps(CIOps):
             registry_id,
             'ecr' if 'ecr' in registry_url else 'other',
             org_id
-            ]
+        ]
 
         for key, value in zip(keys, values):
             payload = pub_key.encrypt(value)
