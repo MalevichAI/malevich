@@ -4,7 +4,6 @@ malevich-coretools>=0.1.35
 malevich-space>=0.2.6
 pandas
 pydantic-yaml
-malevich-space
 PyGithub
 GitPython
 randomname
