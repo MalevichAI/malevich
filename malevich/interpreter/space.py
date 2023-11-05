@@ -539,9 +539,9 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                     description=f"Meta flow {state.aux['name']}!",
                     reverse_id=state.aux['reverse_id'],
                     flow=state.flow,
-                    version=VersionSchema(
-                        readable_name='0.0.0',
-                    )
+                    # version=VersionSchema(
+                    #     readable_name='0.0.0',
+                    # )
                 ),
                 VersionMode.PATCH
             )
