@@ -1,6 +1,7 @@
 import os
 import tempfile
 
+import requests
 from git import Repo
 from github import Github
 
@@ -47,6 +48,7 @@ class GithubCIOps(CIOps):
         registry_id: str,
         image_user: str,
         image_token: str,
+        org_id: str,
         verbose: bool = False,
     ) -> None:
         """Setup CI for a Github repository
@@ -63,28 +65,57 @@ class GithubCIOps(CIOps):
             registry_id (str): Docker Registry ID
             image_user (str): Username to access the Docker Image Registry
             image_token (str): TOKEN to access the Docker Image Registry
+            org_id (str): ORGANIZATION_ID
             verbose (bool, optional): Verbose mode. Defaults to False.
         """
         g = Github(token)
 
         repo = g.get_repo(repository)
 
-        repo.create_secret("SPACE_USERNAME",space_user)
-        self._log(verbose, "Updated secret SPACE_USERNAME")
-        repo.create_secret("SPACE_PASSWORD", space_token)
-        self._log(verbose, "Updated secret SPACE_PASSWORD")
-        repo.create_secret("API_URL", space_url)
-        self._log(verbose, "Updated secret API_URL")
-        repo.create_secret("IMAGE_USERNAME", image_user)
-        self._log(verbose, "Updated secret IMAGE_USERNAME")
-        repo.create_secret("IMAGE_PASSWORD", image_token)
-        self._log(verbose, "Updated secret IMAGE_PASSWORD")
-        repo.create_secret("REGISTRY_URL", registry_url)
-        self._log(verbose, "Updated secret REGISTRY_URL")
-        repo.create_secret("REGISTRY_ID", registry_id)
-        self._log(verbose, "Updated secret REGISTRY_ID")
-        repo.create_secret('REGISTRY_TYPE', 'ecr' if 'ecr' in registry_url else 'other')
-        self._log(verbose, "Updated secret REGISTRY_TYPE")
+        repo.create_environment(branch)
+        pub_key = repo.get_public_key()
+        repo_id = repo.id
+
+        keys = [
+            "SPACE_USERNAME",
+            "SPACE_PASSWORD",
+            "API_URL",
+            "IMAGE_USERNAME",
+            "IMAGE_PASSWORD",
+            "REGISTRY_URL",
+            "REGISTRY_ID",
+            "REGISTRY_TYPE",
+            "SPACE_ORGANIZATION_ID"
+        ]
+
+        values = [
+            space_user,
+            space_token,
+            space_url,
+            image_user,
+            image_token,
+            registry_url,
+            registry_id,
+            'ecr' if 'ecr' in registry_url else 'other',
+            org_id
+        ]
+
+        for key, value in zip(keys, values):
+            payload = pub_key.encrypt(value)
+            url = f'https://api.github.com/repositories/{repo_id}/environments/{branch}/secrets/{key}'
+            requests.put(
+                url,
+                headers={
+                    "Accept": "application/vnd.github+json",
+                    "Authorization": f"Bearer {token}",
+                    "X-GitHub-Api-Version": "2022-11-28"
+                    },
+                json={
+                    'encrypted_value': f'{payload}',
+                    'key_id': f'{pub_key.key_id}'
+                }
+            )
+            self._log(verbose, f"Updated secret {key}")
 
         with tempfile.TemporaryDirectory() as tmpdir:
             git_repo = Repo.clone_from(repo.clone_url, tmpdir)
