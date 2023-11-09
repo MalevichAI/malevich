@@ -4,10 +4,12 @@ from typing import Generic, Iterable, TypeVar
 
 import pandas as pd
 
-from .._autoflow.tracer import traced
+from malevich.models.task.interpreted import InterpretedTask
+
+from .._autoflow.tracer import traced, tracedLike
 from .._autoflow.tree import ExecutionTree
-from ..models.nodes import BaseNode, TreeNode
-from ..models.task import InterpretedTask
+from ..models.nodes.base import BaseNode
+from ..models.nodes.tree import TreeNode
 
 State = TypeVar("State")
 Return = TypeVar("Return")
@@ -66,6 +68,8 @@ class Interpreter(Generic[State, Return]):
     returned, the next stage will receive the old state.
     """
 
+    supports_subtrees = False
+
     def __init__(self, initial_state: State = None) -> None:
         """Initializes the interpreter
 
@@ -89,9 +93,19 @@ class Interpreter(Generic[State, Return]):
             ExecutionTree: Unwrapped tree
         """
         edges = []
+        unwraped = {}
         for edge in tree.traverse():
-            if isinstance(edge, TreeNode):
-                edges.extend(self._unwrap_tree(edge).tree)
+            if isinstance(edge[1].owner, TreeNode):
+                if not unwraped.get(edge[1].owner.uuid, False):
+                    edges.extend(self._unwrap_tree(edge[1].owner.tree).tree)
+                    unwraped[edge[1].owner.uuid] = True
+                for bridge in edge[2][1]:
+                    edges.append(
+                        (edge[0], bridge[0], bridge[1])
+                    )
+            elif isinstance(edge[0].owner, TreeNode):
+                edges.append(
+                    (tracedLike(edge[0].owner.underlying_node), edge[1], edge[2]),)
             else:
                 edges.append(edge)
         return ExecutionTree(edges)
@@ -137,18 +151,22 @@ class Interpreter(Generic[State, Return]):
         Returns:
             Task: Executable result of the interpretation
         """
-        self._tree = self._unwrap_tree(tree)
+        # Setting the current interpreter
+        setattr(tree, "__interpreter__", self)
+
+        if not self.supports_subtrees:
+            self._tree = self._unwrap_tree(tree)
 
         self.update_state(self.before_interpret(self.state))
 
         node_memory = {}
 
         for from_, to, link in tree.traverse():
-            if from_ not in node_memory:
+            if from_.owner.uuid not in node_memory:
                 node_memory[from_.owner.uuid] = from_
                 self.update_state(self.create_node(self.state, from_))
 
-            if to not in node_memory:
+            if to.owner.uuid not in node_memory:
                 node_memory[to.owner.uuid] = to
                 self.update_state(self.create_node(self.state, to))
 

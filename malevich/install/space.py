@@ -1,3 +1,4 @@
+import re
 from typing import Optional
 
 from malevich_space.ops import SpaceOps
@@ -35,6 +36,10 @@ Registry().register("{operation_id}", {{
     "branch": {branch},
     "version": {version},
     "processor_name": "{name}",
+    "processor_id": "{name}",
+    "image_ref": {image_ref},
+    "image_auth_user": {image_auth_user},
+    "image_auth_pass": {image_auth_pass},
 }})
 """
 
@@ -49,6 +54,10 @@ class SpaceDependencyOptions(BaseModel):
     reverse_id: str
     branch: Optional[str] = None
     version: Optional[str] = None
+    image_ref: Optional[str] = None
+    image_auth_user: Optional[str] = None
+    image_auth_pass: Optional[str] = None
+
 
 
 class SpaceDependency(Dependency):
@@ -56,6 +65,8 @@ class SpaceDependency(Dependency):
 
 
 class SpaceInstaller(Installer):
+    name = 'space'
+
     def __init__(self) -> None:
         super().__init__()
         try:
@@ -83,6 +94,16 @@ class SpaceInstaller(Installer):
         metascript = Templates.disclaimer
         metascript += Templates.imports
 
+        m = ManifestManager()
+
+        if component.app:
+            iauth, itoken = m.put_secrets(
+                image_auth_user=component.app.container_user,
+                image_auth_password=component.app.container_token,
+            )
+        else:
+            iauth, itoken = None, None
+
 
         for op in component.app.ops:
             if op.type != "processor":
@@ -93,6 +114,19 @@ class SpaceInstaller(Installer):
                 branch=str(component.branch.model_dump()),
                 version=str(component.version.model_dump()),
                 name=op.core_id,
+                image_ref=("dependencies", package_name, "options", "image_ref"),
+                image_auth_user=(
+                    "dependencies",
+                    package_name,
+                    "options",
+                    "image_auth_user",
+                ),
+                image_auth_pass=(
+                    "dependencies",
+                    package_name,
+                    "options",
+                    "image_auth_pass",
+                ),
             )
 
             args_ = []
@@ -109,8 +143,9 @@ class SpaceInstaller(Installer):
                 operation_id=op.uid
             )
 
+
         mimic_package(
-           package=package_name,
+           package=re.sub(r"[^a-zA-Z0-9_]", "_", package_name),
            metascript=metascript,
         )
 
@@ -122,11 +157,15 @@ class SpaceInstaller(Installer):
                 reverse_id=reverse_id,
                 branch=component.branch.uid,
                 version=component.version.uid,
+                image_ref=component.app.container_ref,
+                image_auth_user=iauth,
+                image_auth_pass=itoken
             )
         )
 
     def restore(self, dependency: SpaceDependency) -> None:
         return self.install(
+            package_name=dependency.package_id,
             reverse_id=dependency.options.reverse_id,
             branch=dependency.options.branch,
             version=dependency.options.version

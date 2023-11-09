@@ -1,5 +1,6 @@
 import concurrent.futures
 import logging
+import re
 from typing import Annotated
 
 import pydantic_yaml as pdyml
@@ -20,6 +21,7 @@ from .commands.use import use as use_app
 from .constants import APP_HELP
 from .install.image import ImageInstaller
 from .install.installer import Installer
+from .install.space import SpaceInstaller
 from .manifest import ManifestManager
 from .models.manifest import Dependency
 
@@ -43,7 +45,6 @@ def auto_use(
         "\n\nAttempting automatic installation of packages [b blue]"
         f"{'[white], [/white]'.join(package_names)}[/b blue]\n"
     )
-
     args = parse_kv_args(with_args)
     if args:
         rich.print(
@@ -177,6 +178,11 @@ def restore() -> None:
             if installed_by == "image":
                 futures.append(
                     executor.submit(_restore, image_installer, dependency, progress)
+                )
+            elif installed_by == 'space':
+                space_installer = SpaceInstaller()
+                futures.append(
+                    executor.submit(_restore, space_installer, dependency, progress)
                 )
         for future in concurrent.futures.as_completed(futures):
             result = future.result()

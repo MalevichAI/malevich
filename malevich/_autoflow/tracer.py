@@ -53,6 +53,10 @@ class traced(Generic[T]):  # noqa: N801
         self._autoflow = autoflow(Flow.flow_ref())
         self._autoflow.attach(self)
 
+    def claim(self, owner: T) -> None:
+        """Claim the ownership of the tracer"""
+        self._owner = owner
+
     @property
     def owner(self) -> T:
         return self._owner
@@ -67,11 +71,35 @@ class traced(Generic[T]):  # noqa: N801
 
     def __repr__(self) -> str:
         if not isinstance(self.owner, traced):
-            return f'{self.owner.__repr__()[1:-1]}ᵗ'
+            return f'{self.owner.__repr__()}ᵗ'
         else:
             raise RuntimeError(
                 "Traced object is not supposed to be nested"
             )
+
+class tracedLike(traced[T]):  # noqa: N801
+    def __init__(self, owner: T = root()) -> None:
+        self._owner = owner
+
+    @property
+    def _autoflow(self) -> autoflow:
+        raise ValueError(
+            "Tracedlike object does not have an autoflow. Use `traced` instead."
+        )
+
+    @property
+    def owner(self) -> T:
+        return self._owner
+
+    def claim(self, owner: T) -> None:
+        return super().claim(owner)
+
+    def __str__(self) -> str:
+        return super().__str__() + "*"
+
+    def __repr__(self) -> str:
+        return super().__repr__() + "*"
+
 
 
 class multitracer(traced, list[T], Generic[T]):   # noqa: N801

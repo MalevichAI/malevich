@@ -4,14 +4,25 @@ from typing import Any, Generic, Iterable, Iterator, TypeVar
 T = TypeVar("T")
 
 class ExecutionTree(Generic[T]):
-    tree: list[tuple[T, T, Any]] = []
+    # tree: list[tuple[T, T, Any]] = []
 
     def __init__(self, tree: list[tuple[T, T, Any]] = None) -> None:
         if tree is not None:
             self.tree = tree
+        else:
+            self.tree = []
 
     def put_edge(self, caller: T, callee: T, link: Any = None) -> None:  # noqa: ANN401
         self.tree.append((caller, callee, link))
+
+    def prune(self, outer_nodes: list[T] = None) -> None:
+        self.tree = [
+            x for x in self.tree
+            if x[0] not in outer_nodes
+        ]
+
+    def edges_from(self, node: T) -> None:
+        return [n for n in self.tree if n[0] == node]
 
     def traverse(self) -> Iterator[tuple[T, T, Any]]:
         """Traverse the execution tree in a determenistic order
@@ -20,7 +31,7 @@ class ExecutionTree(Generic[T]):
             Generator[T]: Generator of nodes
         """
         graph = self.tree
-    
+
         # Mark visited nodes
         visited = [False] * len(graph)
 

@@ -5,6 +5,7 @@ Provides functionality for creating a package with the given name and contents.
 
 import importlib
 import os
+import re
 from hashlib import sha256
 from pathlib import Path
 
@@ -24,6 +25,7 @@ def mimic_package(package: str, metascript: str) -> tuple[bool, str]:
     """
     # Calculate the checksum of the package contents
     checksum = sha256(metascript.encode()).hexdigest()
+    package = package
 
     # Create the package directory
     # The package will be located at <python>/malevich/<package>

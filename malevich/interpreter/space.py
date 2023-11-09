@@ -1,3 +1,4 @@
+import json
 import os
 import re
 from collections import defaultdict
@@ -19,10 +20,13 @@ from malevich_space.schema.flow import (
     InFlowComponentSchema,
     InFlowDependency,
     OpSchema,
+    Terminal,
 )
 from malevich_space.schema.host import LoadedHostSchema
 from malevich_space.schema.schema import SchemaMetadata
 from malevich_space.schema.version import VersionSchema
+
+from malevich.models.nodes.tree import TreeNode
 
 from .._autoflow import tracer as gn
 from .._autoflow.tracer import traced
@@ -35,7 +39,7 @@ from ..models.exceptions import InterpretationError
 from ..models.nodes.base import BaseNode
 from ..models.nodes.collection import CollectionNode
 from ..models.nodes.operation import OperationNode
-from ..models.task import InterpretedTask
+from ..models.task.interpreted import InterpretedTask
 from ..models.types import TracedNode
 
 manf = ManifestManager()
@@ -50,35 +54,40 @@ class NodeType(Enum):
 class SpaceInterpreterState:
     """State of the Space interpreter."""
 
-    # A manager to operate with components
-    component_manager: ComponentManager  = None
-    # Flow to be interpreted
-    flow: FlowSchema = FlowSchema()
-    # Space Operations (just for convenience, same as in component_manager)
-    space: SpaceOps = None
-    # Host to run the task
-    host: LoadedHostSchema = None
-    # In flow components
-    components: dict[str, InFlowComponentSchema | ComponentSchema] = {}
-    # In flow components aliases
-    components_alias: dict[str, str] = {}
-    # In flow components configs
-    components_config: dict[str, dict[str, str]] = {}
-    # A mappping from node uuid to node type (collection or operation)
-    node_to_operation: dict[str, str] = {}
-    # A mapping from node uuid to node type (collection or operation)
-    node_type: dict[str, NodeType] = {}
-    # A mapping from node uuid to selected operation in the operation component
-    selected_operation: dict[str, OpSchema] = {}
-    # A mapping from collection uid to CA uid for override (if new data is provided)
-    collection_overrides: dict[str, str] = {}
-    # A mapping from node uuid to dependencies
-    dependencies: dict[str, list[InFlowDependency]] = defaultdict(list)
-    # Unique id for the interpretation
-    interpretation_id: str = uuid4().hex # as in API interpreter xD
-    # A dictionary for storing auxiliary information
-    # task_id, flow_id, etc.
-    aux: dict[str, Any]
+    def __init__(self) -> None:
+
+        # A manager to operate with components
+        self.component_manager: ComponentManager  = None
+        # Flow to be interpreted
+        self.flow: FlowSchema = FlowSchema()
+        # Space Operations (just for convenience, same as in component_manager)
+        self.space: SpaceOps = None
+        # Host to run the task
+        self.host: LoadedHostSchema = None
+        # In flow components
+        self.components: dict[str, InFlowComponentSchema | ComponentSchema] = {}
+        # In flow components aliases
+        self.components_alias: dict[str, str] = {}
+        # In flow components configs
+        self.components_config: dict[str, dict[str, str]] = {}
+        # A mappping from node uuid to node type (collection or operation)
+        self.node_to_operation: dict[str, str] = {}
+        # A mapping from node uuid to node type (collection or operation)
+        self.node_type: dict[str, NodeType] = {}
+        # A mapping from node uuid to selected operation in the operation component
+        self.selected_operation: dict[str, OpSchema] = {}
+        # A mapping from collection uid to CA uid for override (if new data is provided)
+        self.collection_overrides: dict[str, str] = {}
+        # A mapping from node uuid to dependencies
+        self.dependencies: dict[str, list[InFlowDependency]] = defaultdict(list)
+        # Unique id for the interpretation
+        self.interpretation_id: str = uuid4().hex # as in API interpreter xD
+        # A dictionary for storing auxiliary information
+        # task_id, flow_id, etc.
+        self.aux: dict[str, Any]
+        self.children_states: dict[str, 'SpaceInterpreterState'] = {}
+
+
 
     def copy(self) -> 'SpaceInterpreterState':
         state = SpaceInterpreterState()
@@ -96,10 +105,13 @@ class SpaceInterpreterState:
         state.interpretation_id = self.interpretation_id
         state.collection_overrides = self.collection_overrides
         state.host = self.host
+        state.children_states = self.children_states
         return state
 
 
 class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
+    supports_subtrees = True
+
     def prettify_collection_id(
         self,
         collection_id: str
@@ -137,8 +149,9 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
     def prettify_config_id(
         self,
         component_name: str,
-        rand: str = uuid4().hex[:8]  # Random string
+        rand: str = None  # Random string
     ) -> str:
+        rand = rand or uuid4().hex[:8]
         __b =  'meta-config-for-' + re.sub(r'[\s|_|-]+', ' ', component_name)
         if rand:
             __b += '-' + rand
@@ -424,6 +437,31 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
             )
             state.node_to_operation[node.owner.uuid] = node.owner.operation_id
 
+        elif isinstance(node.owner, TreeNode):
+            if not state.children_states.get(node.owner.uuid, None):
+                child_interpreter = SpaceInterpreter(
+                    name=node.owner.name,
+                    reverse_id=node.owner.reverse_id
+                )
+
+                child_interpreter.interpret(node.owner.tree)
+                child_state: SpaceInterpreterState = child_interpreter.state
+
+                comp = ComponentSchema(
+                    name=node.owner.name,
+                    reverse_id=node.owner.reverse_id,
+                    flow=child_state.flow,
+                )
+
+                state.children_states[node.owner.uuid] = child_state
+            else:
+                child_state = state.children_states[node.owner.uuid]
+                comp = ComponentSchema(
+                    name=node.owner.name,
+                    reverse_id=node.owner.reverse_id,
+                    flow=child_state.flow,
+                )
+
         if not comp:
             raise InterpretationError(
                 "Failed to interpret the node. This is a bug, please report it.",
@@ -441,19 +479,92 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
         # NOTE: This is an argument name. The fact
         # that it is not used means Space does not accept
         # multiple collections as input
-        link: str
+        link: tuple[int, list[tuple[BaseNode, str]]] | str
     ) -> SpaceInterpreterState:
         """Creates a dependency between two nodes."""
-        state.dependencies[callee.owner.uuid].append(InFlowDependency(
-            from_op_id=(
-                # provided by space installer
-                caller.owner.operation_id
-                if isinstance(caller.owner, OperationNode)
-                else None
-            ),
-            to_op_id=callee.owner.operation_id,
-            alias=state.components_alias[caller.owner.uuid],
-        ))
+
+        # Case Collection / App -> Flow
+
+        if isinstance(callee.owner, TreeNode):
+            # # Operation -> Flow deprives
+            # # the flow from being standalone,
+            # # so put collection in the middle
+            # if isinstance(caller.owner, OperationNode):
+            #      uid = state.space.create_collection(
+            #         host_id=state.host.uid,
+            #         #core_id=f'override-{coll_id}-{state.interpretation_id}',
+            #         core_alias=f'override-{coll_id}-{state.interpretation_id}',
+            #         schema_core_id=schema.core_id,
+            #         docs=[
+            #             row.to_json()
+            #             for _, row in node.owner.collection.collection_data.iterrows()
+            #         ]
+            #     )
+            child = state.children_states[callee.owner.uuid]
+            caller_alias = state.components_alias[caller.owner.uuid]
+            inter_flow_map = {}
+
+            bridges = [l_[1] for l_ in link]
+
+            for to, _ in bridges:
+                inter_flow_map[caller_alias] = child.components_alias[to.owner.uuid]
+
+            dependency = InFlowDependency(
+                from_op_id=(
+                    # provided by space installer
+                    caller.owner.operation_id
+                    if isinstance(caller.owner, OperationNode)
+                    else None
+                ),
+                # ??
+                to_op_id=callee.owner.underlying_node.operation_id if isinstance(
+                    callee.owner.underlying_node, OperationNode) else None,
+                alias=state.components_alias[caller.owner.uuid],
+                terminals=[
+                    Terminal(
+                        src=x,
+                        target=y
+                    ) for x, y in inter_flow_map.items()
+                ]
+            )
+        elif isinstance(caller.owner, TreeNode):
+            child = state.children_states[caller.owner.uuid]
+            callee_alias = state.components_alias[callee.owner.uuid]
+            op: OperationNode = caller.owner.underlying_node
+            inter_flow_map = {
+                child.components_alias[op.uuid]: callee_alias
+            }
+
+            dependency = InFlowDependency(
+                from_op_id=op.operation_id,
+                to_op_id=(
+                    # provided by space installer
+                    callee.owner.operation_id
+                    if isinstance(callee.owner, OperationNode)
+                    else None
+                ),
+                alias=state.components_alias[caller.owner.uuid],
+                terminals=[
+                    Terminal(
+                        src=x,
+                        target=y
+                    ) for x, y in inter_flow_map.items()
+                ]
+            )
+
+        else:
+            dependency = InFlowDependency(
+                from_op_id=(
+                    # provided by space installer
+                    caller.owner.operation_id
+                    if isinstance(caller.owner, OperationNode)
+                    else None
+                ),
+                to_op_id=callee.owner.operation_id,
+                alias=state.components_alias[caller.owner.uuid],
+            )
+
+        state.dependencies[callee.owner.uuid].append(dependency)
 
         return state
 
@@ -528,24 +639,30 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
 
 
     def get_task(self, state: SpaceInterpreterState) -> InterpretedTask[SpaceInterpreterState]:
+        component = state.component_manager.component(
+            ComponentSchema(
+                name=state.aux['name'],
+                description=f"Meta flow {state.aux['name']}!",
+                reverse_id=state.aux['reverse_id'],
+                flow=state.flow,
+                # version=VersionSchema(
+                #     readable_name='0.0.0',
+                # )
+            ),
+            VersionMode.PATCH
+        )
+        save_flow_path = cache.make_path_in_cache(
+            os.path.join('flows', f'{state.aux["reverse_id"]}_{state.interpretation_id}.json')
+        )
+        print(save_flow_path)
+        with open(save_flow_path, 'w+') as f:
+            json.dump(state.flow.model_dump(), f, indent=2)
+
         def prepare(
             task: InterpretedTask[SpaceInterpreterState],
             *args,
             **kwargs
         ) -> None:
-            component = state.component_manager.component(
-                ComponentSchema(
-                    name=state.aux['name'],
-                    description=f"Meta flow {state.aux['name']}!",
-                    reverse_id=state.aux['reverse_id'],
-                    flow=state.flow,
-                    # version=VersionSchema(
-                    #     readable_name='0.0.0',
-                    # )
-                ),
-                VersionMode.PATCH
-            )
-
             task.state.aux['flow_id'] = component.flow.uid
 
             task_id = state.space.build_task(

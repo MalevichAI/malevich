@@ -12,7 +12,7 @@ from ..interpreter.abstract import Interpreter
 from ..manifest import ManifestManager
 from ..models.collection import Collection
 from ..models.nodes import BaseNode, CollectionNode, OperationNode, TreeNode
-from ..models.task import InterpretedTask
+from ..models.task.interpreted import InterpretedTask
 
 
 class CoreInterpreterState:

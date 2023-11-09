@@ -27,3 +27,7 @@ class Flow(metaclass=SingletonMeta):
     def __exit__(self, *args: Iterable) -> None:
         Flow.__flow_stack.pop()
 
+    @property
+    def stack(self) -> list[ExecutionTree]:
+        return Flow.__flow_stack
+
