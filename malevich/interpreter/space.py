@@ -504,7 +504,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
             caller_alias = state.components_alias[caller.owner.uuid]
             inter_flow_map = {}
 
-            bridges = [l_[1] for l_ in link]
+            bridges = [l_ for l_ in link[1]]
 
             for to, _ in bridges:
                 inter_flow_map[caller_alias] = child.components_alias[to.owner.uuid]
@@ -693,20 +693,34 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
             )
 
 
-            in_flow_ca = {
-                sch.in_flow_id: state.space.get_ca_in_flow(
-                    flow_id=task.state.aux['flow_id'],
-                    in_flow_id=sch.in_flow_id
-                ) for sch in start_schema
-            }
+            in_flow_ca = {}
+            overrides = []
+            for sch in start_schema:
+                try:
+                    in_flow_ca = state.space.get_ca_in_flow(
+                        flow_id=task.state.aux['flow_id'],
+                        in_flow_id=sch.in_flow_id
+                    )
+                    
+                    overrides.append({
+                        "inFlowCompUid": sch.in_flow_id,
+                        "caUid": task.state.collection_overrides[in_flow_ca],
+                        "caAlias": sch.injected_alias
+                    })
+                except:
+                    # TODO fix!
+                    continue
+                
+            # overrides = []
+            
 
-            overrides = [
-                {
-                    "inFlowCompUid": ltss.in_flow_id,
-                    "caUid": task.state.collection_overrides[in_flow_ca[ltss.in_flow_id]],
-                    "caAlias": ltss.injected_alias,
-                } for ltss in start_schema
-            ]
+            # overrides = [
+            #     {
+            #         "inFlowCompUid": ltss.in_flow_id,
+            #         "caUid": task.state.collection_overrides[in_flow_ca[ltss.in_flow_id]],
+            #         "caAlias": ltss.injected_alias,
+            #     } for ltss in start_schema
+            # ]
 
             state.space.run_task(
                 task_id=state.aux['task_id'],
