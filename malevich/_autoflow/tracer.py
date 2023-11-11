@@ -61,6 +61,11 @@ class traced(Generic[T]):  # noqa: N801
     def owner(self) -> T:
         return self._owner
 
+    def __eq__(self, other: "traced") -> bool:
+        if not isinstance(other, traced):
+            return False
+        return self.owner == other.owner
+
     def __str__(self) -> str:
         if not isinstance(self.owner, traced):
             return f'{self.owner.__str__()}ᵗ'
