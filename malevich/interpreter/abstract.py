@@ -127,6 +127,8 @@ class Interpreter(Generic[State, Return]):
 
         if not self.supports_subtrees:
             self._tree = unwrap_tree(node.tree)
+        else:
+            self._tree = node.tree
 
         self.update_state(self.before_interpret(self.state))
 

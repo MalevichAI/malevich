@@ -16,6 +16,7 @@ def collection(
     file: Optional[str] = None,
     df: Optional[pd.DataFrame] = None,
     scheme: SchemaMetadata = None,
+    alias: Optional[str] = None,
 ) -> gn.traced[CollectionNode]:
     """Creates a collection from a file or a dataframe
 
@@ -49,7 +50,11 @@ def collection(
 
     return gn.traced(
         CollectionNode(
-            collection=Collection(collection_id=name, collection_data=df),
+            collection=Collection(
+                collection_id=name,
+                collection_data=df,
+            ),
+            alias=alias,
             scheme=pd_scheme
         )
     )

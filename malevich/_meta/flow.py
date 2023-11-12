@@ -131,7 +131,7 @@ def flow(
 
                 return outputs[0] if len(outputs) == 1 else outputs
             else:
-                return PromisedTask(results=__results, tree=_tree)
+                return PromisedTask(results=__results, tree=t_node)
 
         return FlowFunction(fn, reverse_id, name, description)
 
