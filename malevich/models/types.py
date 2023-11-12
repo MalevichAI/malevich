@@ -7,4 +7,3 @@ Nodes = Iterable[BaseNode]
 TracedNode = traced[BaseNode]
 TracedNodes = Iterable[traced[BaseNode]]
 FlowOutput = Union[TracedNode, TracedNodes, None]
-

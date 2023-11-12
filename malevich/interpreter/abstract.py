@@ -6,8 +6,8 @@ import pandas as pd
 
 from malevich.models.task.interpreted import InterpretedTask
 
-from .._autoflow.tracer import traced, tracedLike
-from .._autoflow.tree import ExecutionTree
+from .._autoflow.tracer import traced
+from .._utility.tree import unwrap_tree
 from ..models.nodes.base import BaseNode
 from ..models.nodes.tree import TreeNode
 
@@ -80,36 +80,6 @@ class Interpreter(Generic[State, Return]):
         self.__history = []
         self._tree = None
 
-    def _unwrap_tree(
-        self,
-        tree: ExecutionTree[traced[BaseNode]]
-    ) -> ExecutionTree[traced[BaseNode]]:
-        """Merges all subtrees into one tree
-
-        Args
-            tree (ExecutionTree): Tree of any depth
-
-        Returns:
-            ExecutionTree: Unwrapped tree
-        """
-        edges = []
-        unwraped = {}
-        for edge in tree.traverse():
-            if isinstance(edge[1].owner, TreeNode):
-                if not unwraped.get(edge[1].owner.uuid, False):
-                    edges.extend(self._unwrap_tree(edge[1].owner.tree).tree)
-                    unwraped[edge[1].owner.uuid] = True
-                for bridge in edge[2][1]:
-                    edges.append(
-                        (edge[0], bridge[0], bridge[1])
-                    )
-            elif isinstance(edge[0].owner, TreeNode):
-                edges.append(
-                    (tracedLike(edge[0].owner.underlying_node), edge[1], edge[2]),)
-            else:
-                edges.append(edge)
-        return ExecutionTree(edges)
-
     @property
     def state(self) -> State:
         """Returns the current state
@@ -132,7 +102,8 @@ class Interpreter(Generic[State, Return]):
         else:
             self._state = self.state
 
-    def interpret(self, tree: ExecutionTree[traced[BaseNode]]) -> InterpretedTask:
+    # ExecutionTree[traced[BaseNode]])
+    def interpret(self, node: TreeNode) -> InterpretedTask:
         """Interprets the execution tree
 
         The interpretation process is divided into 5 steps:
@@ -152,16 +123,16 @@ class Interpreter(Generic[State, Return]):
             Task: Executable result of the interpretation
         """
         # Setting the current interpreter
-        setattr(tree, "__interpreter__", self)
+        setattr(node, "__interpreter__", self)
 
         if not self.supports_subtrees:
-            self._tree = self._unwrap_tree(tree)
+            self._tree = unwrap_tree(node.tree)
 
         self.update_state(self.before_interpret(self.state))
 
         node_memory = {}
 
-        for from_, to, link in tree.traverse():
+        for from_, to, link in self._tree.traverse():
             if from_.owner.uuid not in node_memory:
                 node_memory[from_.owner.uuid] = from_
                 self.update_state(self.create_node(self.state, from_))
@@ -170,7 +141,8 @@ class Interpreter(Generic[State, Return]):
                 node_memory[to.owner.uuid] = to
                 self.update_state(self.create_node(self.state, to))
 
-            self.update_state(self.create_dependency(self.state, from_, to, link))
+            self.update_state(self.create_dependency(
+                self.state, from_, to, link))
 
         self.update_state(self.after_interpret(self.state))
 

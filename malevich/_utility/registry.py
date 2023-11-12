@@ -8,7 +8,7 @@ class Registry(metaclass=SingletonMeta):
     def register(self, key: str, value: object) -> None:
         self._registry[key] = value
 
-    def get(self, key: str, default=None) -> object | None:  # noqa: ANN001
+    def get(self, key: str, default=None) -> object | None:
         return self._registry.get(key, default)
 
     def __getitem__(self, key: str) -> object:
@@ -41,5 +41,3 @@ class Registry(metaclass=SingletonMeta):
             if item not in list1:
                 list1.append(item)
         return list1
-
-

@@ -6,6 +6,7 @@ class Anomaly(ABC):
     def __str__(self) -> str:
         pass
 
+
 class MultipleLeaves(Anomaly):
     def __str__(self) -> str:
         return "multiple leaves are not supported"

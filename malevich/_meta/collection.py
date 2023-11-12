@@ -1,4 +1,3 @@
- 
 import json
 from typing import Optional
 from uuid import uuid4
@@ -25,7 +24,7 @@ def collection(
     Args:
         name (Optional[str], optional): Name of the collection. Defaults to None.
         file (Optional[str], optional): Path to the file. Defaults to None.
-        data (Optional[pd.DataFrame], optional): Dataframe. Defaults to None.
+        df (Optional[pd.DataFrame], optional): Dataframe. Defaults to None.
         scheme (Optional[SchemaMetadata], optional): Schema of the collection.
 
     Raises:

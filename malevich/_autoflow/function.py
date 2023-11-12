@@ -9,9 +9,10 @@ R = TypeVar("R")
 
 def autotrace(func: Callable[C, R]) -> Callable[C, R]:
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):  # noqa: ANN202, ANN002, ANN003
+    def wrapper(*args, **kwargs):  # noqa: ANN202
         result = func(*args, **kwargs)
-        result = gn.traced(result) if not isinstance(result, gn.traced) else result
+        result = gn.traced(result) if not isinstance(
+            result, gn.traced) else result
 
         for i, arg in enumerate(args):
             argument_name = func.__code__.co_varnames[i]

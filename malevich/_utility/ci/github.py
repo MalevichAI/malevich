@@ -24,7 +24,8 @@ class GithubCIOps(CIOps):
         )
 
     def __create_action(self, repo_dir: str, branch: str) -> str:
-        os.makedirs(os.path.join(repo_dir, ".github", "workflows"), exist_ok=True)
+        os.makedirs(os.path.join(repo_dir, ".github",
+                    "workflows"), exist_ok=True)
 
         action_file_path = os.path.join(
             repo_dir, ".github", "workflows", f"malevich-ci_{branch}.yml"
@@ -35,7 +36,7 @@ class GithubCIOps(CIOps):
         )
 
         with open(action_file_path, "w") as action, \
-            open(template_file_path) as template:
+                open(template_file_path) as template:
 
             action.write(template.read().format(
                 BRANCH_NAME=branch
@@ -44,7 +45,8 @@ class GithubCIOps(CIOps):
         return action_file_path
 
     def __create_manual_action(self, repo_dir: str, branch: str) -> str:
-        os.makedirs(os.path.join(repo_dir, ".github", "workflows"), exist_ok=True)
+        os.makedirs(os.path.join(repo_dir, ".github",
+                    "workflows"), exist_ok=True)
 
         action_file_path = os.path.join(
             repo_dir, ".github", "workflows", f"malevich-ci-manual_{branch}.yml"
@@ -55,7 +57,7 @@ class GithubCIOps(CIOps):
         )
 
         with open(action_file_path, "w") as action, \
-            open(template_file_path) as template:
+                open(template_file_path) as template:
 
             action.write(template.read().format(
                 BRANCH_NAME=branch
@@ -66,7 +68,6 @@ class GithubCIOps(CIOps):
     def _log(self, verbose: bool, msg: str) -> None:
         if verbose:
             print(msg)
-
 
     def setup_ci(
         self,
@@ -142,7 +143,7 @@ class GithubCIOps(CIOps):
                     "Accept": "application/vnd.github+json",
                     "Authorization": f"Bearer {token}",
                     "X-GitHub-Api-Version": "2022-11-28"
-                    },
+                },
                 json={
                     'encrypted_value': f'{payload}',
                     'key_id': f'{pub_key.key_id}'
@@ -161,13 +162,12 @@ class GithubCIOps(CIOps):
             self._log(verbose, f"Created action file {action_file}")
             git_repo.index.add([action_file])
             git_repo.index.add([manual_action_file])
-            git_repo.index.commit("add: malevich-ci.yml && malevich-ci-manual.yml")
+            git_repo.index.commit(
+                "add: malevich-ci.yml && malevich-ci-manual.yml")
             self._log(verbose,
-                f"Committed actions file {action_file}, {manual_action_file}"
-            )
+                      f"Committed actions file {action_file}, {manual_action_file}"
+                      )
             origin = git_repo.remote(name="origin")
             self._log(verbose, "Pushing to origin")
             origin.push(git_repo.active_branch)
             self._log(verbose, "Pushed to origin")
-
-

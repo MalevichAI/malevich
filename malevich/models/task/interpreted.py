@@ -1,5 +1,5 @@
 import asyncio
-from typing import Callable, Generic, Iterable, TypeVar, Union
+from typing import Callable, Generic, Iterable, Optional, TypeVar, Union
 
 import pandas as pd
 
@@ -16,26 +16,27 @@ ResultsFunc_ = Callable[
     Union[Iterable[pd.DataFrame], pd.DataFrame, None]
 ]
 
+
 class InterpretedTask(Generic[State], BaseTask):
     def __init__(
-       self,
-       prepare: PrepareFunc | Callable[['InterpretedTask'], None],
-       run: RunFunc | Callable[['InterpretedTask'], None],
-       stop: StopFunc | Callable[['InterpretedTask'], None],
-       results: ResultsFunc | ResultsFunc_,  # noqa: E501
-       state: State,
-       returned: FlowOutput = None,
-   ) -> None:
-         self.__prepare = prepare
-         self.__run = run
-         self.__stop = stop
-         self.__results = results
-         self.__state = state
-         self.__returned = returned
+        self,
+        prepare: PrepareFunc | Callable[['InterpretedTask'], None],
+        run: RunFunc | Callable[['InterpretedTask'], None],
+        stop: StopFunc | Callable[['InterpretedTask'], None],
+        results: ResultsFunc | ResultsFunc_,
+        state: State,
+        returned: FlowOutput = None,
+    ) -> None:
+        self.__prepare = prepare
+        self.__run = run
+        self.__stop = stop
+        self.__results = results
+        self.__state = state
+        self.__returned = returned
 
     async def async_prepare(
         self,
-        callback: Callable[[], None]=None,
+        callback: Optional[Callable[[], None]] = None,
         *args,
         **kwargs
     ) -> None:
@@ -65,7 +66,7 @@ class InterpretedTask(Generic[State], BaseTask):
 
     async def async_run(
         self,
-        callback: Callable[[], None]=None,
+        callback: Optional[Callable[[], None]] = None,
         *args,
         **kwargs
     ) -> None:
@@ -95,7 +96,7 @@ class InterpretedTask(Generic[State], BaseTask):
 
     async def async_stop(
         self,
-        callback: Callable[[], None]=None,
+        callback: Optional[Callable[[], None]] = None,
         *args,
         **kwargs
     ) -> None:
@@ -125,7 +126,7 @@ class InterpretedTask(Generic[State], BaseTask):
 
     async def async_results(
         self,
-        callback: Callable[[pd.DataFrame | Iterable[pd.DataFrame]], None]=None,
+        callback: Optional[Callable[[pd.DataFrame | Iterable[pd.DataFrame]], None]] = None,  # noqa: E501
     ) -> None:
         """Get results of the task.
 

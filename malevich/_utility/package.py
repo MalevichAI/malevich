@@ -1,6 +1,6 @@
 import os
-import sys
 import shutil
+import sys
 
 from .singleton import SingletonMeta
 
@@ -18,7 +18,8 @@ class PackageManager(metaclass=SingletonMeta):
     ]
 
     def __init__(self) -> None:
-        self.__malevich_path = os.path.dirname(sys.modules["malevich"].__file__)
+        self.__malevich_path = os.path.dirname(
+            sys.modules["malevich"].__file__)
 
     def is_builtin(self, package_name: str) -> bool:
         return package_name in self.builtins
@@ -61,5 +62,6 @@ class PackageManager(metaclass=SingletonMeta):
         except Exception:
             return False
         return lib is not None
+
 
 package_manager = PackageManager()

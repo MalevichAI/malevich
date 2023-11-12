@@ -8,13 +8,14 @@ import numpy as np
 import pandas as pd
 from botocore.response import StreamingBody
 
-WORKDIR = "/julius" # FIXME "/malevich"
+WORKDIR = "/julius"  # FIXME "/malevich"
 APP_DIR = f"{WORKDIR}/apps"
 
 
 class Context:
     class _DagKeyValue:
         """values must be bytes, string, int or float; dictionary order is not guaranteed"""  # noqa: E501
+
         def __init__(self, run_id: Optional[str] = None) -> None:
             pass
 
@@ -82,6 +83,7 @@ class Context:
             pass
 
     """context for run"""
+
     def __init__(self) -> None:
         self.app_id: str = ""
         self.run_id: str = ""
@@ -118,12 +120,12 @@ class Context:
         """delete dir or file, that shared between all apps, path like path is the same as used in function \"share\""""  # noqa: E501
         pass
 
-    def synchronize(self, paths: List[str] = None, all_runs: bool = False) -> None: # TODO synchronize removing  # noqa: E501
-        """synchronize mounts for pods, paths = None or [] - synchronize from root mount""" # noqa: E501
+    def synchronize(self, paths: Optional[List[str]] = None, all_runs: bool = False) -> None:  # TODO synchronize removing  # noqa: E501
+        """synchronize mounts for pods, paths = None or [] - synchronize from root mount"""  # noqa: E501
         pass
 
-    async def async_synchronize(self, paths: List[str] = None, all_runs: bool = False) -> None:  # noqa: E501
-        """synchronize mounts for pods, paths = None or [] - synchronize from root mount""" # noqa: E501
+    async def async_synchronize(self, paths: Optional[List[str]] = None, all_runs: bool = False) -> None:  # noqa: E501
+        """synchronize mounts for pods, paths = None or [] - synchronize from root mount"""  # noqa: E501
         pass
 
     def msg(self, data: Union[str, Dict], url: Optional[str] = None, headers: Optional[Dict[str, str]] = None, wait: bool = False, wrap: bool = True, with_result: bool = False):  # noqa: E501, ANN201
@@ -191,7 +193,7 @@ class S3Helper:
         self.__bucket = s3_bucket
 
     @staticmethod
-    def create_by_cfg(cfg: Dict[str, Any], **kwargs) -> 'S3Helper':  # noqa: ANN003
+    def create_by_cfg(cfg: Dict[str, Any], **kwargs) -> 'S3Helper':
         s3_client = boto3.client(
             's3',
             region_name=cfg.get('aws_region'),
@@ -202,19 +204,19 @@ class S3Helper:
         )
         return S3Helper(s3_client, cfg['s3_bucket'])
 
-    def get_object(self, key: str, bucket: Optional[str]=None) -> Optional[StreamingBody]:  # noqa: E501
+    def get_object(self, key: str, bucket: Optional[str] = None) -> Optional[StreamingBody]:  # noqa: E501
         pass
 
-    def get_df(self, key: str, bucket: Optional[str]=None) -> pd.DataFrame:
+    def get_df(self, key: str, bucket: Optional[str] = None) -> pd.DataFrame:
         pass
 
-    def save_object(self, body: Any, key: str, bucket: Optional[str]=None) -> None:  # noqa: ANN401
+    def save_object(self, body: Any, key: str, bucket: Optional[str] = None) -> None:  # noqa: ANN401
         pass
 
-    def save_df(self, df: pd.DataFrame, key: str, bucket: Optional[str]=None) -> None:
+    def save_df(self, df: pd.DataFrame, key: str, bucket: Optional[str] = None) -> None:
         pass
 
-    def delete_object(self, key: str, bucket: Optional[str]=None) -> None:
+    def delete_object(self, key: str, bucket: Optional[str] = None) -> None:
         pass
 
 
@@ -229,7 +231,7 @@ class SmtpSender:
         pass
 
 
-def to_df(x: Any, force: bool=False) -> pd.DataFrame:  # noqa: ANN401
+def to_df(x: Any, force: bool = False) -> pd.DataFrame:  # noqa: ANN401
     """creates a dataframe in a certain way, \"force\" should be used for complex objects ('ndarray', 'Tensor' and python primitives work without it. It crashes on basic types ('int', 'str', etc)), scheme of received dataframe - \"default_scheme\""""  # noqa: E501
     if force:
         return pd.DataFrame({"data": [jsonpickle.encode(x)]})
@@ -246,7 +248,7 @@ def to_df(x: Any, force: bool=False) -> pd.DataFrame:  # noqa: ANN401
 
 
 # TODO create same with pyspark
-def from_df(x: pd.DataFrame, type_name: Optional[str] = None, force: bool=False) -> Any:  # noqa: ANN401
+def from_df(x: pd.DataFrame, type_name: Optional[str] = None, force: bool = False) -> Any:  # noqa: ANN401
     """decodes the \"to_df\" data from the dataframe, \"force\" is used if it was used in the encoding function - \"to_df\". You should specify the type (by type_name: for example 'ndarray', 'list', 'Tensor', 'int') that was put in this \"to_df\" dataframe.
     possible type_names: 'ndarray', 'list', 'tuple', 'Tensor', 'set', 'frozenset', 'dict', 'bytearray'. Otherwise considered a primitive base type
     if force==True ignore type_name anyway"""  # noqa: E501

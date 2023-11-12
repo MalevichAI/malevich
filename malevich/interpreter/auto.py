@@ -11,11 +11,12 @@ INTERPRETERS = [
     )
 ]
 
+
 def auto(tree: ExecutionTree) -> tuple[Interpreter, list[CanInterpretVerdict]]:
     verdicts = []
     interpreter = None
     for _interpreter in INTERPRETERS:
-        verdict =_interpreter.can_interpret(tree)
+        verdict = _interpreter.can_interpret(tree)
         verdicts.append(verdict)
         if verdict.verdict:
             interpreter = _interpreter

@@ -5,6 +5,7 @@ from ..._autoflow.tree import ExecutionTree
 
 State = TypeVar("State")
 
+
 class AbstractSummary(ABC, Generic[State]):
     def __init__(self, tree: ExecutionTree, interpreter_state: State) -> None:
         super().__init__()

@@ -1,3 +1,4 @@
+import json
 import uuid
 from collections import defaultdict
 from typing import Any, Iterable
@@ -6,13 +7,17 @@ import malevich_coretools as core
 import pandas as pd
 
 from .._autoflow.tracer import traced
+from .._utility.cache.manager import CacheManager
 from .._utility.registry import Registry
 from ..constants import DEFAULT_CORE_HOST
 from ..interpreter.abstract import Interpreter
 from ..manifest import ManifestManager
 from ..models.collection import Collection
+from ..models.exceptions import InterpretationError
 from ..models.nodes import BaseNode, CollectionNode, OperationNode, TreeNode
 from ..models.task.interpreted import InterpretedTask
+
+cache = CacheManager()
 
 
 class CoreInterpreterState:
@@ -37,6 +42,8 @@ class CoreInterpreterState:
         self.params: dict[str, Any] = {}
         # Results
         self.results: dict[str, str] = {}
+        # Interpretation ID
+        self.interpretation_id: str = uuid.uuid4().hex
 
 
 class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
@@ -58,6 +65,53 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
     def _result_collection_name(self, operation_id: str) -> str:
         return f"result-{operation_id}"
 
+    def _write_cache(self, object: object, path: str) -> None:
+        json.dump(object, cache.get_file(path))
+
+    def _create_app_safe(self, app_id: str, extra: dict, *args, **kwargs) -> None:
+        # TODO: Wrap correctly
+        if core.get_app(app_id):
+            core.delete_app(app_id)
+            try:
+                core.delete_task(app_id)
+            except Exception:
+                pass
+        try:
+            core.create_app(
+                app_id,
+                processor_id=extra["processor_id"],
+                *args,
+                **kwargs
+            )
+        except Exception as e:
+            if 'processor_id' in extra:
+                processor_id = extra['processor_id']
+                raise InterpretationError(
+                    f"Failed to create an app. Processor is {processor_id}. "
+                ) from e
+            else:
+                raise InterpretationError(
+                    "Failed to create an app and could determine the processor. "
+                    "Most probably, the app is installed incorrectly. Use "
+                    "malevich remove to remove it and reinstall it correctly"
+                ) from e
+
+        kwargs = {
+            "app_id": app_id,
+            "app_cfg": kwargs['app_cfg'],
+            "image_ref": kwargs['image_ref'],
+            "extra_collections_from": kwargs['extra_collections_from'],
+        }
+
+        self._write_cache(
+            kwargs, f"app-{app_id}-{self.state.interpretation_id}.json")
+
+        return core.AppSettings(
+            appId=app_id,
+            taskId=app_id,
+            saveCollectionsName=[self._result_collection_name(app_id)],
+        )
+
     def create_node(
         self, state: CoreInterpreterState, node: traced[BaseNode]
     ) -> CoreInterpreterState:
@@ -77,20 +131,12 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
     def before_interpret(self, state: CoreInterpreterState) -> CoreInterpreterState:
         core.set_host_port(self.__core_host)
         core.update_core_credentials(self.__core_auth[0], self.__core_auth[1])
-        # TODO: May end up with a lot of garbage in the core
-        # or even collisions
-        # core.delete_apps()
-        # core.delete_tasks()
-        # core.delete_collections()
-        # core.delete_cfgs()
         return state
 
     def after_interpret(self, state: CoreInterpreterState) -> CoreInterpreterState:
         for id, op in state.ops.items():
             if isinstance(op, OperationNode):
                 extra = state.reg.get(op.operation_id, {})
-
-
                 image_auth_user = state.manf.query(
                     *extra["image_auth_user"],
                     resolve_secrets=True
@@ -110,7 +156,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
 
                 for node, (link, _) in state.depends[id]:
                     if isinstance(node, CollectionNode) and \
-                        node.uuid in state.collections:
+                            node.uuid in state.collections:
                         coll, uploaded_core_id = state.collections[node.uuid]
                         state.cfg.collections = {
                             **state.cfg.collections,
@@ -119,21 +165,16 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                         extra_colls[link] = coll.collection_id
 
                 app_core_name = uuid.uuid4().hex + f"-{extra['processor_id']}"
-                core.create_app(
-                    app_id=app_core_name,
-                    processor_id=extra["processor_id"],
-                    image_auth=(image_auth_user, image_auth_pass),
-                    image_ref=image_ref,
-                    extra_collections_from=extra_colls,
-                    app_cfg=op.config,
-                )
 
                 state.core_ops[op.uuid] = app_core_name
                 state.cfg.app_settings.append(
-                    core.AppSettings(
-                        appId=app_core_name,
-                        taskId=app_core_name,
-                        saveCollectionsName=[self._result_collection_name(op.uuid)],
+                    self._create_app_safe(
+                        app_id=app_core_name,
+                        extra=extra,
+                        image_auth=(image_auth_user, image_auth_pass),
+                        image_ref=image_ref,
+                        extra_collections_from=extra_colls,
+                        app_cfg=op.config
                     )
                 )
                 state.results[op.uuid] = self._result_collection_name(op.uuid)
@@ -145,6 +186,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                     collection_ref.collection_data,
                     collection_ref.collection_id,
                 )
+
                 state.collections[op.uuid] = (collection_ref, uploaded_core_id)
         return state
 
@@ -171,6 +213,11 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                     'app_id': core_id,
                     'tasks_depends': depends
                 }
+            )
+
+            self._write_cache(
+                task_kwargs[-1],
+                f'task-{core_id}-{self.state.interpretation_id}.json'
             )
 
         config_kwargs = {
@@ -216,8 +263,8 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
 
         def stop(
             task: InterpretedTask[CoreInterpreterState],
-            *args,  # noqa: ANN002
-            **kwargs  # noqa: ANN003
+            *args,
+            **kwargs
         ) -> None:
             if "task_id" not in task.state.params:
                 raise Exception("Attempt to run a task which is not prepared. "
@@ -227,8 +274,8 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         def results(
             task: InterpretedTask[CoreInterpreterState],
             returned: Iterable[traced[BaseNode]] | traced[BaseNode] | None,
-            *args,  # noqa: ANN002
-            **kwargs  # noqa: ANN003
+            *args,
+            **kwargs
         ) -> Iterable[pd.DataFrame] | pd.DataFrame:
             if "task_id" not in task.state.params:
                 raise Exception("Attempt to run a task which is not prepared. "
@@ -269,5 +316,3 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
             elif isinstance(node, TreeNode):
                 results.append(self.get_results(node.results))
         return results[0] if len(results) == 1 else results
-
-

@@ -1,3 +1,4 @@
+import malevich_coretools as core
 import logging
 # Autoflow Engine
 from ._autoflow import tracer as gn
@@ -24,7 +25,6 @@ from ._utility.summary import *
 manifest = ManifestManager()
 
 
-import malevich_coretools as core
 __logger = logging.getLogger("log")
 __logger.setLevel(logging.CRITICAL)
 core.set_logger(__logger)

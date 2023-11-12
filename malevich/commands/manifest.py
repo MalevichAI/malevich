@@ -18,7 +18,7 @@ DISCLAIMER = """
 \tTo manifest a secret, add it to the [b]'secrets'[/b] section of the [yellow on black]manifest.secrets.yaml[/yellow on black] file.
 \tAdditonally, you can use the [yellow on black]malevich secrets fix[/yellow on black] command to interactively manifest secrets.
 [/center]
-""" # noqa: E501
+"""  # noqa: E501
 
 
 @secrets.command("scan")
@@ -87,7 +87,8 @@ def fix() -> None:
         secret_key = manf.put_secret(key, value, external=mark_external)
         manf.put(*secret[0], value=secret_key, append=False)
         manf.save()
-        rich.print(f"\n[green]Secret updated: [/green] {secret[1]} -> {secret_key}\n")
+        rich.print(
+            f"\n[green]Secret updated: [/green] {secret[1]} -> {secret_key}\n")
 
 
 @app.command("query")

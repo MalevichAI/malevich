@@ -7,4 +7,3 @@ from .base import BaseNode
 class CollectionNode(BaseNode):
     collection: Collection
     scheme: str | SchemaMetadata | None = None
-

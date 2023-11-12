@@ -30,7 +30,8 @@ class CoreTimeSummary(AbstractSummary[CoreInterpreterState]):
             column="duration",
             # Duration of the operation in milliseconds
             value=(
-                pd.to_datetime(df.timestamp_end) - pd.to_datetime(df.timestamp_start)
+                pd.to_datetime(df.timestamp_end) - \
+                pd.to_datetime(df.timestamp_start)
             ).astype("timedelta64[s]").astype(int),
         )
 

@@ -1,12 +1,13 @@
 import os
 import tempfile
 from subprocess import run
+from typing import Optional
 
 
 def clone_python_files(
     link: str,
-    auth: tuple[str, str] = None,
-    branch: str = None,
+    auth: Optional[tuple[str, str]] = None,
+    branch: Optional[str] = None,
     folder: os.PathLike = tempfile.TemporaryDirectory(),
 ) -> list[str]:
     """Clone a Git repository and return a list of Python files.
@@ -38,7 +39,8 @@ def clone_python_files(
     # --depth 1: Only clone the latest commit
     # --no-tags: Do not clone tags
     # --filter=blob:none: Do not clone blobs (large files)
-    command = ["git", "clone", "--depth", "1", "--no-tags", "--filter=blob:none"]
+    command = ["git", "clone", "--depth", "1",
+               "--no-tags", "--filter=blob:none"]
 
     # Add branch if specified
     if branch:
@@ -69,10 +71,11 @@ def clone_python_files(
         if file.endswith(".py")
     ]
 
+
 def clone(
     link: str,
-    auth: tuple[str, str] = None,
-    branch: str = None,
+    auth: Optional[tuple[str, str]] = None,
+    branch: Optional[str] = None,
     folder: os.PathLike = tempfile.TemporaryDirectory().name,
 ) -> None:
     command = ["git", "clone",  "--filter=blob:none"]
@@ -82,7 +85,6 @@ def clone(
         command += [f"https://{auth[0]}:{auth[1]}@{link}"]
     else:
         command += [link]
-
 
     # Add branch if specified
     if branch:

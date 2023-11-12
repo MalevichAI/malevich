@@ -18,11 +18,9 @@ class Flow(metaclass=SingletonMeta):
         """Returns the reference to the current flow in the context"""
         return None if not Flow.isinflow() else Flow.__flow_stack[-1]
 
-
     def __enter__(self) -> ExecutionTree:
         Flow.__flow_stack.append(ExecutionTree())
         return Flow.flow_ref()
-
 
     def __exit__(self, *args: Iterable) -> None:
         Flow.__flow_stack.pop()
@@ -30,4 +28,3 @@ class Flow(metaclass=SingletonMeta):
     @property
     def stack(self) -> list[ExecutionTree]:
         return Flow.__flow_stack
-

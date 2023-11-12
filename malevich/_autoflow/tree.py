@@ -1,12 +1,13 @@
 from collections import deque
-from typing import Any, Generic, Iterable, Iterator, TypeVar
+from typing import Any, Generic, Iterable, Iterator, Optional, TypeVar
 
 T = TypeVar("T")
+
 
 class ExecutionTree(Generic[T]):
     # tree: list[tuple[T, T, Any]] = []
 
-    def __init__(self, tree: list[tuple[T, T, Any]] = None) -> None:
+    def __init__(self, tree: Optional[list[tuple[T, T, Any]]] = None) -> None:
         if tree is not None:
             self.tree = tree
         else:
@@ -15,7 +16,7 @@ class ExecutionTree(Generic[T]):
     def put_edge(self, caller: T, callee: T, link: Any = None) -> None:  # noqa: ANN401
         self.tree.append((caller, callee, link))
 
-    def prune(self, outer_nodes: list[T] = None) -> None:
+    def prune(self, outer_nodes: Optional[list[T]] = None) -> None:
         self.tree = [
             x for x in self.tree
             if x[0] not in outer_nodes
@@ -63,13 +64,11 @@ class ExecutionTree(Generic[T]):
                 )
             )
 
-
     def leaves(self) -> Iterable[T]:
         return (
             x[1] for x in self.traverse()
             if not any(y[0] == x[1] for y in self.tree)
         )
-
 
     @staticmethod
     def connected(a: 'ExecutionTree', b: 'ExecutionTree') -> bool:
@@ -78,4 +77,3 @@ class ExecutionTree(Generic[T]):
         ) or any(
             x[0] == a and x[1] == b for x in b.traverse()
         )
-

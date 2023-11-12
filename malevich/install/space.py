@@ -12,6 +12,7 @@ from .mimic import mimic_package
 
 manf = ManifestManager()
 
+
 class Templates:
     """Templates for creating a package from a Docker image"""
 
@@ -50,6 +51,7 @@ def {name}({args}config: dict = {{}}):
     return OperationNode(operation_id="{operation_id}", config=config)
 """
 
+
 class SpaceDependencyOptions(BaseModel):
     reverse_id: str
     branch: Optional[str] = None
@@ -57,7 +59,6 @@ class SpaceDependencyOptions(BaseModel):
     image_ref: Optional[str] = None
     image_auth_user: Optional[str] = None
     image_auth_pass: Optional[str] = None
-
 
 
 class SpaceDependency(Dependency):
@@ -74,17 +75,19 @@ class SpaceInstaller(Installer):
                 manf.query('space', resolve_secrets=True)
             ))
         except Exception as e:
-            raise Exception("Setup is invalid. Run `malevich space init`") from e
+            raise Exception(
+                "Setup is invalid. Run `malevich space init`") from e
 
     def install(
         self,
         package_name: str,
         reverse_id: str,
-        branch: str = None,
-        version: str = None,
+        branch: Optional[str] = None,
+        version: Optional[str] = None,
     ) -> SpaceDependency:
 
-        component = self.__ops.get_parsed_component_by_reverse_id(reverse_id=reverse_id)
+        component = self.__ops.get_parsed_component_by_reverse_id(
+            reverse_id=reverse_id)
         if component is None:
             raise Exception(f"Component {reverse_id} not found")
 
@@ -104,7 +107,6 @@ class SpaceInstaller(Installer):
         else:
             iauth, itoken = None, None
 
-
         for op in component.app.ops:
             if op.type != "processor":
                 continue
@@ -114,7 +116,8 @@ class SpaceInstaller(Installer):
                 branch=str(component.branch.model_dump()),
                 version=str(component.version.model_dump()),
                 name=op.core_id,
-                image_ref=("dependencies", package_name, "options", "image_ref"),
+                image_ref=("dependencies", package_name,
+                           "options", "image_ref"),
                 image_auth_user=(
                     "dependencies",
                     package_name,
@@ -132,7 +135,7 @@ class SpaceInstaller(Installer):
             args_ = []
             for arg_ in op.args:
                 if "return" in arg_.arg_name \
-                    or (arg_.arg_type and "Context" in arg_.arg_type):
+                        or (arg_.arg_type and "Context" in arg_.arg_type):
                     continue
                 args_.append(arg_.arg_name)
 
@@ -143,10 +146,9 @@ class SpaceInstaller(Installer):
                 operation_id=op.uid
             )
 
-
         mimic_package(
-           package=re.sub(r"[^a-zA-Z0-9_]", "_", package_name),
-           metascript=metascript,
+            package=re.sub(r"[^a-zA-Z0-9_]", "_", package_name),
+            metascript=metascript,
         )
 
         return SpaceDependency(
@@ -170,7 +172,6 @@ class SpaceInstaller(Installer):
             branch=dependency.options.branch,
             version=dependency.options.version
         )
-
 
     def construct_dependency(self, dependency: dict) -> SpaceDependency:
         return SpaceDependency(**dependency)

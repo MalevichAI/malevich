@@ -5,6 +5,7 @@ using Malevich Core capabilities
 
 import hashlib
 import json
+from typing import Optional
 
 import malevich_coretools as core
 
@@ -124,8 +125,8 @@ class ImageInstaller(Installer):
             operations: Operations info
             package_name: Name of the package to be created
         """
-        indexed_operations = {}
-        salt = hashlib.sha256(operations.model_dump_json().encode()).hexdigest()
+        salt = hashlib.sha256(
+            operations.model_dump_json().encode()).hexdigest()
         contents = Templates.disclaimer
         contents += Templates.imports
 
@@ -138,7 +139,8 @@ class ImageInstaller(Installer):
             }
 
             schema_definition = "\n".join(
-                [f"\t{k}: {v} = None" for k, v in field_types.items() if k and v]
+                [f"\t{k}: {v} = None" for k, v in field_types.items()
+                 if k and v]
             )
             if not schema_definition:
                 schema_definition = "\tpass"
@@ -172,7 +174,8 @@ class ImageInstaller(Installer):
 
             contents += Templates.registry.format(
                 operation_id=checksum,
-                image_ref=("dependencies", package_name, "options", "image_ref"),
+                image_ref=("dependencies", package_name,
+                           "options", "image_ref"),
                 image_auth_user=(
                     "dependencies",
                     package_name,
@@ -203,7 +206,7 @@ class ImageInstaller(Installer):
         for id_, output_ in operations.outputs.items():
             contents += Templates.output.format(output_name=id_)
 
-        return contents#, indexed_operations
+        return contents  # , indexed_operations
 
     def install(
         self,
@@ -211,7 +214,7 @@ class ImageInstaller(Installer):
         image_ref: str,
         image_auth: tuple[str, str],
         core_host: str = DEFAULT_CORE_HOST,
-        core_auth: tuple[str, str] = None,
+        core_auth: Optional[tuple[str, str]] = None,
     ) -> ImageDependency:
         app_info = ImageInstaller._scan_core(
             core_auth=core_auth,
@@ -219,7 +222,8 @@ class ImageInstaller(Installer):
             image_ref=image_ref,
             image_auth=image_auth,
         )
-        checksum = hashlib.sha256(app_info.model_dump_json().encode()).hexdigest()
+        checksum = hashlib.sha256(
+            app_info.model_dump_json().encode()).hexdigest()
         # metascript, operations = ImageInstaller.create_operations(
         metascript = ImageInstaller.create_operations(
             app_info, package_name
@@ -251,7 +255,7 @@ class ImageInstaller(Installer):
                 image_auth_user=iauth_user,
                 image_auth_pass=iauth_pass,
                 image_ref=image_ref,
-                #operations=operations,
+                # operations=operations,
             ),
         )
 
@@ -277,9 +281,9 @@ class ImageInstaller(Installer):
         manf = ManifestManager()
         parsed = ImageDependency(**object)
         parsed.options.image_auth_pass = manf.query_secret(
-                parsed.options.image_auth_pass,
-                only_value=True,
-            )
+            parsed.options.image_auth_pass,
+            only_value=True,
+        )
         parsed.options.image_auth_user = manf.query_secret(
             parsed.options.image_auth_user,
             only_value=True,

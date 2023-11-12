@@ -17,7 +17,7 @@ class Dependency(BaseModel):
 
 
 class Manifest(BaseModel):
-    project_id : Optional[str] = None
+    project_id: Optional[str] = None
     version: Optional[str] = None
     space: Optional[SpaceSetup] = None
     dependencies: list[dict[str, Dependency]] = []
@@ -36,8 +36,6 @@ class Secret(BaseModel):
     salt: Optional[str] = None
     external: Optional[bool] = False
 
+
 class Secrets(BaseModel):
     secrets: dict[str, Secret] = {}
-
-
-

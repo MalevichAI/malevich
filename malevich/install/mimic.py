@@ -5,7 +5,6 @@ Provides functionality for creating a package with the given name and contents.
 
 import importlib
 import os
-import re
 from hashlib import sha256
 from pathlib import Path
 

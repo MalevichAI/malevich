@@ -17,13 +17,10 @@ class Flow:
         """Returns the reference to the current flow in the context"""
         return Flow.__flow
 
-
     def __enter__(self) -> ExecutionTree:
         assert Flow.__flow is None, "Flow already exists"
         Flow.__flow = ExecutionTree()
         return Flow.__flow
 
-
     def __exit__(self, *args: Iterable) -> None:
         Flow.__flow = None
-

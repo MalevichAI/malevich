@@ -12,6 +12,7 @@ class TreeNode(BaseNode):
     results: Iterable[traced[BaseNode]] | traced[BaseNode] | None = None
     reverse_id: str
     name: str
+    description: str = "Wonderful Flow!"
     underlying_node: Optional[Any] = None
 
     model_config = ConfigDict(arbitrary_types_allowed=True)

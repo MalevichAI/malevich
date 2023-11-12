@@ -32,7 +32,8 @@ class Task(Generic[T]):
             "onerr": [lambda t: t.stop()],
         }
         self.__progress = Progress(
-            SpinnerColumn(), TextColumn("{task.description} | "), TimeElapsedColumn()
+            SpinnerColumn(), TextColumn(
+                "{task.description} | "), TimeElapsedColumn()
         )
 
     def onerror(self, callback: Callback) -> None:
@@ -42,8 +43,8 @@ class Task(Generic[T]):
         self,
         no_callbacks: bool = False,
         quiet: bool = False,
-        *args,  # noqa: ANN002
-        **kwargs,  # noqa: ANN003
+        *args,
+        **kwargs,
     ) -> tuple[bool, Union[AppLogs, Exception]]:
         """Prepares the task to be executed at Malevich API.
 
@@ -128,8 +129,8 @@ class Task(Generic[T]):
         self,
         no_callbacks: bool = False,
         quiet: bool = False,
-        *args,  # noqa: ANN002
-        **kwargs,  # noqa: ANN003
+        *args,
+        **kwargs,
     ) -> tuple[bool, Union[AppLogs, Exception]]:
         """Runs the task at Malevich API.
 
@@ -197,9 +198,8 @@ class Task(Generic[T]):
             self.__progress.stop()
             return False, e
 
-
     def stop(
-        self, *args, **kwargs  # noqa: ANN003, ANN002
+        self, *args, **kwargs
     ) -> tuple[bool, Union[AppLogs, Exception]]:
         """Stops the task at Malevich API.
 
@@ -234,7 +234,6 @@ class Task(Generic[T]):
             return __out
         except Exception as e:
             return False, e
-
 
     @property
     def finished(self) -> bool:

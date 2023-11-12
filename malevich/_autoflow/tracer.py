@@ -1,6 +1,6 @@
 import uuid
 from hashlib import sha256
-from typing import Any, Generic, Iterable, TypeVar, Union
+from typing import Any, Generic, Iterable, Optional, TypeVar, Union
 
 from pydantic import BaseModel, Field
 
@@ -21,14 +21,16 @@ class root(BaseModel):   # noqa: N801
             return False
         return self.id == other.id
 
-
     def __hash__(self) -> int:
         return hash(sha256(self.id.encode()).hexdigest)
 
 
 T = TypeVar("T", bound=Any)
+
+
 class autoflow(Generic[T]):  # noqa: N801
     """Autoflow is a bridge between the tracer and the execution tree"""
+
     def __init__(self, tree: ExecutionTree[T]) -> None:
         self._tree_ref = tree
         self._component_ref = None
@@ -36,12 +38,13 @@ class autoflow(Generic[T]):  # noqa: N801
     def attach(self, component: T) -> None:
         self._component_ref = component
 
-    def calledby(self, caller: 'traced', argument: str = None) -> None:
+    def calledby(self, caller: 'traced', argument: Optional[str] = None) -> None:
         self._tree_ref.put_edge(self._component_ref, caller, argument)
 
 
 class traced(Generic[T]):  # noqa: N801
     """Tracer is a special object that is used to track the execution of the pipeline"""
+
     def __init__(
         self,
         owner: T = root()
@@ -82,6 +85,7 @@ class traced(Generic[T]):  # noqa: N801
                 "Traced object is not supposed to be nested"
             )
 
+
 class tracedLike(traced[T]):  # noqa: N801
     def __init__(self, owner: T = root()) -> None:
         self._owner = owner
@@ -106,9 +110,9 @@ class tracedLike(traced[T]):  # noqa: N801
         return super().__repr__() + "*"
 
 
-
 class multitracer(traced, list[T], Generic[T]):   # noqa: N801
     """Multitracer is a tracer for collections"""
+
     def __init__(
         self,
         owner: T = root(),

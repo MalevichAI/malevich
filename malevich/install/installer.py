@@ -9,11 +9,12 @@ class Installer(ABC):
     name: str
 
     """Abstract installer interface."""
+
     def __init__(self) -> None:
         super().__init__()
 
     @abstractmethod
-    def install(self, *args, **kwargs) -> Dependency: # noqa: ANN003, ANN002, ANN204
+    def install(self, *args, **kwargs) -> Dependency:
         """Installation function. Called by CLI commands"""
         pass
 

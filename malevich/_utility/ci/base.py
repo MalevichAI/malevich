@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Optional
 
 
 class CIOps(ABC):
@@ -14,8 +15,8 @@ class CIOps(ABC):
         branch: str,
         registry_url: str,
         registry_id: str,
-        image_user: str = None,
-        image_token: str = None,
+        image_user: Optional[str] = None,
+        image_token: Optional[str] = None,
         verbose: bool = False,
     ) -> None:
         pass

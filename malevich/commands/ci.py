@@ -11,7 +11,7 @@ github = typer.Typer()
 
 
 @github.command()
-def init(
+def init(  # noqa: ANN201
     interactive: bool = typer.Option(
         False,
         help="Run the initialization wizard",
@@ -97,7 +97,8 @@ def init(
 
         space_user = Prompt.ask(
             "Enter the username to access [b deep_pink3]Malevich Space[/b deep_pink3]"
-            " [i bright_black](leave empty to use access token instead)[/i bright_black]"
+            " [i bright_black]"
+            "(leave empty to use access token instead)[/i bright_black]"
         )
 
         space_token = Prompt.ask(
@@ -139,8 +140,6 @@ def init(
             "Enter the password to access the Docker Container Registry",
         )
 
-
-
     rich.print("Calling the Github API to setup the CI/CD pipeline")
 
     ops.setup_ci(
@@ -156,7 +155,6 @@ def init(
         image_token=image_token,
         verbose=True
     )
-
 
 
 app = typer.Typer()

@@ -24,7 +24,6 @@ class BaseTask(ABC):
     def commit_returned(self, returned: FlowOutput) -> None:
         return
 
-
     def __call__(self):  # noqa: ANN204
         self.prepare()
         self.run()

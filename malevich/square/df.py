@@ -62,7 +62,7 @@ class DFS(Generic[Unpack[Schemes]]):
         return self
 
     def __init(self, dfs: List[pd.DataFrame], nested: bool = False) -> None:
-        types = self.__orig_class__.__args__ if hasattr(self, "__orig_class__") else [Any for _ in dfs] # noqa: E501
+        types = self.__orig_class__.__args__ if hasattr(self, "__orig_class__") else [Any for _ in dfs]  # noqa: E501
         many_df_index = None
         for i, type in enumerate(types):
             if _is_M(type):
@@ -72,7 +72,7 @@ class DFS(Generic[Unpack[Schemes]]):
                 else:
                     many_df_index = i
         if many_df_index is None:
-            assert len(types) == len(dfs), f"wrong arguments size: expected {len(types)}, found {len(dfs)}" # noqa: E501
+            assert len(types) == len(dfs), f"wrong arguments size: expected {len(types)}, found {len(dfs)}"  # noqa: E501
             for df, type in zip(dfs, types):
                 self.__dfs.append(DF[type](df))
         else:

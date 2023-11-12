@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Optional
 
 import rich
 import typer
@@ -20,12 +20,12 @@ use = typer.Typer(help=USE_HELP, rich_markup_mode="rich")
 
 def _install_from_image(
     package_name: str,
-    image_ref: str = None,
-    image_auth_user: str = None,
-    image_auth_password: str = None,
+    image_ref: Optional[str] = None,
+    image_auth_user: Optional[str] = None,
+    image_auth_password: Optional[str] = None,
     core_host: str = DEFAULT_CORE_HOST,
-    core_user: str = None,
-    core_token: str = None,
+    core_user: Optional[str] = None,
+    core_token: Optional[str] = None,
     progress: Progress = None,
 
 ) -> None:
@@ -38,7 +38,8 @@ def _install_from_image(
             core_host=core_host or DEFAULT_CORE_HOST,
             core_user=core_user,
             core_token=core_token,
-            progress=Progress(SpinnerColumn(), TextColumn("{task.description}")),
+            progress=Progress(
+                SpinnerColumn(), TextColumn("{task.description}")),
         )
     installer = ImageInstaller()
     if progress:
@@ -54,7 +55,8 @@ def _install_from_image(
             image_ref=image_ref,
             image_auth=(image_auth_user, image_auth_password),
             core_host=core_host,
-            core_auth=(core_user, core_token) if core_user and core_token else None,
+            core_auth=(
+                core_user, core_token) if core_user and core_token else None,
         )
 
         manifest_manager = ManifestManager()
@@ -104,8 +106,10 @@ def _install_from_image(
                 task_,
                 description="\n[red]✘[/red] Failed with "
                 "[yellow]image[/yellow] installer "
-        )
+            )
         raise err
+
+
 @use.command("image", help=USE_IMAGE_HELP)
 def install_from_image(
     package_name: Annotated[
@@ -113,7 +117,7 @@ def install_from_image(
         typer.Argument(help="Package name")
     ],
     image_ref: Annotated[
-        str,
+        Optional[str],
         typer.Argument(
             help="Image reference in format <registry>/<image>:<tag>"
         )
@@ -137,13 +141,13 @@ def install_from_image(
         )
     ] = DEFAULT_CORE_HOST,
     core_user: Annotated[
-        str,
+        Optional[str],
         typer.Option(
             help="Malevich Core user"
         )
     ] = None,
     core_token: Annotated[
-        str,
+        Optional[str],
         typer.Option(
             help="Malevich Core token"
         )
@@ -159,7 +163,8 @@ def install_from_image(
                 core_host=core_host or DEFAULT_CORE_HOST,
                 core_user=core_user,
                 core_token=core_token,
-                progress=Progress(SpinnerColumn(), TextColumn("{task.description}")),
+                progress=Progress(
+                    SpinnerColumn(), TextColumn("{task.description}")),
             )
         else:
             return _install_from_image(
@@ -170,7 +175,8 @@ def install_from_image(
                 core_host=core_host or DEFAULT_CORE_HOST,
                 core_user=core_user,
                 core_token=core_token,
-                progress=Progress(SpinnerColumn(), TextColumn("{task.description}")),
+                progress=Progress(
+                    SpinnerColumn(), TextColumn("{task.description}")),
             )
     except Exception as err:
         rich.print("\n\n[red]Installation failled[/red]")
@@ -181,8 +187,8 @@ def install_from_image(
 def _install_from_space(
     package_name: str,
     reverse_id: str,
-    branch: str = None,
-    version: str = None,
+    branch: Optional[str] = None,
+    version: Optional[str] = None,
     progress: Progress = None,
 ) -> None:
     installer = SpaceInstaller()
@@ -247,7 +253,7 @@ def _install_from_space(
                 task_,
                 description="\n[red]✘[/red] Failed with "
                 "[yellow]space[/yellow] installer "
-        )
+            )
         raise err
 
 
@@ -262,11 +268,11 @@ def install_from_space(
         typer.Argument(help="Reverse id of the component")
     ],
     branch: Annotated[
-        str,
+        Optional[str],
         typer.Argument(help="Branch of the component")
     ] = None,
     version: Annotated[
-        str,
+        Optional[str],
         typer.Argument(help="Version of the component")
     ] = None,
 ) -> None:
@@ -276,7 +282,8 @@ def install_from_space(
             reverse_id=reverse_id,
             branch=branch,
             version=version,
-            progress=Progress(SpinnerColumn(), TextColumn("{task.description}")),
+            progress=Progress(
+                SpinnerColumn(), TextColumn("{task.description}")),
         )
     except Exception as err:
         rich.print("\n\n[red]Installation failled[/red]")

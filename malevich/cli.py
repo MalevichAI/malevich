@@ -1,6 +1,5 @@
 import concurrent.futures
 import logging
-import re
 from typing import Annotated
 
 import pydantic_yaml as pdyml
@@ -141,13 +140,12 @@ def auto_use(
             exit(-1)
 
 
-
 def _restore(installer: Installer, depedency: Dependency, progress: Progress) -> None:
     try:
         package_id = depedency["package_id"]
         parsed = installer.construct_dependency(depedency)
         task = progress.add_task(f"Package [green]{package_id}[/green] with "
-                                f"[yellow]{installer.name}[/yellow]", total=1)
+                                 f"[yellow]{installer.name}[/yellow]", total=1)
         installer.restore(parsed)
         progress.update(
             task,
@@ -177,12 +175,14 @@ def restore() -> None:
             installed_by = dependency["installer"]
             if installed_by == "image":
                 futures.append(
-                    executor.submit(_restore, image_installer, dependency, progress)
+                    executor.submit(_restore, image_installer,
+                                    dependency, progress)
                 )
             elif installed_by == 'space':
                 space_installer = SpaceInstaller()
                 futures.append(
-                    executor.submit(_restore, space_installer, dependency, progress)
+                    executor.submit(_restore, space_installer,
+                                    dependency, progress)
                 )
         for future in concurrent.futures.as_completed(futures):
             result = future.result()
@@ -200,19 +200,21 @@ def init(path_to_setup: Annotated[str, typer.Argument(...)]) -> None:
     except ValidationError as err:
         rich.print(
             f"[b red]Setup file [white]{path_to_setup}[/white] is not a correct configuration[/b red]\n"  # noqa: E501
-        )  # noqa: E501
+        )
         for _err in err.errors():
             rich.print(f"\t- {_err['msg']} at [pink]{_err['loc'][0]}[pink]")
         rich.print("\n[red]Could not initialize Space installer[/red]")
     else:
         manf = ManifestManager()
 
-        setup.space.password = manf.put_secret("space_password", setup.space.password)
+        setup.space.password = manf.put_secret(
+            "space_password", setup.space.password)
         ManifestManager().put("space", value=setup.space)
 
         rich.print(
             "\nMalevich Space configuration [green]successfully[/green] added to the manifest\n"  # noqa: E501
-        )  # noqa: E501
+        )
+
 
 @app.command('remove')
 def remove(
@@ -228,7 +230,8 @@ def remove(
         rich.print(f"[green]Package [b]{package_name}[/b] removed[/green]")
         rich.print(f"Bye, bye [b]{package_name}[/b]")
     except Exception as e:
-        rich.print(f"[red]Failed to remove package [b]{package_name}[/b][/red]")
+        rich.print(
+            f"[red]Failed to remove package [b]{package_name}[/b][/red]")
         rich.print(e)
         exit(-1)
 

@@ -1,7 +1,7 @@
 import os
 import re
 from copy import deepcopy
-from typing import Any, Iterable
+from typing import Any, Iterable, Optional
 
 import pydantic_yaml as pydml
 
@@ -20,7 +20,8 @@ class ManifestManager(metaclass=SingletonMeta):
 
     def __init__(self) -> None:
         self.__path = os.path.join(os.getcwd(), "malevich.yaml")
-        self.__secrets_path = os.path.join(os.getcwd(), "malevich.secrets.yaml")
+        self.__secrets_path = os.path.join(
+            os.getcwd(), "malevich.secrets.yaml")
         if not os.path.exists(self.__path):
             with open(self.__path, "w") as _file:
                 pydml.to_yaml_file(_file, Manifest())
@@ -30,7 +31,8 @@ class ManifestManager(metaclass=SingletonMeta):
         with open(self.__path) as _file:
             self.__manifest = pydml.parse_yaml_file_as(Manifest, _file)
             self.__backup = self.__manifest.model_dump()
-            self.__secrets = pydml.parse_yaml_file_as(Secrets, self.__secrets_path)
+            self.__secrets = pydml.parse_yaml_file_as(
+                Secrets, self.__secrets_path)
 
     def cleanup_secrets(self) -> list[Secret]:
         secrets = re.findall(
@@ -126,7 +128,7 @@ class ManifestManager(metaclass=SingletonMeta):
 
     def put(
         self, *path: Iterable[str], value: Any, append: bool = False  # noqa: ANN401
-    ) -> Manifest:  # noqa: ANN401
+    ) -> Manifest:
         pre = path[:-1]
         key = path[-1]
         dump = self.__manifest.model_dump()
@@ -174,7 +176,7 @@ class ManifestManager(metaclass=SingletonMeta):
         self,
         key: str,
         value: str,
-        salt: str = None,
+        salt: Optional[str] = None,
         external: bool = False
     ) -> str:
         # Create new secret and hash it with 6 digits
@@ -190,7 +192,9 @@ class ManifestManager(metaclass=SingletonMeta):
         self.__secrets = Secrets(**secrets)
         return __key
 
-    def put_secrets(self, salt: str = None, **kwargs: dict[str, str]) -> list[str]:
+    def put_secrets(
+        self, salt: Optional[str] = None, **kwargs: dict[str, str]
+    ) -> list[str]:
         secrets = []
         for key, value in kwargs.items():
             if value:
@@ -200,7 +204,7 @@ class ManifestManager(metaclass=SingletonMeta):
         return secrets
 
     def query_secret(self, key: str, only_value: bool = False) -> Secret | None:
-        _s =  self.__secrets.secrets.get(key, key)
+        _s = self.__secrets.secrets.get(key, key)
         if _s and only_value:
             return _s.secret_value
         return _s

@@ -1,2 +1,2 @@
-def config(**kwargs) -> dict:  # noqa: ANN003
+def config(**kwargs) -> dict:
     return {**kwargs}

@@ -15,7 +15,7 @@ class ProcessorSearchVisitor(SearchDecoratorsVisitor):
         """Initialize the visitor."""
         self.decorated_functions = []
 
-    def visit_FunctionDef(self, node: ast.FunctionDef) -> None: # noqa: N802
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:  # noqa: N802
         """Visit all function definitions."""
         # Iterate over all decorators of the function
         for decorator in node.decorator_list:
@@ -36,7 +36,7 @@ class InputSearchVisitor(SearchDecoratorsVisitor):
     def __init__(self) -> None:
         self.decorated_functions = []
 
-    def visit_FunctionDef(self, node: ast.FunctionDef) -> None: # noqa: N802
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:  # noqa: N802
         # Iterate over all decorators of the function
         for decorator in node.decorator_list:
             # Check if the decorator is a call
@@ -56,7 +56,7 @@ class InitSearchVisitor(SearchDecoratorsVisitor):
     def __init__(self) -> None:
         self.decorated_functions = []
 
-    def visit_FunctionDef(self, node: ast.FunctionDef) -> None: # noqa: N802
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:  # noqa: N802
         # Iterate over all decorators of the function
         for decorator in node.decorator_list:
             # Check if the decorator is a call
@@ -76,7 +76,7 @@ class OutputSearchVisitor(SearchDecoratorsVisitor):
     def __init__(self) -> None:
         self.decorated_functions = []
 
-    def visit_FunctionDef(self, node: ast.FunctionDef) -> None: # noqa: N802
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:  # noqa: N802
         # Iterate over all decorators of the function
         for decorator in node.decorator_list:
             # Check if the decorator is a call

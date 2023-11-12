@@ -1,5 +1,6 @@
 import os
 import tempfile
+from typing import Optional
 
 from malevich_space.ops.component_provider.base import BaseComponentProvider
 from malevich_space.parser import YAMLParser
@@ -46,8 +47,8 @@ class CIFunctions(BaseComponentProvider):
     @staticmethod
     def get_available_git_components(
         github_repository: str,
-        github_user: str = None,
-        github_token: str = None,
+        github_user: Optional[str] = None,
+        github_token: Optional[str] = None,
         branch: str = 'main'
     ) -> list[tuple[ComponentSchema, str]]:
         components = []
@@ -72,12 +73,11 @@ class CIFunctions(BaseComponentProvider):
                         components.append((component, path))
         return components
 
-
     def __init__(
         self,
         git_link: str,
-        git_user: str = None,
-        git_token: str = None,
+        git_user: Optional[str] = None,
+        git_token: Optional[str] = None,
         branch: str = 'main'
     ) -> None:
         self.comp_paths = CIFunctions.get_available_git_components(

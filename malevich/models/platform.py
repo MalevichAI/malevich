@@ -2,5 +2,5 @@ import enum
 
 
 class Platform(enum.Enum):
-  CORE = "CORE"
-  SPACE = "SPACE"
+    CORE = "CORE"
+    SPACE = "SPACE"
