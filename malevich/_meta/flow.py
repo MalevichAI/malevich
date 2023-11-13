@@ -79,7 +79,7 @@ def flow(
                     if dfs_are_collections and isinstance(k_arg, pd.DataFrame):
                         kwargs[k] = (
                             k_arg := collection(
-                                df=i_arg,
+                                df=k_arg,
                                 name=k
                             )
                         )
@@ -87,8 +87,10 @@ def flow(
                         __hkwargs[k] = traced(BaseNode())
                     else:
                         __hkwargs[k] = k_arg
-
-                __results = function(*__hargs, **__hkwargs)
+                if is_subflow:
+                    __results = function(*__hargs, **__hkwargs)
+                else:
+                    __results = function(*args, **kwargs)
                 t_node = TreeNode(
                     tree=_tree,
                     reverse_id=reverse_id,

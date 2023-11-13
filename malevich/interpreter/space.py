@@ -482,7 +482,6 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
 
         state.components[node.owner.uuid] = comp
         # FIXME: state.components_alias are not neccessary then...
-        print(node.owner.alias)
         state.components_alias[node.owner.uuid] = node.owner.alias
         return state
 
