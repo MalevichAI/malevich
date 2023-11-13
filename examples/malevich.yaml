@@ -1,0 +1,37 @@
+dependencies:
+- openai:
+    installer: space
+    options:
+      branch: 8d32eff579e64d7ea67a13b69d43dc89
+      image_auth_pass: null
+      image_auth_user: null
+      image_ref: public.ecr.aws/u6e1k0c7/openai-api
+      reverse_id: openai
+      version: 6ce1fffb355144fab661898abb4319bc
+    package_id: openai
+    version: 0.1.0
+- utility:
+    installer: space
+    options:
+      branch: 79f52e5222a3438387fcfe351f179d57
+      image_auth_pass: null
+      image_auth_user: null
+      image_ref: public.ecr.aws/u6e1k0c7/utility:27e61fd15d48d1ae1cd129e22c8dd59d2d0b6d95
+      reverse_id: utility
+      version: 18fd26e47f5a4bb184923ec3ab5dcf15
+    package_id: utility
+    version: '27e6'
+project_id: null
+space:
+  api_gateway_path: /e
+  api_url: https://dev.api.malevich.ai/
+  auth_path: api/v1/login/access-token
+  graphql_path: api/v1/graphql
+  host:
+    alias: null
+    conn_url: https://core.malevich.ai/
+  org: null
+  password: secret#804750
+  token: null
+  username: zak@malevich.ai
+version: null
