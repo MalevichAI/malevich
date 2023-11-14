@@ -457,7 +457,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                     reverse_id=node.owner.reverse_id
                 )
 
-                child_interpreter.interpret(node.owner.tree)
+                child_interpreter.interpret(node.owner)
                 child_state: SpaceInterpreterState = child_interpreter.state
 
                 comp = ComponentSchema(
