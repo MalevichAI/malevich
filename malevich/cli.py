@@ -24,7 +24,7 @@ from .install.space import SpaceInstaller
 from .manifest import ManifestManager
 from .models.manifest import Dependency
 
-logging.getLogger("gql.transport.aiohttp").setLevel(logging.ERROR)
+logging.getLogger("gql.transport.requests").setLevel(logging.ERROR)
 app = typer.Typer(help=APP_HELP, rich_markup_mode="rich")
 
 __With_Args_Help = (
