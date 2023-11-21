@@ -7,7 +7,7 @@ def pd_to_json_schema(df: pd.DataFrame, format=False) -> dict:
         'float': 'number',
         'boolean': 'boolean',
         'string': 'string',
-        'object': 'object',
+        'object': 'string', # we will regret
         'datetime': 'string',
         'date': 'string',
         'datetime64[ns]': 'string',
