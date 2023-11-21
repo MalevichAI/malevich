@@ -1,4 +1,5 @@
 import json
+import os
 import uuid
 from collections import defaultdict
 from typing import Any, Iterable
@@ -66,16 +67,29 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         return f"result-{operation_id}"
 
     def _write_cache(self, object: object, path: str) -> None:
-        json.dump(object, cache.get_file(path))
+        json.dump(object, cache.get_file(os.path.join('core', path), 'w+'))
 
     def _create_app_safe(self, app_id: str, extra: dict, *args, **kwargs) -> None:
         # TODO: Wrap correctly
-        if core.get_app(app_id):
-            core.delete_app(app_id)
-            try:
+        try:
+            core.create_app(
+                app_id,
+                processor_id=extra["processor_id"],
+                *args,
+                **kwargs
+            )
+        except Exception:
+            pass
+        else:
+            return
+
+        try:
+            if core.get_app(app_id):
+                core.delete_app(app_id)
                 core.delete_task(app_id)
-            except Exception:
-                pass
+        except Exception:
+            pass
+
         try:
             core.create_app(
                 app_id,

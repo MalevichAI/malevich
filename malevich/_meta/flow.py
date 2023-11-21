@@ -54,9 +54,9 @@ def flow(
         @wraps(function)
         def fn(*args: Args.args, **kwargs: Args.kwargs) -> R:
             is_subflow = Flow.isinflow()
+            args = list(args)
             if is_subflow:
                 outer_tracer = traced()
-                args = list(args)
 
             with Flow() as _tree:
                 __hargs = []

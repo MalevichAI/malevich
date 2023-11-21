@@ -63,11 +63,11 @@ def _install_from_image(
         if entry := manifest_manager.query("dependencies", package_name):
             if entry.get("installer") != "image":
                 raise Exception(
-                    """Package {package_name} already exists with different installer.
-                    Possible solutions:
-                        - Remove package from manifest and try again. Use [b]malevich remove[/b] command
-                        - Use [b]malevich restore[/b] command to restore package with different installer
-                        - Use [b]malevich install[/b] to install the package with all possible installers"""  # noqa: E501
+                    f"Package {package_name} already exists with different installer."
+                    "\nPossible solutions:"
+                    "\n\t- Remove package from manifest and try again. Use `malevich remove` command"  # noqa: E501
+                    "\n\t- Use `malevich restore` command to restore package with different installer"  # noqa: E501
+                    "\n\t- Use `malevich install` to install the package with all possible installers"  # noqa: E501
                 )
 
             manifest_manager.put(
