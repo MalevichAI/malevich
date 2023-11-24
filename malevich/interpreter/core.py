@@ -69,7 +69,10 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
     def _write_cache(self, object: object, path: str) -> None:
         json.dump(object, cache.get_file(os.path.join('core', path), 'w+'))
 
-    def _create_app_safe(self, app_id: str, extra: dict, *args, **kwargs) -> None:
+    def _create_app_safe(
+            self, app_id: str, extra: dict, uid: str, *args, **kwargs
+    ) -> None:
+
         # TODO: Wrap correctly
         try:
             core.create_app(
@@ -188,7 +191,8 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                         image_auth=(image_auth_user, image_auth_pass),
                         image_ref=image_ref,
                         extra_collections_from=extra_colls,
-                        app_cfg=op.config
+                        app_cfg=op.config,
+                        uid=op.uuid,
                     )
                 )
                 state.results[op.uuid] = self._result_collection_name(op.uuid)

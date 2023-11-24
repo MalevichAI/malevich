@@ -490,10 +490,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
         state: SpaceInterpreterState,
         caller: TracedNode,
         callee: traced[OperationNode],
-        # NOTE: This is an argument name. The fact
-        # that it is not used means Space does not accept
-        # multiple collections as input
-        link: tuple[int, list[tuple[BaseNode, str]]] | str
+        link: tuple[int, list[tuple[BaseNode, str]] | str]
     ) -> SpaceInterpreterState:
         """Creates a dependency between two nodes."""
 
@@ -561,6 +558,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                 ),
                 to_op_id=callee.owner.operation_id,
                 alias=state.components_alias[caller.owner.uuid],
+                order=link[0]
             )
 
         state.dependencies[callee.owner.uuid].append(dependency)
