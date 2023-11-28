@@ -7,8 +7,8 @@ from rich.table import Table
 from .._utility.dicts import flatdict
 from ..manifest import ManifestManager
 
-app = typer.Typer(name="manifest")
-secrets = typer.Typer(name="secrets")
+app = typer.Typer(name="manifest", help="Manage the manifest file (malevich.yaml)")
+secrets = typer.Typer(name="secrets", help="Manage secrets stored in manifest")
 
 
 DISCLAIMER = """
@@ -21,7 +21,7 @@ DISCLAIMER = """
 """  # noqa: E501
 
 
-@secrets.command("scan")
+@secrets.command("scan", help="Scan the manifest for secrets")
 def scan(
     only_number: bool = typer.Option(
         False,
@@ -65,7 +65,9 @@ def scan(
         rich.print(DISCLAIMER)
 
 
-@secrets.command("restore")
+@secrets.command(
+    "restore", help="Interactively restore the manifest from the secrets file"
+)
 def fix() -> None:
     manf = ManifestManager()
     flat = flatdict(manf.as_dict())
@@ -91,7 +93,7 @@ def fix() -> None:
             f"\n[green]Secret updated: [/green] {secret[1]} -> {secret_key}\n")
 
 
-@app.command("query")
+@app.command("query", help="Query the path in manifest")
 def query(path: list[str], resolve_secrets: bool = False) -> None:
     __q = ManifestManager().query(*path, resolve_secrets=resolve_secrets)
     if __q is None:

@@ -8,7 +8,6 @@ from typing import Any, Iterable, Optional
 from uuid import uuid4
 
 import pandas as pd
-import randomname as rn
 from malevich_space.ops.component_manager import ComponentManager
 from malevich_space.ops.space import SpaceOps
 from malevich_space.schema import VersionMode
@@ -558,7 +557,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                 ),
                 to_op_id=callee.owner.operation_id,
                 alias=state.components_alias[caller.owner.uuid],
-                order=link[0]
+                order=link[1]
             )
 
         state.dependencies[callee.owner.uuid].append(dependency)
@@ -677,6 +676,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
 
         def run(
             task: InterpretedTask[SpaceInterpreterState],
+            override: dict[str, pd.DataFrame] = [],
             *args,
             **kwargs
         ) -> None:
@@ -721,7 +721,20 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
         ) -> Iterable[pd.DataFrame] | pd.DataFrame:
             warnings.warn("Currently Space interpreter does not return results. Please "
                           "use UI interface to work with flow")
-            return []
+
+            # if isinstance(returned, traced):
+            #     returned = [returned]
+
+            # alias2infid = {
+            #     x.alias: x.uid
+            #     for x in component.flow.components
+            # }
+
+            # inflowids = [
+            #     alias2infid[x.owner.alias]
+            #     for x in returned
+            # ]
+            return None
 
         return InterpretedTask(
             prepare=prepare,

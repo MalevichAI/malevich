@@ -9,13 +9,12 @@ from malevich.install.space import SpaceInstaller
 from ..constants import (
     DEFAULT_CORE_HOST,
     IMAGE_BASE,
-    USE_HELP,
-    USE_IMAGE_HELP,
 )
+from ..help import use as help
 from ..install.image import ImageInstaller
 from ..manifest import ManifestManager
 
-use = typer.Typer(help=USE_HELP, rich_markup_mode="rich")
+use = typer.Typer(help=help['--help'], rich_markup_mode="rich")
 
 
 def _install_from_image(
@@ -27,8 +26,32 @@ def _install_from_image(
     core_user: Optional[str] = None,
     core_token: Optional[str] = None,
     progress: Progress = None,
-
 ) -> None:
+    """UI-friendly wrapper for image installer
+
+    Install package from image registry and renders CLI interface
+    for the process of installation.
+
+    Use `~ImageInstaller.install` method to directly install package
+
+    Args:
+        package_name (str): Name of the package
+        image_ref (Optional[str], optional): Image reference in format
+            <registry>/<image>:<tag>. Defaults to None.
+        image_auth_user (Optional[str], optional): Image registry auth user.
+            Defaults to None.
+        image_auth_password (Optional[str], optional): Image registry auth password.
+            Defaults to None.
+        core_host (str, optional): Malevich Core hostname.
+            Defaults to DEFAULT_CORE_HOST.
+        core_user (Optional[str], optional): Malevich Core user. Defaults to None.
+        core_token (Optional[str], optional): Malevich Core token. Defaults to None.
+        progress (Progress, optional): Rich progress bar. Defaults to None.
+
+    Raises:
+        Exception: If package with the same name already exists in manifest
+            with different installer
+    """
     if image_ref is None:
         return _install_from_image(
             package_name=package_name,
@@ -66,8 +89,7 @@ def _install_from_image(
                     f"Package {package_name} already exists with different installer."
                     "\nPossible solutions:"
                     "\n\t- Remove package from manifest and try again. Use `malevich remove` command"  # noqa: E501
-                    "\n\t- Use `malevich restore` command to restore package with different installer"  # noqa: E501
-                    "\n\t- Use `malevich install` to install the package with all possible installers"  # noqa: E501
+                    "\n\t- Use `malevich restore` command to restore package with its installer"  # noqa: E501
                 )
 
             manifest_manager.put(
@@ -110,7 +132,79 @@ def _install_from_image(
         raise err
 
 
-@use.command("image", help=USE_IMAGE_HELP)
+def _install_from_space(
+    package_name: str,
+    reverse_id: str,
+    branch: Optional[str] = None,
+    version: Optional[str] = None,
+    progress: Progress = None,
+) -> None:
+    installer = SpaceInstaller()
+    if progress:
+        task_ = progress.add_task(
+            f"Attempting to install [b blue]{package_name}[/b blue] with"
+            " [i yellow]space[/i yellow] installer",
+            total=1,
+        )
+
+    try:
+        manifest_entry = installer.install(
+            package_name=package_name,
+            reverse_id=reverse_id,
+            branch=branch,
+            version=version,
+        )
+        manifest_manager = ManifestManager()
+        if entry := manifest_manager.query("dependencies", package_name):
+            if entry.get("installer") != "space":
+                raise Exception(
+                    f"Package {package_name} already exists with different installer."
+                    "\nPossible solutions:"
+                    "\n\t- Remove package from manifest and try again. Use `malevich remove` command"  # noqa: E501
+                    "\n\t- Use `malevich restore` command to restore package with its installer"  # noqa: E501
+                )
+
+            manifest_manager.put(
+                "dependencies",
+                package_name,
+                value=manifest_entry.model_dump(),
+            )
+            if progress:
+                progress.update(
+                    task_,
+                    description="\n[green]✔[/green] Package "
+                    f"[blue]({package_name})[/blue] "
+                    "[yellow]updated[/yellow] successfully",
+                    completed=1,
+                )
+        else:
+            if progress:
+                progress.update(
+                    task_,
+                    description="\n[green]✔[/green] Package "
+                    f"[blue]({package_name})[/blue] "
+                    "installed successfully",
+                    completed=1,
+                )
+            manifest_manager.put(
+                "dependencies",
+                value={f"{package_name}": manifest_entry.model_dump()},
+                append=True,
+            )
+
+        manifest_manager.save()
+        return True
+    except Exception as err:
+        if progress:
+            progress.update(
+                task_,
+                description="\n[red]✘[/red] Failed with "
+                "[yellow]space[/yellow] installer "
+            )
+        raise err
+
+
+@use.command("image", help=help['image --help'])
 def install_from_image(
     package_name: Annotated[
         str,
@@ -184,80 +278,7 @@ def install_from_image(
         exit(-1)
 
 
-def _install_from_space(
-    package_name: str,
-    reverse_id: str,
-    branch: Optional[str] = None,
-    version: Optional[str] = None,
-    progress: Progress = None,
-) -> None:
-    installer = SpaceInstaller()
-    if progress:
-        task_ = progress.add_task(
-            f"Attempting to install [b blue]{package_name}[/b blue] with"
-            " [i yellow]space[/i yellow] installer",
-            total=1,
-        )
-
-    try:
-        manifest_entry = installer.install(
-            package_name=package_name,
-            reverse_id=reverse_id,
-            branch=branch,
-            version=version,
-        )
-        manifest_manager = ManifestManager()
-        if entry := manifest_manager.query("dependencies", package_name):
-            if entry.get("installer") != "space":
-                raise Exception(
-                    f"Package {package_name} already exists with different installer."
-                    "\nPossible solutions:"
-                    "\n\t- Remove package from manifest and try again. Use `malevich remove` command"  # noqa: E501
-                    "\n\t- Use `malevich restore` command to restore package with different installer"  # noqa: E501
-                    "\n\t- Use `malevich install` to install the package with all possible installers"  # noqa: E501
-                )
-
-            manifest_manager.put(
-                "dependencies",
-                package_name,
-                value=manifest_entry.model_dump(),
-            )
-            if progress:
-                progress.update(
-                    task_,
-                    description="\n[green]✔[/green] Package "
-                    f"[blue]({package_name})[/blue] "
-                    "[yellow]updated[/yellow] successfully",
-                    completed=1,
-                )
-        else:
-            if progress:
-                progress.update(
-                    task_,
-                    description="\n[green]✔[/green] Package "
-                    f"[blue]({package_name})[/blue] "
-                    "installed successfully",
-                    completed=1,
-                )
-            manifest_manager.put(
-                "dependencies",
-                value={f"{package_name}": manifest_entry.model_dump()},
-                append=True,
-            )
-
-        manifest_manager.save()
-        return True
-    except Exception as err:
-        if progress:
-            progress.update(
-                task_,
-                description="\n[red]✘[/red] Failed with "
-                "[yellow]space[/yellow] installer "
-            )
-        raise err
-
-
-@use.command("space", help=USE_IMAGE_HELP)
+@use.command("space", help=help['space --help'])
 def install_from_space(
     package_name: Annotated[
         str,

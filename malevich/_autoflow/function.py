@@ -1,6 +1,7 @@
 import functools
-from typing import Callable, ParamSpec, TypeVar
 import warnings
+from typing import Callable, ParamSpec, TypeVar
+
 from . import tracer as gn
 
 C = ParamSpec("C")
