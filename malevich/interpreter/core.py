@@ -69,7 +69,15 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
     def _write_cache(self, object: object, path: str) -> None:
         json.dump(object, cache.get_file(os.path.join('core', path), 'w+'))
 
-    def _create_app_safe(self, app_id: str, extra: dict, *args, **kwargs) -> None:
+    def _create_app_safe(
+            self, app_id: str, extra: dict, uid: str, *args, **kwargs
+    ) -> None:
+        settings = core.AppSettings(
+            appId=app_id,
+            taskId=app_id,
+            saveCollectionsName=[self._result_collection_name(uid)],
+        )
+
         # TODO: Wrap correctly
         try:
             core.create_app(
@@ -81,7 +89,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         except Exception:
             pass
         else:
-            return
+            return settings
 
         try:
             if core.get_app(app_id):
@@ -120,11 +128,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         self._write_cache(
             kwargs, f"app-{app_id}-{self.state.interpretation_id}.json")
 
-        return core.AppSettings(
-            appId=app_id,
-            taskId=app_id,
-            saveCollectionsName=[self._result_collection_name(app_id)],
-        )
+        return settings
 
     def create_node(
         self, state: CoreInterpreterState, node: traced[BaseNode]
@@ -188,7 +192,8 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                         image_auth=(image_auth_user, image_auth_pass),
                         image_ref=image_ref,
                         extra_collections_from=extra_colls,
-                        app_cfg=op.config
+                        app_cfg=op.config,
+                        uid=op.uuid,
                     )
                 )
                 state.results[op.uuid] = self._result_collection_name(op.uuid)
