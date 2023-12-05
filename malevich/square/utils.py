@@ -189,19 +189,51 @@ class Context:
             """ # noqa: E501
             pass
 
-        def update(self, keys: List[str]) -> None:
-            """update remote object storage by this keys, values should be in local mount for this keys
+        def update(self, keys: List[str], presigned_expire: Optional[int] = -1) -> Dict[str, str]: # noqa: E501
+            """update remote object storage by this keys, values should be in local mount for this keys; maybe create presigned url
 
             Args:
                 keys (List[str]): keys, for which it is updated remote object storage
+                presigned_expire (Optional[int]): if < 0 - do nothing, otherwise create presigned url (value in seconds, None - default value). Defaults to -1.
+
+            Returns:
+                Dict[str, str]: key to presigned url
             """ # noqa: E501
             pass
 
         async def async_update(self, keys: List[str]) -> None:
-            """update remote object storage by this keys, values should be in local mount for this keys
+            """update remote object storage by this keys, values should be in local mount for this keys; maybe create presigned url
 
             Args:
                 keys (List[str]): keys, for which it is updated remote object storage
+                presigned_expire (Optional[int]): if < 0 - do nothing, otherwise create presigned url (value in seconds, None - default value). Defaults to -1.
+
+            Returns:
+                Dict[str, str]: key to presigned url
+            """ # noqa: E501
+            pass
+
+        def presigned(self, keys: List[str], expire: Optional[int] = None) -> Dict[str, str]: # noqa: E501
+            """create presigned url for keys
+
+            Args:
+                keys (List[str]): keys, for which it is updated remote object storage
+                expire (Optional[int], optional): should be > 0; create presigned url (value in seconds, None - default value). Defaults to None.
+
+            Returns:
+                Dict[str, str]: key to presigned url
+            """ # noqa: E501
+            pass
+
+        async def async_presigned(self, keys: List[str], expire: Optional[int] = None) -> Dict[str, str]: # noqa: E501
+            """create presigned url for keys
+
+            Args:
+                keys (List[str]): keys, for which it is updated remote object storage
+                expire (Optional[int], optional): should be > 0; create presigned url (value in seconds, None - default value). Defaults to None.
+
+            Returns:
+                Dict[str, str]: key to presigned url
             """ # noqa: E501
             pass
 
