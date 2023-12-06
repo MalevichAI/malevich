@@ -5,12 +5,13 @@ import typer
 from rich.prompt import Prompt
 
 from .._utility.ci.github import DockerRegistry, GithubCIOps
-from ..constants import DEFAULT_SPACE_HOST, IMAGE_BASE
+from ..constants import IMAGE_BASE
+from ..constants import SPACE_API_URL as DEFAULT_SPACE_HOST
 
 github = typer.Typer()
 
 
-@github.command()
+@github.command(help="Initialize the Github CI/CD pipeline")
 def init(  # noqa: ANN201
     interactive: bool = typer.Option(
         False,
@@ -158,4 +159,4 @@ def init(  # noqa: ANN201
 
 
 app = typer.Typer()
-app.add_typer(github, name="github")
+app.add_typer(github, name="github", help="Github CI/CD pipeline")

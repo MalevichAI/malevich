@@ -1,4 +1,5 @@
 import functools
+import warnings
 from typing import Callable, ParamSpec, TypeVar
 import warnings
 from . import tracer as gn

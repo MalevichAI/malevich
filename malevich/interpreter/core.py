@@ -72,6 +72,11 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
     def _create_app_safe(
             self, app_id: str, extra: dict, uid: str, *args, **kwargs
     ) -> None:
+        settings = core.AppSettings(
+            appId=app_id,
+            taskId=app_id,
+            saveCollectionsName=[self._result_collection_name(uid)],
+        )
 
         # TODO: Wrap correctly
         try:
@@ -84,7 +89,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         except Exception:
             pass
         else:
-            return
+            return settings
 
         try:
             if core.get_app(app_id):
@@ -123,11 +128,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         self._write_cache(
             kwargs, f"app-{app_id}-{self.state.interpretation_id}.json")
 
-        return core.AppSettings(
-            appId=app_id,
-            taskId=app_id,
-            saveCollectionsName=[self._result_collection_name(app_id)],
-        )
+        return settings
 
     def create_node(
         self, state: CoreInterpreterState, node: traced[BaseNode]

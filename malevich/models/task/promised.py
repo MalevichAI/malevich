@@ -1,5 +1,6 @@
 
 from ...interpreter.abstract import Interpreter
+from ...interpreter.space import SpaceInterpreter
 from ...models.nodes.tree import TreeNode
 from ...models.task.base import BaseTask
 from ...models.types import FlowOutput
@@ -11,10 +12,20 @@ class PromisedTask(BaseTask):
         self.__tree = tree
         self.__task = None
 
-    def interpret(self, interpreter: Interpreter) -> None:
-        task = interpreter.interpret(self.__tree)
-        task.commit_returned(self.__results)
-        self.__task = task
+    def interpret(self, interpreter: Interpreter = None) -> None:
+        __interpreter = interpreter or SpaceInterpreter()
+        try:
+            task = __interpreter.interpret(self.__tree)
+            task.commit_returned(self.__results)
+            self.__task = task
+        except Exception as e:
+           if not interpreter:
+               raise Exception(
+                    "Attempt to interpret task with default interpreter failed. "
+                    "Try to specify interpreter explicitly"
+                ) from e
+           else:
+                raise e
 
     def prepare(self, *args, **kwargs) -> None:
         if not self.__task:
