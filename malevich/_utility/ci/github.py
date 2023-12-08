@@ -4,7 +4,7 @@ import tempfile
 
 import requests
 from git import Repo
-from github import Github
+from github import Github, PublicKey
 
 from .base import CIOps
 
@@ -77,11 +77,11 @@ class GithubCIOps(CIOps):
         space_token: str,
         space_url: str,
         branch: str,
-        registry_url: str,
-        registry_id: str,
-        image_user: str,
-        image_token: str,
-        org_id: str,
+        registry_url: str='ghcr.io',
+        registry_id: str='owner',
+        image_user: str='USERNAME',
+        image_token: str='token',
+        org_id: str='empty',
         verbose: bool = False,
     ) -> None:
         """Setup CI for a Github repository
@@ -107,8 +107,16 @@ class GithubCIOps(CIOps):
         repo = g.get_repo(repository)
 
         repo.create_environment(branch)
-        pub_key = repo.get_public_key()
         repo_id = repo.id
+        pub_key = requests.get(
+            f"https://api.github.com/repositories/{repo_id}/environments/{branch}/secrets/public-key",
+            headers={
+                "Accept": "application/vnd.github+json",
+                "Authorization": f"Bearer {token}",
+                "X-GitHub-Api-Version": "2022-11-28"
+            }
+        ).json()
+
 
         keys = [
             "SPACE_USERNAME",
@@ -122,20 +130,26 @@ class GithubCIOps(CIOps):
             "SPACE_ORGANIZATION_ID"
         ]
 
+        registry_type = 'ghcr'
+        if 'ecr' in registry_url:
+            registry_type = 'ecr'
+        elif 'yandex' in registry_url:
+            registry_type = 'yandex'
+
         values = [
             space_user,
             space_token,
             space_url,
             image_user,
-            image_token,
+            token if image_token == 'token' else image_token,
             registry_url,
-            registry_id,
-            'ecr' if 'ecr' in registry_url else 'other',
+            repository.split('/')[0].lower() if registry_id == 'owner' else registry_id,
+            registry_type,
             org_id
         ]
 
         for key, value in zip(keys, values):
-            payload = pub_key.encrypt(value)
+            payload = PublicKey.encrypt(pub_key['key'],value)
             url = f'https://api.github.com/repositories/{repo_id}/environments/{branch}/secrets/{key}'
             requests.put(
                 url,
@@ -146,7 +160,7 @@ class GithubCIOps(CIOps):
                 },
                 json={
                     'encrypted_value': f'{payload}',
-                    'key_id': f'{pub_key.key_id}'
+                    'key_id': f'{pub_key["key_id"]}'
                 }
             )
             self._log(verbose, f"Updated secret {key}")
