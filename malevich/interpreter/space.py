@@ -512,7 +512,6 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                     if isinstance(caller.owner, OperationNode)
                     else None
                 ),
-                # ??
                 to_op_id=callee.owner.underlying_node.operation_id if isinstance(
                     callee.owner.underlying_node, OperationNode) else None,
                 alias=state.components_alias[caller.owner.uuid],
@@ -708,7 +707,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                     # TODO fix!
                     continue
 
-            state.space.run_task(
+            state.aux['run_id'] = state.space.run_task(
                 task_id=state.aux['task_id'],
                 ca_override=overrides
             )
@@ -719,22 +718,36 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
             *args,
             **kwargs
         ) -> Iterable[pd.DataFrame] | pd.DataFrame:
-            warnings.warn("Currently Space interpreter does not return results. Please "
-                          "use UI interface to work with flow")
+            if isinstance(returned, traced):
+                returned = [returned]
 
-            # if isinstance(returned, traced):
-            #     returned = [returned]
+            alias2infid = self.state.space.get_snapshot_components(
+                state.aux['run_id']
+            )
 
-            # alias2infid = {
-            #     x.alias: x.uid
-            #     for x in component.flow.components
-            # }
+            inflowids = [
+                alias2infid[x.owner.alias]
+                for x in returned
+            ]
 
-            # inflowids = [
-            #     alias2infid[x.owner.alias]
-            #     for x in returned
-            # ]
-            return None
+            results = [
+                state.space.get_results(
+                    run_id=state.aux['run_id'],
+                    in_flow_id=i
+                ) for i in inflowids
+            ]
+
+            flat_results = []
+            for r in results:
+                if isinstance(r, list):
+                    flat_results.extend(r)
+                else:
+                    flat_results.append(r)
+
+            return [
+                pd.DataFrame(r.raw_json)
+                for r in flat_results
+            ]
 
         return InterpretedTask(
             prepare=prepare,
