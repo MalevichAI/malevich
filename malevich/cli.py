@@ -1,11 +1,13 @@
 import concurrent.futures
 import logging
+import re
 from typing import Annotated
 
 import pydantic_yaml as pdyml
 import rich
 import typer
 from malevich_space.cli.cli import app as space_app
+from malevich_space.ops import SpaceOps
 from malevich_space.schema import HostSchema, Setup, SpaceSetup
 from pydantic import ValidationError
 from rich.progress import Progress, SpinnerColumn, TextColumn
@@ -18,7 +20,7 @@ from .commands.ci import app as ci_app
 from .commands.manifest import app as manifest_app
 from .commands.use import _install_from_image, _install_from_space
 from .commands.use import use as use_app
-from .constants import APP_HELP, DEFAULT_CORE_HOST, SPACE_API_URL
+from .constants import APP_HELP, DEFAULT_CORE_HOST, PROD_SPACE_API_URL
 from .help import ci, install, space
 from .help import remove as remove_help
 from .help import restore as restore_help
@@ -225,12 +227,34 @@ def init(path_to_setup: Annotated[str, typer.Argument(...)]) -> None:
             "\nMalevich Space configuration [green]successfully[/green] added to the manifest\n"  # noqa: E501
         )
 
+
 @space_app.command(help=space["login --help"])
-def login() -> None:
+def login(
+    api_url: str = PROD_SPACE_API_URL,
+    core_url: str = DEFAULT_CORE_HOST,
+    space_url: str = None,
+) -> None:
+    if not space_url:
+        domain = re.search(r"//(.+)\.?api\.(.+)/?", api_url)
+        left = domain.group(1) if domain.group(1) else ''
+        right = '.' + domain.group(2) if domain.group(2) else ''
+        # space_url = f'https://space.{domain}' + ('' if domain.endswith('/') else '/')
+        # base_space_url = f'space.{domain}'.rstrip('/')
+
+        space_url = f'https://{left}space{right}/'
+        base_space_url = f'{left}space{right}'.rstrip('/')
+
     manf = ManifestManager()
-    api_url = Prompt.ask("Malevich Space API URL", default=SPACE_API_URL)
-    core_url = Prompt.ask("Malevich Core URL", default=DEFAULT_CORE_HOST)
-    username = Prompt.ask("Username")
+    rich.print("[b]Welcome to [purple]Malevich Space[/purple]![/b]"
+               " The command allows you to connect your account "
+               f"to [bright_cyan]{space_url}[/bright_cyan]"
+               "[bright_black]\nIf you don't have an account, "
+               "please create one and come back.[/bright_black]\n"
+    )
+
+    # api_url = Prompt.ask("Malevich Space API URL", default=PROD_SPACE_API_URL)
+    # core_url = Prompt.ask("Malevich Core URL", default=DEFAULT_CORE_HOST)
+    username = Prompt.ask(f"E-mail (or Username) on [bright_cyan]{base_space_url}[/bright_cyan]")
     password = Prompt.ask("Password", password=True)
 
     setup = SpaceSetup(
@@ -241,6 +265,15 @@ def login() -> None:
             conn_url=core_url,
         )
     )
+
+    try:
+        SpaceOps(space_setup=setup)
+    except Exception as e:
+        rich.print(
+            f"\n\n[red]Failed to connect to {space_url}. "
+            "Please check your credentials and try again.[/red]"
+        )
+        exit(-1)
 
     manf.put("space", value=setup)
     rich.print("\nMalevich Space configuration [green]successfully[/green]"

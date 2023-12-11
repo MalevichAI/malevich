@@ -76,7 +76,7 @@ class SpaceInstaller(Installer):
             ))
         except Exception as e:
             raise Exception(
-                "Setup is invalid. Run `malevich space init`") from e
+                "Setup is invalid. Run `malevich space login`") from e
 
     def install(
         self,
