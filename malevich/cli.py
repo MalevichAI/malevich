@@ -227,6 +227,13 @@ def init(path_to_setup: Annotated[str, typer.Argument(...)]) -> None:
             "\nMalevich Space configuration [green]successfully[/green] added to the manifest\n"  # noqa: E501
         )
 
+# @space_app.command(help=space["login --help"])
+# def login() -> None:
+#     manf = ManifestManager()
+#     api_url = Prompt.ask("Malevich Space API URL", default=PROD_SPACE_API_URL)
+#     core_url = Prompt.ask("Malevich Core URL", default=DEFAULT_CORE_HOST)
+#     username = Prompt.ask("Username")
+#     password = Prompt.ask("Password", password=True)
 
 @space_app.command(help=space["login --help"])
 def login(
