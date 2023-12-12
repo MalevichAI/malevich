@@ -112,7 +112,6 @@ class GithubCIOps(CIOps):
             }
         ).json()
 
-
         keys = [
             "SPACE_USERNAME",
             "SPACE_PASSWORD",
@@ -146,6 +145,7 @@ class GithubCIOps(CIOps):
         for key, value in zip(keys, values):
             payload = PublicKey.encrypt(pub_key['key'],value)
             url = f'https://api.github.com/repos/{repository}/actions/secrets/{key}'
+
             requests.put(
                 url,
                 headers={
