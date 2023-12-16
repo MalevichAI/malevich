@@ -5,6 +5,10 @@ from .._utility.singleton import SingletonMeta
 class Registry(metaclass=SingletonMeta):
     _registry = {}
 
+    @property
+    def registry(self) -> dict:
+        return self._registry
+
     def register(self, key: str, value: object) -> None:
         self._registry[key] = value
 

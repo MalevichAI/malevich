@@ -418,6 +418,8 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
             # If no extra information is found, it means
             # local information is too old
             # (but it is user fault, not mine)
+            print(node.owner.operation_id)
+            print(reg.registry.keys())
             if 'reverse_id' not in extra:
                 raise InterpretationError(
                     "Trying to interpret an operation that is not installed "

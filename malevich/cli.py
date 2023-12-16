@@ -1,7 +1,7 @@
 import concurrent.futures
 import logging
 import re
-from typing import Annotated
+from typing import Annotated, Optional
 
 import pydantic_yaml as pdyml
 import rich
@@ -17,6 +17,7 @@ from malevich._utility.package import PackageManager
 
 from ._utility.args import parse_kv_args
 from .commands.ci import app as ci_app
+from .commands.flow import flow as flow_app
 from .commands.manifest import app as manifest_app
 from .commands.use import _install_from_image, _install_from_space
 from .commands.use import use as use_app
@@ -232,10 +233,12 @@ def init(path_to_setup: Annotated[str, typer.Argument(...)]) -> None:
 def login(
     api_url: str = PROD_SPACE_API_URL,
     core_url: str = DEFAULT_CORE_HOST,
-    space_url: str = None,
+    space_url: Optional[str] = None,
+    username: Optional[str] = None,
+    password: Optional[str] = None,
 ) -> None:
     if not space_url:
-        domain = re.search(r"//(.+)\.?api\.(.+)/?", api_url)
+        domain = re.search(r"\/\/(.*)api\.(.+)\/?", api_url)
         left = domain.group(1) if domain.group(1) else ''
         right = '.' + domain.group(2) if domain.group(2) else ''
         # space_url = f'https://space.{domain}' + ('' if domain.endswith('/') else '/')
@@ -250,17 +253,20 @@ def login(
                f"to [bright_cyan]{space_url}[/bright_cyan]"
                "[bright_black]\nIf you don't have an account, "
                "please create one and come back.[/bright_black]\n"
-    )
+               )
 
     # api_url = Prompt.ask("Malevich Space API URL", default=PROD_SPACE_API_URL)
     # core_url = Prompt.ask("Malevich Core URL", default=DEFAULT_CORE_HOST)
-    username = Prompt.ask(f"E-mail (or Username) on [bright_cyan]{base_space_url}[/bright_cyan]")
-    password = Prompt.ask("Password", password=True)
+    if not username:
+        username = Prompt.ask(
+            f"E-mail (or Username) on [bright_cyan]{base_space_url}[/bright_cyan]")
+    if not password:
+        password = Prompt.ask("Password", password=True)
 
     setup = SpaceSetup(
         api_url=api_url,
         username=username,
-        password=manf.put_secret("space_password", password),
+        password=password,
         host=HostSchema(
             conn_url=core_url,
         )
@@ -275,6 +281,8 @@ def login(
         )
         exit(-1)
 
+    space_password = manf.put_secret("space_password", setup.password)
+    setup.password = space_password
     manf.put("space", value=setup)
     rich.print("\nMalevich Space configuration [green]successfully[/green]"
                " added to the manifest\n")
@@ -299,6 +307,8 @@ def remove(
         rich.print(e)
         exit(-1)
 
+
+space_app.add_typer(flow_app, name="flow")
 
 app.add_typer(use_app, name="use")
 app.add_typer(manifest_app, name="manifest")

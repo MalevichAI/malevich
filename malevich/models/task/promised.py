@@ -1,4 +1,8 @@
 
+import os
+import pickle
+
+from ...manifest import ManifestManager
 from ...interpreter.abstract import Interpreter
 from ...interpreter.space import SpaceInterpreter
 from ...models.nodes.tree import TreeNode
@@ -11,6 +15,10 @@ class PromisedTask(BaseTask):
         self.__results = results
         self.__tree = tree
         self.__task = None
+
+    @property
+    def tree(self) -> TreeNode:
+        return self.__tree
 
     def interpret(self, interpreter: Interpreter = None) -> None:
         __interpreter = interpreter or SpaceInterpreter()
@@ -79,3 +87,24 @@ class PromisedTask(BaseTask):
             )
 
         return self.__task.commit_returned(returned)
+
+    def save(self, path=None) -> str:
+        if path is None:
+            path = os.path.join(
+                os.getcwd(),
+                f"{self.__tree.reverse_id}.malevichflow"
+            )
+
+
+        # Uploading secrets
+        # TODO: upload secrets
+
+        # Dumping flow to json
+        flow_data = {
+            "tree": self.tree,
+            "apps": [next(iter(app.keys())) for app in ManifestManager().query("dependencies")]
+        }
+        flow_bytes = pickle.dumps(flow_data)
+
+        with open(path, "wb") as fl:
+            fl.write(flow_bytes)

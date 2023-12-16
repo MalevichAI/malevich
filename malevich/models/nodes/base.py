@@ -1,3 +1,4 @@
+from typing import Any
 from uuid import uuid4
 
 import randomname as rn
@@ -12,3 +13,9 @@ class BaseNode(BaseModel):
         if not isinstance(other, BaseNode):
             return False
         return self.uuid == other.uuid
+
+    def get_senstivite_fields(self) -> dict[str, str]:
+        return {}
+
+    def set_sensitive_fields(self, values: dict[str, str]) -> None:
+        pass

@@ -14,7 +14,7 @@ class ImageOptions(BaseModel):
     core_auth_user: Optional[str] = None
     core_auth_token: Optional[str] = None
     checksum: str = None
-    operations: dict[str, str] = None
+    operations: Optional[dict[str, str]] = None
 
 
 class ImageDependency(Dependency):

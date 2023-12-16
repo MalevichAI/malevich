@@ -167,7 +167,7 @@ class ImageInstaller(Installer):
             args_str_ += ", " if args_str_ else ""
 
             checksum = hashlib.sha256(
-                (salt + processor.model_dump_json()).encode()
+                processor.model_dump_json().encode()
             ).hexdigest()
 
             # indexed_operations[checksum] = id_
