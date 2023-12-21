@@ -1,4 +1,5 @@
 import json
+import logging
 import pickle
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -264,6 +265,7 @@ class Context:
         self.dag_key_value = Context._DagKeyValue(self.run_id)      # key-value storage
         self.object_storage = Context._ObjectStorage()              # object storage
         self.common = None                                          # arbitrary common variable between app runs # noqa: E501
+        self.logger = logging.getLogger(f"{self.operation_id}${self.run_id}")
 
     def share(self, path: str, all_runs: bool = False, path_prefix: str = APP_DIR, force: bool = False, synchronize: bool = True) -> None:  # noqa: E501
         """copy dir (if it doesn't already exist or `force=True`) or file along the path starting from the `path_prefix` (apps directory in app (`APP_DIR`) by default) to the shared directory for all apps

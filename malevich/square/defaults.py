@@ -1,4 +1,4 @@
-from jls.app.template.jls_lib.jls import scheme
+from malevich.square.jls import scheme
 from pydantic import BaseModel
 
 
