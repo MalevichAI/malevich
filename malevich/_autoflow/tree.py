@@ -2,18 +2,18 @@ from collections import deque
 from typing import Any, Generic, Iterable, Iterator, Optional, TypeVar
 
 T = TypeVar("T")
+LinkType = TypeVar("LinkType", bound=Any)
 
-
-class ExecutionTree(Generic[T]):
+class ExecutionTree(Generic[T, LinkType]):
     # tree: list[tuple[T, T, Any]] = []
 
-    def __init__(self, tree: Optional[list[tuple[T, T, Any]]] = None) -> None:
+    def __init__(self, tree: Optional[list[tuple[T, T, LinkType]]] = None) -> None:
         if tree is not None:
             self.tree = tree
         else:
             self.tree = []
 
-    def put_edge(self, caller: T, callee: T, link: Any = None) -> None:  # noqa: ANN401
+    def put_edge(self, caller: T, callee: T, link: LinkType = None) -> None:
         self.tree.append((caller, callee, link))
 
     def prune(self, outer_nodes: Optional[list[T]] = None) -> None:
@@ -25,7 +25,7 @@ class ExecutionTree(Generic[T]):
     def edges_from(self, node: T) -> None:
         return [n for n in self.tree if n[0] == node]
 
-    def traverse(self) -> Iterator[tuple[T, T, Any]]:
+    def traverse(self) -> Iterator[tuple[T, T, LinkType]]:
         """Traverse the execution tree in a determenistic order
 
         Returns:
@@ -77,3 +77,5 @@ class ExecutionTree(Generic[T]):
         ) or any(
             x[0] == a and x[1] == b for x in b.traverse()
         )
+
+

@@ -13,9 +13,3 @@ class BaseInjectable(Generic[T, Key], ABC):
     @abstractmethod
     def get_inject_data(self) -> T:
         pass
-
-
-# class BaseInjection(Generic[Data], ABC):
-#     @abs
-#     @abstractmethod
-#     def inject(self, 

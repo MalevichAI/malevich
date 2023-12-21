@@ -19,6 +19,7 @@ from ._utility.args import parse_kv_args
 from .commands.ci import app as ci_app
 from .commands.flow import flow as flow_app
 from .commands.manifest import app as manifest_app
+from .commands.prefs import prefs as prefs
 from .commands.use import _install_from_image, _install_from_space
 from .commands.use import use as use_app
 from .constants import APP_HELP, DEFAULT_CORE_HOST, PROD_SPACE_API_URL
@@ -321,6 +322,7 @@ app.add_typer(use_app, name="use")
 app.add_typer(manifest_app, name="manifest")
 app.add_typer(space_app, name="space", help=space["--help"])
 app.add_typer(ci_app, name="ci", help=ci["--help"])
+app.add_typer(prefs, name="prefs")
 
 
 def main() -> None:

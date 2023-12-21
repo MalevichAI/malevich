@@ -1,34 +1,38 @@
-from .._autoflow.tracer import traced, tracedLike
+from .._autoflow.tracer import tracedLike
 from .._autoflow.tree import ExecutionTree
-from ..models.nodes.base import BaseNode
 from ..models.nodes.tree import TreeNode
+from ..models.types import FlowTree
 
 
 def unwrap_tree(
-    tree: ExecutionTree[traced[BaseNode]]
-) -> ExecutionTree[traced[BaseNode]]:
+    tree: FlowTree,
+) -> FlowTree:
     """Merges all subtrees into one tree
 
     Args
-        tree (ExecutionTree): Tree of any depth
+        tree (FlowTree): Tree of any depth
 
     Returns:
-        ExecutionTree: Unwrapped tree
+        FlowTree: Unwrapped tree
     """
     edges = []
     unwraped = {}
     for edge in tree.traverse():
-        if isinstance(edge[1].owner, TreeNode):
-            if not unwraped.get(edge[1].owner.uuid, False):
-                edges.extend(unwrap_tree(edge[1].owner.tree).tree)
-                unwraped[edge[1].owner.uuid] = True
-            for bridge in edge[2][1]:
+        u = edge[0].owner
+        v = edge[1].owner
+        if isinstance(v, TreeNode):
+            if not unwraped.get(v.uuid, False):
+                edges.extend(unwrap_tree(v.tree).tree)
+                unwraped[v.uuid] = True
+            for bridge in edge[2].compressed_nodes:
+                f = tracedLike(u.underlying_node) \
+                    if isinstance(u, TreeNode) else edge[0]
                 edges.append(
-                    (edge[0], bridge[0], bridge[1])
+                    (f, bridge[1], bridge[0])
                 )
-        elif isinstance(edge[0].owner, TreeNode):
+        elif isinstance(u, TreeNode):
             edges.append(
-                (tracedLike(edge[0].owner.underlying_node), edge[1], edge[2]),)
+                (tracedLike(u.underlying_node), edge[1], edge[2]),)
         else:
             edges.append(edge)
     return ExecutionTree(edges)

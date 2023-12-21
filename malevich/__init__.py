@@ -3,7 +3,7 @@ import logging
 # Autoflow Engine
 from ._autoflow import tracer as gn
 from ._autoflow import tree as tree
-from ._autoflow.function import *
+from ._autoflow.function import autotrace
 from ._autoflow.flow import *
 
 # Metascript
@@ -19,8 +19,8 @@ from .models.manifest import *
 # Expose contants
 from .constants import *
 
-# Summaries
-from ._utility.summary import *
+# # Summaries
+# from ._utility.summary import *
 
 manifest = ManifestManager()
 

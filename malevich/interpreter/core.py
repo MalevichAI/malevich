@@ -20,7 +20,8 @@ from ..models.argument import ArgumentLink
 from ..models.collection import Collection
 from ..models.exceptions import InterpretationError
 from ..models.injections import BaseInjectable
-from ..models.nodes import BaseNode, CollectionNode, OperationNode, TreeNode
+from ..models.nodes import BaseNode, CollectionNode, OperationNode
+from ..models.nodes.tree import TreeNode
 from ..models.preferences import VerbosityLevel
 from ..models.registry.core_entry import CoreRegistryEntry
 from ..models.task.interpreted import InterpretedTask

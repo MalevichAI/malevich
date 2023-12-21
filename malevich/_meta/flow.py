@@ -4,11 +4,10 @@ from typing import Callable, Optional, ParamSpec, TypeVar
 
 import pandas as pd
 
-from ..models.argument import ArgumentLink
-
 from .._autoflow.flow import Flow
 from .._autoflow.tracer import traced
 from .._utility.registry import Registry
+from ..models.argument import ArgumentLink
 from ..models.flow_function import FlowFunction
 from ..models.nodes.base import BaseNode
 from ..models.nodes.tree import TreeNode

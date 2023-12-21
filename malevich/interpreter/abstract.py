@@ -110,7 +110,6 @@ class Interpreter(Generic[State, Return]):
         else:
             self._state = self.state
 
-    # ExecutionTree[traced[BaseNode]])
     def interpret(self, node: TreeNode) -> InterpretedTask:
         """Interprets the execution tree
 
@@ -125,7 +124,7 @@ class Interpreter(Generic[State, Return]):
         `_tree` property.
 
         Args:
-            tree (ExecutionTree): Execution tree to interpret
+            node (TreeNode): Execution tree to interpret
 
         Returns:
             Task: Executable result of the interpretation

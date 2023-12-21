@@ -1,6 +1,7 @@
 
-from .._utility.singleton import SingletonMeta
 from typing import TypeVar
+
+from .._utility.singleton import SingletonMeta
 
 T = TypeVar('T')
 

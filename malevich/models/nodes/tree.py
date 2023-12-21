@@ -5,11 +5,12 @@ from pydantic import ConfigDict
 
 from ..._autoflow.tracer import traced
 from ..._autoflow.tree import ExecutionTree
+from ..argument import ArgumentLink
 from .base import BaseNode
 
 
 class TreeNode(BaseNode):
-    tree: ExecutionTree[traced[BaseNode]]
+    tree: ExecutionTree[BaseNode, ArgumentLink]
     results: Iterable[traced[BaseNode]] | traced[BaseNode] | None = None
     reverse_id: str
     name: str

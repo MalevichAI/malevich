@@ -17,14 +17,14 @@ class LogFormat(Enum):
 
 
 class UserPreferences(BaseModel):
-    verbosity: dict[Action, VerbosityLevel] = {
-        Action.Interpretation: VerbosityLevel.Quiet,
-        Action.Preparation: VerbosityLevel.OnlyStatus,
-        Action.Run: VerbosityLevel.OnlyStatus,
-        Action.Stop: VerbosityLevel.Quiet,
-        Action.Installation: VerbosityLevel.Quiet,
-        Action.Removal: VerbosityLevel.Quiet,
-        Action.Results: VerbosityLevel.OnlyStatus,
+    verbosity: dict[str, int] = {
+        Action.Interpretation.value: VerbosityLevel.Quiet.value,
+        Action.Preparation.value: VerbosityLevel.OnlyStatus.value,
+        Action.Run.value: VerbosityLevel.OnlyStatus.value,
+        Action.Stop.value: VerbosityLevel.Quiet.value,
+        Action.Installation.value: VerbosityLevel.Quiet.value,
+        Action.Removal.value: VerbosityLevel.Quiet.value,
+        Action.Results.value: VerbosityLevel.OnlyStatus.value,
     }
     log_format: LogFormat = LogFormat.Rich
     log_level: str = "INFO"

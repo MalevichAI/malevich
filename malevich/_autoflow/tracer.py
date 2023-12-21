@@ -31,7 +31,7 @@ T = TypeVar("T", bound=Any)
 class autoflow(Generic[T]):  # noqa: N801
     """Autoflow is a bridge between the tracer and the execution tree"""
 
-    def __init__(self, tree: ExecutionTree[T]) -> None:
+    def __init__(self, tree: ExecutionTree[T, Any]) -> None:
         self._tree_ref = tree
         self._component_ref = None
 
