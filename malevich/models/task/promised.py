@@ -2,16 +2,21 @@
 import os
 import pickle
 
-from ...manifest import ManifestManager
 from ...interpreter.abstract import Interpreter
 from ...interpreter.space import SpaceInterpreter
+from ...manifest import ManifestManager
 from ...models.nodes.tree import TreeNode
 from ...models.task.base import BaseTask
 from ...models.types import FlowOutput
+from ..injections import BaseInjectable
 
 
 class PromisedTask(BaseTask):
-    def __init__(self, results: FlowOutput, tree: TreeNode) -> None:
+    def __init__(
+        self,
+        results: FlowOutput,
+        tree: TreeNode,
+    ) -> None:
         self.__results = results
         self.__tree = tree
         self.__task = None
@@ -108,3 +113,6 @@ class PromisedTask(BaseTask):
 
         with open(path, "wb") as fl:
             fl.write(flow_bytes)
+
+    def get_injectables(self) -> list[BaseInjectable]:
+        return self.__task.get_injectables()

@@ -3,6 +3,8 @@ from typing import Any, Optional
 from malevich_space.schema import SpaceSetup
 from pydantic import BaseModel
 
+from .preferences import UserPreferences
+
 
 class Dependency(BaseModel):
     package_id: str
@@ -21,6 +23,7 @@ class Manifest(BaseModel):
     version: Optional[str] = None
     space: Optional[SpaceSetup] = None
     dependencies: list[dict[str, Dependency]] = []
+    preferences: UserPreferences = UserPreferences()
 
 
 class ManifestUpdateEntry(BaseModel):

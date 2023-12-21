@@ -2,23 +2,47 @@ import json
 import os
 import uuid
 from collections import defaultdict
-from typing import Any, Iterable
+from copy import deepcopy
+from typing import Any, Iterable, Optional
 
 import malevich_coretools as core
 import pandas as pd
 
 from .._autoflow.tracer import traced
 from .._utility.cache.manager import CacheManager
+from .._utility.logging import LogLevel, cout
 from .._utility.registry import Registry
 from ..constants import DEFAULT_CORE_HOST
 from ..interpreter.abstract import Interpreter
 from ..manifest import ManifestManager
+from ..models.actions import Action
+from ..models.argument import ArgumentLink
 from ..models.collection import Collection
 from ..models.exceptions import InterpretationError
+from ..models.injections import BaseInjectable
 from ..models.nodes import BaseNode, CollectionNode, OperationNode, TreeNode
+from ..models.preferences import VerbosityLevel
+from ..models.registry.core_entry import CoreRegistryEntry
 from ..models.task.interpreted import InterpretedTask
 
 cache = CacheManager()
+
+_levels = [LogLevel.Info, LogLevel.Warning, LogLevel.Error, LogLevel.Debug]
+_actions = [Action.Interpretation, Action.Preparation, Action.Run, Action.Results]
+def _log(
+    message: str,
+    level: int = 0,
+    action: int = 0,
+    step: bool = False,
+    *args,
+) -> None:
+    cout(
+        _actions[action],
+        message,
+        verbosity=VerbosityLevel.AllSteps if step else VerbosityLevel.OnlyStatus,
+        level=_levels[level],
+        *args,
+    )
 
 
 class CoreInterpreterState:
@@ -28,7 +52,7 @@ class CoreInterpreterState:
         # Involved operations
         self.ops: dict[str, BaseNode] = {}
         # Dependencies (same keys as in self.ops)
-        self.depends: dict[str, list[tuple[BaseNode, tuple[str, int]]]] = defaultdict(lambda: [])  # noqa: E501
+        self.depends: dict[str, list[tuple[BaseNode, ArgumentLink]]] = defaultdict(lambda: [])  # noqa: E501
         # Registry reference (just a shortcut)
         self.reg = Registry()
         # Manifest manager reference (just a shortcut)
@@ -47,6 +71,18 @@ class CoreInterpreterState:
         self.interpretation_id: str = uuid.uuid4().hex
 
 
+class CoreInjectable(BaseInjectable[str, str]):
+    def __init__(self, collection_id: str, alias: str) -> None:
+        self.__collection_id = collection_id
+        self.__alias = alias
+
+    def get_inject_data(self) -> str:
+        return self.__collection_id
+
+    def get_inject_key(self) -> str:
+        return self.__alias
+
+
 class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
     """Inteprets the flow using Malevich Core API"""
 
@@ -60,7 +96,6 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         self.__core_auth = core_auth
         self._state.params["core_host"] = core_host
         self._state.params["core_auth"] = core_auth
-
         self.update_state()
 
     def _result_collection_name(self, operation_id: str) -> str:
@@ -75,7 +110,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         settings = core.AppSettings(
             appId=app_id,
             taskId=app_id,
-            saveCollectionsName=[self._result_collection_name(uid)],
+            saveCollectionsName=self._result_collection_name(uid)
         )
 
         # TODO: Wrap correctly
@@ -134,6 +169,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         self, state: CoreInterpreterState, node: traced[BaseNode]
     ) -> CoreInterpreterState:
         state.ops[node.owner.uuid] = node.owner
+        _log(f"Node: {node.owner.uuid}, Type: {type(node.owner).__name__}", -1, 0, True)
         return state
 
     def create_dependency(
@@ -141,38 +177,35 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         state: CoreInterpreterState,
         callee: traced[BaseNode],
         caller: traced[BaseNode],
-        link: Any,  # noqa: ANN401
+        link: ArgumentLink,
     ) -> CoreInterpreterState:
         state.depends[caller.owner.uuid].append((callee.owner, link))
+        _log(
+            f"Dependency: {caller.owner.uuid} -> {callee.owner.uuid}, "
+            f"Link: {link.name}", -1, 0, True
+        )
         return state
 
     def before_interpret(self, state: CoreInterpreterState) -> CoreInterpreterState:
         core.set_host_port(self.__core_host)
         core.update_core_credentials(self.__core_auth[0], self.__core_auth[1])
+        _log("Connection to Core is established.", 0, 0, True)
+        _log(f"Core host: {self.__core_host}", 0, -1, True)
         return state
 
     def after_interpret(self, state: CoreInterpreterState) -> CoreInterpreterState:
+        _log("Flow is built. Uploading to Core", step=True)
         for id, op in state.ops.items():
             if isinstance(op, OperationNode):
-                extra = state.reg.get(op.operation_id, {})
-                image_auth_user = state.manf.query(
-                    *extra["image_auth_user"],
-                    resolve_secrets=True
-                )
-
-                image_auth_pass = state.manf.query(
-                    *extra["image_auth_pass"],
-                    resolve_secrets=True
-                )
-
-                image_ref = state.manf.query(
-                    *extra["image_ref"],
-                    resolve_secrets=True
-                )
+                extra = state.reg.get(
+                    op.operation_id, {}, model=CoreRegistryEntry)
+                image_auth_user = extra.image_auth_user
+                image_auth_pass = extra.image_auth_pass
+                image_ref = extra.image_ref
 
                 extra_colls = {}
 
-                for node, (link, _) in state.depends[id]:
+                for node, link in state.depends[id]:
                     if isinstance(node, CollectionNode) and \
                             node.uuid in state.collections:
                         coll, uploaded_core_id = state.collections[node.uuid]
@@ -180,7 +213,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                             **state.cfg.collections,
                             f"{coll.collection_id}": uploaded_core_id,
                         }
-                        extra_colls[link] = coll.collection_id
+                        extra_colls[link.name] = coll.collection_id
 
                 app_core_name = uuid.uuid4().hex + f"-{extra['processor_id']}"
 
@@ -207,11 +240,13 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                 )
 
                 state.collections[op.uuid] = (collection_ref, uploaded_core_id)
+        _log("Uploading to Core is completed.", step=True)
         return state
 
     def get_task(
         self, state: CoreInterpreterState
     ) -> InterpretedTask[CoreInterpreterState]:
+        _log("Task is being compiled...")
         task_kwargs = []
         config_kwargs = []
 
@@ -219,7 +254,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
             state.core_ops.items(), key=lambda x: len(state.depends[x[0]])
         ):
             depends = state.depends[id]
-            depends.sort(key=lambda x: x[1][1])
+            depends.sort(key=lambda x: x[1].index)
             depends = [
                 state.core_ops[x[0].uuid]
                 for x in depends
@@ -251,6 +286,9 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         def prepare(
             task: InterpretedTask[CoreInterpreterState], *args, **kwargs
         ) -> None:
+            _log("Task is being prepared for execution. It may take a while",
+                 action=1
+            )
             for _kwargs in task_kwargs:
                 core.create_task(**_kwargs)
 
@@ -269,12 +307,52 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                 core.task_stop(task_id)
                 raise e
 
-        def run(task: InterpretedTask[CoreInterpreterState], *args, **kwargs) -> None:
+        def run(
+            task: InterpretedTask[CoreInterpreterState],
+            overrides: Optional[dict[str, str]] = None,
+            run_id: Optional[str] = None,
+            *args,
+            **kwargs
+        ) -> None:
+            _log("Task is being executed on Core. It may take a while", action=2)
             if "task_id" not in task.state.params:
                 raise Exception("Attempt to run a task which is not prepared. "
                                 "Please, run `.prepare()` first.")
+
+            _cfg = deepcopy(task.state.cfg)
+            if run_id:
+                _cfg.app_settings = [
+                    core.AppSettings(
+                        taskId=s.taskId,
+                        appId=s.appId,
+                        saveCollectionsName=(s.saveCollectionsName if isinstance(
+                            s.saveCollectionsName, str) else s.saveCollectionsName[0]
+                        ) + '_' + str(run_id)
+                    ) for s in _cfg.app_settings
+                ]
             try:
-                core.task_run(task.state.params["task_id"], *args, **kwargs)
+                if overrides:
+                    _cfg.collections = {
+                        **_cfg.collections,
+                        **overrides,
+                    }
+                    _cfg_id = config_kwargs['cfg_id'] + \
+                        '-overridden' + uuid.uuid4().hex
+                    core.create_cfg(
+                        _cfg_id,
+                        _cfg,
+                        conn_url=task.state.params["core_host"],
+                        auth=task.state.params["core_auth"],
+                    )
+                    core.task_run(
+                        task.state.params["task_id"],
+                        cfg_id=_cfg_id,
+                        *args,
+                        **kwargs
+                    )
+                else:
+                    core.task_run(
+                        task.state.params["task_id"], *args, **kwargs)
             except Exception as e:
                 # Cleanup
                 core.task_stop(task.state.params["task_id"])
@@ -293,13 +371,45 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         def results(
             task: InterpretedTask[CoreInterpreterState],
             returned: Iterable[traced[BaseNode]] | traced[BaseNode] | None,
+            run_id: Optional[str] = None,
             *args,
             **kwargs
         ) -> Iterable[pd.DataFrame] | pd.DataFrame:
+            _log("Task results are being fetched from Core", action=3)
             if "task_id" not in task.state.params:
                 raise Exception("Attempt to run a task which is not prepared. "
                                 "Please, run `.prepare()` first.")
-            return self.get_results(returned)
+            return self.get_results(
+                task_id=task.state.params['task_id'],
+                returned=returned,
+                run_id=run_id
+            )
+
+        def injectables(
+            task: InterpretedTask[CoreInterpreterState]
+        ) -> list[BaseInjectable]:
+            injectables = []
+            nodes_ = set()
+            nodes: Iterable[BaseNode] = []
+            for x, y, _ in self._tree.traverse():
+                if x.owner.uuid not in nodes:
+                    nodes.append(x)
+                    nodes_.add(x.owner.uuid)
+                if y.owner.uuid not in nodes:
+                    nodes.append(y)
+                    nodes_.add(y.owner.uuid)
+
+            for node in nodes:
+                collection_node = node.owner
+                if isinstance(collection_node, CollectionNode):
+                    for cfg_coll_id, core_coll_id in state.cfg.collections.items():
+                        if cfg_coll_id == collection_node.collection.collection_id:
+                            injectables.append(
+                                CoreInjectable(
+                                    core_coll_id, collection_node.collection.collection_id)
+                            )
+                        break
+            return injectables
 
         return InterpretedTask(
             prepare=prepare,
@@ -307,11 +417,14 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
             stop=stop,
             results=results,
             state=state,
+            get_injectables=injectables,
         )
 
     def get_results(
         self,
-        returned: Iterable[traced[BaseNode]] | traced[BaseNode] | None
+        task_id: str,
+        returned: Iterable[traced[BaseNode]] | traced[BaseNode] | None,
+        run_id: Optional[str] = None,
     ) -> Iterable[pd.DataFrame] | pd.DataFrame:
         if not returned:
             return None
@@ -325,13 +438,17 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
             if isinstance(node, CollectionNode):
                 results.append(node.collection.collection_data)
             elif isinstance(node, OperationNode):
-                collection_ids = core.get_collections_by_name(
-                    self._result_collection_name(node.uuid)
-                ).ownIds
+                collection_ids = [x.id for x in core.get_collections_by_group_name(
+                    self._result_collection_name(node.uuid) +
+                    (f'_{run_id}' if run_id else ''),
+                    operation_id=task_id,
+                ).data]
 
-                results.append(core.get_collection_to_df(
-                    collection_ids[-1]
-                ))
+                results.append([
+                    core.get_collection_to_df(i)
+                    for i in collection_ids
+                ])
+
             elif isinstance(node, TreeNode):
-                results.append(self.get_results(node.results))
+                results.append(self.get_results(node.results, run_id=run_id))
         return results[0] if len(results) == 1 else results

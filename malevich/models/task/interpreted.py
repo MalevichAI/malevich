@@ -1,8 +1,10 @@
 import asyncio
+import warnings
 from typing import Callable, Generic, Iterable, Optional, TypeVar, Union
 
 import pandas as pd
 
+from ..injections import BaseInjectable
 from ..types import FlowOutput
 from .base import BaseTask
 
@@ -11,6 +13,7 @@ PrepareFunc = TypeVar("PrepareFunc", bound=Callable)
 RunFunc = TypeVar("RunFunc", bound=Callable)
 StopFunc = TypeVar("StopFunc", bound=Callable)
 ResultsFunc = TypeVar("ResultsFunc", bound=Callable)
+GetInjectablesFunc = TypeVar("GetInjectablesFunc", bound=Callable)
 ResultsFunc_ = Callable[
     ['InterpretedTask', FlowOutput],
     Union[Iterable[pd.DataFrame], pd.DataFrame, None]
@@ -20,12 +23,13 @@ ResultsFunc_ = Callable[
 class InterpretedTask(Generic[State], BaseTask):
     def __init__(
         self,
-        prepare: PrepareFunc | Callable[['InterpretedTask'], None],
-        run: RunFunc | Callable[['InterpretedTask'], None],
+        prepare: PrepareFunc | Callable[['InterpretedTask'], str],
+        run: RunFunc | Callable[['InterpretedTask'], str],
         stop: StopFunc | Callable[['InterpretedTask'], None],
         results: ResultsFunc | ResultsFunc_,
         state: State,
         returned: FlowOutput = None,
+        get_injectables: GetInjectablesFunc = None,
     ) -> None:
         self.__prepare = prepare
         self.__run = run
@@ -33,6 +37,8 @@ class InterpretedTask(Generic[State], BaseTask):
         self.__results = results
         self.__state = state
         self.__returned = returned
+
+        self.__get_injectables = get_injectables
 
     async def async_prepare(
         self,
@@ -145,17 +151,17 @@ class InterpretedTask(Generic[State], BaseTask):
         if callback:
             callback(results)
 
-    def prepare(self, *args, **kwargs) -> None:
+    def prepare(self, *args, **kwargs) -> str:
         self.__prepare(self, *args, **kwargs)
 
-    def run(self, *args, **kwargs) -> None:
+    def run(self, *args, **kwargs) -> str:
         self.__run(self, *args, **kwargs)
 
     def stop(self, *args, **kwargs) -> None:
         self.__stop(self, *args, **kwargs)
 
-    def results(self):  # noqa: ANN201
-        return self.__results(self, self.__returned)
+    def results(self, run_id: Optional[str] = None):  # noqa: ANN201
+        return self.__results(self, self.__returned, run_id=run_id)
 
     def commit_returned(self, returned: FlowOutput):  # noqa: ANN201
         self.__returned = returned
@@ -165,6 +171,17 @@ class InterpretedTask(Generic[State], BaseTask):
         self.run()
         self.stop()
         return self.results()
+
+    def get_injectables(self) -> list[BaseInjectable]:
+        if self.__get_injectables:
+            return self.__get_injectables(self)
+        else:
+            warnings.warn(
+                "The task was not interpreted with an interpreter that "
+                "supports data injection. Returning empty list of injectables "
+                "for compatibility with other interpreters. "
+            )
+            return []
 
     @property
     def state(self) -> State:

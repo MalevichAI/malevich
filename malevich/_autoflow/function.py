@@ -1,7 +1,8 @@
 import functools
 import warnings
 from typing import Callable, ParamSpec, TypeVar
-import warnings
+
+from ..models.argument import ArgumentLink
 from . import tracer as gn
 
 C = ParamSpec("C")
@@ -19,11 +20,11 @@ def autotrace(func: Callable[C, R]) -> Callable[C, R]:
         for i, arg in enumerate(args):
             argument_name = func.__code__.co_varnames[i]
             if isinstance(arg, gn.traced):
-                arg._autoflow.calledby(result, (argument_name, i))
+                arg._autoflow.calledby(result, ArgumentLink(index=i, name=argument_name))
         for key in kwargs:
             if isinstance(kwargs[key], gn.traced):
                 if key in varnames:
-                    kwargs[key]._autoflow.calledby(result, (key, varnames.index(key)))
+                    kwargs[key]._autoflow.calledby(result, ArgumentLink(index=varnames.index(key), name=key))
                 else:
                     warnings.warn(
                         # TODO: Add "See: ..."

@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
-from malevich.models.types import FlowOutput
+from ..injections import BaseInjectable
+from ..types import FlowOutput
 
 
 class BaseTask(ABC):
@@ -22,6 +23,10 @@ class BaseTask(ABC):
 
     @abstractmethod
     def commit_returned(self, returned: FlowOutput) -> None:
+        return
+
+    @abstractmethod
+    def get_injectables(self) -> list[BaseInjectable]:
         return
 
     def __call__(self):  # noqa: ANN204

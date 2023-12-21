@@ -1,7 +1,10 @@
 from functools import wraps
+from inspect import signature
 from typing import Callable, Optional, ParamSpec, TypeVar
 
 import pandas as pd
+
+from ..models.argument import ArgumentLink
 
 from .._autoflow.flow import Flow
 from .._autoflow.tracer import traced
@@ -98,14 +101,26 @@ def flow(
                     description=description,
                 )
 
+            sign = signature(function)
+            params = sign.parameters
+            param_values = [*params.values()]
             if is_subflow:
                 outer_tracer.claim(t_node)
                 for i, i_arg in enumerate(args):
                     if isinstance(i_arg, traced):
                         # In parent tree
                         bridges = _tree.edges_from(__hargs[i])
-                        b_nodes = [(b[1], b[2]) for b in bridges]
-                        i_arg._autoflow.calledby(outer_tracer, (i, b_nodes))
+                        b_nodes = [(b[2], b[1]) for b in bridges]
+                        _a = ArgumentLink(
+                            index=i,
+                            name=param_values[i].name,
+                            is_compressed_edge=True,
+                            compressed_nodes=b_nodes
+                        )
+                        i_arg._autoflow.calledby(
+                            outer_tracer,
+                            _a
+                        )
                         _tree.prune([__hargs[i]])
 
                 for k in kwargs:
@@ -113,8 +128,18 @@ def flow(
                     if isinstance(k_arg, traced):
                         # New tracer in this tree
                         bridges = _tree.edges_from(__hkwargs[k])
-                        b_nodes = [(b[1], b[2]) for b in bridges]
-                        k_arg._autoflow.calledby(outer_tracer, (i, b_nodes))
+                        b_nodes = [(b[2], b[1]) for b in bridges]
+                        i = 0
+                        for i, p in enumerate(params.values()):
+                            if p.name == k:
+                                break
+                        _a = ArgumentLink(
+                            index=i,
+                            name=k,
+                            is_compressed_edge=True,
+                            compressed_nodes=b_nodes
+                        )
+                        k_arg._autoflow.calledby(outer_tracer, _a)
                         _tree.prune([__hkwargs[k]])
 
                 outputs = [
