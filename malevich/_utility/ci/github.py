@@ -102,21 +102,15 @@ class GithubCIOps(CIOps):
             org_id (str): ORGANIZATION_ID
             verbose (bool, optional): Verbose mode. Defaults to False.
         """
-        g = Github(token)
 
-        repo = g.get_repo(repository)
-
-        repo.create_environment(branch)
-        repo_id = repo.id
         pub_key = requests.get(
-            f"https://api.github.com/repositories/{repo_id}/environments/{branch}/secrets/public-key",
+            f"https://api.github.com/repos/{repository}/actions/secrets/public-key",
             headers={
                 "Accept": "application/vnd.github+json",
                 "Authorization": f"Bearer {token}",
                 "X-GitHub-Api-Version": "2022-11-28"
             }
         ).json()
-
 
         keys = [
             "SPACE_USERNAME",
@@ -150,7 +144,8 @@ class GithubCIOps(CIOps):
 
         for key, value in zip(keys, values):
             payload = PublicKey.encrypt(pub_key['key'],value)
-            url = f'https://api.github.com/repositories/{repo_id}/environments/{branch}/secrets/{key}'
+            url = f'https://api.github.com/repos/{repository}/actions/secrets/{key}'
+
             requests.put(
                 url,
                 headers={
@@ -166,22 +161,27 @@ class GithubCIOps(CIOps):
             self._log(verbose, f"Updated secret {key}")
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            git_repo = Repo.clone_from(repo.clone_url, tmpdir)
+            git_repo = Repo.clone_from(
+                f'https://{token}@github.com/{repository}', tmpdir
+            )
             self._log(verbose, f"Cloned repository {repository} into {tmpdir}")
-            head = git_repo.create_head(branch)
-            head.checkout()
+            git_repo.git.checkout(branch)
             self._log(verbose, f"Checkouted to branch {branch}")
             action_file = self.__create_action(tmpdir, branch)
             manual_action_file = self.__create_manual_action(tmpdir, branch)
             self._log(verbose, f"Created action file {action_file}")
-            git_repo.index.add([action_file])
-            git_repo.index.add([manual_action_file])
-            git_repo.index.commit(
-                "add: malevich-ci.yml && malevich-ci-manual.yml")
-            self._log(verbose,
-                      f"Committed actions file {action_file}, {manual_action_file}"
-                      )
-            origin = git_repo.remote(name="origin")
-            self._log(verbose, "Pushing to origin")
-            origin.push(git_repo.active_branch)
-            self._log(verbose, "Pushed to origin")
+            git_repo.git.add(action_file)
+            git_repo.git.add(manual_action_file)
+            try:
+                git_repo.git.commit(
+                    "-m",
+                    "add: malevich-ci.yml && malevich-ci-manual.yml"
+                )
+                self._log(verbose,
+                        f"Committed actions file {action_file}, {manual_action_file}"
+                )
+                git_repo.git.push()
+            except Exception:
+                self._log(verbose,
+                        f"{action_file} and {manual_action_file} already exist"
+                )
