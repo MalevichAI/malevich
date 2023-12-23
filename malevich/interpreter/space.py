@@ -50,6 +50,7 @@ cache = CacheManager()
 
 _levels = [LogLevel.Info, LogLevel.Warning, LogLevel.Error, LogLevel.Debug]
 _actions = [Action.Interpretation, Action.Preparation, Action.Run, Action.Results]
+
 def _log(
     message: str,
     level: int = 0,
@@ -64,6 +65,13 @@ def _log(
         level=_levels[level],
         *args,
     )
+
+def _name(base: str):
+    cnt = defaultdict(lambda: 1)
+    while True:
+        yield cnt[base]
+        cnt[base] += 1
+
 
 
 class NodeType(Enum):
@@ -362,7 +370,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                 )
 
                 _log(f"Schema {schema} is created", level=-1, action=0, step=True)
-                
+
 
             # To upload the collection, it is required to
             # save the collection data in a csv file
@@ -386,6 +394,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                 # Using the collection id as the reverse id
                 reverse_id=node.owner.collection.collection_id
             )
+            alias_base = node.owner.collection.collection_id
 
             # If the component is not found (not uploaded yet)
             if component is None:
@@ -440,8 +449,6 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
             # If no extra information is found, it means
             # local information is too old
             # (but it is user fault, not mine)
-            print(node.owner.operation_id)
-            print(reg.registry.keys())
             if 'reverse_id' not in extra:
                 raise InterpretationError(
                     "Trying to interpret an operation that is not installed "
@@ -449,6 +456,8 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                     "the operation. ",
                     self, state
                 )
+
+            alias_base = extra['reverse_id']
 
             # Get the component from the space (it should be there)
             component = state.component_manager.space.get_parsed_component_by_reverse_id(  # noqa: E501
@@ -474,6 +483,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
             state.node_to_operation[node.owner.uuid] = node.owner.operation_id
 
         elif isinstance(node.owner, TreeNode):
+            alias_base= node.owner.reverse_id
             if not state.children_states.get(node.owner.uuid, None):
                 child_interpreter = SpaceInterpreter(
                     name=node.owner.name,
@@ -504,8 +514,8 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
             )
 
         state.components[node.owner.uuid] = comp
-        # FIXME: state.components_alias are not neccessary then...
-        state.components_alias[node.owner.uuid] = node.owner.alias
+        state.components_alias[node.owner.uuid] = node.owner.alias or f'{alias_base} #{next(_name(alias_base))}'  # noqa: E501
+        node.owner.alias = state.components_alias[node.owner.uuid]
         return state
 
     def create_dependency(

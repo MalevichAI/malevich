@@ -39,6 +39,7 @@ class autoflow(Generic[T]):  # noqa: N801
         self._component_ref = component
 
     def calledby(self, caller: 'traced', argument: Optional[str] = None) -> None:
+        assert isinstance(caller, traced), "Caller must be a traced object"
         self._tree_ref.put_edge(self._component_ref, caller, argument)
 
 
