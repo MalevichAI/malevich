@@ -4,8 +4,17 @@ from typing import Any, Generic, Iterable, Iterator, Optional, TypeVar
 T = TypeVar("T")
 LinkType = TypeVar("LinkType", bound=Any)
 
+
+class BadEdgeError(Exception):
+    def __init__(self, message: str, edge: tuple[T, T, LinkType]) -> None:
+        super().__init__(message)
+        self.edge = edge
+
+    def __str__(self) -> str:
+        return f"{super().__str__()}: {self.edge}"
+
+
 class ExecutionTree(Generic[T, LinkType]):
-    # tree: list[tuple[T, T, Any]] = []
 
     def __init__(self, tree: Optional[list[tuple[T, T, LinkType]]] = None) -> None:
         if tree is not None:
@@ -14,6 +23,13 @@ class ExecutionTree(Generic[T, LinkType]):
             self.tree = []
 
     def put_edge(self, caller: T, callee: T, link: LinkType = None) -> None:
+        if any(x[0] == caller and x[1] == callee for x in self.tree):
+            raise BadEdgeError("Edge already exists", (caller, callee, link))
+        if any(x[0] == callee and x[1] == caller for x in self.tree):
+            raise BadEdgeError("Edge already exists", (caller, callee, link))
+        if callee == caller:
+            raise BadEdgeError("Self-edge", (caller, callee, link))
+
         self.tree.append((caller, callee, link))
 
     def prune(self, outer_nodes: Optional[list[T]] = None) -> None:
@@ -77,5 +93,3 @@ class ExecutionTree(Generic[T, LinkType]):
         ) or any(
             x[0] == a and x[1] == b for x in b.traverse()
         )
-
-

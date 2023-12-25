@@ -52,9 +52,9 @@ def cout(
         prefs = UserPreferences()
     else:
         prefs = UserPreferences(**prefs)
-    if prefs.verbosity[action] == VerbosityLevel.Quiet:
+    if prefs.verbosity[action.value] == VerbosityLevel.Quiet:
         return
-    elif verbosity.value <= prefs.verbosity[action].value:
+    elif verbosity.value <= prefs.verbosity[action.value]:
         if prefs.log_format == LogFormat.Plain:
             _cout(f"({action.name}) {message}", level=level, *args)
         else:

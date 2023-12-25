@@ -33,5 +33,23 @@ def autotrace(func: Callable[C, R]) -> Callable[C, R]:
                     )
 
         return result
+    return wrapper
+
+
+def sinktrace(func: Callable[C, R]) -> Callable[C, R]:
+    """A special form of autotrace to trace functions with *args"""
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):  # noqa: ANN202
+        from ..models.nodes.collection import CollectionNode
+        for arg in args:
+            if isinstance(arg, CollectionNode):
+                raise ValueError(
+                    "App with unrestricted number of arguments cannot be "
+                    "run with collections")
+        result = func(*args)
+        result = gn.traced(result) if not isinstance(result, gn.traced) else result
+        for i, arg in enumerate(args):
+            arg._autoflow.calledby(result, ArgumentLink(index=i, name=''))
+        return result
 
     return wrapper
