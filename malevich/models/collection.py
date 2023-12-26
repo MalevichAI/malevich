@@ -1,6 +1,7 @@
 import hashlib
 import io
 import uuid
+from typing import Optional
 
 import pandas as pd
 from pydantic import BaseModel, ConfigDict, Field
@@ -8,7 +9,8 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class Collection(BaseModel):
     collection_id: str
-    collection_data: pd.DataFrame = Field(..., repr=False)
+    core_id: Optional[str] = None
+    collection_data: Optional[pd.DataFrame] = Field(None, repr=False)
     model_config = ConfigDict(
         arbitrary_types_allowed=True
     )
@@ -25,7 +27,7 @@ class Collection(BaseModel):
         if with_id is None:
             with_id = True
         if with_data is None:
-            with_data = self.persistent
+            with_data = not self.persistent
 
         buffer = io.BytesIO()
         self.collection_data.to_pickle(buffer)
@@ -49,4 +51,3 @@ class Collection(BaseModel):
 
     def verify(self, hash: str, **kwargs) -> bool:
         return self.magic(**kwargs) == hash
-

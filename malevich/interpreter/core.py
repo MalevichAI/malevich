@@ -166,6 +166,51 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
 
         return settings
 
+    def _upload_collection(self, collection: Collection) -> str:
+        if collection.collection_data is None:
+            raise InterpretationError(
+                f"Trying to upload collection {collection.collection_id} "
+                "without data. Probably you set persistent=True and core_id, "
+                "but collection was not found in Core."
+            )
+
+        if collection.collection_data is not None:
+            _log(f"Uploading collection {collection.collection_id} to Core")
+            collection.core_id = core.create_collection_from_df(
+                data=collection.collection_data,
+                name=collection.magic()
+            )
+
+        return collection.core_id
+
+    def _assert_collection(self, collection: Collection) -> None:
+        if collection.core_id:
+            try:
+                core.get_collection(collection.core_id)
+                return
+            except Exception as e:
+                raise InterpretationError(
+                    f"Collection {collection.collection_id} with core_id "
+                    f"{collection.core_id} is not found in Core. Do not "
+                    "specify core_id if you want to upload the collection."
+                ) from e
+
+        _ids = core.get_collections_by_name(
+            collection.magic()
+        )
+
+        if len(_ids.ownIds) == 0:
+            self._upload_collection(collection)
+        else:
+            collection.core_id = _ids.ownIds[0]
+
+        if collection.core_id not in core.get_collections().ownIds:
+            raise InterpretationError(
+                f"Collection {collection.collection_id} with core_id "
+                f"{collection.core_id} is not found in Core."
+            )
+
+
     def create_node(
         self, state: CoreInterpreterState, node: traced[BaseNode]
     ) -> CoreInterpreterState:
@@ -234,13 +279,9 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
 
             elif isinstance(op, CollectionNode):
                 collection_ref = op.collection
+                self._assert_collection(collection_ref)
 
-                uploaded_core_id = core.create_collection_from_df(
-                    collection_ref.collection_data,
-                    collection_ref.collection_id,
-                )
-
-                state.collections[op.uuid] = (collection_ref, uploaded_core_id)
+                state.collections[op.uuid] = (collection_ref, collection_ref.core_id)
         _log("Uploading to Core is completed.", step=True)
         return state
 

@@ -153,8 +153,6 @@ def flow(
                     )
                     if isinstance(o, traced)
                 ]
-                print(outputs)
-                print(outputs[0] if len(outputs) == 1 else outputs)
                 return outputs[0] if len(outputs) == 1 else outputs
             else:
                 return PromisedTask(results=__results, tree=t_node)
