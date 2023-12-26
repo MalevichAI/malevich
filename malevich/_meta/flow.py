@@ -110,6 +110,7 @@ def flow(
                         # In parent tree
                         bridges = _tree.edges_from(__hargs[i])
                         b_nodes = [(b[2], b[1]) for b in bridges]
+                        print(b_nodes)
                         _a = ArgumentLink(
                             index=i,
                             name=param_values[i].name,
@@ -140,7 +141,6 @@ def flow(
                         )
                         k_arg._autoflow.calledby(outer_tracer, _a)
                         _tree.prune([__hkwargs[k]])
-
                 outputs = [
                     traced(
                         TreeNode(
@@ -148,13 +148,13 @@ def flow(
                             underlying_node=o.owner,
                         )
                     )
-                    for o in (
-                        [__results] if isinstance(
+                    for o in ([__results] if isinstance(
                             __results, traced) else __results
                     )
                     if isinstance(o, traced)
                 ]
-
+                print(outputs)
+                print(outputs[0] if len(outputs) == 1 else outputs)
                 return outputs[0] if len(outputs) == 1 else outputs
             else:
                 return PromisedTask(results=__results, tree=t_node)
