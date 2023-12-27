@@ -9,6 +9,7 @@ from ...models.nodes.tree import TreeNode
 from ...models.task.base import BaseTask
 from ...models.types import FlowOutput
 from ..injections import BaseInjectable
+from .interpreted import InterpretedTask
 
 
 class PromisedTask(BaseTask):
@@ -116,3 +117,18 @@ class PromisedTask(BaseTask):
 
     def get_injectables(self) -> list[BaseInjectable]:
         return self.__task.get_injectables()
+
+    def get_operations(self) -> list[str]:
+        return self.__task.get_operations()
+
+    def configure(self, operation: str, **kwargs) -> None:
+        return self.__task.configure(operation, **kwargs)
+
+    def get_interpreted_task(self) -> InterpretedTask:
+        if not self.__task:
+            raise Exception(
+                "Unable to get interpreted task, that has not been interpreted. "
+                "Please, use `.interpret` first to attach task to "
+                "a particular platform"
+            )
+        return self.__task
