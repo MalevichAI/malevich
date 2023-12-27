@@ -14,7 +14,7 @@ class DockerRegistry(enum.Enum):
     PUBLIC_AWS_ECR = "ecr"
     PRIVATE_AWS_ECR = "ecr-private"
     YANDEX = "yandex"
-    GCR = "gcr"
+    GCR = "ghcr"
 
 
 class GithubCIOps(CIOps):
