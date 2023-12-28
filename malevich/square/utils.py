@@ -1,7 +1,8 @@
+
 import json
 import logging
 import pickle
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, TypeVar
 
 import boto3
 import jsonpickle
@@ -10,7 +11,7 @@ import pandas as pd
 from botocore.response import StreamingBody
 
 WORKDIR = "/julius"         # docker workdir    # FIXME "/malevich"
-APP_DIR = f"{WORKDIR}/apps" # dir into which the user code is copied
+APP_DIR = f"{WORKDIR}/apps"  # dir into which the user code is copied
 
 
 class Context:
@@ -18,6 +19,7 @@ class Context:
         """key-value storage, shared for all apps of one run\n
         values must be bytes, string, int or float; dictionary order is not guaranteed
         """
+
         def __init__(self, run_id: Optional[str] = None) -> None:
             pass
 
@@ -86,7 +88,7 @@ class Context:
 
             Args:
                 keys_values (Dict[str, Any]): dict key -> value
-            """ # noqa: E501
+            """  # noqa: E501
             pass
 
         async def async_update(self, keys_values: Dict[str, Any]) -> None:
@@ -113,7 +115,8 @@ class Context:
         for the operation you need to put or take the result from it - `share`/`get_share_path`.\n
         in any case, the mount may be in an unsynchronized state for some apps; therefore, in many functions there is `all_apps`, which guarantees behavior as if everything was synchronized - the operation is applied to all mounts.\n
         it can work in two ways - locally and with a remote part - there is a `local` parameter for this. If you run with it, then everything will work with mount, otherwise with remote object storage.
-        """ # noqa: E501
+        """  # noqa: E501
+
         def get_keys(self, local: bool = False, all_apps: bool = False) -> List[str]:
             """get keys from local mount or remote object storage
 
@@ -123,7 +126,7 @@ class Context:
 
             Returns:
                 List[str]: keys from local mount or remote object storage
-            """ # noqa: E501
+            """  # noqa: E501
             pass
 
         async def async_get_keys(self, local: bool = False, all_apps: bool = False) -> List[str]:  # noqa: E501
@@ -135,7 +138,7 @@ class Context:
 
             Returns:
                 List[str]: keys from local mount or remote object storage
-            """ # noqa: E501
+            """  # noqa: E501
             pass
 
         def get(self, keys: List[str], force: bool = False, all_apps: bool = True) -> List[str]:    # noqa: E501
@@ -148,7 +151,7 @@ class Context:
 
             Returns:
                 List[str]: keys by which it was possible to obtain the value and load it into the mount
-            """ # noqa: E501
+            """  # noqa: E501
             pass
 
         async def async_get(self, keys: List[str], force: bool = False, all_apps: bool = True) -> List[str]:    # noqa: E501
@@ -161,7 +164,7 @@ class Context:
 
             Returns:
                 List[str]: keys by which it was possible to obtain the value and load it into the mount
-            """ # noqa: E501
+            """  # noqa: E501
             pass
 
         def get_all(self, local: bool = False, force: bool = False, all_apps: bool = True) -> List[str]:    # noqa: E501
@@ -174,7 +177,7 @@ class Context:
 
             Returns:
                 List[str]: all keys in mount, that loaded
-            """ # noqa: E501
+            """  # noqa: E501
             pass
 
         async def async_get_all(self, local: bool = False, force: bool = False, all_apps: bool = True) -> List[str]:    # noqa: E501
@@ -187,10 +190,10 @@ class Context:
 
             Returns:
                 List[str]: all keys in mount, that loaded
-            """ # noqa: E501
+            """  # noqa: E501
             pass
 
-        def update(self, keys: List[str], presigned_expire: Optional[int] = -1) -> Dict[str, str]: # noqa: E501
+        def update(self, keys: List[str], presigned_expire: Optional[int] = -1) -> Dict[str, str]:  # noqa: E501
             """update remote object storage by this keys, values should be in local mount for this keys; maybe create presigned url
 
             Args:
@@ -199,7 +202,7 @@ class Context:
 
             Returns:
                 Dict[str, str]: key to presigned url
-            """ # noqa: E501
+            """  # noqa: E501
             pass
 
         async def async_update(self, keys: List[str]) -> None:
@@ -211,10 +214,10 @@ class Context:
 
             Returns:
                 Dict[str, str]: key to presigned url
-            """ # noqa: E501
+            """  # noqa: E501
             pass
 
-        def presigned(self, keys: List[str], expire: Optional[int] = None) -> Dict[str, str]: # noqa: E501
+        def presigned(self, keys: List[str], expire: Optional[int] = None) -> Dict[str, str]:  # noqa: E501
             """create presigned url for keys
 
             Args:
@@ -223,10 +226,10 @@ class Context:
 
             Returns:
                 Dict[str, str]: key to presigned url
-            """ # noqa: E501
+            """  # noqa: E501
             pass
 
-        async def async_presigned(self, keys: List[str], expire: Optional[int] = None) -> Dict[str, str]: # noqa: E501
+        async def async_presigned(self, keys: List[str], expire: Optional[int] = None) -> Dict[str, str]:  # noqa: E501
             """create presigned url for keys
 
             Args:
@@ -235,7 +238,7 @@ class Context:
 
             Returns:
                 Dict[str, str]: key to presigned url
-            """ # noqa: E501
+            """  # noqa: E501
             pass
 
         def delete(self, keys: List[str]) -> None:
@@ -262,7 +265,8 @@ class Context:
         self.app_cfg: Dict[str, Any] = {}                           # configuration given to the app at startup  # noqa: E501
         self.msg_url: str = ""                                      # default url for msg operation              # noqa: E501
         self.email: Optional[str] = None                            # email for email_send operation             # noqa: E501
-        self.dag_key_value = Context._DagKeyValue(self.run_id)      # key-value storage
+        self.dag_key_value = Context._DagKeyValue(
+            self.run_id)      # key-value storage
         self.object_storage = Context._ObjectStorage()              # object storage
         self.common = None                                          # arbitrary common variable between app runs # noqa: E501
         self.logger = logging.getLogger(f"{self.operation_id}${self.run_id}")
@@ -276,7 +280,7 @@ class Context:
             path_prefix (str, optional): prefix for the path (specifies the location when loading and is no longer used). Defaults to APP_DIR.
             force (bool, optional): remove share if it exist. Defaults to False.
             synchronize (bool, optional): synchronize across all apps, otherwise some apps with a common mount will be synchronized. Defaults to True.
-        """ # noqa: E501
+        """  # noqa: E501
         pass
 
     async def async_share(self, path: str, all_runs: bool = False, path_prefix: str = APP_DIR, force: bool = False, synchronize: bool = True) -> None:  # noqa: E501
@@ -288,7 +292,7 @@ class Context:
             path_prefix (str, optional): prefix for the path (specifies the location when loading and is no longer used). Defaults to APP_DIR.
             force (bool, optional): remove share if it exist. Defaults to False.
             synchronize (bool, optional): synchronize across all apps, otherwise some apps with a common mount will be synchronized. Defaults to True.
-        """ # noqa: E501
+        """  # noqa: E501
         pass
 
     def share_many(self, paths: List[str], all_runs: bool = False, path_prefix: str = APP_DIR, force: bool = False, synchronize: bool = True) -> None:  # noqa: E501
@@ -309,7 +313,7 @@ class Context:
 
         Returns:
             str: real path
-        """ # noqa: E501
+        """  # noqa: E501
         pass
 
     def delete_share(self, path: str, all_runs: bool = False, synchronize: bool = True) -> None:    # noqa: E501
@@ -319,7 +323,7 @@ class Context:
             path (str): path, with which share was called earlier
             all_runs (bool, optional): value, with which share was called earlier. Defaults to False.
             synchronize (bool, optional): synchronize for all mounts. Defaults to True.
-        """ # noqa: E501
+        """  # noqa: E501
         pass
 
     async def async_delete_share(self, path: str, all_runs: bool = False, synchronize: bool = True) -> None:  # noqa: E501
@@ -329,7 +333,7 @@ class Context:
             path (str): path, with which share was called earlier
             all_runs (bool, optional): value, with which share was called earlier. Defaults to False.
             synchronize (bool, optional): synchronize for all mounts. Defaults to True.
-        """ # noqa: E501
+        """  # noqa: E501
         pass
 
     def synchronize(self, paths: Optional[List[str]] = None, all_runs: bool = False) -> None:  # TODO synchronize removing  # noqa: E501
@@ -338,7 +342,7 @@ class Context:
         Args:
             paths (Optional[List[str]], optional): paths to synchronize, if paths = None or [] - synchronize from root mount. Defaults to None.
             all_runs (bool, optional): value, with which share was called earlier. Defaults to False.
-        """ # noqa: E501
+        """  # noqa: E501
         pass
 
     async def async_synchronize(self, paths: Optional[List[str]] = None, all_runs: bool = False) -> None:  # noqa: E501
@@ -347,7 +351,7 @@ class Context:
         Args:
             paths (Optional[List[str]], optional): paths to synchronize, if paths = None or [] - synchronize from root mount. Defaults to None.
             all_runs (bool, optional): value, with which share was called earlier. Defaults to False.
-        """ # noqa: E501
+        """  # noqa: E501
         pass
 
     def msg(self, data: Union[str, Dict], url: Optional[str] = None, headers: Optional[Dict[str, str]] = None, wait: bool = False, wrap: bool = True, with_result: bool = False):  # noqa: E501, ANN201
@@ -383,7 +387,7 @@ class Context:
             message (str): text message
             subject (Optional[str], optional): message subject, if subject is None used default. Defaults to None.
             type (str, optional): message type, only gmail work now. Defaults to "gmail".
-        """ # noqa: E501
+        """  # noqa: E501
         pass
 
     def metadata(self, df_name: str) -> Optional[Union[Dict[str, Any], List[Dict[str, Any]]]]:  # noqa: E501
@@ -394,7 +398,7 @@ class Context:
 
         Returns:
             Optional[Union[Dict[str, Any], List[Dict[str, Any]]]]: metadata if exists (list if many), None otherwise
-        """ # noqa: E501
+        """  # noqa: E501
         pass
 
     @property
@@ -403,7 +407,7 @@ class Context:
 
         Returns:
             Tuple[int, int]: `index` and `index count`
-        """ # noqa: E501
+        """  # noqa: E501
         pass
 
     def get_scale_part(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -414,7 +418,7 @@ class Context:
 
         Returns:
             pd.DataFrame: scale part of df
-        """ # noqa: E501
+        """  # noqa: E501
         pass
 
     @property
@@ -442,13 +446,14 @@ def load(url: str, path: str, path_prefix: str = APP_DIR) -> None:
         url (str): url to load
         path (str): relative path - starting from the `path_prefix` (apps directory in app (`APP_DIR`) by default)
         path_prefix (str, optional): prefix for the path. Defaults to APP_DIR.
-    """ # noqa: E501
+    """  # noqa: E501
     pass
 
 
 class S3Helper:
     """ready-made auxiliary wrapper for interacting with custom s3
     """
+
     def __init__(self, client: Any, s3_bucket: str) -> None:  # noqa: ANN401
         self.client = client
         self.__bucket = s3_bucket
@@ -474,7 +479,7 @@ class S3Helper:
 
         Returns:
             Optional[StreamingBody]: get_object response body
-        """ # noqa: E501
+        """  # noqa: E501
         pass
 
     def get_df(self, key: str, bucket: Optional[str] = None) -> pd.DataFrame:
@@ -486,7 +491,7 @@ class S3Helper:
 
         Returns:
             pd.DataFrame: result in df view
-        """ # noqa: E501
+        """  # noqa: E501
         pass
 
     def save_object(self, body: Any, key: str, bucket: Optional[str] = None) -> None:  # noqa: ANN401
@@ -496,7 +501,7 @@ class S3Helper:
             body (Any): saved data
             key (str): object storage key
             bucket (Optional[str], optional): object storage bucket, if set - override default. Defaults to None.
-        """ # noqa: E501
+        """  # noqa: E501
         pass
 
     def save_df(self, df: pd.DataFrame, key: str, bucket: Optional[str] = None) -> None:
@@ -506,7 +511,7 @@ class S3Helper:
             df (pd.DataFrame): df to save
             key (str): object storage key
             bucket (Optional[str], optional): object storage bucket, if set - override default. Defaults to None.
-        """ # noqa: E501
+        """  # noqa: E501
         pass
 
     def delete_object(self, key: str, bucket: Optional[str] = None) -> None:
@@ -515,13 +520,14 @@ class S3Helper:
         Args:
             key (str): object storage key
             bucket (Optional[str], optional): object storage bucket, if set - override default. Defaults to None.
-        """ # noqa: E501
+        """  # noqa: E501
         pass
 
 
 class SmtpSender:
     """ready-made auxiliary wrapper for interacting with smtp
     """
+
     def __init__(self, login: str, password: str, smtp_server: str = "smtp.gmail.com", smtp_port: int = 465) -> None:  # noqa: E501
         self.server = smtp_server
         self.port = smtp_port
@@ -539,14 +545,169 @@ class SmtpSender:
         pass
 
 
+_Tensor = TypeVar('_Tensor', bound='torch.Tensor')
+_kshort = 0b111  # last two-byte char encodes <= 7 bits
+_kexclude_idx = {chr(0): 0, chr(10): 1, chr(
+    13): 2, chr(34): 3, chr(38): 4, chr(92): 5}
+_idx_exclude = {0: chr(0), 1: chr(10), 2: chr(
+    13), 3: chr(34), 4: chr(38), 5: chr(92)}
+
+
+def _base_encode(data: bytes) -> str:
+    idx = (bit := 0)
+
+    def get7(length):
+        """get 7 bits from data"""
+        nonlocal idx, bit, data
+        if idx >= length:
+            return False, 0
+
+        # AND mask to get the first 7 bits
+        f_ = (((0b11111110 % 0x100000000) >> bit) & data[idx]) << bit
+        f_ = f_ >> 1
+        bit += 7
+        if bit < 8:
+            return True, f_
+        bit -= 8
+        idx += 1
+        if idx >= length:
+            return True, f_
+        secondPart = (((0xFF00 % 0x100000000) >> bit) & data[idx]) & 0xFF
+        secondPart = secondPart >> (8 - bit)
+        return True, f_ | secondPart
+
+    _out = bytearray()
+    while True:
+        rbits, bits = get7(len(data))
+        if not rbits:
+            break
+        if bits in _kexclude_idx:
+            illegalIndex = _kexclude_idx[bits]
+        else:
+            _out.append(bits)
+            continue
+        retNext, nextBits = get7(len(data))
+        b1 = 0b11000010
+        b2 = 0b10000000
+        if not retNext:
+            b1 |= (0b111 & _kshort) << 2
+            nextBits = bits
+        else:
+            b1 |= (0b111 & illegalIndex) << 2
+        firstBit = 1 if (nextBits & 0b01000000) > 0 else 0
+        b1 |= firstBit
+        b2 |= nextBits & 0b00111111
+        _out += [b1, b2]
+    return ''.join([chr(x) for x in _out])
+
+
+def _base_decode(encoded_data: str) -> bytes:
+    encoded_data = [ord(x) for x in encoded_data]
+    decoded = []
+    curByte = bitOfByte = 0
+
+    def push7(byte):
+        nonlocal curByte, bitOfByte, decoded
+        byte <<= 1
+        curByte |= (byte % 0x100000000) >> bitOfByte
+        bitOfByte += 7
+        if bitOfByte >= 8:
+            decoded += [curByte]
+            bitOfByte -= 8
+            curByte = (byte << (7 - bitOfByte)) & 255
+        return
+
+    for i in range(len(encoded_data)):
+        if encoded_data[i] > 127:
+            illegalIndex = ((encoded_data[i] % 0x100000000) >> 8) & 7
+            if illegalIndex != _kshort:
+                push7(_idx_exclude[illegalIndex])
+            push7(encoded_data[i] & 127)
+        else:
+            push7(encoded_data[i])
+    return bytearray(decoded)
+
+
+def _tensor_to_df(x: list[_Tensor] | _Tensor) -> pd.DataFrame:
+    import torch  # not in requirements
+    import io
+
+    if not isinstance(x, list):
+        x = [x]
+
+    shapes = []
+    data = []
+    grads = []
+    device = []
+    for x_ in x:
+        assert isinstance(x_, torch.Tensor), f"not a tensor: {type(x_)}"
+        # in-memory serialization using torch.save
+        # to save autograd information and tensor type
+        # https://pytorch.org/docs/stable/torch.html#torch.save
+        buff = io.BytesIO()
+        shape = x_.shape
+        shapes.append(shape)
+        device.append(x_.device)
+        x_ = x_.cpu()
+        torch.save(x_, buff)
+        buff.seek(0)
+        data.append(_base_encode(buff.read()))
+
+        buff.close()
+        buff = io.BytesIO()
+        torch.save(x_.grad, buff)
+        buff.seek(0)
+
+        grads.append(_base_encode(buff.read()))
+
+    return pd.DataFrame(
+        {
+            "__shape__": shapes, 
+            "__tensor__": data, 
+            "__grad__": grads,
+            "__device__": device,
+        })
+
+
+def _tensor_from_df(x: pd.DataFrame) -> list:
+    import torch  # not in requirements
+    import io
+
+    _out = []
+    for _, row in x.iterrows():
+        shape = row["__shape__"]
+        encoded = row["__tensor__"]
+        encoded_grad = row["__grad__"]
+        decoded = _base_decode(encoded)
+        decoded_grad = _base_decode(encoded_grad)
+        buff = io.BytesIO(decoded)
+        buff.seek(0)
+        _t = torch.load(buff).reshape(shape)
+
+        if _t.requires_grad:
+            buff.close()
+
+            buff = io.BytesIO(decoded_grad)
+            buff.seek(0)
+            _t.grad = torch.load(buff).reshape(shape)
+            buff.close()
+
+        if row["__device__"] != "cpu" and torch.cuda.is_available():
+            _t = _t.to(row["__device__"])
+
+        _out.append(_t)
+
+    return _out
+
+
 def to_df(x: Any, force: bool = False) -> pd.DataFrame:  # noqa: ANN401
     """creates a dataframe in a certain way, `force` should be used for complex objects ('ndarray', 'Tensor' and python primitives work without it. It crashes on basic types ('int', 'str', etc)), scheme of received dataframe - `default_scheme`"""  # noqa: E501
     if force:
         return pd.DataFrame({"data": [jsonpickle.encode(x)]})
+    elif type(x).__name__ == "Tensor" or (isinstance(x, list) and len(x) > 0 and type(x[0]).__name__ == "Tensor"):
+        return _tensor_to_df(x)
     elif isinstance(x, (np.ndarray, list, tuple, range, bytearray)):
         return pd.DataFrame({"data": x})
-    elif type(x).__name__ == "Tensor":
-        return pd.DataFrame(x)
     elif isinstance(x, (set, frozenset)):
         return pd.DataFrame({"data": list(x)})
     elif isinstance(x, dict):
@@ -556,7 +717,7 @@ def to_df(x: Any, force: bool = False) -> pd.DataFrame:  # noqa: ANN401
 
 
 # TODO create same with pyspark
-def from_df(x: pd.DataFrame, type_name: Optional[str] = None, force: bool = False) -> Any: # noqa: ANN401, E501
+def from_df(x: pd.DataFrame, type_name: Optional[str] = None, force: bool = False) -> Any:  # noqa: ANN401, E501
     """decodes the `to_df` data from the dataframe, `force` is used if it was used in the encoding function - `to_df`. You should specify the type (by type_name: for example 'ndarray', 'list', 'Tensor', 'int') that was put in this `to_df` dataframe.
     possible type_names: 'ndarray', 'list', 'tuple', 'Tensor', 'set', 'frozenset', 'dict', 'bytearray'. Otherwise considered a primitive base type
     if force==True ignore type_name anyway"""  # noqa: E501
@@ -570,9 +731,10 @@ def from_df(x: pd.DataFrame, type_name: Optional[str] = None, force: bool = Fals
         return tuple(x.data.values.tolist())
     elif type_name == 'range':
         return x.data.values.tolist()
-    elif type_name == 'Tensor':
-        import torch  # not in requirements
-        return torch.from_numpy(x.values).float().to(torch.device('cpu'))   # can't work with gpu from inside yet  # noqa: E501
+    elif type_name == 'Tensor' or ('__shape__' in x.columns and '__tensor__' in x.columns):
+        # import torch  # not in requirements
+        # return torch.from_numpy(x.values).float().to(torch.device('cpu'))   # can't work with gpu from inside yet  # noqa: E501
+        return _tensor_from_df(x)
     elif type_name == 'set':
         return set(x.data.values.tolist())
     elif type_name == 'frozenset':

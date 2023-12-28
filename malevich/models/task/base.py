@@ -29,6 +29,12 @@ class BaseTask(ABC):
     def get_injectables(self) -> list[BaseInjectable]:
         return
 
+    def get_operations(self) -> list[str]:
+        return []
+
+    def configure(self, operation: str, **kwargs) -> None:
+        return
+
     def __call__(self):  # noqa: ANN204
         self.prepare()
         self.run()

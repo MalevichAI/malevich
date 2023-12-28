@@ -140,7 +140,6 @@ def flow(
                         )
                         k_arg._autoflow.calledby(outer_tracer, _a)
                         _tree.prune([__hkwargs[k]])
-
                 outputs = [
                     traced(
                         TreeNode(
@@ -148,13 +147,11 @@ def flow(
                             underlying_node=o.owner,
                         )
                     )
-                    for o in (
-                        [__results] if isinstance(
+                    for o in ([__results] if isinstance(
                             __results, traced) else __results
                     )
                     if isinstance(o, traced)
                 ]
-
                 return outputs[0] if len(outputs) == 1 else outputs
             else:
                 return PromisedTask(results=__results, tree=t_node)

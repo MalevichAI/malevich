@@ -14,7 +14,7 @@ class DockerRegistry(enum.Enum):
     PUBLIC_AWS_ECR = "ecr"
     PRIVATE_AWS_ECR = "ecr-private"
     YANDEX = "yandex"
-    GCR = "gcr"
+    GCR = "ghcr"
 
 
 class GithubCIOps(CIOps):
@@ -181,7 +181,9 @@ class GithubCIOps(CIOps):
                         f"Committed actions file {action_file}, {manual_action_file}"
                 )
                 git_repo.git.push()
-            except Exception:
+            except Exception as e:
                 self._log(verbose,
                         f"{action_file} and {manual_action_file} already exist"
                 )
+
+                print(e)
