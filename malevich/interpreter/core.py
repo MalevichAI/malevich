@@ -77,6 +77,8 @@ class CoreInterpreterState:
         self.interpretation_id: str = uuid.uuid4().hex
         # App args
         self.app_args: dict[str, Any] = {}
+        # Collections
+        self.extra_colls: dict[str, dict[str, str]] = defaultdict(lambda: {})
 
 
 
@@ -254,15 +256,18 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
 
     def after_interpret(self, state: CoreInterpreterState) -> CoreInterpreterState:
         _log("Flow is built. Uploading to Core", step=True)
-        for id, op in state.ops.items():
+        order_ = {
+            **{k: v for k, v in state.ops.items() if isinstance(v, CollectionNode)},
+            **{k: v for k, v in state.ops.items() if not isinstance(v, CollectionNode)}
+        }
+
+        for id, op in order_.items():
             if isinstance(op, OperationNode):
                 extra = state.reg.get(
                     op.operation_id, {}, model=CoreRegistryEntry)
                 image_auth_user = extra.image_auth_user
                 image_auth_pass = extra.image_auth_pass
                 image_ref = extra.image_ref
-
-                extra_colls = {}
 
                 for node, link in state.depends[id]:
                     if isinstance(node, CollectionNode) and \
@@ -272,31 +277,19 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                             **state.cfg.collections,
                             f"{coll.collection_id}": uploaded_core_id,
                         }
-                        extra_colls[link.name] = coll.collection_id
+                        state.extra_colls[op.uuid][link.name] = coll.collection_id
 
-                app_core_name = uuid.uuid4().hex + f"-{extra['processor_id']}"
+                app_core_name = op.uuid + f"-{extra['processor_id']}-{op.alias}"
                 if not op.alias:
                     op.alias = f'{extra["processor_id"]}-{next(_name(extra["processor_id"]))}'  # noqa: E501
 
                 state.core_ops[op.uuid] = app_core_name
-
-                # state.cfg.app_settings.append(
-                #     self._create_app_safe(
-                #         app_id=app_core_name,
-                #         extra=extra,
-                #         image_auth=(image_auth_user, image_auth_pass),
-                #         image_ref=image_ref,
-                #         extra_collections_from=extra_colls,
-                #         app_cfg=op.config,
-                #         uid=op.uuid,
-                #     )
-                # )
                 state.app_args[op.uuid] = {
                     'app_id': app_core_name,
                     'extra': extra,
                     'image_auth': (image_auth_user, image_auth_pass),
                     'image_ref': image_ref,
-                    'extra_collections_from': extra_colls,
+                    # 'extra_collections_from': extra_colls,
                     'app_cfg': op.config,
                     'uid': op.uuid,
                     'platform': 'base'
@@ -376,7 +369,8 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
             for _app_args in state.app_args.values():
                 task.state.cfg.app_settings.append(
                     self._create_app_safe(
-                        **_app_args
+                        **_app_args,
+                        extra_collections_from=state.extra_colls[_app_args['uid']]
                     )
                 )
 
