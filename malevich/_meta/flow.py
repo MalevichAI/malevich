@@ -110,7 +110,6 @@ def flow(
                         # In parent tree
                         bridges = _tree.edges_from(__hargs[i])
                         b_nodes = [(b[2], b[1]) for b in bridges]
-                        print(b_nodes)
                         _a = ArgumentLink(
                             index=i,
                             name=param_values[i].name,

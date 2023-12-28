@@ -45,6 +45,11 @@ def _log(
         *args,
     )
 
+def _name(base: str) -> int:
+    cnt = defaultdict(lambda: 1)
+    while True:
+        yield cnt[base]
+        cnt[base] += 1
 
 class CoreInterpreterState:
     """State of the CoreInterpreter"""
@@ -70,6 +75,9 @@ class CoreInterpreterState:
         self.results: dict[str, str] = {}
         # Interpretation ID
         self.interpretation_id: str = uuid.uuid4().hex
+        # App args
+        self.app_args: dict[str, Any] = {}
+
 
 
 class CoreInjectable(BaseInjectable[str, str]):
@@ -106,7 +114,12 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         json.dump(object, cache.get_file(os.path.join('core', path), 'w+'))
 
     def _create_app_safe(
-            self, app_id: str, extra: dict, uid: str, *args, **kwargs
+            self,
+            app_id: str,
+            extra: dict,
+            uid: str,
+            *args,
+            **kwargs,
     ) -> None:
         settings = core.AppSettings(
             appId=app_id,
@@ -262,19 +275,32 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                         extra_colls[link.name] = coll.collection_id
 
                 app_core_name = uuid.uuid4().hex + f"-{extra['processor_id']}"
+                if not op.alias:
+                    op.alias = f'{extra["processor_id"]}-{next(_name(extra["processor_id"]))}'  # noqa: E501
 
                 state.core_ops[op.uuid] = app_core_name
-                state.cfg.app_settings.append(
-                    self._create_app_safe(
-                        app_id=app_core_name,
-                        extra=extra,
-                        image_auth=(image_auth_user, image_auth_pass),
-                        image_ref=image_ref,
-                        extra_collections_from=extra_colls,
-                        app_cfg=op.config,
-                        uid=op.uuid,
-                    )
-                )
+
+                # state.cfg.app_settings.append(
+                #     self._create_app_safe(
+                #         app_id=app_core_name,
+                #         extra=extra,
+                #         image_auth=(image_auth_user, image_auth_pass),
+                #         image_ref=image_ref,
+                #         extra_collections_from=extra_colls,
+                #         app_cfg=op.config,
+                #         uid=op.uuid,
+                #     )
+                # )
+                state.app_args[op.uuid] = {
+                    'app_id': app_core_name,
+                    'extra': extra,
+                    'image_auth': (image_auth_user, image_auth_pass),
+                    'image_ref': image_ref,
+                    'extra_collections_from': extra_colls,
+                    'app_cfg': op.config,
+                    'uid': op.uuid,
+                    'platform': 'base'
+                }
                 state.results[op.uuid] = self._result_collection_name(op.uuid)
 
             elif isinstance(op, CollectionNode):
@@ -325,12 +351,35 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         core.create_cfg(__cfg, state.cfg)
         leaves = [*self._tree.leaves()]
 
+        def configure(
+            task: InterpretedTask[CoreInterpreterState],
+            operation: str,
+            platform: str = 'base',
+            **kwargs
+        ) -> None:
+            assert platform in ['base', 'vast'], \
+                f"Platform {platform} is not supported. "
+
+            uuid_ = {
+                k.alias: k.uuid for k in state.ops.values()
+            }[operation]
+
+            state.app_args[uuid_]['platform'] = platform
+
+
         def prepare(
             task: InterpretedTask[CoreInterpreterState], *args, **kwargs
         ) -> None:
             _log("Task is being prepared for execution. It may take a while",
                  action=1
             )
+            for _app_args in state.app_args.values():
+                task.state.cfg.app_settings.append(
+                    self._create_app_safe(
+                        **_app_args
+                    )
+                )
+
             for _kwargs in task_kwargs:
                 core.create_task(**_kwargs)
 
@@ -344,7 +393,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                     *args,
                     **kwargs
                 ).operationId
-            except Exception as e:
+            except (Exception, KeyboardInterrupt) as e:
                 # Cleanup
                 core.task_stop(task_id)
                 raise e
@@ -460,6 +509,9 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
             results=results,
             state=state,
             get_injectables=injectables,
+            # TODO: Make it more robust
+            get_operations=lambda *args, **kwargs: [x.alias for x in state.ops.values() if isinstance(x, OperationNode)],  # noqa: E501
+            configure=configure
         )
 
     def get_results(

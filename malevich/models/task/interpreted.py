@@ -30,15 +30,37 @@ class InterpretedTask(Generic[State], BaseTask):
         state: State,
         returned: FlowOutput = None,
         get_injectables: GetInjectablesFunc = None,
+        get_operations: Optional[Callable[["InterpretedTask"], list[str]]] = None,
+        configure: Optional[Callable[["InterpretedTask", str], None]] = None,
     ) -> None:
         self.__prepare = prepare
         self.__run = run
         self.__stop = stop
         self.__results = results
         self.__state = state
+
         self.__returned = returned
 
         self.__get_injectables = get_injectables
+        self.__get_operations = get_operations
+        self.__configure = configure
+
+    def get_operations(self) -> list[str]:
+        if self.__get_operations:
+            return self.__get_operations(self)
+        else:
+            return []
+
+    def configure(self, operation: str, **kwargs) -> None:
+        if self.__configure:
+            self.__configure(self, operation, **kwargs)
+        else:
+            warnings.warn(
+                "The task was not interpreted with an interpreter that "
+                "supports configuration. Skipping configuration for "
+                "compatibility with other interpreters. "
+            )
+
 
     async def async_prepare(
         self,
