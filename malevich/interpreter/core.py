@@ -1,3 +1,4 @@
+import enum
 import json
 import os
 import uuid
@@ -51,6 +52,11 @@ def _name(base: str) -> int:
         yield cnt[base]
         cnt[base] += 1
 
+class PrepareStages(enum.Enum):
+    BUILD = 0b01
+    BOOT = 0b10
+    ALL = 0b11
+
 class CoreInterpreterState:
     """State of the CoreInterpreter"""
 
@@ -83,15 +89,24 @@ class CoreInterpreterState:
 
 
 class CoreInjectable(BaseInjectable[str, str]):
-    def __init__(self, collection_id: str, alias: str) -> None:
+    def __init__(
+        self,
+        collection_id: str,
+        alias: str,
+        uploaded_id: Optional[str] = None,
+    ) -> None:
         self.__collection_id = collection_id
         self.__alias = alias
+        self.__uploaded_id = uploaded_id
 
     def get_inject_data(self) -> str:
         return self.__collection_id
 
     def get_inject_key(self) -> str:
         return self.__alias
+
+    def get_uploaded_id(self) -> Optional[str]:
+        return self.__uploaded_id
 
 
 class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
@@ -298,6 +313,8 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
 
             elif isinstance(op, CollectionNode):
                 collection_ref = op.collection
+                if op.alias is None:
+                    op.alias = f'{op.collection.collection_id}-{next(_name(op.collection.collection_id))}'  # noqa: E501
                 self._assert_collection(collection_ref)
 
                 state.collections[op.uuid] = (collection_ref, collection_ref.core_id)
@@ -361,36 +378,41 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
 
 
         def prepare(
-            task: InterpretedTask[CoreInterpreterState], *args, **kwargs
+            task: InterpretedTask[CoreInterpreterState],
+            stage: PrepareStages = PrepareStages.ALL,
+            *args,
+            **kwargs
         ) -> None:
             _log("Task is being prepared for execution. It may take a while",
                  action=1
             )
-            for _app_args in state.app_args.values():
-                task.state.cfg.app_settings.append(
-                    self._create_app_safe(
-                        **_app_args,
-                        extra_collections_from=state.extra_colls[_app_args['uid']]
+            if stage.value & PrepareStages.BUILD.value:
+                for _app_args in state.app_args.values():
+                    task.state.cfg.app_settings.append(
+                        self._create_app_safe(
+                            **_app_args,
+                            extra_collections_from=state.extra_colls[_app_args['uid']]
+                        )
                     )
-                )
 
-            for _kwargs in task_kwargs:
-                core.create_task(**_kwargs)
+                for _kwargs in task_kwargs:
+                    core.create_task(**_kwargs)
 
-            core.create_cfg(**config_kwargs)
+                core.create_cfg(**config_kwargs)
+                task.state.params['task_id'] = task.state.core_ops[leaves[0].owner.uuid]
 
-            task_id = task.state.core_ops[leaves[0].owner.uuid]
-            try:
-                task.state.params["task_id"] = core.task_prepare(
-                    task_id=task_id,
-                    cfg_id=config_kwargs['cfg_id'],
-                    *args,
-                    **kwargs
-                ).operationId
-            except (Exception, KeyboardInterrupt) as e:
-                # Cleanup
-                core.task_stop(task_id)
-                raise e
+            if stage.value & PrepareStages.BOOT.value:
+                try:
+                    task.state.params["operation_id"] = core.task_prepare(
+                        task_id=task.state.params['task_id'],
+                        cfg_id=config_kwargs['cfg_id'],
+                        *args,
+                        **kwargs
+                    ).operationId
+                except (Exception, KeyboardInterrupt) as e:
+                    # Cleanup
+                    core.task_stop(task.state.params['task_id'])
+                    raise e
 
         def run(
             task: InterpretedTask[CoreInterpreterState],
@@ -400,7 +422,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
             **kwargs
         ) -> None:
             _log("Task is being executed on Core. It may take a while", action=2)
-            if "task_id" not in task.state.params:
+            if "operation_id" not in task.state.params:
                 raise Exception("Attempt to run a task which is not prepared. "
                                 "Please, run `.prepare()` first.")
 
@@ -430,17 +452,16 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                         auth=task.state.params["core_auth"],
                     )
                     core.task_run(
-                        task.state.params["task_id"],
+                        task.state.params["operation_id"],
                         cfg_id=_cfg_id,
                         *args,
                         **kwargs
                     )
                 else:
-                    core.task_run(
-                        task.state.params["task_id"], *args, **kwargs)
-            except Exception as e:
+                    core.task_run(task.state.params["operation_id"], *args, **kwargs)
+            except (Exception, KeyboardInterrupt) as e:
                 # Cleanup
-                core.task_stop(task.state.params["task_id"])
+                core.task_stop(task.state.params["operation_id"])
                 raise e
 
         def stop(
@@ -448,10 +469,10 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
             *args,
             **kwargs
         ) -> None:
-            if "task_id" not in task.state.params:
+            if "operation_id" not in task.state.params:
                 raise Exception("Attempt to run a task which is not prepared. "
                                 "Please, run `.prepare()` first.")
-            core.task_stop(task.state.params["task_id"], *args, **kwargs)
+            core.task_stop(task.state.params["operation_id"], *args, **kwargs)
 
         def results(
             task: InterpretedTask[CoreInterpreterState],
@@ -461,11 +482,11 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
             **kwargs
         ) -> Iterable[pd.DataFrame] | pd.DataFrame:
             _log("Task results are being fetched from Core", action=3)
-            if "task_id" not in task.state.params:
+            if "operation_id" not in task.state.params:
                 raise Exception("Attempt to run a task which is not prepared. "
                                 "Please, run `.prepare()` first.")
             return self.get_results(
-                task_id=task.state.params['task_id'],
+                task_id=task.state.params['operation_id'],
                 returned=returned,
                 run_id=run_id
             )
@@ -476,24 +497,23 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
             injectables = []
             nodes_ = set()
             nodes: Iterable[BaseNode] = []
-            for x, y, _ in self._tree.traverse():
-                if x.owner.uuid not in nodes:
-                    nodes.append(x)
-                    nodes_.add(x.owner.uuid)
-                if y.owner.uuid not in nodes:
-                    nodes.append(y)
-                    nodes_.add(y.owner.uuid)
+            for x in task.state.ops.values():
+                nodes.append(x)
+                nodes_.add(x.uuid)
 
             for node in nodes:
-                collection_node = node.owner
-                if isinstance(collection_node, CollectionNode):
+                if isinstance(node, CollectionNode):
                     for cfg_coll_id, core_coll_id in state.cfg.collections.items():
-                        if cfg_coll_id == collection_node.collection.collection_id:
+                        if cfg_coll_id == node.collection.collection_id:
                             injectables.append(
                                 CoreInjectable(
-                                    core_coll_id, collection_node.collection.collection_id)
+                                    collection_id=node.collection.collection_id,
+                                    alias=node.alias,
+                                    uploaded_id=core_coll_id
+                                )
                             )
                         break
+
             return injectables
 
         return InterpretedTask(
