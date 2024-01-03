@@ -7,4 +7,6 @@ def test_help():
     result = runner.invoke(app, ['--help'])
     assert result.exit_code == 0
     assert len(result.output) > 0
-    
+
+def failing_test():
+    assert 3 == 4
