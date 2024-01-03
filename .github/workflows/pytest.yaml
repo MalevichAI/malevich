@@ -1,4 +1,4 @@
-name: Pytest
+\name: Pytest
 on:
   push:
     branches:
@@ -22,5 +22,5 @@ jobs:
     - name: Build
       run: |
         pip install ./malevich
-        pip install -r /malevich/requirements.dev.txt
+        pip install -r ./malevich/requirements.dev.txt
         pytest ./malevich/tests/
