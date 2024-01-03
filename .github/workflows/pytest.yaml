@@ -19,7 +19,7 @@ jobs:
       with:
          python-version: '3.11'
 
-    - name: Build
+    - name: Testing
       run: |
         pip install ./malevich
         pip install -r ./malevich/requirements.dev.txt
