@@ -1,0 +1,26 @@
+name: Pytest
+on:
+  push:
+    branches:
+      - workflows/pytest
+jobs:
+  pytest:
+    if: ${{ github.ref_type == 'branch' }} && ${{ github.ref == 'refs/heads/workflows/pytest' }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        path: "malevich"
+
+    - name: Install Python
+      uses: actions/setup-python@v4
+      with:
+         python-version: '3.11'
+
+    - name: Build
+      run: |
+        pip install ./malevich
+        pip install -r /malevich/requirements.dev.txt
+        pytest ./malevich/tests/

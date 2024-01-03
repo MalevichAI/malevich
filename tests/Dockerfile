@@ -5,4 +5,4 @@ COPY ./malevich /malevich
 RUN pip install /malevich
 RUN pip install -r /malevich/requirements.dev.txt
 
-CMD [ "pytest",  "tests/" ]
+CMD [ "pytest",  "/malevich/tests/" ]
