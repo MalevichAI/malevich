@@ -5,4 +5,5 @@ exclude=["tests/*.py", "examples/*.py", "malevich/square/*.py"]
 [per-file-ignores]
 "__init__.py" = ["E402", "F", "I"]
 "malevich/help.py" = ["E501"]
+"tests/**.py" = ["F401"]
 
