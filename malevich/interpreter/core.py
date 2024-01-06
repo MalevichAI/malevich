@@ -57,6 +57,30 @@ class PrepareStages(enum.Enum):
     BOOT = 0b10
     ALL = 0b11
 
+
+class CoreParams:
+    operation_id: str
+    task_id: str
+    core_host: str
+    core_auth: tuple[str, str]
+    base_config: core.Cfg
+    base_config_id: str
+
+    def __init__(self, **kwargs) -> None:
+        self.operation_id = kwargs.get('operation_id', None)
+        self.task_id = kwargs.get('task_id', None)
+        self.core_host = kwargs.get('core_host', None)
+        self.core_auth = kwargs.get('core_auth', None)
+        self.base_config = kwargs.get('base_config', None)
+        self.base_config_id = kwargs.get('base_config_id', None)
+
+    def __getitem__(self, key: str) -> Any:  # noqa: ANN401
+        return getattr(self, key)
+
+    def __setitem__(self, key: str, value: Any) -> None:  # noqa: ANN401
+        setattr(self, key, value)
+
+
 class CoreInterpreterState:
     """State of the CoreInterpreter"""
 
@@ -76,7 +100,7 @@ class CoreInterpreterState:
         # Uploaded operations (key: operation_id, value: core_op_id)
         self.core_ops: dict[str, BaseNode] = {}
         # Interpreter parameters
-        self.params: dict[str, Any] = {}
+        self.params: CoreParams = CoreParams()
         # Results
         self.results: dict[str, str] = {}
         # Interpretation ID
@@ -324,9 +348,23 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
     def get_task(
         self, state: CoreInterpreterState
     ) -> InterpretedTask[CoreInterpreterState]:
+        """Creates an instance of task using interpreted state
+
+        Args:
+            state (CoreInterpreterState): State of the interpreter
+
+        Returns:
+            InterpretedTask[CoreInterpreterState]: An instance of task
+        """
         _log("Task is being compiled...")
         task_kwargs = []
         config_kwargs = []
+
+        # ____________________________________________
+
+        # Firstly, using collected edges, lists of
+        # dependencies for each task are created for each
+        # of the apps.
 
         for id, core_id in sorted(
             state.core_ops.items(), key=lambda x: len(state.depends[x[0]])
@@ -352,19 +390,46 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                 f'task-{core_id}-{self.state.interpretation_id}.json'
             )
 
+        # ____________________________________________
+
+        # Then, the base configuration is uploaded to the Core
+        # using generated config ID. This configuration
+        # is then used as a basis once overloaded on runs
+
+        __cfg = uuid.uuid4().hex
         config_kwargs = {
-            'cfg_id': uuid.uuid4().hex,
+            'cfg_id': __cfg,
             'cfg': state.cfg,
         }
 
-        __cfg = uuid.uuid4().hex
+        # Base configuration is preserved within the state
+        state.params.base_config_id = __cfg
+        state.params.base_config = state.cfg
+
         core.create_cfg(__cfg, state.cfg)
+        # ____________________________________________
+
+        # NOTE: New core representation should affect this line
+        # Extracting the only leave to supply it to task run
         leaves = [*self._tree.leaves()]
 
+        # ____________________________________________
+        # Now, callbacks are declared. Callbacks are then available
+        # from PromisedTask interface. That way of function declaration
+        # allows to capture external variables and pass them to callbacks
+        # without any additional effort
+
+        # * Configure: allows to configure the platform for the app
+        # ==========================================
         def configure(
+            # Instance of the task (self)
             task: InterpretedTask[CoreInterpreterState],
+            # Operation identifier (alias)
             operation: str,
+            # Configurable parameters
             platform: str = 'base',
+            platformSettings: Optional[dict[str, Any]] = None,  # noqa: N803
+            # Rest of the parameters for compatibility
             **kwargs
         ) -> None:
             assert platform in ['base', 'vast'], \
@@ -375,8 +440,13 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
             }[operation]
 
             state.app_args[uuid_]['platform'] = platform
+            if platformSettings:
+                state.app_args[uuid_]['platformSettings'] = platformSettings
 
+        # ========================================== (configure)
 
+        # * Prepare: prepares the task for execution
+        # ==========================================
         def prepare(
             task: InterpretedTask[CoreInterpreterState],
             stage: PrepareStages = PrepareStages.ALL,
@@ -413,7 +483,10 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                     # Cleanup
                     core.task_stop(task.state.params['task_id'])
                     raise e
+        # ========================================== (prepare)
 
+        # * Run: runs the task
+        # ==========================================
         def run(
             task: InterpretedTask[CoreInterpreterState],
             overrides: Optional[dict[str, str]] = None,
@@ -464,6 +537,10 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                 core.task_stop(task.state.params["operation_id"])
                 raise e
 
+        # ========================================== (run)
+
+        # * Stop: stops the task
+        # ==========================================
         def stop(
             task: InterpretedTask[CoreInterpreterState],
             *args,
@@ -473,7 +550,11 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                 raise Exception("Attempt to run a task which is not prepared. "
                                 "Please, run `.prepare()` first.")
             core.task_stop(task.state.params["operation_id"], *args, **kwargs)
+        # ========================================== (stop)
 
+        # * Results: fetches the results from Core for
+        # requested nodes
+        # ==========================================
         def results(
             task: InterpretedTask[CoreInterpreterState],
             returned: Iterable[traced[BaseNode]] | traced[BaseNode] | None,
@@ -490,7 +571,10 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                 returned=returned,
                 run_id=run_id
             )
+        # ========================================== (results)
 
+        # * Injectables: returns the list of points
+        # which can be changed from run to run
         def injectables(
             task: InterpretedTask[CoreInterpreterState]
         ) -> list[BaseInjectable]:
@@ -512,9 +596,14 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                                     uploaded_id=core_coll_id
                                 )
                             )
+
                         break
 
             return injectables
+        # ========================================== (injectables)
+
+        def ops(*args, **kwargs) -> list[str | None]:
+            return [x.alias for x in state.ops.values() if isinstance(x, OperationNode)]
 
         return InterpretedTask(
             prepare=prepare,
@@ -524,7 +613,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
             state=state,
             get_injectables=injectables,
             # TODO: Make it more robust
-            get_operations=lambda *args, **kwargs: [x.alias for x in state.ops.values() if isinstance(x, OperationNode)],  # noqa: E501
+            get_operations=ops,
             configure=configure
         )
 
