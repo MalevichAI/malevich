@@ -65,7 +65,7 @@ class CoreProvider:
         user_, password_, url = self.assert_sa()
 
         return CoreInterpreter(
-            user_, password_, url
+            (user_, password_), url
         )
 
     def get_endpoint(self) -> str:
