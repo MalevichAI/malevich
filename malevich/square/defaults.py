@@ -1,7 +1,11 @@
 from malevich.square.jls import scheme
-from pydantic import BaseModel
 
 
 @scheme()
-class default_scheme(BaseModel):  # noqa: N801
+class default_scheme:  # noqa: N801
     data: object
+
+
+@scheme()
+class obj:  # noqa: N801
+    path: str

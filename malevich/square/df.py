@@ -130,7 +130,6 @@ class Sink(Generic[Unpack[Schemes]]):
         return self
 
     def __init(self, list_dfs: List[List[pd.DataFrame]]) -> None:
-        assert len(list_dfs) > 0, "empty sink"
         types = self.__orig_class__.__args__ if hasattr(self, "__orig_class__") else None   # noqa: E501
         for dfs in list_dfs:
             cur_types = [Any for _ in dfs] if types is None else types
@@ -161,9 +160,9 @@ class OBJ:
         return data
 
     @cached_property
-    def as_df(self) -> pd.DataFrame:
+    def as_df(self) -> DF['obj']:   # noqa: F821
         """df, wrapped path"""
-        return pd.DataFrame.from_dict({"path": [self.__path]})
+        return DF["obj"](pd.DataFrame.from_dict({"path": [self.__path]}))
 
     @cached_property
     def df(self) -> pd.DataFrame:
