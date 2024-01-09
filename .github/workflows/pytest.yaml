@@ -11,6 +11,7 @@ jobs:
     steps:
       - name: Docker Login
         run: |
+          ls
           cd ./tests/apps
           echo ${{ secrets.TEST_GHCR_PACKAGE_PASSWORD }} | docker login --username USERNAME --password-stdin ghcr.io
           for path in */
