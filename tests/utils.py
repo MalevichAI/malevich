@@ -52,3 +52,5 @@ def wipe_installed_package(module_path: str, stub_path: str, package_name: str) 
         'dependencies',
         package_name
     ), f'{package_name} still registered in manifest'
+
+

@@ -11,6 +11,6 @@ def ghcr_package() -> tuple[str, tuple[str, str]]:  # (tag, (user, password)
     pass_ = os.getenv('TEST_GHCR_PACKAGE_PASSWORD', None)
 
     if not pass_:
-        raise ValueError('TEST_PACKAGE_PASSWORD is not set')
+        raise ValueError('TEST_GHCR_PACKAGE_PASSWORD is not set')
 
     return tag_, ('USERNAME', pass_)

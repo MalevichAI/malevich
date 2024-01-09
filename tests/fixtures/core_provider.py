@@ -74,7 +74,7 @@ class CoreProvider:
         return url
 
     def prune(self):
-        if self.__user is not None:
+        if hasattr(self, '__user'):
             try:
                 mct.delete_user(
                     auth=(self.__user, self.__password),
