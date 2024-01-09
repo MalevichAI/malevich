@@ -9,9 +9,10 @@ jobs:
     environment: test
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Docker Login
         run: |
-          ls
           cd ./tests/apps
           echo ${{ secrets.TEST_GHCR_PACKAGE_PASSWORD }} | docker login --username USERNAME --password-stdin ghcr.io
           for path in */
