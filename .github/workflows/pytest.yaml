@@ -13,8 +13,10 @@ jobs:
         uses: actions/checkout@v4
       - name: Docker Login
         run: |
-          cd ./tests/apps
           echo ${{ secrets.TEST_GHCR_PACKAGE_PASSWORD }} | docker login --username USERNAME --password-stdin ghcr.io
+      - name: Docker build/push
+        run: |
+          cd ./tests/apps
           for path in */
           do
             if [[ -f $path/Dockerfile ]];
@@ -42,11 +44,13 @@ jobs:
       with:
          python-version: '3.11'
 
-    - name: Testing
+    - name: Install Malevich
       run: |
         pip install ./malevich
         pip install -r ./malevich/requirements.dev.txt
-        pytest -s ./malevich/tests/
+
+    - name: Testing
+      run: pytest -s ./malevich/tests/
       env:
         TESTS_SPACE_PASSWORD: ${{ secrets.TESTS_SPACE_PASSWORD }}
         TESTS_SPACE_USER: ${{ secrets.TESTS_SPACE_USER }}
