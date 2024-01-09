@@ -4,8 +4,27 @@ on:
     branches:
       - test
 jobs:
+  build:
+    if: ${{ github.ref_type == 'branch' }} && ${{ github.ref == 'refs/heads/test' }}
+    environment: test
+    steps:
+      - name: Docker Login
+        run: |
+          cd ./tests/apps
+          echo ${{ secrets.TEST_GHCR_PACKAGE_PASSWORD }} | docker login --username USERNAME --password-stdin ghcr.io
+          for path in */
+          do
+            if [[ -f $path/Dockerfile ]];
+            then
+              name="$(basename path)"
+              tag="ghcr.io/malevichai/test:$name"
+              docker build $path -q -t $tag
+              docker push $tag
+            fi
+          done
   pytest:
     if: ${{ github.ref_type == 'branch' }} && ${{ github.ref == 'refs/heads/test' }}
+    needs: build
     runs-on: ubuntu-latest
     environment: test
     steps:
