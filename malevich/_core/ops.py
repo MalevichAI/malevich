@@ -5,17 +5,20 @@ batched operations on Malevich Core
 """
 from concurrent.futures import Future, ProcessPoolExecutor
 from multiprocessing import cpu_count
+import os
 
 import malevich_coretools as core
+
+from ..models.nodes.asset import AssetNode
 
 from ..models.collection import Collection
 
 executor = ProcessPoolExecutor(max_workers=cpu_count())
 
 
-
 def result_collection_name(operation_id: str) -> str:
     return f"result-{operation_id}"
+
 
 def _create_app_safe(
         app_id: str,
@@ -24,59 +27,59 @@ def _create_app_safe(
         *args,
         **kwargs,
 ) -> None:
-        settings = core.AppSettings(
-            appId=app_id,
-            taskId=app_id,
-            saveCollectionsName=result_collection_name(uid)
+    settings = core.AppSettings(
+        appId=app_id,
+        taskId=app_id,
+        saveCollectionsName=result_collection_name(uid)
+    )
+
+    kwargs_ = {
+        "app_id": app_id,
+        "app_cfg": kwargs['app_cfg'],
+        "image_ref": kwargs['image_ref'],
+        "extra_collections_from": kwargs['extra_collections_from'],
+    }
+
+    try:
+        core.create_app(
+            app_id,
+            processor_id=extra["processor_id"],
+            *args,
+            **kwargs
         )
+    except Exception:
+        pass
+    else:
+        return settings, kwargs_
 
-        kwargs_ = {
-            "app_id": app_id,
-            "app_cfg": kwargs['app_cfg'],
-            "image_ref": kwargs['image_ref'],
-            "extra_collections_from": kwargs['extra_collections_from'],
-        }
+    try:
+        if core.get_app(app_id):
+            core.delete_app(app_id)
+            core.delete_task(app_id)
+    except Exception:
+        pass
 
-        try:
-            core.create_app(
-                app_id,
-                processor_id=extra["processor_id"],
-                *args,
-                **kwargs
-            )
-        except Exception:
-            pass
+    try:
+        core.create_app(
+            app_id,
+            processor_id=extra["processor_id"],
+            *args,
+            **kwargs
+        )
+    except Exception as e:
+        if 'processor_id' in extra:
+            processor_id = extra['processor_id']
+            raise Exception(
+                f"Failed to create an app. Processor is {processor_id}. "
+            ) from e
         else:
-            return settings, kwargs_
+            raise Exception(
+                "Failed to create an app and could determine the processor. "
+                "Most probably, the app is installed incorrectly. Use "
+                "malevich remove to remove it and reinstall it correctly"
+            ) from e
 
-        try:
-            if core.get_app(app_id):
-                core.delete_app(app_id)
-                core.delete_task(app_id)
-        except Exception:
-            pass
-
-        try:
-            core.create_app(
-                app_id,
-                processor_id=extra["processor_id"],
-                *args,
-                **kwargs
-            )
-        except Exception as e:
-            if 'processor_id' in extra:
-                processor_id = extra['processor_id']
-                raise Exception(
-                    f"Failed to create an app. Processor is {processor_id}. "
-                ) from e
-            else:
-                raise Exception(
-                    "Failed to create an app and could determine the processor. "
-                    "Most probably, the app is installed incorrectly. Use "
-                    "malevich remove to remove it and reinstall it correctly"
-                ) from e
-
-        return settings, kwargs
+    return settings, kwargs
 
 
 def batch_create_apps(
@@ -90,7 +93,7 @@ def batch_create_apps(
 
 
 def _create_task_safe(
-       **task_kwargs,
+    **task_kwargs,
 ) -> None:
     core.create_task(**task_kwargs)
 
@@ -103,6 +106,7 @@ def batch_create_tasks(
         results.append(executor.submit(_create_task_safe, **kwargs_))
 
     return [r.result() for r in results]
+
 
 def _upload_collection(collection: Collection) -> str:
     if collection.collection_data is None:
@@ -120,7 +124,8 @@ def _upload_collection(collection: Collection) -> str:
 
     return collection.core_id
 
-def _assert_collection(collection: Collection) -> str:
+
+def _assure_collection(collection: Collection) -> str:
     if collection.core_id:
         try:
             core.get_collection(collection.core_id)
@@ -149,12 +154,13 @@ def _assert_collection(collection: Collection) -> str:
 
     return collection.core_id
 
+
 def batch_upload_collections(
     collections: list[Collection],
-) -> None:
+) -> list[str]:
     results: list[Future] = []
     for collection in collections:
-        results.append(executor.submit(_assert_collection, collection))
+        results.append(executor.submit(_assure_collection, collection))
 
     results = [r.result() for r in results]
 
@@ -162,3 +168,38 @@ def batch_upload_collections(
         "Some collections have the same core_id"
 
     return results
+
+def _join_path(_path: str, _name: str) -> str:
+    if _path.endswith("/"):
+        return _path + _name
+    else:
+        return _path + "/" + _name
+
+def _upload_asset(asset: AssetNode):
+    if asset.is_composite:
+        for f_ in asset.real_path:
+            core.update_collection_object(
+                _join_path(asset.core_path, os.path.basename(f_)),
+                data=open(f_, "rb").read(),
+            )
+    else:
+        core.update_collection_object(
+            asset.core_path,
+            data=open(asset.real_path, "rb").read(),
+        )
+
+def _assure_asset(asset: AssetNode):
+    try:
+        objs = core.get_collection_objects(asset.core_path)
+    except Exception as _:
+        _upload_asset(asset)
+        return
+
+    if asset.is_composite:
+        for f_ in asset.real_path:
+            if os.path.basename(f_) not in objs.files:
+                _upload_asset(asset)
+                break
+    else:
+        if asset.core_path not in objs.files:
+            _upload_asset(asset)

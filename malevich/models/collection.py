@@ -1,6 +1,7 @@
 import hashlib
 import io
 import uuid
+from functools import cache
 from typing import Optional
 
 import pandas as pd

@@ -11,6 +11,7 @@ import pandas as pd
 
 from .._autoflow.tracer import traced
 from .._core.ops import (
+    _assure_asset,
     batch_create_apps,
     batch_create_tasks,
     batch_upload_collections,
@@ -28,6 +29,7 @@ from ..models.collection import Collection
 from ..models.exceptions import InterpretationError
 from ..models.injections import BaseInjectable
 from ..models.nodes import BaseNode, CollectionNode, OperationNode
+from ..models.nodes.asset import AssetNode
 from ..models.nodes.tree import TreeNode
 from ..models.preferences import VerbosityLevel
 from ..models.registry.core_entry import CoreRegistryEntry
@@ -109,8 +111,8 @@ class CoreInterpreterState:
         self.manf = ManifestManager()
         # Task configuration
         self.cfg = core.Cfg()
-        # Collections (key: operation_id, value: (`Collection` object, core_id,))
-        self.collections: dict[str, tuple[Collection, str]] = {}
+        # Collections (and assets) (key: operation_id, value: (local_id, core_id,))
+        self.collections: dict[str, tuple[str, str]] = {}
         # Uploaded operations (key: operation_id, value: core_op_id)
         self.core_ops: dict[str, BaseNode] = {}
         # Interpreter parameters
@@ -280,20 +282,32 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
             x for x in state.ops.values() if isinstance(x, CollectionNode)
         ]
 
+        asset_nodes = [
+            x for x in state.ops.values() if isinstance(x, AssetNode)
+        ]
+
         core_ids = batch_upload_collections(
             [x.collection for x in collection_nodes]
         )
 
+
         for node, core_id in zip(collection_nodes, core_ids):
-            if isinstance(node, CollectionNode):
-                state.collections[node.uuid] = (node.collection, core_id)
-                node.alias = node.collection.collection_id + '-' + \
-                        next(_name(node.collection.collection_id))
+            state.collections[node.uuid] = (
+                node.collection.collection_id, core_id)
+            node.alias = node.collection.collection_id + '-' + \
+                str(next(_name(node.collection.collection_id)))
+
+        for node in asset_nodes:
+            if isinstance(node, AssetNode):
+                _assure_asset(node)
+                node.alias = node.core_path + '-' + \
+                    str(next(_name(node.core_path)))
+                state.collections[node.uuid] = (node.core_path, node.get_core_path())
+
 
         order_ = {
-            **{k: v for k, v in state.ops.items() if not isinstance(v, CollectionNode)}
+            **{k: v for k, v in state.ops.items() if isinstance(v, OperationNode)}
         }
-
 
         for id, op in order_.items():
             extra = state.reg.get(
@@ -305,25 +319,26 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
             image_auth_pass = extra.image_auth_pass
             image_ref = extra.image_ref
 
-            for node, link in filter(
-                lambda node: isinstance(node, CollectionNode)
-                and node.uuid in state.collections,
-                state.depends[id]
-            ):
+            for node, link in state.depends[id]:
+                if not (
+                    type(node) in [CollectionNode, AssetNode]
+                    and node.uuid in state.collections
+                ):
+                    continue
+
                 coll, uploaded_core_id = state.collections[node.uuid]
                 state.cfg.collections = {
                     **state.cfg.collections,
-                    f"{coll.collection_id}": uploaded_core_id,
+                    f"{coll}": uploaded_core_id,
                 }
-                state.extra_colls[op.uuid][link.name] = coll.collection_id
-
+                state.extra_colls[op.uuid][link.name] = coll
 
             app_core_name = op.uuid + \
                 f"-{extra['processor_id']}-{op.alias}"
 
             if not op.alias:
                 op.alias = extra["processor_id"] + '-' + \
-                    next(_name(extra["processor_id"]))
+                    str(next(_name(extra["processor_id"])))
 
             state.core_ops[op.uuid] = app_core_name
             state.app_args[op.uuid] = {
