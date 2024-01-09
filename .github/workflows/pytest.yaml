@@ -1,0 +1,31 @@
+name: Pytest
+on:
+  push:
+    branches:
+      - test
+jobs:
+  pytest:
+    if: ${{ github.ref_type == 'branch' }} && ${{ github.ref == 'refs/heads/test' }}
+    runs-on: ubuntu-latest
+    environment: test
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        path: "malevich"
+
+    - name: Install Python
+      uses: actions/setup-python@v4
+      with:
+         python-version: '3.11'
+
+    - name: Testing
+      run: |
+        pip install ./malevich
+        pip install -r ./malevich/requirements.dev.txt
+        pytest -s ./malevich/tests/
+      env:
+        TESTS_SPACE_PASSWORD: ${{ secrets.TESTS_SPACE_PASSWORD }}
+        TESTS_SPACE_USER: ${{ secrets.TESTS_SPACE_USER }}
+        TEST_GHCR_PACKAGE_PASSWORD: ${{ secrets.TEST_GHCR_PACKAGE_PASSWORD }}
