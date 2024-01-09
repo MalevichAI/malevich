@@ -43,10 +43,11 @@ def sinktrace(func: Callable[C, R]) -> Callable[C, R]:
         from ..models.nodes.collection import CollectionNode
         for arg in args:
             if isinstance(arg, CollectionNode):
+                # NOTE: That should be addressed
                 raise ValueError(
                     "App with unrestricted number of arguments cannot be "
                     "run with collections")
-        result = func(*args)
+        result = func(*args, **kwargs)
         result = gn.traced(result) if not isinstance(result, gn.traced) else result
         for i, arg in enumerate(args):
             arg._autoflow.calledby(result, ArgumentLink(index=i, name=''))

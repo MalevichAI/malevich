@@ -152,22 +152,23 @@ class ImageInstaller(Installer):
 
         for id_, processor in operations.processors.items():
             args_ = []
+            args_str_ = ""
 
-            if sink := any([arg_[1] and 'Sink' in arg_[1] for arg_ in processor.arguments]):
-                args_str_ = "*args, "
-            else:
-                for arg_ in processor.arguments:
-                    if "return" in arg_[0] or (arg_[1] and "Context" in arg_[1]):
-                        continue
-                    schema = None
-                    for name in operations.schemes.keys():
-                        if arg_[1] and name in arg_[1]:
-                            schema = name
-                            break
-                    args_.append(f"{arg_[0]}{': ' + schema if schema else ''}")
+            for arg_ in processor.arguments:
+                if "return" in arg_[0] or (arg_[1] and "Context" in arg_[1]) or (arg_[1] and "Sink" in arg_[1]):
+                    continue
+                schema = None
+                for name in operations.schemes.keys():
+                    if arg_[1] and name in arg_[1]:
+                        schema = name
+                        break
+                args_.append(f"{arg_[0]}{': ' + schema if schema else ''}")
 
                 args_str_ = ", ".join(args_)
                 args_str_ += ", " if args_str_ else ""
+
+            if sink := any([arg_[1] and 'Sink' in arg_[1] for arg_ in processor.arguments]):
+                args_str_ += "*args, "
 
             checksum = hashlib.sha256(
                 processor.model_dump_json().encode()

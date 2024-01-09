@@ -10,6 +10,12 @@ import malevich_coretools as core
 import pandas as pd
 
 from .._autoflow.tracer import traced
+from .._core.ops import (
+    batch_create_apps,
+    batch_create_tasks,
+    batch_upload_collections,
+    result_collection_name,
+)
 from .._utility.cache.manager import CacheManager
 from .._utility.logging import LogLevel, cout
 from .._utility.registry import Registry
@@ -30,7 +36,10 @@ from ..models.task.interpreted import InterpretedTask
 cache = CacheManager()
 
 _levels = [LogLevel.Info, LogLevel.Warning, LogLevel.Error, LogLevel.Debug]
-_actions = [Action.Interpretation, Action.Preparation, Action.Run, Action.Results]
+_actions = [Action.Interpretation,
+            Action.Preparation, Action.Run, Action.Results]
+
+
 def _log(
     message: str,
     level: int = 0,
@@ -46,11 +55,13 @@ def _log(
         *args,
     )
 
+
 def _name(base: str) -> int:
     cnt = defaultdict(lambda: 1)
     while True:
         yield cnt[base]
         cnt[base] += 1
+
 
 class PrepareStages(enum.Enum):
     BUILD = 0b01
@@ -79,6 +90,9 @@ class CoreParams:
 
     def __setitem__(self, key: str, value: Any) -> None:  # noqa: ANN401
         setattr(self, key, value)
+
+    def __contains__(self, key: str) -> bool:
+        return hasattr(self, str(key))
 
 
 class CoreInterpreterState:
@@ -109,7 +123,6 @@ class CoreInterpreterState:
         self.app_args: dict[str, Any] = {}
         # Collections
         self.extra_colls: dict[str, dict[str, str]] = defaultdict(lambda: {})
-
 
 
 class CoreInjectable(BaseInjectable[str, str]):
@@ -149,10 +162,21 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         self.update_state()
 
     def _result_collection_name(self, operation_id: str) -> str:
-        return f"result-{operation_id}"
+        return result_collection_name(operation_id)
 
     def _write_cache(self, object: object, path: str) -> None:
         json.dump(object, cache.get_file(os.path.join('core', path), 'w+'))
+
+    def _create_cfg_safe(
+        self,
+        **kwargs,
+    ) -> None:
+        try:
+            cfg_ = core.get_cfg(kwargs['cfg_id']).id
+        except Exception:
+            core.create_cfg(**kwargs)
+        else:
+            core.update_cfg(cfg_, **kwargs)
 
     def _create_app_safe(
             self,
@@ -220,56 +244,12 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
 
         return settings
 
-    def _upload_collection(self, collection: Collection) -> str:
-        if collection.collection_data is None:
-            raise InterpretationError(
-                f"Trying to upload collection {collection.collection_id} "
-                "without data. Probably you set persistent=True and core_id, "
-                "but collection was not found in Core."
-            )
-
-        if collection.collection_data is not None:
-            _log(f"Uploading collection {collection.collection_id} to Core")
-            collection.core_id = core.create_collection_from_df(
-                data=collection.collection_data,
-                name=collection.magic()
-            )
-
-        return collection.core_id
-
-    def _assert_collection(self, collection: Collection) -> None:
-        if collection.core_id:
-            try:
-                core.get_collection(collection.core_id)
-                return
-            except Exception as e:
-                raise InterpretationError(
-                    f"Collection {collection.collection_id} with core_id "
-                    f"{collection.core_id} is not found in Core. Do not "
-                    "specify core_id if you want to upload the collection."
-                ) from e
-
-        _ids = core.get_collections_by_name(
-            collection.magic()
-        )
-
-        if len(_ids.ownIds) == 0:
-            self._upload_collection(collection)
-        else:
-            collection.core_id = _ids.ownIds[0]
-
-        if collection.core_id not in core.get_collections().ownIds:
-            raise InterpretationError(
-                f"Collection {collection.collection_id} with core_id "
-                f"{collection.core_id} is not found in Core."
-            )
-
-
     def create_node(
         self, state: CoreInterpreterState, node: traced[BaseNode]
     ) -> CoreInterpreterState:
         state.ops[node.owner.uuid] = node.owner
-        _log(f"Node: {node.owner.uuid}, Type: {type(node.owner).__name__}", -1, 0, True)
+        _log(
+            f"Node: {node.owner.uuid}, Type: {type(node.owner).__name__}", -1, 0, True)
         return state
 
     def create_dependency(
@@ -295,53 +275,68 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
 
     def after_interpret(self, state: CoreInterpreterState) -> CoreInterpreterState:
         _log("Flow is built. Uploading to Core", step=True)
+
+        collection_nodes = [
+            x for x in state.ops.values() if isinstance(x, CollectionNode)
+        ]
+
+        core_ids = batch_upload_collections(
+            [x.collection for x in collection_nodes]
+        )
+
+        for node, core_id in zip(collection_nodes, core_ids):
+            if isinstance(node, CollectionNode):
+                state.collections[node.uuid] = (node.collection, core_id)
+                node.alias = node.collection.collection_id + '-' + \
+                        next(_name(node.collection.collection_id))
+
         order_ = {
-            **{k: v for k, v in state.ops.items() if isinstance(v, CollectionNode)},
             **{k: v for k, v in state.ops.items() if not isinstance(v, CollectionNode)}
         }
 
+
         for id, op in order_.items():
-            if isinstance(op, OperationNode):
-                extra = state.reg.get(
-                    op.operation_id, {}, model=CoreRegistryEntry)
-                image_auth_user = extra.image_auth_user
-                image_auth_pass = extra.image_auth_pass
-                image_ref = extra.image_ref
+            extra = state.reg.get(
+                op.operation_id,
+                {},
+                model=CoreRegistryEntry
+            )
+            image_auth_user = extra.image_auth_user
+            image_auth_pass = extra.image_auth_pass
+            image_ref = extra.image_ref
 
-                for node, link in state.depends[id]:
-                    if isinstance(node, CollectionNode) and \
-                            node.uuid in state.collections:
-                        coll, uploaded_core_id = state.collections[node.uuid]
-                        state.cfg.collections = {
-                            **state.cfg.collections,
-                            f"{coll.collection_id}": uploaded_core_id,
-                        }
-                        state.extra_colls[op.uuid][link.name] = coll.collection_id
-
-                app_core_name = op.uuid + f"-{extra['processor_id']}-{op.alias}"
-                if not op.alias:
-                    op.alias = f'{extra["processor_id"]}-{next(_name(extra["processor_id"]))}'  # noqa: E501
-
-                state.core_ops[op.uuid] = app_core_name
-                state.app_args[op.uuid] = {
-                    'app_id': app_core_name,
-                    'extra': extra,
-                    'image_auth': (image_auth_user, image_auth_pass),
-                    'image_ref': image_ref,
-                    # 'extra_collections_from': extra_colls,
-                    'app_cfg': op.config,
-                    'uid': op.uuid,
-                    'platform': 'base'
+            for node, link in filter(
+                lambda node: isinstance(node, CollectionNode)
+                and node.uuid in state.collections,
+                state.depends[id]
+            ):
+                coll, uploaded_core_id = state.collections[node.uuid]
+                state.cfg.collections = {
+                    **state.cfg.collections,
+                    f"{coll.collection_id}": uploaded_core_id,
                 }
-                state.results[op.uuid] = self._result_collection_name(op.uuid)
+                state.extra_colls[op.uuid][link.name] = coll.collection_id
 
-            elif isinstance(op, CollectionNode):
-                collection_ref = op.collection
-                if op.alias is None:
-                    op.alias = f'{op.collection.collection_id}-{next(_name(op.collection.collection_id))}'  # noqa: E501
-                self._assert_collection(collection_ref)
 
-                state.collections[op.uuid] = (collection_ref, collection_ref.core_id)
+            app_core_name = op.uuid + \
+                f"-{extra['processor_id']}-{op.alias}"
+
+            if not op.alias:
+                op.alias = extra["processor_id"] + '-' + \
+                    next(_name(extra["processor_id"]))
+
+            state.core_ops[op.uuid] = app_core_name
+            state.app_args[op.uuid] = {
+                'app_id': app_core_name,
+                'extra': extra,
+                'image_auth': (image_auth_user, image_auth_pass),
+                'image_ref': image_ref,
+                'app_cfg': op.config,
+                'uid': op.uuid,
+                'platform': 'base'
+            }
+            state.results[op.uuid] = self._result_collection_name(op.uuid)
+
         _log("Uploading to Core is completed.", step=True)
         return state
 
@@ -406,7 +401,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         state.params.base_config_id = __cfg
         state.params.base_config = state.cfg
 
-        core.create_cfg(__cfg, state.cfg)
+        self._create_cfg_safe(**config_kwargs)
         # ____________________________________________
 
         # NOTE: New core representation should affect this line
@@ -455,20 +450,32 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         ) -> None:
             _log("Task is being prepared for execution. It may take a while",
                  action=1
-            )
+                 )
             if stage.value & PrepareStages.BUILD.value:
-                for _app_args in state.app_args.values():
-                    task.state.cfg.app_settings.append(
-                        self._create_app_safe(
-                            **_app_args,
-                            extra_collections_from=state.extra_colls[_app_args['uid']]
-                        )
+                apps_ = batch_create_apps([{
+                    **_app_args,
+                    'extra_collections_from': state.extra_colls[_app_args['uid']]
+                } for _app_args in state.app_args.values()])
+
+                for settings, arg_ in apps_:
+                    task.state.cfg.app_settings.append(settings)
+                    self._write_cache(
+                        arg_,
+                        f"app-{settings.appId}-{self.state.interpretation_id}.json"
                     )
+                # for _app_args in state.app_args.values():
+                #     task.state.cfg.app_settings.append(
+                #         self._create_app_safe(
+                #             **_app_args,
+                #             extra_collections_from=state.extra_colls[_app_args['uid']]
+                #         )
+                #     )
 
-                for _kwargs in task_kwargs:
-                    core.create_task(**_kwargs)
+                batch_create_tasks(task_kwargs)
+                # for _kwargs in task_kwargs:
+                #     core.create_task(**_kwargs, wait=False)
 
-                core.create_cfg(**config_kwargs)
+                self._create_cfg_safe(**config_kwargs)
                 task.state.params['task_id'] = task.state.core_ops[leaves[0].owner.uuid]
 
             if stage.value & PrepareStages.BOOT.value:
@@ -518,12 +525,14 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                     }
                     _cfg_id = config_kwargs['cfg_id'] + \
                         '-overridden' + uuid.uuid4().hex
-                    core.create_cfg(
+
+                    self._create_cfg_safe(
                         _cfg_id,
                         _cfg,
                         conn_url=task.state.params["core_host"],
                         auth=task.state.params["core_auth"],
                     )
+
                     core.task_run(
                         task.state.params["operation_id"],
                         cfg_id=_cfg_id,
@@ -531,7 +540,8 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                         **kwargs
                     )
                 else:
-                    core.task_run(task.state.params["operation_id"], *args, **kwargs)
+                    core.task_run(
+                        task.state.params["operation_id"], *args, **kwargs)
             except (Exception, KeyboardInterrupt) as e:
                 # Cleanup
                 core.task_stop(task.state.params["operation_id"])
