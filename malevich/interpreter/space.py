@@ -66,12 +66,10 @@ def _log(
         *args,
     )
 
-def _name(base: str):
-    cnt = defaultdict(lambda: 1)
-    while True:
-        yield cnt[base]
-        cnt[base] += 1
-
+names_ = defaultdict(lambda: 0)
+def _name(base: str) -> int:
+    names_[base] += 1
+    return names_[base]
 
 
 class NodeType(Enum):

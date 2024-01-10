@@ -57,11 +57,11 @@ def _log(
     )
 
 
+
+names_ = defaultdict(lambda: 0)
 def _name(base: str) -> int:
-    cnt = defaultdict(lambda: 1)
-    while True:
-        yield cnt[base]
-        cnt[base] += 1
+    names_[base] += 1
+    return names_[base]
 
 
 class PrepareStages(enum.Enum):
@@ -293,14 +293,16 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         for node, core_id in zip(collection_nodes, core_ids):
             state.collections[node.uuid] = (
                 node.collection.collection_id, core_id)
-            node.alias = node.collection.collection_id + '-' + \
-                str(next(_name(node.collection.collection_id)))
+            if not node.alias:
+                node.alias = node.collection.collection_id + '-' + \
+                    str(_name(node.collection.collection_id))
 
         for node in asset_nodes:
             if isinstance(node, AssetNode):
                 _assure_asset(node)
-                node.alias = node.core_path + '-' + \
-                    str(next(_name(node.core_path)))
+                if not node.alias:
+                    node.alias = node.core_path + '-' + \
+                        str(_name(node.core_path))
                 state.collections[node.uuid] = (node.core_path, node.get_core_path())
 
 
@@ -354,7 +356,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
 
             if not op.alias:
                 op.alias = extra["processor_id"] + '-' + \
-                    str(next(_name(extra["processor_id"])))
+                    str(_name(extra["processor_id"]))
 
             state.core_ops[op.uuid] = app_core_name
             state.app_args[op.uuid] = {
@@ -556,10 +558,9 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                     }
                     _cfg_id = config_kwargs['cfg_id'] + \
                         '-overridden' + uuid.uuid4().hex
-
                     self._create_cfg_safe(
-                        _cfg_id,
-                        _cfg,
+                        cfg_id=_cfg_id,
+                        cfg=_cfg,
                         conn_url=task.state.params["core_host"],
                         auth=task.state.params["core_auth"],
                     )
