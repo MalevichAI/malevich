@@ -25,7 +25,6 @@ from ..interpreter.abstract import Interpreter
 from ..manifest import ManifestManager
 from ..models.actions import Action
 from ..models.argument import ArgumentLink
-from ..models.collection import Collection
 from ..models.exceptions import InterpretationError
 from ..models.injections import BaseInjectable
 from ..models.nodes import BaseNode, CollectionNode, OperationNode
@@ -318,6 +317,23 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
             image_auth_user = extra.image_auth_user
             image_auth_pass = extra.image_auth_pass
             image_ref = extra.image_ref
+
+            if not image_ref:
+                verbose_ = ""
+                if op.processor_id is not None:
+                    verbose_ += f"processor: {op.processor_id}, "
+                if op.package_id is not None:
+                    verbose_ += f"package: {op.package_id}."
+                if not verbose_:
+                    verbose_ = \
+                        "The processor and the package cannot be determined " \
+                        "(most probably, the app is installed " \
+                        "with older version of Malevich)"
+                raise InterpretationError(
+                   "Found unknown operation. Possibly, you are using "
+                   "an outdated version of the environment.\n"
+                   + verbose_
+                )
 
             for node, link in state.depends[id]:
                 if not (
@@ -647,7 +663,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         task_id: str,
         returned: Iterable[traced[BaseNode]] | traced[BaseNode] | None,
         run_id: Optional[str] = None,
-    ) -> Iterable[pd.DataFrame] | pd.DataFrame:
+    ) -> Iterable[pd.DataFrame]:
         if not returned:
             return None
 
@@ -666,11 +682,12 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                     operation_id=task_id,
                 ).data]
 
-                results.append([
+                results.extend([
                     core.get_collection_to_df(i)
                     for i in collection_ids
                 ])
 
             elif isinstance(node, TreeNode):
-                results.append(self.get_results(node.results, run_id=run_id))
-        return results[0] if len(results) == 1 else results
+                results.extend(self.get_results(node.results, run_id=run_id))
+        # return results[0] if len(results) == 1 else results
+        return results

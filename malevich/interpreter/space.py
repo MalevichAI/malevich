@@ -753,7 +753,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
             returned: Iterable[traced[BaseNode]] | traced[BaseNode] | None,
             *args,
             **kwargs
-        ) -> Iterable[pd.DataFrame] | pd.DataFrame:
+        ) -> Iterable[pd.DataFrame]:
             if returned is None:
                 return None
 

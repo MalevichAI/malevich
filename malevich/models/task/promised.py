@@ -2,6 +2,8 @@
 import os
 import pickle
 
+import pandas as pd
+
 from ...interpreter.abstract import Interpreter
 from ...interpreter.space import SpaceInterpreter
 from ...manifest import ManifestManager
@@ -73,7 +75,7 @@ class PromisedTask(BaseTask):
         # if task is not prepared
         return self.__task.stop(*args, **kwargs)
 
-    def results(self, *args, **kwargs) -> None:
+    def results(self, *args, **kwargs) -> list[pd.DataFrame]:
         if not self.__task:
             raise Exception(
                 "Unable to get results of the task, that has not been interpreted. "
@@ -127,7 +129,7 @@ class PromisedTask(BaseTask):
     def get_interpreted_task(self) -> InterpretedTask:
         if not self.__task:
             raise Exception(
-                "Unable to get interpreted task, that has not been interpreted. "
+                "Unable to get interpreted task. "
                 "Please, use `.interpret` first to attach task to "
                 "a particular platform"
             )

@@ -48,7 +48,12 @@ Registry().register("{operation_id}", {{
 @{decor}
 def {name}({args}config: dict = {{}}):
     \"\"\"{docs}\"\"\"
-    return OperationNode(operation_id="{operation_id}", config=config)
+    return OperationNode(
+        operation_id="{operation_id}",
+        config=config,
+        processor_id="{name}",
+        package_id="{package_id}",
+    )
 """
 
 
@@ -116,8 +121,12 @@ class SpaceInstaller(Installer):
                 branch=str(component.branch.model_dump()),
                 version=str(component.version.model_dump()),
                 name=op.core_id,
-                image_ref=("dependencies", package_name,
-                           "options", "image_ref"),
+                image_ref=(
+                    "dependencies",
+                    package_name,
+                    "options",
+                    "image_ref"
+                ),
                 image_auth_user=(
                     "dependencies",
                     package_name,
@@ -145,7 +154,8 @@ class SpaceInstaller(Installer):
                 args=(", ".join(args_) + ", " if args_ else "") if not is_sink else '*args, ',  # noqa: E501
                 docs=op.doc,
                 operation_id=op.uid,
-                decor='autotrace' if not is_sink else 'sinktrace'
+                decor='autotrace' if not is_sink else 'sinktrace',
+                package_id=package_name
             )
 
         mimic_package(

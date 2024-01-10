@@ -1,10 +1,13 @@
 import json
+from typing import Optional
 
 from .base import BaseNode
 
 
 class OperationNode(BaseNode):
     operation_id: str
+    processor_id: Optional[str] = None
+    package_id: Optional[str] = None
     config: dict = {}
 
     def get_senstivite_fields(self) -> dict[str, str]:

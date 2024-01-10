@@ -60,7 +60,12 @@ class {schema_name}(BaseModel):
 @{decor}
 def {name}({args}config: dict = {{}}):
     \"\"\"{docs}\"\"\"
-    return OperationNode(operation_id="{operation_id}", config=config)
+    return OperationNode(
+        operation_id="{operation_id}",
+        config=config,
+        processor_id="{name}",
+        package_id="{package_id}",
+    )
 """
     init = """
 # {init_name} = ...
@@ -199,7 +204,8 @@ class ImageInstaller(Installer):
                 args=args_str_,
                 operation_id=checksum,
                 docs=processor.doc,
-                decor="sinktrace" if sink else "autotrace"
+                decor="sinktrace" if sink else "autotrace",
+                package_id=package_name,
             )
 
         for id_, input_ in operations.inputs.items():

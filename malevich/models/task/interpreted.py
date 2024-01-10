@@ -16,7 +16,7 @@ ResultsFunc = TypeVar("ResultsFunc", bound=Callable)
 GetInjectablesFunc = TypeVar("GetInjectablesFunc", bound=Callable)
 ResultsFunc_ = Callable[
     ['InterpretedTask', FlowOutput],
-    Union[Iterable[pd.DataFrame], pd.DataFrame, None]
+    Union[Iterable[pd.DataFrame], None]
 ]
 
 
@@ -154,7 +154,7 @@ class InterpretedTask(Generic[State], BaseTask):
 
     async def async_results(
         self,
-        callback: Optional[Callable[[pd.DataFrame | Iterable[pd.DataFrame]], None]] = None,  # noqa: E501
+        callback: Optional[Callable[[Iterable[pd.DataFrame]], None]] = None,  # noqa: E501
     ) -> None:
         """Get results of the task.
 
@@ -188,11 +188,19 @@ class InterpretedTask(Generic[State], BaseTask):
     def commit_returned(self, returned: FlowOutput):  # noqa: ANN201
         self.__returned = returned
 
-    def __call__(self) -> Union[Iterable[pd.DataFrame], pd.DataFrame, None]:
+    def __call__(self) -> Union[Iterable[pd.DataFrame], None]:
         self.prepare()
         self.run()
         self.stop()
-        return self.results()
+        results =  self.results()
+        # check whether the results are iterable
+        # if not, make them iterable
+        try:
+            iter(results)
+        except TypeError:
+            results = [results]
+        return results
+
 
     def get_injectables(self) -> list[BaseInjectable]:
         if self.__get_injectables:
