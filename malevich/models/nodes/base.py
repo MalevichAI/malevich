@@ -18,3 +18,6 @@ class BaseNode(BaseModel):
 
     def set_sensitive_fields(self, values: dict[str, str]) -> None:
         pass
+
+    def short_info(self) -> str:
+        return f"{self.__class__.__name__}({self.uuid})"

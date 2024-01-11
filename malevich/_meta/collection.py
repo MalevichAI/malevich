@@ -35,9 +35,13 @@ def collection(
     Returns:
         Collection: an object that is subject to be passed to processors
     """
-    assert any(
-        [file is not None, df is not None]
-    ), "Either file or data must be provided"
+    # Commented in favor of empty collections
+    # for runners (Jan 10, 2024, v0.1.2)
+
+    # assert any(
+    #     [file is not None, df is not None]
+    # ), "Either file or data must be provided"
+    # ______________________________________
 
     if file:
         assert df is None, "Cannot provide both file and data"
@@ -47,6 +51,9 @@ def collection(
 
     # Retrieve JSON Schema
     # from pandas DataFrame
+
+    if df is None:
+        df = pd.DataFrame()
 
     pd_scheme = scheme or json.dumps(pd_to_json_schema(df))
     node = CollectionNode(
@@ -60,5 +67,7 @@ def collection(
 
     if alias:
         node.alias = alias
+    else:
+        node.alias = name
 
     return gn.traced(node)

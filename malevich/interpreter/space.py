@@ -512,7 +512,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
             )
 
         state.components[node.owner.uuid] = comp
-        state.components_alias[node.owner.uuid] = node.owner.alias or f'{alias_base} #{next(_name(alias_base))}'  # noqa: E501
+        state.components_alias[node.owner.uuid] = node.owner.alias or f'{alias_base} #{_name(alias_base)}'  # noqa: E501
         node.owner.alias = state.components_alias[node.owner.uuid]
         return state
 

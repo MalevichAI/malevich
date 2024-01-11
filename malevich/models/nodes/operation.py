@@ -18,3 +18,11 @@ class OperationNode(BaseNode):
         if config is None:
             return
         self.config = json.loads(config)
+
+    def short_info(self) -> str:
+        p_ = ""
+        if self.package_id:
+            p_ += f"{self.package_id}"
+        if self.processor_id:
+            p_ += f"::{self.processor_id}"
+        return f"{self.__class__.__name__}({self.operation_id}, {p_})"

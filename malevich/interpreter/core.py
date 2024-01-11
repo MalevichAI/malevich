@@ -250,7 +250,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
     ) -> CoreInterpreterState:
         state.ops[node.owner.uuid] = node.owner
         _log(
-            f"Node: {node.owner.uuid}, Type: {type(node.owner).__name__}", -1, 0, True)
+            f"Node: {node.owner.uuid}, {node.owner.short_info()}", -1, 0, True)
         return state
 
     def create_dependency(
@@ -262,7 +262,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
     ) -> CoreInterpreterState:
         state.depends[caller.owner.uuid].append((callee.owner, link))
         _log(
-            f"Dependency: {caller.owner.uuid} -> {callee.owner.uuid}, "
+            f"Dependency: {caller.owner.short_info()} -> {callee.owner.short_info()}, "
             f"Link: {link.name}", -1, 0, True
         )
         return state
