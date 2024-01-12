@@ -110,7 +110,10 @@ class PromisedTask(BaseTask):
         # Dumping flow to json
         flow_data = {
             "tree": self.tree,
-            "apps": [next(iter(app.keys())) for app in ManifestManager().query("dependencies")]
+            "apps": [
+                next(iter(app.keys()))
+                for app in ManifestManager().query("dependencies")
+            ]
         }
         flow_bytes = pickle.dumps(flow_data)
 

@@ -140,7 +140,10 @@ class SpaceInstaller(Installer):
                     "image_auth_pass",
                 ),
             )
-            is_sink = any(['Sink' in arg_.arg_type for arg_ in op.args if arg_.arg_type])
+            is_sink = any(
+                ['Sink' in arg_.arg_type
+                 for arg_ in op.args if arg_.arg_type
+            ])
             args_ = []
 
             for arg_ in op.args:

@@ -1,6 +1,9 @@
 from malevich.cli import app
 from malevich import flow, collection, config
 
+from ..fixtures.ghcr_package import ghcr_package
+from ..fixtures.package import package
+
 import pandas as pd
 
 from .env import FlowTestEnv, TestingScope

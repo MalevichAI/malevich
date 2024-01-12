@@ -57,8 +57,9 @@ def _log(
     )
 
 
-
 names_ = defaultdict(lambda: 0)
+
+
 def _name(base: str) -> int:
     names_[base] += 1
     return names_[base]
@@ -170,80 +171,31 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
 
     def _create_cfg_safe(
         self,
+        auth: core.AUTH = None,
+        conn_url: Optional[str] = None,
         **kwargs,
     ) -> None:
+        auth = auth or self.__core_auth
+        conn_url = conn_url or self.__core_host
         try:
-            cfg_ = core.get_cfg(kwargs['cfg_id']).id
+            cfg_ = core.get_cfg(
+                kwargs['cfg_id'],
+                auth=auth,
+                conn_url=conn_url
+            ).id
         except Exception:
-            core.create_cfg(**kwargs)
+            core.create_cfg(
+                **kwargs,
+                auth=auth,
+                conn_url=conn_url
+            )
         else:
-            core.update_cfg(cfg_, **kwargs)
-
-    def _create_app_safe(
-            self,
-            app_id: str,
-            extra: dict,
-            uid: str,
-            *args,
-            **kwargs,
-    ) -> None:
-        settings = core.AppSettings(
-            appId=app_id,
-            taskId=app_id,
-            saveCollectionsName=self._result_collection_name(uid)
-        )
-
-        # TODO: Wrap correctly
-        try:
-            core.create_app(
-                app_id,
-                processor_id=extra["processor_id"],
-                *args,
+            core.update_cfg(
+                cfg_,
+                auth=auth,
+                conn_url=conn_url,
                 **kwargs
             )
-        except Exception:
-            pass
-        else:
-            return settings
-
-        try:
-            if core.get_app(app_id):
-                core.delete_app(app_id)
-                core.delete_task(app_id)
-        except Exception:
-            pass
-
-        try:
-            core.create_app(
-                app_id,
-                processor_id=extra["processor_id"],
-                *args,
-                **kwargs
-            )
-        except Exception as e:
-            if 'processor_id' in extra:
-                processor_id = extra['processor_id']
-                raise InterpretationError(
-                    f"Failed to create an app. Processor is {processor_id}. "
-                ) from e
-            else:
-                raise InterpretationError(
-                    "Failed to create an app and could determine the processor. "
-                    "Most probably, the app is installed incorrectly. Use "
-                    "malevich remove to remove it and reinstall it correctly"
-                ) from e
-
-        kwargs = {
-            "app_id": app_id,
-            "app_cfg": kwargs['app_cfg'],
-            "image_ref": kwargs['image_ref'],
-            "extra_collections_from": kwargs['extra_collections_from'],
-        }
-
-        self._write_cache(
-            kwargs, f"app-{app_id}-{self.state.interpretation_id}.json")
-
-        return settings
 
     def create_node(
         self, state: CoreInterpreterState, node: traced[BaseNode]
@@ -267,12 +219,12 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         )
         return state
 
-    def before_interpret(self, state: CoreInterpreterState) -> CoreInterpreterState:
-        core.set_host_port(self.__core_host)
-        core.update_core_credentials(self.__core_auth[0], self.__core_auth[1])
-        _log("Connection to Core is established.", 0, 0, True)
-        _log(f"Core host: {self.__core_host}", 0, -1, True)
-        return state
+    # def before_interpret(self, state: CoreInterpreterState) -> CoreInterpreterState:
+    #     # core.set_host_port(self.__core_host)
+    #     # core.update_core_credentials(self.__core_auth[0], self.__core_auth[1])
+    #     _log("Connection to Core is established.", 0, 0, True)
+    #     _log(f"Core host: {self.__core_host}", 0, -1, True)
+    #     return state
 
     def after_interpret(self, state: CoreInterpreterState) -> CoreInterpreterState:
         _log("Flow is built. Uploading to Core", step=True)
@@ -286,9 +238,10 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         ]
 
         core_ids = batch_upload_collections(
-            [x.collection for x in collection_nodes]
+            [x.collection for x in collection_nodes],
+            conn_url=self.__core_host,
+            auth=self.__core_auth
         )
-
 
         for node, core_id in zip(collection_nodes, core_ids):
             state.collections[node.uuid] = (
@@ -303,8 +256,8 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                 if not node.alias:
                     node.alias = node.core_path + '-' + \
                         str(_name(node.core_path))
-                state.collections[node.uuid] = (node.core_path, node.get_core_path())
-
+                state.collections[node.uuid] = (
+                    node.core_path, node.get_core_path())
 
         order_ = {
             **{k: v for k, v in state.ops.items() if isinstance(v, OperationNode)}
@@ -332,9 +285,9 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                         "(most probably, the app is installed " \
                         "with older version of Malevich)"
                 raise InterpretationError(
-                   "Found unknown operation. Possibly, you are using "
-                   "an outdated version of the environment.\n"
-                   + verbose_
+                    "Found unknown operation. Possibly, you are using "
+                    "an outdated version of the environment.\n"
+                    + verbose_
                 )
 
             for node, link in state.depends[id]:
@@ -409,7 +362,9 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                 {
                     'task_id': core_id,
                     'app_id': core_id,
-                    'tasks_depends': depends
+                    'tasks_depends': depends,
+                    'auth': state.params["core_auth"],
+                    'conn_url': state.params["core_host"],
                 }
             )
 
@@ -485,10 +440,14 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                  action=1
                  )
             if stage.value & PrepareStages.BUILD.value:
-                apps_ = batch_create_apps([{
-                    **_app_args,
-                    'extra_collections_from': state.extra_colls[_app_args['uid']]
-                } for _app_args in state.app_args.values()])
+                apps_ = batch_create_apps([
+                    {
+                        'auth': state.params["core_auth"],
+                        'conn_url': state.params["core_host"],
+                        **_app_args,
+                        'extra_collections_from': state.extra_colls[_app_args['uid']]
+                    } for _app_args in state.app_args.values()
+                ])
 
                 for settings, arg_ in apps_:
                     task.state.cfg.app_settings.append(settings)
@@ -516,12 +475,18 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                     task.state.params["operation_id"] = core.task_prepare(
                         task_id=task.state.params['task_id'],
                         cfg_id=config_kwargs['cfg_id'],
+                        auth=task.state.params["core_auth"],
+                        conn_url=task.state.params["core_host"],
                         *args,
                         **kwargs
                     ).operationId
                 except (Exception, KeyboardInterrupt) as e:
                     # Cleanup
-                    core.task_stop(task.state.params['task_id'])
+                    core.task_stop(
+                        task.state.params['task_id'],
+                        auth=task.state.params["core_auth"],
+                        conn_url=task.state.params["core_host"],
+                    )
                     raise e
         # ========================================== (prepare)
 
@@ -568,15 +533,26 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                     core.task_run(
                         task.state.params["operation_id"],
                         cfg_id=_cfg_id,
+                        auth=task.state.params["core_auth"],
+                        conn_url=task.state.params["core_host"],
                         *args,
                         **kwargs
                     )
                 else:
                     core.task_run(
-                        task.state.params["operation_id"], *args, **kwargs)
+                        task.state.params["operation_id"],
+                        *args,
+                        auth=task.state.params["core_auth"],
+                        conn_url=task.state.params["core_host"],
+                        **kwargs
+                    )
             except (Exception, KeyboardInterrupt) as e:
                 # Cleanup
-                core.task_stop(task.state.params["operation_id"])
+                core.task_stop(
+                    task.state.params["operation_id"],
+                    auth=task.state.params["core_auth"],
+                    conn_url=task.state.params["core_host"],
+                )
                 raise e
 
         # ========================================== (run)
@@ -591,7 +567,13 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
             if "operation_id" not in task.state.params:
                 raise Exception("Attempt to run a task which is not prepared. "
                                 "Please, run `.prepare()` first.")
-            core.task_stop(task.state.params["operation_id"], *args, **kwargs)
+            core.task_stop(
+                task.state.params["operation_id"],
+                *args,
+                auth=task.state.params["core_auth"],
+                conn_url=task.state.params["core_host"],
+                **kwargs
+            )
         # ========================================== (stop)
 
         # * Results: fetches the results from Core for
@@ -677,14 +659,22 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
             if isinstance(node, CollectionNode):
                 results.append(node.collection.collection_data)
             elif isinstance(node, OperationNode):
-                collection_ids = [x.id for x in core.get_collections_by_group_name(
-                    self._result_collection_name(node.uuid) +
-                    (f'_{run_id}' if run_id else ''),
-                    operation_id=task_id,
-                ).data]
+                collection_ids = [
+                    x.id for x in core.get_collections_by_group_name(
+                        self._result_collection_name(node.uuid) +   #group_name
+                        (f'_{run_id}' if run_id else ''),           #group_name
+                        operation_id=task_id,
+                        auth=self.state.params["core_auth"],
+                        conn_url=self.state.params["core_host"],
+                    ).data
+                ]
 
                 results.extend([
-                    core.get_collection_to_df(i)
+                    core.get_collection_to_df(
+                        i,
+                        auth=self.state.params["core_auth"],
+                        conn_url=self.state.params["core_host"],
+                    )
                     for i in collection_ids
                 ])
 

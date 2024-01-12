@@ -58,7 +58,9 @@ def get_pref(
     keys = key.split(".")
     if keys[0] not in main_keys:
         typer.echo(
-            f"Unknown preference key: {keys[0]}. Available keys are: {', '.join(main_keys)}")
+            f"Unknown preference key: {keys[0]}. "
+            f"Available keys are: {', '.join(main_keys)}"
+        )
 
     if len(keys) == 1:
         typer.echo(prefs.__getattribute__(keys[0]))

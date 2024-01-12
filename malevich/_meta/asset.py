@@ -75,16 +75,21 @@ class AssetFactory:
             assert os.path.isdir(folder_path), f"Path {folder_path} is not a folder."
             assert os.path.getsize(folder_path) > 0, f"Folder {folder_path} is empty."
 
-            files = [os.path.join(folder_path, file) for file in os.listdir(folder_path)]
+            files = [os.path.join(folder_path, file)
+                     for file in os.listdir(folder_path)]
         else:
             assert files is not None, "Files must be provided."
             assert len(files) > 0, "Files must not be empty."
-            assert all([os.path.exists(file) for file in files]), \
-                f"Some files do not exist: {[file for file in files if not os.path.exists(file)]}"
-            assert all([os.path.isfile(file) for file in files]), \
-                f"Some files are not files: {[file for file in files if not os.path.isfile(file)]}"
-            assert all([os.path.getsize(file) > 0 for file in files]), \
-                f"Some files are empty: {[file for file in files if os.path.getsize(file) == 0]}"
+            _1 = [os.path.exists(file) for file in files if not os.path.exists(file)]
+            _2 = [os.path.isfile(file) for file in files if not os.path.isfile(file)]
+            _3 = [
+                os.path.getsize(file) > 0
+                for file in files
+                if os.path.getsize(file) == 0
+            ]
+            assert len(_1) == 0,f"Some files do not exist: {_1}"
+            assert len(_2) == 0,f"Some files are not files: {_2}"
+            assert len(_3) == 0,f"Some files are empty: {_3}"
 
 
         return gn.traced(AssetNode(

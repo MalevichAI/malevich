@@ -154,7 +154,7 @@ class InterpretedTask(Generic[State], BaseTask):
 
     async def async_results(
         self,
-        callback: Optional[Callable[[Iterable[pd.DataFrame]], None]] = None,  # noqa: E501
+        callback: Optional[Callable[[Iterable[pd.DataFrame]], None]] = None,
     ) -> None:
         """Get results of the task.
 

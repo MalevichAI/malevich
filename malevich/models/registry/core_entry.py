@@ -11,7 +11,7 @@ class CoreRegistryEntry(BaseModel):
     image_auth_user: Optional[tuple[str, ...] | str] = None
     image_auth_pass: Optional[tuple[str, ...] | str] = None
 
-    def __getattribute__(self, __name: str) -> str:  # noqa: ANN401
+    def __getattribute__(self, __name: str) -> str:
         attr_ = super().__getattribute__(__name)
         if __name in ['image_auth_user', 'image_auth_pass', 'image_ref']:
             if isinstance(attr_, tuple):

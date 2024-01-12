@@ -20,11 +20,16 @@ def autotrace(func: Callable[C, R]) -> Callable[C, R]:
         for i, arg in enumerate(args):
             argument_name = func.__code__.co_varnames[i]
             if isinstance(arg, gn.traced):
-                arg._autoflow.calledby(result, ArgumentLink(index=i, name=argument_name))
+                arg._autoflow.calledby(
+                    result,
+                    ArgumentLink(index=i, name=argument_name)
+                )
         for key in kwargs:
             if isinstance(kwargs[key], gn.traced):
                 if key in varnames:
-                    kwargs[key]._autoflow.calledby(result, ArgumentLink(index=varnames.index(key), name=key))
+                    kwargs[key]._autoflow.calledby(
+                        result, ArgumentLink(index=varnames.index(key), name=key)
+                    )
                 else:
                     warnings.warn(
                         # TODO: Add "See: ..."

@@ -284,7 +284,7 @@ def login(
 
     try:
         SpaceOps(space_setup=setup)
-    except Exception as e:
+    except Exception:
         rich.print(
             f"\n\n[red]Failed to connect to {space_url}. "
             "Please check your credentials and try again.[/red]"

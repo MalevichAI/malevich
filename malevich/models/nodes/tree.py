@@ -35,7 +35,9 @@ class TreeNode(BaseNode):
                 for node in self.results:
                     results_fields[node.owner.uuid] = node.owner.get_senstivite_fields()
             else:
-                results_fields[self.results.owner.uuid] = self.results.owner.get_senstivite_fields()
+                results_fields[self.results.owner.uuid] = (
+                    self.results.owner.get_senstivite_fields()
+                )
         return {
             "in_nodes_fields": json.dumps(in_nodes_fields),
             "results_fields": json.dumps(results_fields),
