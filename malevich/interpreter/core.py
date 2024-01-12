@@ -621,7 +621,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                                 )
                             )
 
-                        break
+                            break
 
             return injectables
         # ========================================== (injectables)
@@ -679,6 +679,9 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                 ])
 
             elif isinstance(node, TreeNode):
-                results.extend(self.get_results(node.results, run_id=run_id))
+                results.extend(self.get_results(
+                    task_id=task_id, returned=node.results, run_id=run_id
+                )
+            )
         # return results[0] if len(results) == 1 else results
         return results
