@@ -8,3 +8,4 @@ malevich.secrets.yaml
 malevich.yaml
 **/malevich.yaml
 **/malevich.secrets.yaml
+.env
