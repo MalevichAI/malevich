@@ -26,3 +26,6 @@ class OperationNode(BaseNode):
         if self.processor_id:
             p_ += f"::{self.processor_id}"
         return f"{self.__class__.__name__}({self.operation_id}, {p_})"
+
+    def __hash__(self) -> int:
+        return super().__hash__()

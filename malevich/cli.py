@@ -300,22 +300,26 @@ def login(
 
 @app.command('remove', help=remove_help['--help'])
 def remove(
-    package_name: Annotated[str, typer.Argument(...)],
+    package_names: Annotated[list[str], typer.Argument(...)],
 ) -> None:
     try:
-        manf = ManifestManager()
-        manf.remove(
-            'dependencies',
-            package_name,
+        for package_name in package_names:
+            manf = ManifestManager()
+            manf.remove(
+                'dependencies',
+                package_name,
+            )
+            PackageManager().remove_stub(package_name)
+
+        rich.print(
+            f"[green]Package(s) [b]{', '.join(package_names)}[/b] removed[/green]"
         )
-        PackageManager().remove_stub(package_name)
-        rich.print(f"[green]Package [b]{package_name}[/b] removed[/green]")
         rich.print(f"Bye, bye [b]{package_name}[/b]")
     except Exception as e:
         rich.print(
             f"[red]Failed to remove package [b]{package_name}[/b][/red]")
         rich.print(e)
-        exit(-1)
+        return
 
 
 space_app.add_typer(flow_app, name="flow")

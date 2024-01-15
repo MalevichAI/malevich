@@ -35,3 +35,6 @@ class CollectionNode(BaseNode):
             f.seek(0)
             data = pd.read_pickle(f)
         self.collection.collection_data = data
+
+    def __hash__(self) -> int:
+        return super().__hash__()

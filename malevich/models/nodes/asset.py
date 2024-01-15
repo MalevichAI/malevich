@@ -29,3 +29,6 @@ class AssetNode(BaseNode):
 
     def get_core_path(self) -> str:
         return '$'+self.core_path
+
+    def __hash__(self) -> int:
+        return super().__hash__()

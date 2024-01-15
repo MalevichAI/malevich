@@ -1,11 +1,5 @@
 from malevich.cli import app
 from malevich import flow, collection, config
-<<<<<<< Updated upstream
-=======
-import importlib, os
-from ..fixtures.ghcr_package import ghcr_package
-from ..fixtures.package import package
->>>>>>> Stashed changes
 
 from ..fixtures.ghcr_package import ghcr_package
 from ..fixtures.package import package
@@ -15,9 +9,25 @@ import pandas as pd
 from .env import FlowTestEnv, TestingScope
 
 @flow()
-def utility_flow():
-    from malevich.utility import add_column
-    
+def subflow_1(x):
+    from malevich.utility import rename
+    return rename(x, config={'A': 'AA', 'B': 'BB', 'C': 'CC'})
+
+@flow()
+def subflow_2(x):
+    from malevich.utility import rename
+    return rename(x)
+
+@flow()
+def subflow_3(x):
+    from malevich.utility import merge, add_column
+    return add_column(
+        merge(subflow_2(x), subflow_1(subflow_2(x)), config={'how': 'inner', 'on': 'index'}),
+        config={'column': 'D', 'value': 9, 'position': -1}
+    )
+
+@flow()
+def deep_flow():
     data = collection(
         name='data', 
         df=pd.DataFrame({
@@ -26,10 +36,10 @@ def utility_flow():
             'C': [2, 3, 4]
         }))
     
-    return add_column(data, config=config(column='D', value=9, position=-1))
+    return subflow_3(data)
     
     
-def test_utility(
+def test_deep_flow(
     package: str,
     ghcr_package: tuple[str, tuple[str, str]]
 ):
@@ -44,16 +54,19 @@ def test_utility(
             'image_auth_password': password,
         }
     ) as runner:
-        result = runner.full_test(utility_flow)
+        result = runner.full_test(deep_flow)
+
         assert 'D' in result[0].columns, "Column 'D' is not in the DataFrame"
+        assert 'AA' in result[0].columns, "Column 'AA' is not in the DataFrame"
         assert 9 in result[0]['D'].to_list()
         
-    
     with FlowTestEnv(
         dependencies=[package], 
         scope=TestingScope.SPACE, 
     ) as runner:
-        result = runner.full_test(utility_flow)
+        result = runner.full_test(deep_flow)
 
         assert 'D' in result[0].columns, "Column 'D' is not in the DataFrame"
+        assert 'AA' in result[0].columns, "Column 'AA' is not in the DataFrame"
         assert 9 in result[0]['D'].to_list()
+        

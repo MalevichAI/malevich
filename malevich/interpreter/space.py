@@ -498,6 +498,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                 )
 
                 state.children_states[node.owner.uuid] = child_state
+                print(node.owner.tree.tree, child_state.components, child_state.components_alias)
             else:
                 child_state = state.children_states[node.owner.uuid]
                 comp = ComponentSchema(
@@ -580,6 +581,31 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                     ) for x, y in inter_flow_map.items()
                 ]
             )
+        elif isinstance(caller.owner, TreeNode) and isinstance(callee.owner, TreeNode):  # noqa: E501
+            left_op = caller.owner.underlying_node
+            right_edges = link.compressed_nodes
+            for rel, right_node in right_edges:
+                state.dependencies[callee.owner.uuid].append(
+                    InFlowDependency(
+                        from_op_id=(
+                            left_op.operation_id
+                            if isinstance(left_op, OperationNode)
+                            else None
+                        ),
+                        to_op_id=(
+                            right_node.owner.operation_id
+                            if isinstance(right_node.owner, OperationNode)
+                            else None
+                        ),
+                        alias=left_op.alias,
+                        order=rel.index,
+                        terminals=[Terminal(
+                            src=state.children_states[caller.owner.uuid].components_alias[left_op.uuid],
+                            target=state.children_states[callee.owner.uuid].components_alias[right_node.owner.uuid]  # noqa: E501
+                        )]
+                    )
+                )
+            return state
         else:
             dependency = InFlowDependency(
                 from_op_id=(
@@ -664,6 +690,29 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
             ]
 
         return state
+
+    def _deflate(
+        self,
+        returned: list[traced[BaseNode]],
+        alias2infid: dict[str, str]
+    ):
+        results_ = []
+        infid_ = []
+        for x in returned:
+            if isinstance(x.owner, TreeNode):
+                results_ = x.owner.results
+                if not isinstance(results_, list):
+                    results_ = [results_]
+                returned_ = self._deflate(
+                    results_,
+                    alias2infid
+                )
+                results_.extend(returned_[0])
+                infid_.extend(returned_[1])
+            else:
+                results_.append(x.owner.uuid)
+                infid_.append(alias2infid[x.owner.alias])
+        return results_, infid_
 
     def get_task(
         self, state: SpaceInterpreterState
@@ -762,16 +811,16 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                 state.aux['run_id']
             )
 
-            inflowids = [
-                alias2infid[x.owner.alias]
-                for x in returned
-            ]
+            _, infid_ = self._deflate(
+                returned,
+                alias2infid
+            )
 
             results = [
                 state.space.get_results(
                     run_id=state.aux['run_id'],
                     in_flow_id=i
-                ) for i in inflowids
+                ) for i in infid_
             ]
 
             flat_results = []
