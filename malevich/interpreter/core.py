@@ -252,7 +252,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
 
         for node in asset_nodes:
             if isinstance(node, AssetNode):
-                _assure_asset(node)
+                _assure_asset(node, self.__core_auth, self.__core_host)
                 if not node.alias:
                     node.alias = node.core_path + '-' + \
                         str(_name(node.core_path))
