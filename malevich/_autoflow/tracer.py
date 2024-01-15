@@ -86,6 +86,9 @@ class traced(Generic[T]):  # noqa: N801
                 "Traced object is not supposed to be nested"
             )
 
+    def __hash__(self) -> int:
+        return hash(self.owner)
+
 
 class tracedLike(traced[T]):  # noqa: N801
     def __init__(self, owner: T = root()) -> None:

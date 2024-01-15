@@ -21,6 +21,10 @@ class ExecutionTree(Generic[T, LinkType]):
             self.tree = tree
         else:
             self.tree = []
+        self.nodes_ = set()
+        for u, v, _ in self.tree:
+            self.nodes_.add(u)
+            self.nodes_.add(v)
 
     def put_edge(self, caller: T, callee: T, link: LinkType = None) -> None:
         if any(x[0] == caller and x[1] == callee for x in self.tree):
@@ -29,14 +33,21 @@ class ExecutionTree(Generic[T, LinkType]):
             raise BadEdgeError("Edge already exists", (caller, callee, link))
         if callee == caller:
             raise BadEdgeError("Self-edge", (caller, callee, link))
-
         self.tree.append((caller, callee, link))
+        self.nodes_.add(caller)
+        self.nodes_.add(callee)
 
     def prune(self, outer_nodes: Optional[list[T]] = None) -> None:
         self.tree = [
             x for x in self.tree
             if x[0] not in outer_nodes
         ]
+
+        self.nodes_ = set([
+            x for x in self.nodes_
+            if x not in outer_nodes
+        ])
+
 
     def edges_from(self, node: T) -> None:
         return [n for n in self.tree if n[0] == node]
@@ -93,3 +104,6 @@ class ExecutionTree(Generic[T, LinkType]):
         ) or any(
             x[0] == a and x[1] == b for x in b.traverse()
         )
+
+    def nodes(self) -> Iterable[T]:
+        return list(self.nodes_)

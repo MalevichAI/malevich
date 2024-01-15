@@ -1,15 +1,17 @@
+import importlib
 from enum import Enum
 
 import pandas as pd
 from malevich._utility.package import package_manager as pm
 from malevich.models.flow_function import FlowFunction
 from malevich.models.manifest import Dependency
-from malevich.cli import auto_use
+from malevich.cli import auto_use, remove
 from malevich import manifest
 from malevich._meta.flow import R as _Meta_Flow_R
 from ..fixtures.core_provider import CoreProvider
 from ..fixtures.space_provider import SpaceProvider
 from typing import ParamSpec, TypeVar
+from malevich._utility.registry import Registry
 
 class TestingScope(Enum):
     CORE = "CORE"
@@ -20,6 +22,15 @@ class TestingScope(Enum):
             return 'image'
         elif self == TestingScope.SPACE:
             return 'space'
+        else:
+            raise NotImplementedError
+        
+    def prepare_installer(self) -> None:
+        if self == TestingScope.CORE:
+            return
+        elif self == TestingScope.SPACE:
+            from ..fixtures.space_provider import SpaceProvider
+            SpaceProvider().assert_manifest()
         else:
             raise NotImplementedError
 
@@ -75,10 +86,10 @@ class FlowTestEnv:
     ):
         self.dependencies = dependencies
         self.scope = scope
-        self.__with_args = ','.join(
-            f'{key}={value}'
-            for key, value in install_args.items()
-        )
+        self.__with_args = ','.join([
+            f'{key}={v}'
+            for key, v in install_args.items()
+        ])
 
 
     def is_env_ready(self) -> bool:
@@ -100,16 +111,27 @@ class FlowTestEnv:
 
         return ready_
 
-    def install_dependencies(self) -> None:
+    def install_dependencies(self) -> None:        
+        remove(self.dependencies)
+        Registry().registry.clear()
+        self.scope.prepare_installer()
         auto_use(self.dependencies, self.scope.installer(), with_args=self.__with_args)
+        for dependency in self.dependencies:            
+            module = importlib.import_module(f'malevich.{dependency}')
+            importlib.reload(module) 
+
 
     def remove_dependencies(self) -> None:
         for dependency in self.dependencies:
-            pm.remove_stub(dependency)
-            manifest.remove('dependencies', dependency)
+            try: 
+                pm.remove_stub(dependency)
+                manifest.remove('dependencies', dependency)
+            except Exception:
+                pass
 
     def __enter__(self) -> FlowTestRunner:
         if not self.is_env_ready():
+            self.remove_dependencies()
             self.install_dependencies()
 
         return FlowTestRunner(self.scope)

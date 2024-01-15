@@ -4,6 +4,7 @@ from malevich_space.constants import DEV_SPACE_API_URL
 from malevich_space.ops import SpaceOps
 from malevich_space.schema import SpaceSetup
 import pytest
+from malevich.interpreter.space import SpaceInterpreter
 
 from malevich.manifest import manf
 
@@ -46,7 +47,7 @@ class SpaceProvider:
 
         return ops
 
-    def assert_manifest(self):
+    def assert_manifest(self) -> SpaceSetup:
         available, _ = self.is_available()
 
         if not available:
@@ -67,7 +68,10 @@ class SpaceProvider:
             'Failed to put space password in manifest'
 
         return setup_
-
+    
+    def get_interpreter(self):
+        self.assert_manifest()
+        return SpaceInterpreter()
 
 @pytest.fixture
 def space_provider() -> SpaceProvider:

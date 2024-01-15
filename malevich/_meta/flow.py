@@ -98,6 +98,7 @@ def flow(
                     reverse_id=reverse_id,
                     name=name,
                     description=description,
+                    results=__results or []
                 )
 
             sign = signature(function)
@@ -114,7 +115,7 @@ def flow(
                             index=i,
                             name=param_values[i].name,
                             is_compressed_edge=True,
-                            compressed_nodes=b_nodes
+                            compressed_edges=b_nodes
                         )
                         i_arg._autoflow.calledby(
                             outer_tracer,
@@ -136,7 +137,7 @@ def flow(
                             index=i,
                             name=k,
                             is_compressed_edge=True,
-                            compressed_nodes=b_nodes
+                            compressed_edges=b_nodes
                         )
                         k_arg._autoflow.calledby(outer_tracer, _a)
                         _tree.prune([__hkwargs[k]])
@@ -152,6 +153,7 @@ def flow(
                     )
                     if isinstance(o, traced)
                 ]
+                assert all([o.owner.results is not None for o in outputs])
                 return outputs[0] if len(outputs) == 1 else outputs
             else:
                 return PromisedTask(results=__results, tree=t_node)

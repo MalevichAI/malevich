@@ -10,12 +10,12 @@ from .base import BaseNode
 
 
 class TreeNode(BaseNode):
-    tree: ExecutionTree[BaseNode, ArgumentLink]
+    tree: ExecutionTree[traced[BaseNode], ArgumentLink]
     results: Iterable[traced[BaseNode]] | traced[BaseNode] | None = None
     reverse_id: str
     name: str
     description: str = "Wonderful Flow!"
-    underlying_node: Optional[Any] = None
+    underlying_node: Optional['BaseNode'] = None
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -56,3 +56,6 @@ class TreeNode(BaseNode):
                     node.owner.set_sensitive_fields(results_fields[node.owner.uuid])
             else:
                 self.results.owner.set_sensitive_fields(results_fields[self.results.owner.uuid])
+
+    def __hash__(self) -> int:
+        return super().__hash__()
