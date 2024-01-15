@@ -21,7 +21,7 @@ jobs:
           do
             if [[ -f $path/Dockerfile ]];
             then
-              name="$(basename path)"
+              name="$(basename $path)"
               tag="ghcr.io/malevichai/test:$name"
               docker build $path -q -t $tag
               docker push $tag
