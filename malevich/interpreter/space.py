@@ -25,6 +25,7 @@ from malevich_space.schema.host import LoadedHostSchema
 from malevich_space.schema.schema import SchemaMetadata
 
 from malevich.models.nodes.tree import TreeNode
+from ..models.results.space.collection import SpaceCollectionResult
 
 from .._autoflow import tracer as gn
 from .._autoflow.tracer import traced
@@ -800,7 +801,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
             returned: Iterable[traced[BaseNode]] | traced[BaseNode] | None,
             *args,
             **kwargs
-        ) -> Iterable[pd.DataFrame]:
+        ) -> Iterable[SpaceCollectionResult]:
             if returned is None:
                 return None
 
@@ -816,23 +817,12 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                 alias2infid
             )
 
-            results = [
-                state.space.get_results(
-                    run_id=state.aux['run_id'],
-                    in_flow_id=i
-                ) for i in infid_
-            ]
-
-            flat_results = []
-            for r in results:
-                if isinstance(r, list):
-                    flat_results.extend(r)
-                else:
-                    flat_results.append(r)
-
             return [
-                pd.DataFrame(r.raw_json)
-                for r in flat_results
+               SpaceCollectionResult(
+                    run_id=state.aux['run_id'],
+                    in_flow_id=i,
+                    space_ops=state.space
+                ) for i in infid_
             ]
 
         return InterpretedTask(

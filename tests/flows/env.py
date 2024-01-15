@@ -8,6 +8,7 @@ from malevich.models.manifest import Dependency
 from malevich.cli import auto_use, remove
 from malevich import manifest
 from malevich._meta.flow import R as _Meta_Flow_R
+from malevich.models.results.base import BaseResult
 from ..fixtures.core_provider import CoreProvider
 from ..fixtures.space_provider import SpaceProvider
 from typing import ParamSpec, TypeVar
@@ -47,7 +48,7 @@ class FlowTestRunner:
         elif scope == TestingScope.SPACE:
             self.provider = SpaceProvider()
             
-    def full_test(self, flow: FlowFunction[_Params, _Meta_Flow_R], *args, **kwargs) -> list[pd.DataFrame]:
+    def full_test(self, flow: FlowFunction[_Params, _Meta_Flow_R], *args, **kwargs) -> list[BaseResult]:
         task = flow(*args, **kwargs)
         task.interpret(self.provider.get_interpreter())
         task.prepare()
@@ -82,15 +83,25 @@ class FlowTestEnv:
         self,
         dependencies: list[str],
         scope: TestingScope,
-        install_args: dict[str, str] = {},
+        install_args: list[dict[str, str]] or dict[str, str] = {},
     ):
         self.dependencies = dependencies
-        self.scope = scope
-        self.__with_args = ','.join([
-            f'{key}={v}'
-            for key, v in install_args.items()
-        ])
+        if isinstance(install_args, list):
+            self.__indepenent_args = True
+            self.__with_args = [
+                ','.join([
+                    f'{key}={v}'
+                    for key, v in arg_.items()
+                ]) for arg_ in install_args
+            ]
+        else:
+            self.__indepenent_args = False
+            self.__with_args = ','.join([
+                f'{key}={v}'
+                for key, v in install_args.items()
+            ])
 
+        self.scope = scope
 
     def is_env_ready(self) -> bool:
         ready_ = True
@@ -115,7 +126,11 @@ class FlowTestEnv:
         remove(self.dependencies)
         Registry().registry.clear()
         self.scope.prepare_installer()
-        auto_use(self.dependencies, self.scope.installer(), with_args=self.__with_args)
+        if self.__indepenent_args:
+            for dependency, args in zip(self.dependencies, self.__with_args):
+                auto_use([dependency], self.scope.installer(), with_args=args)
+        else:
+            auto_use(self.dependencies, self.scope.installer(), with_args=self.__with_args)
         for dependency in self.dependencies:            
             module = importlib.import_module(f'malevich.{dependency}')
             importlib.reload(module) 

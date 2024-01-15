@@ -9,6 +9,10 @@ from typing import Any, Iterable, Optional
 import malevich_coretools as core
 import pandas as pd
 
+from ..models.results.core.asset import CoreAssetResult
+
+from ..models.results.core.collection import CoreCollectionResult, CoreLocalCollectionResult
+
 from .._autoflow.tracer import traced
 from .._core.ops import (
     _assure_asset,
@@ -657,26 +661,29 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         for r in returned:
             node = r.owner
             if isinstance(node, CollectionNode):
-                results.append(node.collection.collection_data)
+                results.append(
+                    CoreLocalCollectionResult(
+                        dfs=[node.collection.collection_data]
+                    )
+                )
             elif isinstance(node, OperationNode):
-                collection_ids = [
-                    x.id for x in core.get_collections_by_group_name(
+                results.append(CoreCollectionResult(
+                    core_group_name=
                         self._result_collection_name(node.uuid) +   #group_name
                         (f'_{run_id}' if run_id else ''),           #group_name
-                        operation_id=task_id,
-                        auth=self.state.params["core_auth"],
-                        conn_url=self.state.params["core_host"],
-                    ).data
-                ]
-
-                results.extend([
-                    core.get_collection_to_df(
-                        i,
-                        auth=self.state.params["core_auth"],
-                        conn_url=self.state.params["core_host"],
-                    )
-                    for i in collection_ids
-                ])
+                    core_operation_id=task_id,
+                    auth=self.state.params["core_auth"],
+                    conn_url=self.state.params["core_host"],
+                ))
+            elif isinstance(node, AssetNode):
+                results.append(CoreAssetResult(
+                    core_group_name=
+                        self._result_collection_name(node.uuid) +   #group_name
+                        (f'_{run_id}' if run_id else ''),           #group_name
+                    core_operation_id=task_id,
+                    auth=self.state.params["core_auth"],
+                    conn_url=self.state.params["core_host"],
+                ))
 
             elif isinstance(node, TreeNode):
                 results.extend(self.get_results(

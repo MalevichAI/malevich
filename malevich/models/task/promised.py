@@ -11,6 +11,7 @@ from ...models.nodes.tree import TreeNode
 from ...models.task.base import BaseTask
 from ...models.types import FlowOutput
 from ..injections import BaseInjectable
+from ..results.base import BaseResult
 from .interpreted import InterpretedTask
 
 
@@ -75,7 +76,7 @@ class PromisedTask(BaseTask):
         # if task is not prepared
         return self.__task.stop(*args, **kwargs)
 
-    def results(self, *args, **kwargs) -> list[pd.DataFrame]:
+    def results(self, *args, **kwargs) -> list[BaseResult]:
         if not self.__task:
             raise Exception(
                 "Unable to get results of the task, that has not been interpreted. "

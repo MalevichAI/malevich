@@ -61,8 +61,8 @@ def test_simple_subflow_core(
             'image_auth_password': password,
         }
     ) as runner:
-        op_result = runner.full_test(return_op)
-        subflow_result = runner.full_test(return_subflow)
+        op_result = runner.full_test(return_op)[0].get()[0]
+        subflow_result = runner.full_test(return_subflow)[0].get()[0]
         
         assert 'D' in op_result[0].columns, "Column 'D' is not in the DataFrame"
         assert 'AA' in op_result[0].columns, "Column 'AA' is not in the DataFrame"
@@ -85,8 +85,8 @@ def test_simple_subflow_space(
         dependencies=[package], 
         scope=TestingScope.SPACE, 
     ) as runner:
-        op_result = runner.full_test(return_op)
-        subflow_result = runner.full_test(return_subflow)
+        op_result = runner.full_test(return_op)[0].get()[0]
+        subflow_result = runner.full_test(return_subflow)[0].get()[0]
         
         assert 'D' in op_result[0].columns, "Column 'D' is not in the DataFrame"
         assert 'AA' in op_result[0].columns, "Column 'AA' is not in the DataFrame"

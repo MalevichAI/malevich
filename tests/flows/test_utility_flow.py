@@ -1,11 +1,5 @@
 from malevich.cli import app
 from malevich import flow, collection, config
-<<<<<<< Updated upstream
-=======
-import importlib, os
-from ..fixtures.ghcr_package import ghcr_package
-from ..fixtures.package import package
->>>>>>> Stashed changes
 
 from ..fixtures.ghcr_package import ghcr_package
 from ..fixtures.package import package
@@ -44,7 +38,7 @@ def test_utility(
             'image_auth_password': password,
         }
     ) as runner:
-        result = runner.full_test(utility_flow)
+        result: list[pd.DataFrame] = runner.full_test(utility_flow)[0].get()
         assert 'D' in result[0].columns, "Column 'D' is not in the DataFrame"
         assert 9 in result[0]['D'].to_list()
         
@@ -53,7 +47,7 @@ def test_utility(
         dependencies=[package], 
         scope=TestingScope.SPACE, 
     ) as runner:
-        result = runner.full_test(utility_flow)
+        result: list[pd.DataFrame] = runner.full_test(utility_flow)[0].get()
 
         assert 'D' in result[0].columns, "Column 'D' is not in the DataFrame"
         assert 9 in result[0]['D'].to_list()

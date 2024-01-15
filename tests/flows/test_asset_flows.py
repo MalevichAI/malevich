@@ -45,7 +45,7 @@ def test_asset_flow(
             f.write('Hello from Malevich!')
 
         df1, df2, _ = runner.full_test(test_asset_flow_file)
-        assert df1.equals(df2), 'DataFrames are not equal'
+        assert df1.get()[0].equals(df2.get()[0]), 'DataFrames are not equal'
         
         os.remove(t_file.name)
         shutil.rmtree(t_dir.name)

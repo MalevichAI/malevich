@@ -54,7 +54,7 @@ def test_deep_flow(
             'image_auth_password': password,
         }
     ) as runner:
-        result = runner.full_test(deep_flow)
+        result = runner.full_test(deep_flow)[0].get()[0]
 
         assert 'D' in result[0].columns, "Column 'D' is not in the DataFrame"
         assert 'AA' in result[0].columns, "Column 'AA' is not in the DataFrame"
@@ -64,7 +64,7 @@ def test_deep_flow(
         dependencies=[package], 
         scope=TestingScope.SPACE, 
     ) as runner:
-        result = runner.full_test(deep_flow)
+        result = runner.full_test(deep_flow)[0].get()[0]
 
         assert 'D' in result[0].columns, "Column 'D' is not in the DataFrame"
         assert 'AA' in result[0].columns, "Column 'AA' is not in the DataFrame"
