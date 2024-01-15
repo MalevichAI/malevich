@@ -23,6 +23,7 @@ jobs:
             then
               name="$(basename $path)"
               tag="ghcr.io/malevichai/test:$name"
+              echo "Building $name from $path"
               docker build $path -q -t $tag
               docker push $tag
             fi
