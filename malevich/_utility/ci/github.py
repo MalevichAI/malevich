@@ -4,7 +4,7 @@ import tempfile
 
 import requests
 from git import Repo
-from github import Github, PublicKey
+from github import PublicKey
 
 from .base import CIOps
 

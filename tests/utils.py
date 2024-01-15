@@ -1,8 +1,9 @@
 import importlib
 import os
-from malevich.manifest import manf
-from malevich._utility.registry import Registry
 import shutil
+
+from malevich._utility.registry import Registry
+from malevich.manifest import manf
 
 
 def assert_installed_package(package_name: str, installer: str) -> tuple[str, str]:
@@ -32,7 +33,7 @@ def assert_installed_package(package_name: str, installer: str) -> tuple[str, st
         'installer'
     ) == installer, 'Wrong installer'
 
-    with open(stub_path, 'r') as stub_file:
+    with open(stub_path) as stub_file:
         stub = stub_file.read()
 
         assert '__checksum' in stub, 'Checksum not found in stub'

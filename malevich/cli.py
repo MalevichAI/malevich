@@ -30,7 +30,6 @@ from .install.image import ImageInstaller
 from .install.installer import Installer
 from .install.space import SpaceInstaller
 from .manifest import ManifestManager
-from .models.manifest import Dependency
 
 logging.getLogger("gql.transport.requests").setLevel(logging.ERROR)
 app = typer.Typer(help=APP_HELP, rich_markup_mode="rich")
@@ -152,13 +151,11 @@ def auto_use(
             exit(-1)
 
 
-def _restore(installer: Installer, depedency: Dependency, progress: Progress) -> None:
-    task = None
+def _restore(installer: Installer, depedency: dict, progress: Progress, task) -> None:
     try:
         package_id = depedency["package_id"]
         parsed = installer.construct_dependency(depedency)
-        task = progress.add_task(f"Package [green]{package_id}[/green] with "
-                                 f"[yellow]{installer.name}[/yellow]", total=1)
+
         installer.restore(parsed)
         progress.update(
             task,
@@ -184,27 +181,32 @@ def restore() -> None:
     ) as progress, concurrent.futures.ThreadPoolExecutor() as executor:
         futures = []
         for record in manf.query("dependencies"):
-            key = [*record.keys()][0]
+            key = next(iter(record.keys()))
             dependency = record[key]
             installed_by = dependency["installer"]
+            task = progress.add_task(
+                f"Package [green]{dependency['package_id']}[/green] with "
+                f"[yellow]{installed_by}[/yellow]",
+                total=1
+            )
             if installed_by == "image":
                 futures.append(
                     executor.submit(_restore, image_installer,
-                                    dependency, progress)
+                                    dependency, progress, task)
                 )
             elif installed_by == 'space':
                 space_installer = SpaceInstaller()
                 futures.append(
                     executor.submit(_restore, space_installer,
-                                    dependency, progress)
+                                    dependency, progress, task)
                 )
-        for future in concurrent.futures.as_completed(futures):
-            result = future.result()
-            if result:
-                progress.stop()
-                rich.print(f"[red]Failed to restore package {result[1]}[/red]")
-                rich.print(result[0])
-                exit(-1)
+    for future in concurrent.futures.as_completed(futures):
+        result = future.result()
+        if result:
+            progress.stop()
+            rich.print(f"[red]Failed to restore package {result[1]}[/red]")
+            rich.print(result[0])
+            exit(-1)
 
 
 @space_app.command(help=space["init --help"])
@@ -282,7 +284,7 @@ def login(
 
     try:
         SpaceOps(space_setup=setup)
-    except Exception as e:
+    except Exception:
         rich.print(
             f"\n\n[red]Failed to connect to {space_url}. "
             "Please check your credentials and try again.[/red]"

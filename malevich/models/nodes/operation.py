@@ -1,10 +1,13 @@
 import json
+from typing import Optional
 
 from .base import BaseNode
 
 
 class OperationNode(BaseNode):
     operation_id: str
+    processor_id: Optional[str] = None
+    package_id: Optional[str] = None
     config: dict = {}
 
     def get_senstivite_fields(self) -> dict[str, str]:
@@ -15,8 +18,6 @@ class OperationNode(BaseNode):
         if config is None:
             return
         self.config = json.loads(config)
-<<<<<<< Updated upstream
-=======
 
     def short_info(self) -> str:
         p_ = ""
@@ -28,4 +29,3 @@ class OperationNode(BaseNode):
 
     def __hash__(self) -> int:
         return super().__hash__()
->>>>>>> Stashed changes

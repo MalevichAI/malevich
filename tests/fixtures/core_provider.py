@@ -25,6 +25,7 @@ class CoreProvider:
                 mct.update_core_credentials(None, None)
                 mct.set_host_port(endpoint)
                 mct.ping()
+                mct.set_host_port(DEFAULT_CORE_HOST)
                 return True, endpoint
             except Exception as e:
                 excps_.append((endpoint, e,))

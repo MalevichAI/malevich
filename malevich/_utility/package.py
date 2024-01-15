@@ -8,6 +8,7 @@ from .singleton import SingletonMeta
 class PackageManager(metaclass=SingletonMeta):
     builtins = [
         "_autoflow",
+        "_core",
         "_meta",
         "_utility",
         "commands",
@@ -15,6 +16,7 @@ class PackageManager(metaclass=SingletonMeta):
         "interpreter",
         "models",
         "square",
+        "runners"
     ]
 
     def __init__(self) -> None:

@@ -66,12 +66,10 @@ def _log(
         *args,
     )
 
-def _name(base: str):
-    cnt = defaultdict(lambda: 1)
-    while True:
-        yield cnt[base]
-        cnt[base] += 1
-
+names_ = defaultdict(lambda: 0)
+def _name(base: str) -> int:
+    names_[base] += 1
+    return names_[base]
 
 
 class NodeType(Enum):
@@ -515,7 +513,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
             )
 
         state.components[node.owner.uuid] = comp
-        state.components_alias[node.owner.uuid] = node.owner.alias or f'{alias_base} #{next(_name(alias_base))}'  # noqa: E501
+        state.components_alias[node.owner.uuid] = node.owner.alias or f'{alias_base} #{_name(alias_base)}'  # noqa: E501
         node.owner.alias = state.components_alias[node.owner.uuid]
         return state
 
@@ -802,7 +800,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
             returned: Iterable[traced[BaseNode]] | traced[BaseNode] | None,
             *args,
             **kwargs
-        ) -> Iterable[pd.DataFrame] | pd.DataFrame:
+        ) -> Iterable[pd.DataFrame]:
             if returned is None:
                 return None
 
