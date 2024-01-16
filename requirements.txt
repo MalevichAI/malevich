@@ -12,4 +12,4 @@ boto3
 asyncio
 aiohttp
 jsonpickle
-dotenv
+python-dotenv
