@@ -2,8 +2,6 @@
 import os
 import pickle
 
-import pandas as pd
-
 from ...interpreter.abstract import Interpreter
 from ...interpreter.space import SpaceInterpreter
 from ...manifest import ManifestManager

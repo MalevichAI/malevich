@@ -25,7 +25,6 @@ from malevich_space.schema.host import LoadedHostSchema
 from malevich_space.schema.schema import SchemaMetadata
 
 from malevich.models.nodes.tree import TreeNode
-from ..models.results.space.collection import SpaceCollectionResult
 
 from .._autoflow import tracer as gn
 from .._autoflow.tracer import traced
@@ -42,6 +41,7 @@ from ..models.nodes.base import BaseNode
 from ..models.nodes.collection import CollectionNode
 from ..models.nodes.operation import OperationNode
 from ..models.preferences import VerbosityLevel
+from ..models.results.space.collection import SpaceCollectionResult
 from ..models.task.interpreted import InterpretedTask
 from ..models.types import TracedNode
 
@@ -581,7 +581,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                     ) for x, y in inter_flow_map.items()
                 ]
             )
-        elif isinstance(caller.owner, TreeNode) and isinstance(callee.owner, TreeNode):  # noqa: E501
+        elif isinstance(caller.owner, TreeNode) and isinstance(callee.owner, TreeNode):
             left_op = caller.owner.underlying_node
             right_edges = link.compressed_nodes
             for rel, right_node in right_edges:
@@ -695,7 +695,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
         self,
         returned: list[traced[BaseNode]],
         alias2infid: dict[str, str]
-    ):
+    ) -> tuple[list[str], list[str]]:
         results_ = []
         infid_ = []
         for x in returned:
