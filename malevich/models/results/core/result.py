@@ -193,3 +193,14 @@ class CoreResult(BaseResult[CoreResultPayload]):
                 ))
 
         return results
+
+
+class CoreLocalDFResult(BaseResult[pd.DataFrame]):
+    def __init__(
+       self,
+       df: pd.DataFrame,
+    ) -> None:
+        self._df = df
+
+    def get(self) -> pd.DataFrame:
+        return self._df
