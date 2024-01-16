@@ -32,10 +32,7 @@ from ..models.nodes.asset import AssetNode
 from ..models.nodes.tree import TreeNode
 from ..models.preferences import VerbosityLevel
 from ..models.registry.core_entry import CoreRegistryEntry
-from ..models.results.core.collection import (
-    CoreLocalCollectionResult,
-)
-from ..models.results.core.result import CoreResult
+from ..models.results.core.result import CoreLocalDFResult, CoreResult
 from ..models.task.interpreted import InterpretedTask
 
 cache = CacheManager()
@@ -662,7 +659,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
             node = r.owner
             if isinstance(node, CollectionNode):
                 results.append(
-                    CoreLocalCollectionResult(
+                    CoreLocalDFResult(
                         dfs=[node.collection.collection_data]
                     )
                 )
