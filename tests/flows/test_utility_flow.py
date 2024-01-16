@@ -39,8 +39,8 @@ def test_utility(
         }
     ) as runner:
         result: list[pd.DataFrame] = runner.full_test(utility_flow)[0].get()
-        assert 'D' in result[0].columns, "Column 'D' is not in the DataFrame"
-        assert 9 in result[0]['D'].to_list()
+        assert 'D' in result[0].data.columns, "Column 'D' is not in the DataFrame"
+        assert 9 in result[0].data['D'].to_list()
         
     
     with FlowTestEnv(

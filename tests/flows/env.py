@@ -47,12 +47,18 @@ class FlowTestRunner:
             self.provider = CoreProvider()
         elif scope == TestingScope.SPACE:
             self.provider = SpaceProvider()
+
+        self.scope = scope
             
     def full_test(self, flow: FlowFunction[_Params, _Meta_Flow_R], *args, **kwargs) -> list[BaseResult]:
         task = flow(*args, **kwargs)
         task.interpret(self.provider.get_interpreter())
-        task.prepare()
-        task.run()
+        if self.scope == TestingScope.SPACE:    
+            task.prepare()
+            task.run()
+        else:
+            task.prepare(with_logs=True, debug_mode=True)
+            task.run(with_logs=True, debug_mode=True, profile_mode='all')
         task.stop()
         return task.results()
     

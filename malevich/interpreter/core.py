@@ -9,10 +9,6 @@ from typing import Any, Iterable, Optional
 import malevich_coretools as core
 import pandas as pd
 
-from ..models.results.core.asset import CoreAssetResult
-
-from ..models.results.core.collection import CoreCollectionResult, CoreLocalCollectionResult
-
 from .._autoflow.tracer import traced
 from .._core.ops import (
     _assure_asset,
@@ -36,6 +32,10 @@ from ..models.nodes.asset import AssetNode
 from ..models.nodes.tree import TreeNode
 from ..models.preferences import VerbosityLevel
 from ..models.registry.core_entry import CoreRegistryEntry
+from ..models.results.core.collection import (
+    CoreLocalCollectionResult,
+)
+from ..models.results.core.result import CoreResult
 from ..models.task.interpreted import InterpretedTask
 
 cache = CacheManager()
@@ -667,7 +667,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                     )
                 )
             elif isinstance(node, OperationNode):
-                results.append(CoreCollectionResult(
+                results.append(CoreResult(
                     core_group_name=
                         self._result_collection_name(node.uuid) +   #group_name
                         (f'_{run_id}' if run_id else ''),           #group_name
@@ -676,7 +676,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                     conn_url=self.state.params["core_host"],
                 ))
             elif isinstance(node, AssetNode):
-                results.append(CoreAssetResult(
+                results.append(CoreResult(
                     core_group_name=
                         self._result_collection_name(node.uuid) +   #group_name
                         (f'_{run_id}' if run_id else ''),           #group_name

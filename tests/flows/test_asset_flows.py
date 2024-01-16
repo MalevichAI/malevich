@@ -13,10 +13,11 @@ def test_asset_flow_file():
     from malevich.test_asset import print_asset, return_asset, df_asset
     file = asset.file(t_file.name)
     
-    asset_app = print_asset(return_asset(file))
-    df_app = df_asset(return_asset(file))
+    asset_ = return_asset(file)
+    asset_app = print_asset(asset_)
+    df_app = df_asset(asset_)
     
-    return asset_app, df_app, merge(asset_app, df_app, config={'how': 'inner', 'on': 'index'})
+    return asset_app, df_app, asset_, merge(asset_app, df_app, config={'how': 'inner', 'on': 'index'})
 
 
 def test_asset_flow(
@@ -41,11 +42,12 @@ def test_asset_flow(
         ],
         scope=TestingScope.CORE
     ) as runner:
-        with open(t_file.name, 'w') as f:
-            f.write('Hello from Malevich!')
+        with open(t_file.name, 'wb') as f:
+            f.write(b'Hello from Malevich!')
 
-        df1, df2, _ = runner.full_test(test_asset_flow_file)
-        assert df1.get()[0].equals(df2.get()[0]), 'DataFrames are not equal'
-        
+        df1, df2, asset_, _ = runner.full_test(test_asset_flow_file)
+        assert df1.get()[0].data.equals(df2.get()[0].data), 'DataFrames are not equal'
+        data_ = asset_.get()[0].data
+        assert data_ == b'Hello from Malevich!', f'Asset content is not equal: {data_}'
         os.remove(t_file.name)
         shutil.rmtree(t_dir.name)

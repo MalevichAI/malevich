@@ -499,7 +499,6 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                 )
 
                 state.children_states[node.owner.uuid] = child_state
-                print(node.owner.tree.tree, child_state.components, child_state.components_alias)
             else:
                 child_state = state.children_states[node.owner.uuid]
                 comp = ComponentSchema(
@@ -598,11 +597,11 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                             if isinstance(right_node.owner, OperationNode)
                             else None
                         ),
-                        alias=left_op.alias,
+                        alias=state.components_alias[caller.owner.uuid],
                         order=rel.index,
                         terminals=[Terminal(
                             src=state.children_states[caller.owner.uuid].components_alias[left_op.uuid],
-                            target=state.children_states[callee.owner.uuid].components_alias[right_node.owner.uuid]  # noqa: E501
+                            target=state.children_states[callee.owner.uuid].components_alias[right_node.owner.uuid]
                         )]
                     )
                 )

@@ -61,18 +61,18 @@ def test_simple_subflow_core(
             'image_auth_password': password,
         }
     ) as runner:
-        op_result = runner.full_test(return_op)[0].get()[0]
-        subflow_result = runner.full_test(return_subflow)[0].get()[0]
+        op_result = runner.full_test(return_op)[0].get()
+        subflow_result = runner.full_test(return_subflow)[0].get()
         
-        assert 'D' in op_result[0].columns, "Column 'D' is not in the DataFrame"
-        assert 'AA' in op_result[0].columns, "Column 'AA' is not in the DataFrame"
-        assert 9 in op_result[0]['D'].to_list()
+        assert 'D' in op_result[0].data.columns, "Column 'D' is not in the DataFrame"
+        assert 'AA' in op_result[0].data.columns, "Column 'AA' is not in the DataFrame"
+        assert 9 in op_result[0].data['D'].to_list()
         
-        assert 'D' in subflow_result[0].columns, "Column 'D' is not in the DataFrame"
-        assert 'AA' in subflow_result[0].columns, "Column 'AA' is not in the DataFrame"
-        assert 9 in subflow_result[0]['D'].to_list()
+        assert 'D' in subflow_result[0].data.columns, "Column 'D' is not in the DataFrame"
+        assert 'AA' in subflow_result[0].data.columns, "Column 'AA' is not in the DataFrame"
+        assert 9 in subflow_result[0].data['D'].to_list()
         
-        assert all(op_result[0].compare(subflow_result[0]).all().to_list()), "Results are not equal"
+        assert all(op_result[0].data.compare(subflow_result[0].data).all().to_list()), "Results are not equal"
 
 
 def test_simple_subflow_space(
@@ -85,8 +85,8 @@ def test_simple_subflow_space(
         dependencies=[package], 
         scope=TestingScope.SPACE, 
     ) as runner:
-        op_result = runner.full_test(return_op)[0].get()[0]
-        subflow_result = runner.full_test(return_subflow)[0].get()[0]
+        op_result = runner.full_test(return_op)[0].get()
+        subflow_result = runner.full_test(return_subflow)[0].get()
         
         assert 'D' in op_result[0].columns, "Column 'D' is not in the DataFrame"
         assert 'AA' in op_result[0].columns, "Column 'AA' is not in the DataFrame"

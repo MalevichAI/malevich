@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 from ..injections import BaseInjectable
+from ..results.base import BaseResult
 from ..types import FlowOutput
 
 
@@ -18,7 +19,7 @@ class BaseTask(ABC):
         return
 
     @abstractmethod
-    def results(self):  # noqa: ANN201
+    def results(self) -> list[BaseResult]:
         return
 
     @abstractmethod
@@ -35,7 +36,7 @@ class BaseTask(ABC):
     def configure(self, operation: str, **kwargs) -> None:
         return
 
-    def __call__(self):  # noqa: ANN204
+    def __call__(self) -> list[BaseResult]:
         self.prepare()
         self.run()
         self.stop()
