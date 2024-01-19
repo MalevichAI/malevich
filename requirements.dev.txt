@@ -25,3 +25,4 @@ sphinxcontrib-jsmath
 sphinxcontrib-mermaid
 sphinxcontrib-qthelp
 sphinxcontrib-serializinghtml
+kafka-python
