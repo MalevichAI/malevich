@@ -9,3 +9,4 @@ malevich.yaml
 **/malevich.yaml
 **/malevich.secrets.yaml
 .env
+build-docs
