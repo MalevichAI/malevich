@@ -16,3 +16,12 @@ asyncio
 aiohttp
 jsonpickle
 python-dotenv
+sphinx-rtd-theme
+sphinxcontrib-applehelp
+sphinxcontrib-devhelp
+sphinxcontrib-htmlhelp
+sphinxcontrib-jquery
+sphinxcontrib-jsmath
+sphinxcontrib-mermaid
+sphinxcontrib-qthelp
+sphinxcontrib-serializinghtml
