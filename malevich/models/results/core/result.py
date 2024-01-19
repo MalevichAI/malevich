@@ -1,17 +1,29 @@
+import warnings
 from functools import cache
 from typing import Optional
 
 import malevich_coretools as core
 import pandas as pd
 
+from ....constants import DEFAULT_CORE_HOST
+from ...collection import Collection
 from ..base import BaseResult
 
 
 class CoreResultPayload:
-    """An actual result information
+    """An actual information that is saved as result
 
-    DO NOT USE THIS CLASS DIRECTLY
-    """
+    A payload can be either asset or collection. If it is an asset,
+    it can be a single file or a composite asset (a directory with
+    multiple files). It represents one of results of a single operation.
+
+    Payload follows the following convention:
+
+    - If :meth:`is_asset` is True, then :attr:`data` is :class:`bytes` object
+    - If :meth:`is_collection` is True, then :attr:`data` is :class:`DataFrame` object
+    - If :meth:`is_composite_asset` is True, then :attr:`data` is a dict of :class:`bytes` objects
+
+    """  # noqa: E501
 
     def __init__(
         self,
@@ -34,12 +46,27 @@ class CoreResultPayload:
         self._paths = paths or []
 
     def is_asset(self) -> bool:
+        """Checks if the result is an asset
+
+        Returns:
+            bool: True if the result is an asset
+        """
         return self._is_asset
 
     def is_composite_asset(self) -> bool:
+        """Checks if the result is a composite asset
+
+        Returns:
+            bool: True if the result is a composite asset
+        """
         return self._is_composite_asset
 
     def is_collection(self) -> bool:
+        """Checks if the result is a collection
+
+        Returns:
+            bool: True if the result is a collection
+        """
         return self._is_collection
 
     def count_objects(self) -> int:
@@ -79,8 +106,50 @@ class CoreResultPayload:
             f"paths={self._paths})"
         )
 
+
 class CoreResult(BaseResult[CoreResultPayload]):
-    """A result of operation that returns a collection"""
+    """A representation of a result of execution of a flow on Malevich Core
+
+    Represents a single returned result, which can contain a collection,
+    a list of collections, a single asset or a list of assets.
+
+    To be precise, for the function:
+
+    .. code-block:: python
+
+            from malevich import flow, collection, CoreInterpreter
+            from malevich.etl import process
+            from malevich.utility import merge
+
+            @flow()
+            def data_process():
+                data = collection('my_fancy_smth', df=pd.DataFrame({'a': [1, 2, 3]}))
+                processed = process(data)
+                output = merge(
+                    processed,
+                    data,
+                    config={'how': 'inner', 'on': 'index'}
+                )
+                return output, processed
+
+            task = data_process()
+            task.interpret(CoreInterpreter())
+            # list of CoreResult objects
+            results = task()
+            # single CoreResult object
+            output = results[0]
+            # list of CoreResultPayload objects
+            print(results[0].get())
+
+    The `output` variable will be a single CoreResult object, which contains
+    a single CoreResultPayload object, which contains a single data frame
+    (the result of the merge operation). The `processed` variable will be
+    a single CoreResult object, which contains a single CoreResultPayload
+    object, which contains a single collection (the result of the process
+    operation).
+
+    **Note**: The class is not intended to be constructed by user.
+    """
 
     @staticmethod
     def is_asset(data: pd.DataFrame) -> bool:
@@ -102,6 +171,11 @@ class CoreResult(BaseResult[CoreResultPayload]):
         self._auth = auth
         self.core_operation_id = core_operation_id
 
+    @property
+    def num_elements(self) -> int:
+        """The number of elements (assets/collections) in the result"""
+        return super().num_elements
+
     def __str__(self) -> str:
         return f'CoreResult(core_operation_id="{self.core_operation_id}")'
 
@@ -110,6 +184,24 @@ class CoreResult(BaseResult[CoreResultPayload]):
 
     @cache
     def get(self) -> list[CoreResultPayload]:
+        """Retrieves results from the Core
+
+        Returns a list of CoreResultPayload objects, each of which
+        contains an output from a single operation. The output might
+        be a collection, a list of collection, a single file (asset)
+        or a list of files (composite asset).
+
+        If you wish to get more specific results, use the following methods:
+
+        - :meth:`get_df` to get a single data frame (if result is a collection)
+        - :meth:`get_dfs` to get a list of data frames (if result is a collection)
+        - :meth:`get_binary` to get a single binary (if result is an asset)
+        - :meth:`get_binary_dir` to get a dict of binaries (if result is a composite asset)
+
+        Returns:
+            list[CoreResultPayload]: The list of results
+
+        """  # noqa: E501
         results_: list[pd.DataFrame] = []
         collection_ids = [
             x.id for x in core.get_collections_by_group_name(
@@ -194,13 +286,174 @@ class CoreResult(BaseResult[CoreResultPayload]):
 
         return results
 
+    @cache
+    def get_df(self) -> pd.DataFrame:
+        """Converts the result to a single data frame
+
+        It only works if the result is a single collection,
+        otherwise it raises an error. Check the number of
+        elements using :attr:`num_elements` property and use only if
+        it is equal to 1
+
+        Returns:
+            DataFrame: The result as a data frame
+
+        Raises:
+            NotImplementedError: If the result is not a single collection
+        """
+        if result := self.get():
+            if len(result) == 1:
+                if result[0].is_collection():
+                    return result[0].data
+                elif result[0].is_asset():
+                    return NotImplementedError(
+                        "Cannot return a single DataFrame from an asset. "
+                        "Please use `get_binary` or `get_binary_dir` instead"
+                    )
+            else:
+                return NotImplementedError(
+                    "Cannot return a single DataFrame from multiple results. "
+                    "Please use `get_dfs` instead and check the number of results "
+                    "using `num_elements` property"
+                )
+        else:
+            warnings.warn(f"No results found for {self.core_group_name}")
+            return pd.DataFrame()
+
+    @cache
+    def get_dfs(self) -> list[pd.DataFrame]:
+        """Converts the result to a list of data frames
+
+        If some of the results are assets, they are ignored
+        in the output.
+
+        Returns:
+            list[:class:`DataFrame`]: The result as a list of data frames
+        """
+        if result := self.get():
+            results_ = []
+            for res in result:
+                if res.is_collection():
+                    results_.append(res.data)
+                elif res.is_asset():
+                    continue
+            return results_
+        else:
+            return []
+
+    @cache
+    def get_binary(self) -> bytes:
+        """Retrieves asset binary data, if the result is file asset
+
+        It only works if the result is a single file returned
+        as asset. Otherwise it raises an error. Check the number of
+        elements using :attr:`num_elements` property and use only if
+        it is equal to 1
+
+        Returns:
+            bytes: The binary data of the asset
+
+        Raises:
+            NotImplementedError: If the result is not a single asset
+        """
+        if result := self.get():
+            if len(result) == 1:
+                if result[0].is_collection():
+                    raise NotImplementedError(
+                        "Cannot return a single binary from a collection. "
+                        "Please use `get_df` or `get_dfs` instead"
+                    )
+                elif result[0].is_asset():
+                    return result[0].data
+            else:
+                return NotImplementedError(
+                    "Cannot return a single binary from multiple results. "
+                    "Please use `get_binary_dir` instead and check the number of results "
+                    "using `num_elements` property"
+                )
+        else:
+            warnings.warn(f"No results found for {self.core_group_name}")
+            return b""
+
+    @cache
+    def get_binary_dir(self) -> dict[str, bytes]:
+        """Retrieves files from assets
+
+        Non-assets are ignored in the output
+
+        Returns:
+            dict[str, bytes]: Dict of file names and their binary data
+        """
+        if result := self.get():
+            results_ = {}
+            for res in result:
+                if res.is_collection():
+                    raise NotImplementedError(
+                        "Cannot return a binary directory from a collection. "
+                        "Please use `get_df` or `get_dfs` instead"
+                    )
+                elif res.is_asset():
+                    results_.update(res.data)
+            return results_
+        else:
+            warnings.warn(f"No results found for {self.core_group_name}")
+            return {}
+
+
 
 class CoreLocalDFResult(BaseResult[pd.DataFrame]):
-    def __init__(
-       self,
-       df: pd.DataFrame,
-    ) -> None:
-        self._df = df
+    """A specification of :func:`collection` as a result
 
-    def get(self) -> pd.DataFrame:
-        return self._df
+    This class is used to wrap a collection object as result.
+    It simply stores collection object as a DataFrame and
+    returns it when :meth:`get` method is called.
+    """
+
+    def __init__(
+        self,
+        coll: Collection,
+        auth: core.AUTH,
+        conn_url: str = DEFAULT_CORE_HOST,
+    ) -> None:
+        self._coll = coll
+        self._auth = auth
+        self._conn_url = conn_url
+
+    def get(self) -> pd.DataFrame | None:
+        """Simply extracts saved data frame
+
+        Returns:
+            :class:`DataFrame`: Saved data frame
+        """
+        if self._coll.collection_data:
+            return self._coll.collection_data
+
+        # NOTE: Maybe it is better to try
+        # to fetch collection from Core?
+
+        # try:
+        #     ids = core.get_collections_by_name(
+        #         self._coll.magic(),
+        #         auth=self._auth,
+        #         conn_url=self._conn_url,
+        #     ).ownIds
+
+        #     if len(ids) == 1:
+        #         return core.get_collection_to_df(
+        #             ids[0],
+        #             auth=self._auth,
+        #             conn_url=self._conn_url,
+        #         )
+        #     else:
+        #         return [
+        #             core.get_collection_to_df(
+        #                 i,
+        #                 auth=self._auth,
+        #                 conn_url=self._conn_url,
+        #             )
+        #             for i in ids
+
+        #         ]
+        # except Exception as _:
+        #     return None
+
