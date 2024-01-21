@@ -170,7 +170,7 @@ class Context:
 
         """
 
-        def get_keys(local: bool = False, all_apps: bool = False) -> List[str]:
+        def get_keys(self, local: bool = False, all_apps: bool = False) -> List[str]:
             """
             Get keys from local mount or remote object storage.
 
