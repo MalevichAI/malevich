@@ -523,7 +523,7 @@ class Context:
                 Defaults to False.
             path_prefix (str, optional): 
                 Path prefix. 
-                Defaults to `APP_DIR <#malevich.square.APP_DIR>`_.
+                Defaults to `APP_DIR`.
             force (bool, optional): 
                 Whether to overwrite the file or directory if it already exists. 
                 Defaults to False.
@@ -553,7 +553,7 @@ class Context:
                 Defaults to False.
             path_prefix (str, optional): 
                 Path prefix. 
-                Defaults to :code:`malevich.square.APP_DIR`.
+                Defaults to `APP_DIR`.
             force (bool, optional): 
                 Whether to overwrite the file or directory if it already exists. 
                 Defaults to False.
