@@ -20,6 +20,20 @@ def input_true(id: Optional[str] = None, collection_from: Optional[str] = None, 
 
 
 def processor(id: Optional[str] = None, finish_msg: Optional[str] = None, drop_internal: bool = True, get_scale_part_all: bool = False):    # noqa: ANN201, E501
+    """Denotes a processor of the app.
+    
+    Processors are core logical units of the app. To
+    understand processors more, see `What is Processor? <../Apps/What_is_Processor.html>`_.
+    
+    Args:
+        id: The id of the processor. If not provided, the name of the function will be used.
+        finish_msg: The message to be displayed when the processor finishes.
+        drop_internal: Whether to drop the internal collections after the processor finishes.
+        get_scale_part_all: Whether to get the scale part of the input collection.
+        
+    Returns:
+        The decorated function.
+    """
     def wrapper(fun: Callable) -> Callable:
         return fun
     return wrapper

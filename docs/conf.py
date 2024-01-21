@@ -46,3 +46,4 @@ html_css_files = [
     'style.css',
 ]
 mermaid_verbose = True
+autodoc_member_order = 'bysource'
