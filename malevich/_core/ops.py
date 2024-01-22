@@ -249,15 +249,22 @@ def _assure_asset(
             auth=auth,
             conn_url=conn_url,
         )
-    except Exception as _:
-        _upload_asset(asset, auth, conn_url)
-        return
-
-    if asset.is_composite:
-        for f_ in asset.real_path:
-            if os.path.basename(f_) not in objs.files:
-                _upload_asset(asset, auth, conn_url)
-                break
-    else:
-        if asset.core_path not in objs.files:
+    except Exception as e:
+        if asset.real_path is not None:
             _upload_asset(asset, auth, conn_url)
+            return
+        else:
+            raise Exception(
+                f"Asset {asset.core_path} is not found in Core. Cannot "
+                "upload it because real_path is not specified."
+            ) from e
+
+    if asset.real_path is not None:
+        if asset.is_composite:
+            for f_ in asset.real_path:
+                if os.path.basename(f_) not in objs.files:
+                    _upload_asset(asset, auth, conn_url)
+                    break
+        else:
+            if asset.core_path not in objs.files:
+                _upload_asset(asset, auth, conn_url)
