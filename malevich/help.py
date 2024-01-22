@@ -81,3 +81,6 @@ ci = {
     '--help': """Setup CI/CD pipeline for your repository""",
 }
 
+list_ = {
+    '--help': """List all installed package stubs."""
+}
