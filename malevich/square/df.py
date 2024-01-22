@@ -99,66 +99,6 @@ class DFS(Generic[Unpack[Schemes]]):
     output of processors that return multiple data frames. 
     
     Each of the elements of DFS is also a :class:`DF` or :class:`DFS`.
-
-    Usage
-    -----
-    
-    DFS is primarily used to denote types of arguments of processors. There
-    are couple of cases to consider:
-    
-    1. Explicit number of inputs
-    ============================
-    
-    Once you know the number of inputs, and their schemes, you can use DFS
-    in the following way:
-    
-    .. code-block:: python
-    
-        from typing import Any
-        from malevich.square import DFS, processor
-        
-        @processor()
-        def my_processor(dfs: DFS["users", Any]):
-            ...
-            
-    Here, we have one input argument (from either collection or previous app) that
-    consists of two data frames. The first data frame has scheme "users",
-    and the second data frame has an arbitrary scheme.
-    
-    2. Variable number of inputs
-    ============================
-    
-    You may also assume an unbouded number of inputs. In this case, you
-    should use :class:`malevich.square.jls.M` together with DFS:
-    
-    .. code-block:: python
-    
-        from typing import Any
-        from malevich.square import DFS, M, processor
-        
-        @processor()
-        def process_tables(dfs: DFS[M["sql_tables"]]):
-            ...
-            
-        @processor()
-        def process_user_data(dfs: DFS["users", M[Any]]):
-            ...
-            
-    Here, we have two processors. The first one accepts any number of data
-    frames with scheme "sql_tables". The second one accepts one data frame
-    with scheme "users", and any number of data frames with arbitrary schemes
-    as one argument.
-    
-    .. note::
-    
-        When iterating over argument of type :code:`DFS[M["sql_tables"]]`, it will
-        contain exactly one element of type DFS, which will consist of a number
-        of data frames with scheme "sql_tables". 
-        
-        When iterating over argument of type :code:`DFS["users", M[Any]]`,
-        the first element will be of type DF, and the second element will be
-        of type DFS, consisting of data frames with arbitrary schemes.
-    
     """
     def __init__(self) -> None:
         """set dfs with init"""
