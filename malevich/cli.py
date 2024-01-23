@@ -11,6 +11,7 @@ from .commands.flow import flow as flow_app
 from .commands.install import auto_use
 from .commands.list import list_packages
 from .commands.manifest import app as manifest_app
+from .commands.new import new
 from .commands.prefs import prefs as prefs
 from .commands.remove import remove
 from .commands.restore import restore
@@ -62,6 +63,16 @@ app.registered_commands.append(
         name="list",
         help=help.list_["--help"],
         callback=list_packages,
+        cls=typer.core.TyperCommand
+    )
+)
+
+# malevich list
+app.registered_commands.append(
+    typer.models.CommandInfo(
+        name="new",
+        help=help.list_["--help"],
+        callback=new,
         cls=typer.core.TyperCommand
     )
 )

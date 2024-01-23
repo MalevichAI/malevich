@@ -10,6 +10,7 @@ class PackageManager(metaclass=SingletonMeta):
         "_autoflow",
         "_core",
         "_meta",
+        "_templates",
         "_utility",
         "commands",
         "install",
@@ -25,6 +26,9 @@ class PackageManager(metaclass=SingletonMeta):
 
     def is_builtin(self, package_name: str) -> bool:
         return package_name in self.builtins
+
+    def get_malevich_path(self) -> str:
+        return self.__malevich_path
 
     def get_package_path(self, package_name: str) -> str:
         return os.path.join(self.__malevich_path, package_name)
