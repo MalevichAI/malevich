@@ -364,8 +364,8 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                     'task_id': core_id,
                     'app_id': core_id,
                     'tasks_depends': depends,
-                    'auth': state.params["core_auth"],
-                    'conn_url': state.params["core_host"],
+                    # 'auth': state.params["core_auth"],
+                    # 'conn_url': state.params["core_host"],
                 }
             )
 
@@ -437,9 +437,10 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
             *args,
             **kwargs
         ) -> None:
-            _log("Task is being prepared for execution. It may take a while",
-                 action=1
-                 )
+            _log(
+                "Task is being prepared for execution. It may take a while",
+                action=1
+            )
             if stage.value & PrepareStages.BUILD.value:
                 apps_ = batch_create_apps([
                     {
@@ -464,7 +465,11 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                 #         )
                 #     )
 
-                batch_create_tasks(task_kwargs)
+                batch_create_tasks(
+                    task_kwargs,
+                    auth=state.params["core_auth"],
+                    conn_url=state.params["core_host"]
+                )
                 # for _kwargs in task_kwargs:
                 #     core.create_task(**_kwargs, wait=False)
 

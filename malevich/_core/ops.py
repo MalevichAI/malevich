@@ -125,12 +125,17 @@ def _create_task_safe(
 
 def batch_create_tasks(
     kwargs_list: list[dict],
+    auth: core.AUTH = None,
+    conn_url: Optional[str] = DEFAULT_CORE_HOST,
 ) -> None:
-    results: list[Future] = []
-    for kwargs_ in kwargs_list:
-        results.append(executor.submit(_create_task_safe, **kwargs_))
+    # results: list[Future] = []
+    # for kwargs_ in kwargs_list:
+    #     results.append(executor.submit(_create_task_safe, **kwargs_))
 
-    return [r.result() for r in results]
+    # return [r.result() for r in results]
+    with core.Batcher(auth=auth, conn_url=conn_url):
+        for kwargs_ in kwargs_list:
+           _create_task_safe(**kwargs_)
 
 
 def _upload_collection(
