@@ -84,3 +84,7 @@ ci = {
 list_ = {
     '--help': """List all installed package stubs."""
 }
+
+new = {
+    '--help': """Create a new app from a template""",
+}

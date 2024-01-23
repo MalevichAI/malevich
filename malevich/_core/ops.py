@@ -125,12 +125,17 @@ def _create_task_safe(
 
 def batch_create_tasks(
     kwargs_list: list[dict],
+    auth: core.AUTH = None,
+    conn_url: Optional[str] = DEFAULT_CORE_HOST,
 ) -> None:
-    results: list[Future] = []
-    for kwargs_ in kwargs_list:
-        results.append(executor.submit(_create_task_safe, **kwargs_))
+    # results: list[Future] = []
+    # for kwargs_ in kwargs_list:
+    #     results.append(executor.submit(_create_task_safe, **kwargs_))
 
-    return [r.result() for r in results]
+    # return [r.result() for r in results]
+    with core.Batcher(auth=auth, conn_url=conn_url):
+        for kwargs_ in kwargs_list:
+           _create_task_safe(**kwargs_)
 
 
 def _upload_collection(
@@ -183,14 +188,14 @@ def _assure_collection(
     else:
         collection.core_id = _ids.ownIds[0]
 
-    if collection.core_id not in core.get_collections(
-        conn_url=conn_url,
-        auth=auth
-    ).ownIds:
-        raise Exception(
-            f"Collection {collection.collection_id} with core_id "
-            f"{collection.core_id} is not found in Core."
-        )
+    # if collection.core_id not in core.get_collections(
+    #     conn_url=conn_url,
+    #     auth=auth
+    # ).ownIds:
+    #     raise Exception(
+    #         f"Collection {collection.collection_id} with core_id "
+    #         f"{collection.core_id} is not found in Core."
+    #     )
 
     return collection.core_id
 

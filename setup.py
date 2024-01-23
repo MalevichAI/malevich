@@ -15,5 +15,7 @@ setup(
         ]
     },
     install_requires=requirements,
-    package_data={"malevich": ["**/*.yml"]}
+    package_data={
+        "malevich": ["**/*.yml", "_templates/*"]
+    }
 )
