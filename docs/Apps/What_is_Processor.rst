@@ -30,7 +30,6 @@ can be either an output of a previous processor, a collection, or an asset.
 2. The function has to return either a single dataframe or a tuple of dataframes. 
 
 
-
 Each of the input references to the output of exactly one previous processor or 
 collection. Assume, the following pipeline:
 
@@ -62,8 +61,36 @@ and the following code:
 In this case, :code:`train_outcome` refers to the output of :code:`train_model` and :code:`data_for_prediction` refers to data in :code:`prediction_data` collection.
 To access model and metrics, you have to unpack the :code:`train_outcome` variable.
 
-DF, DFS, Sink and M
-++++++++++++++++++++
+DF, DFS, Sink and OBJ
++++++++++++++++++++++
 
-Malevich makes use of specific data types when passing data between processors. 
+Malevich makes use of specific data types when passing data between processors. Each
+of these types denote a specific entity that processor can receive as an input or return as an output.
+
+* `DF <../API/square/df.html#malevich.square.df.DF>`_ - a single instance of tabular data. The table can follow a specific schema. 
+* `DFS <../API/square/dfs.html#malevich.square.df.DFS>`_ - a collection of tabular data. The collection can be bound by a specific number of tables or be unlimited. Also, it can impose a schema on each table.
+* `Sink <../API/square/sink.html#malevich.square.df.Sink>`_ - a collection of DFS that allows you to denote a processor capable of being link to unbounded number of processors.
+* `OBJ <../API/square/obj.html#malevich.square.df.OBJ>`_ - a collection of files that can hold arbitrary binary data.
+
+See, how they are applied in the following example:
+
+.. code-block:: python
+
+    from malevich.square import processor, DF, Sink, OBJ, obj
+
+
+        @processor()
+        def train_model(data: DF['TrainData']) -> tuple[OBJ, DF['Metrics']]:
+            ...
+            return model, metrics
+
+
+        @processor()
+        def predict(
+            train_outcome: DFS['obj', 'Metrics'], 
+            data_for_prediction: DF["ValidationData"]
+        ) -> DF["Predictions"]:
+            model, metrics = train_outcome
+            ...
+            return predictions
 

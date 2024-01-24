@@ -15,7 +15,7 @@ import malevich
 release = open(os.path.join('../', 'VERSION')).read().strip()
 
 project = 'Malevich'
-copyright = '2024, Aleksandr Lobanov'
+copyright = '2024, Malevich AI, Co'
 author = 'Aleksandr Lobanov'
 
 # -- General configuration ---------------------------------------------------
@@ -24,6 +24,7 @@ author = 'Aleksandr Lobanov'
 # extensions = []
 extensions = [
     'sphinx.ext.autodoc',
+    # 'sphinx.ext.autosectionlabel',
     'sphinx.ext.coverage',
     'sphinx.ext.napoleon',
     'sphinxcontrib.mermaid'
@@ -42,6 +43,7 @@ exclude_patterns = []
 
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
+html_favicon = 'favicon.ico'
 html_css_files = [
     'style.css',
 ]
