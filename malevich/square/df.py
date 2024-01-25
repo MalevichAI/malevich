@@ -1,3 +1,4 @@
+import os
 from functools import cached_property
 from typing import (
     Any,
@@ -8,7 +9,6 @@ from typing import (
     Optional,
     TypeVar,
     Union,
-    _tp_cache,
 )
 
 import pandas as pd
@@ -37,7 +37,7 @@ class DF(Generic[Scheme], pd.DataFrame):
     def scheme(self) -> None:
         raise NotImplementedError("scheme not yet implemented")         # TODO
 
-    @_tp_cache
+    @cached_property
     def scheme_name(self) -> Optional[str]:
         scheme = self._scheme_cls()
         if scheme is None:
@@ -52,7 +52,7 @@ class DF(Generic[Scheme], pd.DataFrame):
             return scheme.__forward_arg__
         return scheme
 
-    @_tp_cache
+    @cached_property
     def _scheme_cls(self) -> Optional[Any]:  # noqa: ANN401
         if hasattr(self, "__orig_class__"):
             return self.__orig_class__.__args__[0]
@@ -161,8 +161,15 @@ class OBJ:
 
     @cached_property
     def as_df(self) -> DF['obj']:   # noqa: F821
-        """df, wrapped path"""
-        return DF["obj"](pd.DataFrame.from_dict({"path": [self.__path]}))
+        """df, file paths"""
+        paths = []
+        if os.path.isfile(self.__path):
+            paths.append(self.__path)
+        else:
+            for address, _, files in os.walk(self.__path):
+                for name in files:
+                    paths.append(os.path.join(address, name))
+        return DF['obj'](pd.DataFrame.from_dict({"path": paths}))
 
     @cached_property
     def df(self) -> pd.DataFrame:
