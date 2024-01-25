@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Optional
 
 from ..injections import BaseInjectable
 from ..results.base import BaseResult
@@ -7,30 +8,30 @@ from ..types import FlowOutput
 
 class BaseTask(ABC):
     @abstractmethod
-    def prepare(self) -> None:
+    def prepare(self, *args, **kwargs) -> None:
         return
 
     @abstractmethod
-    def run(self) -> None:
+    def run(self, run_id: Optional[str] = None, *args, **kwargs) -> None:
         return
 
     @abstractmethod
-    def stop(self) -> None:
+    def stop(self, *args, **kwargs) -> None:
         return
 
     @abstractmethod
-    def results(self) -> list[BaseResult]:
+    def results(self, *args, **kwargs) -> list[BaseResult]:
         return
 
     @abstractmethod
-    def commit_returned(self, returned: FlowOutput) -> None:
+    def commit_returned(self, returned: FlowOutput, *args, **kwargs) -> None:
         return
 
     @abstractmethod
-    def get_injectables(self) -> list[BaseInjectable]:
+    def get_injectables(self, *args, **kwargs) -> list[BaseInjectable]:
         return
 
-    def get_operations(self) -> list[str]:
+    def get_operations(self, *args, **kwargs) -> list[str]:
         return []
 
     def configure(self, operation: str, **kwargs) -> None:

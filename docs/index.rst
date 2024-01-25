@@ -2,92 +2,67 @@
 Malevich
 ===============
 
-
 Getting Started
 ===============
 
-Welcome to `Malevich <https://malevich.ai>`_ - a platform for building ML-driven prototypes 
-and iterating them to production. This page contains a brief overview of the platform capabilities
-that could be utilized from Python code or command-line interface.
+Welcome to `Malevich <https://malevich.ai>`_ — a platform for building ML-driven prototypes and iterating them to production. This page provides a brief overview of the platform's capabilities that can be utilized from Python code or the command-line interface.
 
-Explore more about `building apps <Apps/Building_Apps.html>`_ and `assembling flows <Flows/Assembling_Flows.html>`_ to
-start developing on Malevich. Check out `API reference <API/index.html>`_ to get insight into code details.
+Explore more about `building apps <Apps/Building_Apps.html>`_ and `assembling flows <Flows/Assembling_Flows.html>`_ to start developing on Malevich. Check out the `API reference <API/index.html>`_ for detailed insights into code functionalities.
 
-If you with to contribute to the Malevich package, please refer to `Contributing <Contributing.html>`_ page.
-
+If you wish to contribute to the Malevich package, please refer to the `Contributing <Contributing.html>`_ page.
 
 Installation
 ===============
 
-Malevich provides various tools for interacting with the platform. One of them
-is a :code:`malevich` Python package, that includes `Malevich Square <API/square.html>`_,
-CLI, Metascript, CI and other minor tools. The package is distributed via PyPI, so 
-you can install it with :code:`pip`:
+Malevich offers various tools for interacting with the platform, including the :code:`malevich` Python package. This package encompasses `Malevich Square <API/square.html>`_, CLI, Metascript, CI, and other minor tools. It is distributed via PyPI, allowing you to install it with :code:`pip`:
 
 .. code-block:: bash
 
     pip install malevich
 
-
 Implement Your Idea
 ===================
 
-Imagine you have a brilliant idea of a product, and you need to utilize a number
-of services like Open AI or make an inferenece on a pre-trained model from Hugging Face, or
-solve a common NLP task with SpaCy? With Malevich, you can turn the idea into 
-working prototype with just a few steps and ridiculously small amount of code.
+Imagine having a brilliant product idea that requires utilizing services like OpenAI, making inferences on a pre-trained model from Hugging Face, or solving a common NLP task with SpaCy. With Malevich, you can turn your idea into a working prototype with just a few steps and an impressively small amount of code.
 
-Let's make it real! Firstly, you have to install apps:
+Let's make it real! First, you need to install apps:
 
 .. code-block:: bash
 
     malevich install spacy openai
 
+Following this, you may notice :code:`malevich.yaml` and :code:`malevich.secret.yaml` files appearing in your current directory. Similar to other package systems like :code:`pip` or :code:`npm`, Malevich keeps track of installed components to make your environment reproducible.
 
-You may see :code:`malevich.yaml` and :code:`malevich.secret.yaml` files appeared in your
-current directory. Like any other package system, like :code:`pip` or :code:`npm`, Malevich
-keep track of installed components to make your environment reproducible. 
-
-Once you installed apps, you can start weaving them into a flow. Let's create a file
-:code:`flow.py` with the following content:
+Once the apps are installed, you can begin integrating them into a flow. Create a file named :code:`flow.py` with the following content:
 
 .. code-block:: python
 
    import os
-
    import pandas as pd
-
-   # Metascript
    from malevich import collection, flow
-
-   # Malevich Apps: OpenAI, Scrape, Spacy
    from malevich.openai import prompt_completion
    from malevich.scrape import scrape_web
    from malevich.spacy import extract_named_entities
 
    prompt = """
-   You are a professional journalist. You got
-   a piece of news that contains a lot of
-   references to different people. You need to
-   undestand the role of {entities} and write
-   a short brief about it. The brief should
-   contain the following information:
+   You are a professional journalist. You've received
+   news containing many references to different people.
+   Your task is to understand the roles of these {entities}
+   and write a brief summary about them. The brief should
+   include the following information:
 
    - Who is the person?
-   - What is the role of the person in the news?
-   - What are the main events that the person is
-   involved in?
+   - What is their role in the news?
+   - What are the main events they are involved in?
 
-   Include only people for whom there is enough
-   information in the news. Otherwise, exclude their
-   name from the brief totally.
+   Only include individuals for whom there is sufficient
+   information in the news. Otherwise, omit their names
+   entirely from the brief.
    """
-
 
    @flow()
    def write_brief():
-      # Let's scrape some news
-      # from OpenAI blog
+      # Scrape some news from the OpenAI blog.
       links = collection(
          'News Links',
          df=pd.DataFrame(
@@ -97,95 +72,79 @@ Once you installed apps, you can start weaving them into a flow. Let's create a 
          )
       )
 
-      # Scraper app will retrieve
-      # information from a website
-      # specified by xPath -- a
-      # query language that allows
-      # to extract information from
-      # markup documents
+      # The scraper app will retrieve information from websites specified by XPath — 
+      # a query language that allows extracting information from markup documents.
       text = scrape_web(
          links,
          config={
-               'spider': 'xpath',
-               'min_length': 100,
-               'max_results': 25,
-               'links_are_independent': True,
-               'max_depth': 1,
-               'spider_cfg': {
-                  'components': [{
-                     'key': 'news-text',
-                     # Specify xPath query
-                     'xpath': "//div[@id='content']//text()"
-                  }],
-                  'output_type': 'text',
-                  'include_keys': False
-               }
+            'spider': 'xpath',
+            'min_length': 100,
+            'max_results': 25,
+            'links_are_independent': True,
+            'max_depth': 1,
+            'spider_cfg': {
+               'components': [{
+                  'key': 'news-text',
+                  # Specify XPath query.
+                  'xpath': "//div[@id='content']//text()"
+               }],
+               'output_type': 'text',
+               'include_keys': False
+            }
          })
 
-      # Now let's extract names
+      # Extract names of entities.
       entities = extract_named_entities(
          text, config={
-               'output_format': 'list',
-               'filter_labels': ['PERSON'],
+            'output_format': 'list',
+            'filter_labels': ['PERSON'],
          }
       )
 
-      # And finally, let's write a brief
-      # about the news. We will use OpenAI
-      # API to generate a text based on
-      # the prompt and extracted people
-      # names
+      # Write a brief about the news using OpenAI API 
+      # to generate text based on our prompt and extracted names.
       return text, prompt_completion(
          entities,
          config={
-               'user_prompt': prompt,
-               'openai_api_key': os.getenv('OPENAI_API_KEY'),
+            'user_prompt': prompt,
+            'openai_api_key': os.getenv('OPENAI_API_KEY'),
          }
       )
-
 
    if __name__ == '__main__':
       from malevich import CoreInterpreter
 
-      # Creating a task of writing a brief
+      # Create a task for writing a brief.
       pipeline = write_brief()
 
-      # Before we can run the task, we need
-      # to interpret it, which means to
-      # make the platform aware of the
-      # dependencies and execution flow
+      # Before running the task, interpret it to make 
+      # the platform aware of dependencies and execution flow.
       pipeline.interpret(
          CoreInterpreter(
-               core_auth=('example', 'Welcome to Malevich!')
+            core_auth=('example', 'Welcome to Malevich!')
          )
       )
 
-      # Running an actual task
+      # Execute the task.
       text, brief = pipeline()
 
-      # Saving results
+      # Save results.
       text.get_df().to_csv('text.csv')
       brief.get_df().to_csv('brief.csv')
 
-As you might see, solving a task of extracting news, retrieving people names and
-writing a brief about it is a matter of a proper configuration of three apps. Once you run
-the pipeline, you will see files :code:`text.csv` and :code:`brief.csv` in your current
-directory and can observe results.
+As you can see, solving the task of extracting news, identifying people's names, and writing a brief is simply a matter of configuring three apps correctly. Once you run the pipeline, you will find :code:`text.csv` and :code:`brief.csv` files in your current directory and can review the results.
 
-Run the flow with the following command (make sure you have :code:`OPENAI_API_KEY` environment variable set):
+Run the flow with this command (ensure your :code:`OPENAI_API_KEY` environment variable is set):
 
 .. code-block:: bash
 
-      python flow.py
-
+    python flow.py
 
 Make Your Own Apps
 ==================
 
-We are steadily working on expanding the list of available apps, and if you 
-find that you need something we have not yet finished, you can implement it and 
-assemble flows with your custom apps. You might integrate the whole codebase
-into Malevich and use the platform as your infra to deploy and show your products.
+We are continually expanding our list of available apps. If you find something missing that you need, we provide
+all the tools to create your own apps and optionally share them with the community.
 
 
 .. toctree::
@@ -194,4 +153,5 @@ into Malevich and use the platform as your infra to deploy and show your product
 
    Getting Started <self>
    Apps/index
+   Flows/index
    API/index

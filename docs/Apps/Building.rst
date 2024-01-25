@@ -1,35 +1,34 @@
 =======================
-Building Your First App
+Building Apps
 =======================
 
 Prerequisites
 -------------
 
-To successfully build and run your first app, please make sure you have the following:
+To successfully build and run your first app, ensure you have the following:
 
-* `Docker <https://www.docker.com/>`_ installed and running. You will use it to build an environment for your app.
-* `Malevich Package <https://github.com/MalevichAI/malevich>`_ installed. All the magic happens here. You can install it with:
+* `Docker <https://www.docker.com/>`_ installed and operational. You will use Docker to create an environment for your app.
+* The `Malevich Package <https://github.com/MalevichAI/malevich>`_ installed. This is where all the magic happens. Install it using:
 
-.. code-block:: bash
+.. code-block:: console
 
     pip install malevich
-
 
 Getting Started
 ---------------
 
-If you are not yet familar with `apps <./What_is_App.html>`_ or `processors <./What_is_Processor.html>`_, please read the corresponding pages first.
-Let us create an app. For it, run the following command:
+If you are not yet familiar with `apps <./What_is_App.html>`_ or `processors <./What_is_Processor.html>`_, please review the corresponding pages first.
+Let's create an app by running the following command:
 
-.. code-block:: bash
+.. code-block:: console
 
-    malevich new example-app
+    malevich new example_app
 
-This will create a new directory ``example-app`` with the following structure:
+This command generates a new directory named ``example_app`` with the following structure:
 
 .. code-block::
-    
-    example-app/
+
+    example_app/
     ├─ apps/
     │  ├─ processors.py
     ├─ Dockerfile
@@ -37,110 +36,102 @@ This will create a new directory ``example-app`` with the following structure:
     ├─ README.md
     ├─ requirements.txt
 
+The :code:`processors.py` file includes processors that become available once you build and push your app. The :code:`flow.py` file showcases an example flow that can be executed using your apps. For more information, refer to the :code:`README.md` file generated alongside the app.
 
-The file :code:`processors.py` contains processors that will become available 
-once you push and build your app. The file :code:`flow.py` contains the example flow that
-can be run with your apps. For additional information you might refer to the
-:code:`README.md` file that was generated together with the app.
-
-
-Building an app
+Building an App
 ---------------
 
-To make your app available for use, you need to build it. For this, you should have
-`Docker <https://www.docker.com/>`_ installed and running. To build your app, run the following command:
+To make your app available for use, it must be built. Ensure you have `Docker <https://www.docker.com/>`_ installed and running. Build your app with this command:
 
-.. code-block:: bash
+.. code-block:: console
 
-    cd example-app
-    docker build -t example-app .
+    cd example_app
+    docker build -t example_app .
 
-
-Publishing an app
+Publishing an App
 -----------------
 
-After you have built your app, you need to push the image to the registry. Once you
-run a flow with your app, the image will be pulled from the registry and run in a container
-on Malevich cloud. 
+After building your app, it needs to be pushed to a registry. When you run a flow including your app, Malevich's cloud service will pull the image from this registry and execute it in a container.
 
-To prototype your app, it is enough to create a public repository on `Docker Hub <https://hub.docker.com/>`_.
-Pushing to such a repository is free and simple.
+To prototype your app, create a public repository on `Docker Hub <https://hub.docker.com/>`_. Pushing to Docker Hub is free and straightforward.
 
-To push your app to the registry, firstly login to the registry:
+Push your app to the registry by first logging in:
 
-.. code-block:: bash
+.. code-block:: console
 
     docker login
 
-Then tag your app:
+Next, tag your image:
 
-.. code-block:: bash
+.. code-block:: console
 
-    docker tag example-app <your-docker-hub-username>/example-app   
+    docker tag example_app <your-docker-hub-username>/example_app   
 
-And, finally, push it:
+Finally, push it:
 
-.. code-block:: bash
+.. code-block:: console
 
-    docker push <your-docker-hub-username>/example-app  
+    docker push <your-docker-hub-username>/example_app  
 
-
-Installing an app
+Installing an App
 -----------------
 
-Now your app is available for Malevich cloud to run. You need to install it to provide 
-the cloud sufficient information. To install your app, run the following command:
+Your app is now ready for execution in Malevich's cloud. Install it to provide the cloud with necessary information by running this command:
 
-.. code-block:: bash
+.. code-block:: console
 
-    malevich install example-app
+    malevich use image example_app <your-docker-hub-username>/example_app
+
+In case you have a private registry, you have to provide your credentials, so that Malevich's cloud can pull the image from the registry. To do so, run the following command:
+
+.. code-block:: console
+
+    malevich use image example_app <your-docker-hub-username>/example_app <your-docker-hub-username> <your-docker-hub-password>
 
 
-Running a flow
+Running a Flow
 --------------
 
-Now, your app is accessible in flows! Import and observe available processors:
+Your app is now accessible within flows! To use the provided processors, import them and set up a flow as follows:
 
 .. code-block:: python
 
-    from malevich.example_app import check_malevich
-    from malevich import CoreInterpreter, flow
-    
-    @flow()
-    def example_flow():
-        return check_malevich()
+    import pandas as pd
 
-    
-    task = example_flow()
+    from malevich import CoreInterpreter, collection, flow
+    from malevich.example_app import find_pattern
+
+
+    @flow()
+    def find_direct_speech():
+        data = collection(
+            name='Example Text', df=pd.DataFrame(
+                {'text': ["This is a regular text", "'Hi!', said Alice"]}
+            ))
+
+        return find_pattern(data, config={'pattern': r"'.+'"})
+
+
+    task = find_direct_speech()
     task.interpret(CoreInterpreter(core_auth=('example', 'Welcome to Malevich!')))
 
-    print(task())
-   
+    print(task()[0].get_df().head())
 
-The flow will run the processor :code:`check_malevich` and print the result. Explore the
-section Flows to understand what are they and how to use them.
 
+
+Executing this flow will run the :code:`check_malevich` processor and output the result. Visit the Flows section for more details on their usage and capabilities.
 
 Inputs and Outputs
 ------------------
 
-Each processor dictates what data it receives and what it produces. We refer to it
-as inputs and outputs of the processor. The inputs are defined through function arguments,
-Each argument can annoated with one of the following types: `DF <../API/square/df.html#malevich.square.df.DF>`_, 
-`DFS <../API/square/dfs.html#malevich.square.df.DFS>`_, `Sink <../API/square/sink.html#malevich.square.df.Sink>`_, and 
-`OBJ <../API/square/obj.html#malevich.square.df.OBJ>`_. Explore each of them to understand their purpose.
+Each processor specifies its expected inputs and outputs. Inputs are defined through function arguments, which can be annotated with types such as `DF <../API/square/df.html#malevich.square.df.DF>`_, `DFS <../API/square/dfs.html#malevich.square.df.DFS>`_, `Sink <../API/square/sink.html#malevich.square.df.Sink>`_, and `OBJ <../API/square/obj.html#malevich.square.df.OBJ>`_. These types help define how data should be handled within flows.
 
-Processors are meant to be linked together in flows. The outputs of one processor become the inputs of another.
-Each processor input refers to only a single output of another processor. When processor returns multiple outputs,
-they are grouped into `DFS <../API/square/dfs.html#malevich.square.df.DFS>`_ object and assigned to a single
-particular input. Processors can also be connected to a data sources - collecttions or assets. In this case,
-each collection and asset is assigned to a separate input of the processor.
+Processors are designed to be linked together in flows, where one's outputs feed into another's inputs. Each processor input corresponds to precisely one output of another processor. When a processor returns multiple outputs, they are bundled into a `DFS <../API/square/dfs.html#malevich.square.df.DFS>`_ object associated with a single input. Processors may also connect to data sources such as collections or assets; each source must link to a distinct processor input.
 
-There, however, is a special case when a processor has only one input and it is annotated with `Sink <../API/square/dfs.html#malevich.square.df.Sink>`_.
-Such processors cannot be receive information from data sources, but can receive inputs from unlimited number of other processors.
+An exception occurs when a processor has only one input annotated as `Sink <../API/square/dfs.html#malevich.square.df.Sink>`_. These processors cannot receive data directly from sources but can accept inputs from an unlimited number of other processors.
 
-Here is some example of a processors:
-
+Below are examples of processors with various configurations of inputs and outputs:
+    
 .. code-block:: python
 
     from malevich import processor, DF, DFS, Sink, OBJ
@@ -218,23 +209,15 @@ Here is some example of a processors:
         the second one can be any.
         """
         return asset, df
-
-
+    
 .. note::
 
-    An argument of type :code:`DF` can also receive an asset (a :code:`OBJ` object)
-    which will be converted to a data frame with a single column :code:`path` containing
-    paths to files in the asset. The corresponding schema which is called :code:`obj` can
-    be used to denote the expected conversion.
-
+    An argument of type :code:`DF` can also accept an asset (a :code:`OBJ` object), which will be converted into a dataframe with a single column named :code:`path` containing file paths from the asset. The relevant schema is known as :code:`obj`, which indicates the expected conversion.
 
 App Configuration
 -----------------
 
-Applications can accept configuration - a set of parameters that can be set by the user
-when running a flow. To make the app configurable, you need to accept an extra argument which
-is explicitly annotated with `Context <../API/square/utils.html#malevich.square.utils.Context>`_.
-The configuration is stored in `app_cfg <../API/square/utils.html#malevich.square.utils.Context.app_cfg>`_ attribute of the context.
+Applications may accept user-defined configurations when running a flow by including an argument explicitly annotated with `Context <../API/square/utils.html#malevich.square.utils.Context>`_. This configuration resides within the context's `app_cfg <../API/square/utils.html#malevich.square.utils.Context.app_cfg>`_ attribute.
 
 Example:
 
@@ -255,7 +238,7 @@ Example:
         return df.iloc[slice_start:slice_end]
 
 
-Then, when running a flow, you can set the configuration:
+Then configure your app when executing a flow like this:
 
 .. code-block:: python
 
@@ -266,5 +249,3 @@ Then, when running a flow, you can set the configuration:
     def example_flow():
         data = collection('Example data', file='data.csv')
         return get_slice(data, config={'slice_start': 10, 'slice_end': 20})
-
-        

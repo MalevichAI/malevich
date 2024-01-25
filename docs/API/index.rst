@@ -9,3 +9,5 @@ interfaces and classes by following the links below.
    :maxdepth: 4
    
    malevich.square <square/index>
+   malevich._meta <meta/index>
+   malevich.models <models>
