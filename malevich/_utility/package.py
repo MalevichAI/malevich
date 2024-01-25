@@ -8,6 +8,7 @@ from .singleton import SingletonMeta
 class PackageManager(metaclass=SingletonMeta):
     builtins = [
         "_autoflow",
+        "_core",
         "_meta",
         "_utility",
         "commands",
@@ -15,6 +16,7 @@ class PackageManager(metaclass=SingletonMeta):
         "interpreter",
         "models",
         "square",
+        "runners"
     ]
 
     def __init__(self) -> None:
@@ -47,7 +49,7 @@ class PackageManager(metaclass=SingletonMeta):
             raise Exception(f"Package {package_name} does not exist")
         return package_path
 
-    def get_all_packages(self) -> None:
+    def get_all_packages(self) -> list[str]:
         return [
             package
             for package in os.listdir(self.__malevich_path)

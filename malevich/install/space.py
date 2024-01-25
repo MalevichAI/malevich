@@ -25,7 +25,7 @@ DO NOT MODIFY THIS FILE MANUALLY.
 """
 
     imports = """
-from malevich._autoflow.function import autotrace
+from malevich._autoflow.function import autotrace, sinktrace
 from malevich._utility.registry import Registry
 from malevich.models.nodes import OperationNode
 
@@ -45,10 +45,15 @@ Registry().register("{operation_id}", {{
 """
 
     processor = """
-@autotrace
+@{decor}
 def {name}({args}config: dict = {{}}):
     \"\"\"{docs}\"\"\"
-    return OperationNode(operation_id="{operation_id}", config=config)
+    return OperationNode(
+        operation_id="{operation_id}",
+        config=config,
+        processor_id="{name}",
+        package_id="{package_id}",
+    )
 """
 
 
@@ -76,7 +81,7 @@ class SpaceInstaller(Installer):
             ))
         except Exception as e:
             raise Exception(
-                "Setup is invalid. Run `malevich space init`") from e
+                "Setup is invalid. Run `malevich space login`") from e
 
     def install(
         self,
@@ -116,8 +121,12 @@ class SpaceInstaller(Installer):
                 branch=str(component.branch.model_dump()),
                 version=str(component.version.model_dump()),
                 name=op.core_id,
-                image_ref=("dependencies", package_name,
-                           "options", "image_ref"),
+                image_ref=(
+                    "dependencies",
+                    package_name,
+                    "options",
+                    "image_ref"
+                ),
                 image_auth_user=(
                     "dependencies",
                     package_name,
@@ -131,8 +140,12 @@ class SpaceInstaller(Installer):
                     "image_auth_pass",
                 ),
             )
-
+            is_sink = any(
+                ['Sink' in arg_.arg_type
+                 for arg_ in op.args if arg_.arg_type
+            ])
             args_ = []
+
             for arg_ in op.args:
                 if "return" in arg_.arg_name \
                         or (arg_.arg_type and "Context" in arg_.arg_type):
@@ -141,9 +154,11 @@ class SpaceInstaller(Installer):
 
             metascript += Templates.processor.format(
                 name=op.core_id,
-                args=", ".join(args_) + ", " if args_ else "",
+                args=(", ".join(args_) + ", " if args_ else "") if not is_sink else '*args, ',  # noqa: E501
                 docs=op.doc,
-                operation_id=op.uid
+                operation_id=op.uid,
+                decor='autotrace' if not is_sink else 'sinktrace',
+                package_id=package_name
             )
 
         mimic_package(

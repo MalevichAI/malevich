@@ -252,3 +252,5 @@ class ManifestManager(metaclass=SingletonMeta):
         self.__manifest = Manifest(**dump)
         self.save()
         return self.__manifest
+
+manf = ManifestManager()

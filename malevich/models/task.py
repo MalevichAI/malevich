@@ -1,7 +1,7 @@
 import warnings
 from typing import Callable, Generic, Optional, TypeVar, Union
 
-from jls_utils import AppLogs, task_prepare, task_run, task_stop
+from malevich_coretools import AppLogs, task_prepare, task_run, task_stop
 from rich.progress import Progress, SpinnerColumn, TextColumn, TimeElapsedColumn
 
 from malevich.constants import DEFAULT_CORE_HOST

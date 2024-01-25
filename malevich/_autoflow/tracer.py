@@ -31,7 +31,7 @@ T = TypeVar("T", bound=Any)
 class autoflow(Generic[T]):  # noqa: N801
     """Autoflow is a bridge between the tracer and the execution tree"""
 
-    def __init__(self, tree: ExecutionTree[T]) -> None:
+    def __init__(self, tree: ExecutionTree[T, Any]) -> None:
         self._tree_ref = tree
         self._component_ref = None
 
@@ -39,6 +39,7 @@ class autoflow(Generic[T]):  # noqa: N801
         self._component_ref = component
 
     def calledby(self, caller: 'traced', argument: Optional[str] = None) -> None:
+        assert isinstance(caller, traced), "Caller must be a traced object"
         self._tree_ref.put_edge(self._component_ref, caller, argument)
 
 
@@ -84,6 +85,9 @@ class traced(Generic[T]):  # noqa: N801
             raise RuntimeError(
                 "Traced object is not supposed to be nested"
             )
+
+    def __hash__(self) -> int:
+        return hash(self.owner)
 
 
 class tracedLike(traced[T]):  # noqa: N801

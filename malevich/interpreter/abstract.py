@@ -1,3 +1,4 @@
+import uuid
 from abc import abstractmethod
 from copy import deepcopy
 from typing import Generic, Iterable, TypeVar
@@ -8,6 +9,7 @@ from malevich.models.task.interpreted import InterpretedTask
 
 from .._autoflow.tracer import traced
 from .._utility.tree import unwrap_tree
+from ..models.argument import ArgumentLink
 from ..models.nodes.base import BaseNode
 from ..models.nodes.tree import TreeNode
 
@@ -79,6 +81,12 @@ class Interpreter(Generic[State, Return]):
         self._state = initial_state
         self.__history = []
         self._tree = None
+        self._run_bank = []
+
+    def _get_run_id(self) -> str:
+        _id = uuid.uuid4().hex
+        self._run_bank.append(_id)
+        return _id
 
     @property
     def state(self) -> State:
@@ -102,7 +110,6 @@ class Interpreter(Generic[State, Return]):
         else:
             self._state = self.state
 
-    # ExecutionTree[traced[BaseNode]])
     def interpret(self, node: TreeNode) -> InterpretedTask:
         """Interprets the execution tree
 
@@ -117,7 +124,7 @@ class Interpreter(Generic[State, Return]):
         `_tree` property.
 
         Args:
-            tree (ExecutionTree): Execution tree to interpret
+            node (TreeNode): Execution tree to interpret
 
         Returns:
             Task: Executable result of the interpretation
@@ -134,6 +141,12 @@ class Interpreter(Generic[State, Return]):
 
         node_memory = {}
 
+        for node in self._tree.nodes():
+            if node.owner.uuid not in node_memory:
+                node_memory[node.owner.uuid] = node
+                self.update_state(self.create_node(self.state, node))
+
+
         for from_, to, link in self._tree.traverse():
             if from_.owner.uuid not in node_memory:
                 node_memory[from_.owner.uuid] = from_
@@ -144,7 +157,8 @@ class Interpreter(Generic[State, Return]):
                 self.update_state(self.create_node(self.state, to))
 
             self.update_state(self.create_dependency(
-                self.state, from_, to, link))
+                self.state, from_, to, link)
+            )
 
         self.update_state(self.after_interpret(self.state))
 
@@ -199,7 +213,7 @@ class Interpreter(Generic[State, Return]):
         state: State,
         callee: traced[BaseNode],
         caller: traced[BaseNode],
-        link: str,
+        link: ArgumentLink,
     ) -> State:
         """Called when a new dependency is created
 

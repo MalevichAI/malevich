@@ -4,7 +4,7 @@ import tempfile
 
 import requests
 from git import Repo
-from github import Github
+from github import PublicKey
 
 from .base import CIOps
 
@@ -14,7 +14,7 @@ class DockerRegistry(enum.Enum):
     PUBLIC_AWS_ECR = "ecr"
     PRIVATE_AWS_ECR = "ecr-private"
     YANDEX = "yandex"
-    GCR = "gcr"
+    GCR = "ghcr"
 
 
 class GithubCIOps(CIOps):
@@ -77,11 +77,11 @@ class GithubCIOps(CIOps):
         space_token: str,
         space_url: str,
         branch: str,
-        registry_url: str,
-        registry_id: str,
-        image_user: str,
-        image_token: str,
-        org_id: str,
+        registry_url: str='ghcr.io',
+        registry_id: str='owner',
+        image_user: str='USERNAME',
+        image_token: str='token',
+        org_id: str='empty',
         verbose: bool = False,
     ) -> None:
         """Setup CI for a Github repository
@@ -102,13 +102,15 @@ class GithubCIOps(CIOps):
             org_id (str): ORGANIZATION_ID
             verbose (bool, optional): Verbose mode. Defaults to False.
         """
-        g = Github(token)
 
-        repo = g.get_repo(repository)
-
-        repo.create_environment(branch)
-        pub_key = repo.get_public_key()
-        repo_id = repo.id
+        pub_key = requests.get(
+            f"https://api.github.com/repos/{repository}/actions/secrets/public-key",
+            headers={
+                "Accept": "application/vnd.github+json",
+                "Authorization": f"Bearer {token}",
+                "X-GitHub-Api-Version": "2022-11-28"
+            }
+        ).json()
 
         keys = [
             "SPACE_USERNAME",
@@ -122,21 +124,28 @@ class GithubCIOps(CIOps):
             "SPACE_ORGANIZATION_ID"
         ]
 
+        registry_type = 'ghcr'
+        if 'ecr' in registry_url:
+            registry_type = 'ecr'
+        elif 'yandex' in registry_url:
+            registry_type = 'yandex'
+
         values = [
             space_user,
             space_token,
             space_url,
             image_user,
-            image_token,
+            token if image_token == 'token' else image_token,
             registry_url,
-            registry_id,
-            'ecr' if 'ecr' in registry_url else 'other',
+            repository.split('/')[0].lower() if registry_id == 'owner' else registry_id,
+            registry_type,
             org_id
         ]
 
         for key, value in zip(keys, values):
-            payload = pub_key.encrypt(value)
-            url = f'https://api.github.com/repositories/{repo_id}/environments/{branch}/secrets/{key}'
+            payload = PublicKey.encrypt(pub_key['key'],value)
+            url = f'https://api.github.com/repos/{repository}/actions/secrets/{key}'
+
             requests.put(
                 url,
                 headers={
@@ -146,28 +155,35 @@ class GithubCIOps(CIOps):
                 },
                 json={
                     'encrypted_value': f'{payload}',
-                    'key_id': f'{pub_key.key_id}'
+                    'key_id': f'{pub_key["key_id"]}'
                 }
             )
             self._log(verbose, f"Updated secret {key}")
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            git_repo = Repo.clone_from(repo.clone_url, tmpdir)
+            git_repo = Repo.clone_from(
+                f'https://{token}@github.com/{repository}', tmpdir
+            )
             self._log(verbose, f"Cloned repository {repository} into {tmpdir}")
-            head = git_repo.create_head(branch)
-            head.checkout()
+            git_repo.git.checkout(branch)
             self._log(verbose, f"Checkouted to branch {branch}")
             action_file = self.__create_action(tmpdir, branch)
             manual_action_file = self.__create_manual_action(tmpdir, branch)
             self._log(verbose, f"Created action file {action_file}")
-            git_repo.index.add([action_file])
-            git_repo.index.add([manual_action_file])
-            git_repo.index.commit(
-                "add: malevich-ci.yml && malevich-ci-manual.yml")
-            self._log(verbose,
-                      f"Committed actions file {action_file}, {manual_action_file}"
-                      )
-            origin = git_repo.remote(name="origin")
-            self._log(verbose, "Pushing to origin")
-            origin.push(git_repo.active_branch)
-            self._log(verbose, "Pushed to origin")
+            git_repo.git.add(action_file)
+            git_repo.git.add(manual_action_file)
+            try:
+                git_repo.git.commit(
+                    "-m",
+                    "add: malevich-ci.yml && malevich-ci-manual.yml"
+                )
+                self._log(verbose,
+                        f"Committed actions file {action_file}, {manual_action_file}"
+                )
+                git_repo.git.push()
+            except Exception as e:
+                self._log(verbose,
+                        f"{action_file} and {manual_action_file} already exist"
+                )
+
+                print(e)

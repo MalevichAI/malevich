@@ -1,0 +1,2 @@
+class NotAvailableError(Exception):
+    pass

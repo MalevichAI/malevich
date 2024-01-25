@@ -1,8 +1,10 @@
 import asyncio
+import warnings
 from typing import Callable, Generic, Iterable, Optional, TypeVar, Union
 
 import pandas as pd
 
+from ..injections import BaseInjectable
 from ..types import FlowOutput
 from .base import BaseTask
 
@@ -11,28 +13,54 @@ PrepareFunc = TypeVar("PrepareFunc", bound=Callable)
 RunFunc = TypeVar("RunFunc", bound=Callable)
 StopFunc = TypeVar("StopFunc", bound=Callable)
 ResultsFunc = TypeVar("ResultsFunc", bound=Callable)
+GetInjectablesFunc = TypeVar("GetInjectablesFunc", bound=Callable)
 ResultsFunc_ = Callable[
     ['InterpretedTask', FlowOutput],
-    Union[Iterable[pd.DataFrame], pd.DataFrame, None]
+    Union[Iterable[pd.DataFrame], None]
 ]
 
 
 class InterpretedTask(Generic[State], BaseTask):
     def __init__(
         self,
-        prepare: PrepareFunc | Callable[['InterpretedTask'], None],
-        run: RunFunc | Callable[['InterpretedTask'], None],
+        prepare: PrepareFunc | Callable[['InterpretedTask'], str],
+        run: RunFunc | Callable[['InterpretedTask'], str],
         stop: StopFunc | Callable[['InterpretedTask'], None],
         results: ResultsFunc | ResultsFunc_,
         state: State,
         returned: FlowOutput = None,
+        get_injectables: GetInjectablesFunc = None,
+        get_operations: Optional[Callable[["InterpretedTask"], list[str]]] = None,
+        configure: Optional[Callable[["InterpretedTask", str], None]] = None,
     ) -> None:
         self.__prepare = prepare
         self.__run = run
         self.__stop = stop
         self.__results = results
         self.__state = state
+
         self.__returned = returned
+
+        self.__get_injectables = get_injectables
+        self.__get_operations = get_operations
+        self.__configure = configure
+
+    def get_operations(self) -> list[str]:
+        if self.__get_operations:
+            return self.__get_operations(self)
+        else:
+            return []
+
+    def configure(self, operation: str, **kwargs) -> None:
+        if self.__configure:
+            self.__configure(self, operation, **kwargs)
+        else:
+            warnings.warn(
+                "The task was not interpreted with an interpreter that "
+                "supports configuration. Skipping configuration for "
+                "compatibility with other interpreters. "
+            )
+
 
     async def async_prepare(
         self,
@@ -126,7 +154,7 @@ class InterpretedTask(Generic[State], BaseTask):
 
     async def async_results(
         self,
-        callback: Optional[Callable[[pd.DataFrame | Iterable[pd.DataFrame]], None]] = None,  # noqa: E501
+        callback: Optional[Callable[[Iterable[pd.DataFrame]], None]] = None,
     ) -> None:
         """Get results of the task.
 
@@ -145,26 +173,45 @@ class InterpretedTask(Generic[State], BaseTask):
         if callback:
             callback(results)
 
-    def prepare(self, *args, **kwargs) -> None:
+    def prepare(self, *args, **kwargs) -> str:
         self.__prepare(self, *args, **kwargs)
 
-    def run(self, *args, **kwargs) -> None:
+    def run(self, *args, **kwargs) -> str:
         self.__run(self, *args, **kwargs)
 
     def stop(self, *args, **kwargs) -> None:
         self.__stop(self, *args, **kwargs)
 
-    def results(self):  # noqa: ANN201
-        return self.__results(self, self.__returned)
+    def results(self, run_id: Optional[str] = None):  # noqa: ANN201
+        return self.__results(self, self.__returned, run_id=run_id)
 
     def commit_returned(self, returned: FlowOutput):  # noqa: ANN201
         self.__returned = returned
 
-    def __call__(self) -> Union[Iterable[pd.DataFrame], pd.DataFrame, None]:
+    def __call__(self) -> Union[Iterable[pd.DataFrame], None]:
         self.prepare()
         self.run()
         self.stop()
-        return self.results()
+        results =  self.results()
+        # check whether the results are iterable
+        # if not, make them iterable
+        try:
+            iter(results)
+        except TypeError:
+            results = [results]
+        return results
+
+
+    def get_injectables(self) -> list[BaseInjectable]:
+        if self.__get_injectables:
+            return self.__get_injectables(self)
+        else:
+            warnings.warn(
+                "The task was not interpreted with an interpreter that "
+                "supports data injection. Returning empty list of injectables "
+                "for compatibility with other interpreters. "
+            )
+            return []
 
     @property
     def state(self) -> State:

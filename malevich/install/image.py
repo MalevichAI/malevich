@@ -36,7 +36,7 @@ DO NOT MODIFY THIS FILE MANUALLY.
 """
 
     imports = """
-from malevich._autoflow.function import autotrace
+from malevich._autoflow.function import autotrace, sinktrace
 from malevich._utility.registry import Registry
 from malevich.models.nodes import OperationNode
 
@@ -57,10 +57,15 @@ class {schema_name}(BaseModel):
 """
 
     processor = """
-@autotrace
+@{decor}
 def {name}({args}config: dict = {{}}):
     \"\"\"{docs}\"\"\"
-    return OperationNode(operation_id="{operation_id}", config=config)
+    return OperationNode(
+        operation_id="{operation_id}",
+        config=config,
+        processor_id="{name}",
+        package_id="{package_id}",
+    )
 """
     init = """
 # {init_name} = ...
@@ -125,8 +130,8 @@ class ImageInstaller(Installer):
             operations: Operations info
             package_name: Name of the package to be created
         """
-        salt = hashlib.sha256(
-            operations.model_dump_json().encode()).hexdigest()
+        # salt = hashlib.sha256(
+        #     operations.model_dump_json().encode()).hexdigest()
         contents = Templates.disclaimer
         contents += Templates.imports
 
@@ -152,9 +157,12 @@ class ImageInstaller(Installer):
 
         for id_, processor in operations.processors.items():
             args_ = []
+            args_str_ = ""
 
             for arg_ in processor.arguments:
-                if "return" in arg_[0] or (arg_[1] and "Context" in arg_[1]):
+                if "return" in arg_[0 ]\
+                    or (arg_[1] and "Context" in arg_[1]) \
+                    or (arg_[1] and "Sink" in arg_[1]):
                     continue
                 schema = None
                 for name in operations.schemes.keys():
@@ -163,11 +171,17 @@ class ImageInstaller(Installer):
                         break
                 args_.append(f"{arg_[0]}{': ' + schema if schema else ''}")
 
-            args_str_ = ", ".join(args_)
-            args_str_ += ", " if args_str_ else ""
+                args_str_ = ", ".join(args_)
+                args_str_ += ", " if args_str_ else ""
+
+            if sink := any([
+                arg_[1] and 'Sink' in arg_[1]
+                for arg_ in processor.arguments
+            ]):
+                args_str_ += "*args, "
 
             checksum = hashlib.sha256(
-                (salt + processor.model_dump_json()).encode()
+                processor.model_dump_json().encode()
             ).hexdigest()
 
             # indexed_operations[checksum] = id_
@@ -195,6 +209,8 @@ class ImageInstaller(Installer):
                 args=args_str_,
                 operation_id=checksum,
                 docs=processor.doc,
+                decor="sinktrace" if sink else "autotrace",
+                package_id=package_name,
             )
 
         for id_, input_ in operations.inputs.items():

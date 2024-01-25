@@ -1,16 +1,33 @@
 
+import os
+import pickle
+
+import pandas as pd
+
 from ...interpreter.abstract import Interpreter
 from ...interpreter.space import SpaceInterpreter
+from ...manifest import ManifestManager
 from ...models.nodes.tree import TreeNode
 from ...models.task.base import BaseTask
 from ...models.types import FlowOutput
+from ..injections import BaseInjectable
+from ..results import Result
+from .interpreted import InterpretedTask
 
 
 class PromisedTask(BaseTask):
-    def __init__(self, results: FlowOutput, tree: TreeNode) -> None:
+    def __init__(
+        self,
+        results: FlowOutput,
+        tree: TreeNode,
+    ) -> None:
         self.__results = results
         self.__tree = tree
         self.__task = None
+
+    @property
+    def tree(self) -> TreeNode:
+        return self.__tree
 
     def interpret(self, interpreter: Interpreter = None) -> None:
         __interpreter = interpreter or SpaceInterpreter()
@@ -59,7 +76,7 @@ class PromisedTask(BaseTask):
         # if task is not prepared
         return self.__task.stop(*args, **kwargs)
 
-    def results(self, *args, **kwargs) -> None:
+    def results(self, *args, **kwargs) -> list[Result]:
         if not self.__task:
             raise Exception(
                 "Unable to get results of the task, that has not been interpreted. "
@@ -79,3 +96,45 @@ class PromisedTask(BaseTask):
             )
 
         return self.__task.commit_returned(returned)
+
+    def save(self, path=None) -> str:
+        if path is None:
+            path = os.path.join(
+                os.getcwd(),
+                f"{self.__tree.reverse_id}.malevichflow"
+            )
+
+
+        # Uploading secrets
+        # TODO: upload secrets
+
+        # Dumping flow to json
+        flow_data = {
+            "tree": self.tree,
+            "apps": [
+                next(iter(app.keys()))
+                for app in ManifestManager().query("dependencies")
+            ]
+        }
+        flow_bytes = pickle.dumps(flow_data)
+
+        with open(path, "wb") as fl:
+            fl.write(flow_bytes)
+
+    def get_injectables(self) -> list[BaseInjectable]:
+        return self.__task.get_injectables()
+
+    def get_operations(self) -> list[str]:
+        return self.__task.get_operations()
+
+    def configure(self, operation: str, **kwargs) -> None:
+        return self.__task.configure(operation, **kwargs)
+
+    def get_interpreted_task(self) -> InterpretedTask:
+        if not self.__task:
+            raise Exception(
+                "Unable to get interpreted task. "
+                "Please, use `.interpret` first to attach task to "
+                "a particular platform"
+            )
+        return self.__task

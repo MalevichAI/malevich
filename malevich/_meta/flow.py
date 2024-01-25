@@ -1,4 +1,5 @@
 from functools import wraps
+from inspect import signature
 from typing import Callable, Optional, ParamSpec, TypeVar
 
 import pandas as pd
@@ -6,6 +7,7 @@ import pandas as pd
 from .._autoflow.flow import Flow
 from .._autoflow.tracer import traced
 from .._utility.registry import Registry
+from ..models.argument import ArgumentLink
 from ..models.flow_function import FlowFunction
 from ..models.nodes.base import BaseNode
 from ..models.nodes.tree import TreeNode
@@ -96,16 +98,29 @@ def flow(
                     reverse_id=reverse_id,
                     name=name,
                     description=description,
+                    results=__results or []
                 )
 
+            sign = signature(function)
+            params = sign.parameters
+            param_values = [*params.values()]
             if is_subflow:
                 outer_tracer.claim(t_node)
                 for i, i_arg in enumerate(args):
                     if isinstance(i_arg, traced):
                         # In parent tree
                         bridges = _tree.edges_from(__hargs[i])
-                        b_nodes = [(b[1], b[2]) for b in bridges]
-                        i_arg._autoflow.calledby(outer_tracer, (i, b_nodes))
+                        b_nodes = [(b[2], b[1]) for b in bridges]
+                        _a = ArgumentLink(
+                            index=i,
+                            name=param_values[i].name,
+                            is_compressed_edge=True,
+                            compressed_edges=b_nodes
+                        )
+                        i_arg._autoflow.calledby(
+                            outer_tracer,
+                            _a
+                        )
                         _tree.prune([__hargs[i]])
 
                 for k in kwargs:
@@ -113,10 +128,19 @@ def flow(
                     if isinstance(k_arg, traced):
                         # New tracer in this tree
                         bridges = _tree.edges_from(__hkwargs[k])
-                        b_nodes = [(b[1], b[2]) for b in bridges]
-                        k_arg._autoflow.calledby(outer_tracer, (i, b_nodes))
+                        b_nodes = [(b[2], b[1]) for b in bridges]
+                        i = 0
+                        for i, p in enumerate(params.values()):
+                            if p.name == k:
+                                break
+                        _a = ArgumentLink(
+                            index=i,
+                            name=k,
+                            is_compressed_edge=True,
+                            compressed_edges=b_nodes
+                        )
+                        k_arg._autoflow.calledby(outer_tracer, _a)
                         _tree.prune([__hkwargs[k]])
-
                 outputs = [
                     traced(
                         TreeNode(
@@ -124,13 +148,12 @@ def flow(
                             underlying_node=o.owner,
                         )
                     )
-                    for o in (
-                        [__results] if isinstance(
+                    for o in ([__results] if isinstance(
                             __results, traced) else __results
                     )
                     if isinstance(o, traced)
                 ]
-
+                assert all([o.owner.results is not None for o in outputs])
                 return outputs[0] if len(outputs) == 1 else outputs
             else:
                 return PromisedTask(results=__results, tree=t_node)

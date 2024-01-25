@@ -1,14 +1,24 @@
 
+from typing import TypeVar
+
 from .._utility.singleton import SingletonMeta
 
+T = TypeVar('T')
 
 class Registry(metaclass=SingletonMeta):
     _registry = {}
 
+    @property
+    def registry(self) -> dict:
+        return self._registry
+
     def register(self, key: str, value: object) -> None:
         self._registry[key] = value
 
-    def get(self, key: str, default=None) -> object | None:
+    def get(self, key: str, default=None, model: T = None) -> T | object | None:
+        _o = self._registry.get(key, default)
+        if model and not isinstance(_o, model):
+            return model(**self._registry.get(key, default))
         return self._registry.get(key, default)
 
     def __getitem__(self, key: str) -> object:
