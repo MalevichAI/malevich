@@ -9,7 +9,7 @@ from uuid import uuid4
 import pandas as pd
 from malevich_space.ops.component_manager import ComponentManager
 from malevich_space.ops.space import SpaceOps
-from malevich_space.schema import VersionMode
+from malevich_space.schema import SpaceSetup, VersionMode
 from malevich_space.schema.cfg import CfgSchema
 from malevich_space.schema.collection_alias import CollectionAliasSchema
 from malevich_space.schema.component import ComponentSchema
@@ -136,6 +136,49 @@ class SpaceInterpreterState:
 
 
 class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
+    """
+    Interpret flows to be added and uploaded to your Malevich Space workspace.
+
+    .. note::
+
+        The interpreter can only operate with dependencies installed with
+        both `space` installer.
+
+    .. warning::
+
+        Interpreting flows with this interpreter will immediately upload
+        the flow to your Malevich Space workspace. Use :meth:`.interpret`
+        wisely.
+
+    Interpretation is equivalent to the Add
+    action or :code:`malevich space component add` command.
+
+    Prepare
+    ---------
+
+    Preparation creates a deployment of the flow in the Malevich Space.
+    It is equialent to the Build action or :code:`malevich space component build` and
+    :code:`malevich space component boot` commands.
+
+    Run
+    -----
+
+    Run executes the flow in the Malevich Space. It is equivalent to the
+    Run action or :code:`malevich space component run` command.
+
+    Stop
+    ------
+
+    Deletes a deployment of the flow in the Malevich Space. It is equivalent
+    to the Stop action or :code:`malevich space component stop` command.
+
+    Results
+    -------
+
+    Results is represented as a list of
+    :class:`malevich.results.space.SpaceCollectionResult`
+    objects.
+    """
     supports_subtrees = True
 
     def prettify_collection_id(
@@ -202,6 +245,8 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
 
     def __init__(
         self,
+        setup: SpaceSetup = None,
+        ops: SpaceOps = None,
         name: Optional[str] = None,
         reverse_id: Optional[str] = None,
         description: Optional[str] = None,
@@ -214,17 +259,17 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
         """
         super().__init__()
         self._state = SpaceInterpreterState()
+        if not setup and not ops:
+            try:
+                setup = resolve_setup(manf.query("space", resolve_secrets=True))
+            except Exception as e:
+                raise InterpretationError(
+                    "Failed to resolve space setup. "
+                    "Please check your manifest file.",
+                    self, self._state
+                ) from e
 
-        try:
-            setup = resolve_setup(manf.query("space", resolve_secrets=True))
-        except Exception as e:
-            raise InterpretationError(
-                "Failed to resolve space setup. "
-                "Please check your manifest file.",
-                self, self._state
-            ) from e
-
-        space = SpaceOps(setup)
+        space = ops or SpaceOps(setup)
 
         try:  # Local patch for space
             host_ = space.get_my_hosts(url=setup.host.conn_url)[0]

@@ -29,7 +29,7 @@ def flow(
     description: Optional[str] = None,
     dfs_are_collections: Optional[bool] = None,
     **kwargs: Any,
-) -> Callable[[Callable[Args, T]], FlowFunction[Args, R]]:
+) -> Callable[[Callable[Args, T]], FlowFunction[Args, R]] | FlowFunction[Args, R]:
     """Converts a function into a flow
 
     The function is converted into :class:`malevich.models.flow_function.FlowFunction` object that can be
