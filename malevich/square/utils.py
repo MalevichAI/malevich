@@ -2,13 +2,15 @@
 import json
 import logging
 import pickle
-from typing import Any, Dict, List, Optional, Tuple, Union, TypeVar
+from typing import Any, Dict, List, Optional, Tuple, TypeVar, Union
 
 import boto3
 import jsonpickle
 import numpy as np
 import pandas as pd
 from botocore.response import StreamingBody
+
+from .df import OBJ
 
 WORKDIR = "/julius"         # docker workdir    # FIXME "/malevich"
 APP_DIR = f"{WORKDIR}/apps"  # dir into which the user code is copied
@@ -430,6 +432,19 @@ class Context:
         """
         pass
 
+    def as_object(self, paths: Dict[str, str], *, dir: Optional[str] = None) -> OBJ:
+        """copy paths to specific dir and create OBJ by this dir.
+        Created files paths: [{prefix for user objs}/{dir}/{save_path} for save_path in paths.values()]
+
+        Args:
+            paths (Dict[str, str]): real path with data -> subpath in result dir
+            dir (Optional[str], optional): dir name, generated if not set. Defaults to None
+
+        Returns:
+            OBJ: OBJ by created dir
+        """ # noqa: E501
+        pass
+
 
 def to_binary(smth: Any) -> bytes:  # noqa: ANN401
     return pickle.dumps(smth)
@@ -629,8 +644,9 @@ def _base_decode(encoded_data: str) -> bytes:
 
 
 def _tensor_to_df(x: list[_Tensor] | _Tensor) -> pd.DataFrame:
-    import torch  # not in requirements
     import io
+
+    import torch  # not in requirements
 
     if not isinstance(x, list):
         x = [x]
@@ -662,16 +678,17 @@ def _tensor_to_df(x: list[_Tensor] | _Tensor) -> pd.DataFrame:
 
     return pd.DataFrame(
         {
-            "__shape__": shapes, 
-            "__tensor__": data, 
+            "__shape__": shapes,
+            "__tensor__": data,
             "__grad__": grads,
             "__device__": device,
         })
 
 
 def _tensor_from_df(x: pd.DataFrame) -> list:
-    import torch  # not in requirements
     import io
+
+    import torch  # not in requirements
 
     _out = []
     for _, row in x.iterrows():
