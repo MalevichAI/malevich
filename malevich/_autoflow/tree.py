@@ -48,7 +48,6 @@ class ExecutionTree(Generic[T, LinkType]):
             if x not in outer_nodes
         ])
 
-
     def edges_from(self, node: T) -> None:
         return [n for n in self.tree if n[0] == node]
 

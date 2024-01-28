@@ -13,3 +13,4 @@ asyncio
 aiohttp
 jsonpickle
 python-dotenv
+kafka-python

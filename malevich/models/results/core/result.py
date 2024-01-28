@@ -368,7 +368,7 @@ class CoreResult(BaseResult[CoreResultPayload]):
             else:
                 return NotImplementedError(
                     "Cannot return a single binary from multiple results. "
-                    "Please use `get_binary_dir` instead and check the number of results "
+                    "Please use `get_binary_dir` instead and check the number of results "  # noqa: E501
                     "using `num_elements` property"
                 )
         else:

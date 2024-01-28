@@ -1,6 +1,6 @@
 from functools import wraps
 from inspect import signature
-from typing import Callable, Optional, ParamSpec, TypeVar
+from typing import Any, Callable, Optional, ParamSpec, TypeVar
 
 import pandas as pd
 
@@ -22,30 +22,37 @@ reg = Registry()
 
 
 def flow(
+    fn = None,
+    *,
     reverse_id: Optional[str] = None,
     name: Optional[str] = None,
     description: Optional[str] = None,
-    dfs_are_collections: bool = False,
-) -> Callable[[Callable[Args, T]], FlowFunction[Args, R]]:
-    """Creates a flow from a function
+    dfs_are_collections: Optional[bool] = None,
+    **kwargs: Any,
+) -> Callable[[Callable[Args, T]], FlowFunction[Args, R]] | FlowFunction[Args, R]:
+    """Converts a function into a flow
 
-    Decorated function will return either a task or traced nodes.
-    The task is returned when the function is called from the main context,
-    and traced nodes are returned when the function is called from another
-    flow. The task can be interpreted by calling `interpret` method with
-    any of available interpreters and then run with Malevich API. Traced
-    nodes are technical objects that should not be used directly but
-    rather passed to other @flow functions or Malevich operators
+    The function is converted into :class:`malevich.models.flow_function.FlowFunction` object that can be
+    called to produce a task or serve as a subflow.
+
+    When the function is called from within another :code:`@flow()` decorated
+    function, it returns traced objects to be used as arguments for other
+    flow components. When the function is called from the main context, it
+    returns a task that can be interpreted by any of available interpreters.
 
     Args:
         reverse_id (str, optional): Reverse ID of the flow component. Defaults to the name of the function.
         name (str, optional): Name of the flow. Defaults to None.
         description (str, optional): Description of the flow. Defaults to None.
         dfs_are_collections (bool, optional): Whether to treat pandas.DataFrame as a collection. Defaults to False.
+        **kwargs (Any):
+            Additional arguments to be passed to the flow component.
+            See :class:`malevich_space.schema.ComponentSchema` for details.
 
     Returns:
-        Callable[[Callable[Args, T]], Callable[Args, T]]: Decorator
+        Callable[[Callable[Args, T]], Callable[Args, T]]: Decorator for the function.
     """   # noqa: E501
+
     def wrapper(function: Callable[Args, T]) -> FlowFunction[Args, R]:
         nonlocal reverse_id, name, description
 
@@ -158,6 +165,6 @@ def flow(
             else:
                 return PromisedTask(results=__results, tree=t_node)
 
-        return FlowFunction(fn, reverse_id, name, description)
+        return FlowFunction(fn, reverse_id, name, description, **kwargs)
 
-    return wrapper
+    return wrapper(fn) if fn else wrapper
