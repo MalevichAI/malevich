@@ -22,11 +22,14 @@ def login(
         domain = re.search(r"\/\/(.*)api\.(.+)\/?", api_url)
         left = domain.group(1) if domain.group(1) else ''
         right = '.' + domain.group(2) if domain.group(2) else ''
-        # space_url = f'https://space.{domain}' + ('' if domain.endswith('/') else '/')
-        # base_space_url = f'space.{domain}'.rstrip('/')
-
         space_url = f'https://{left}space{right}/'
         base_space_url = f'{left}space{right}'.rstrip('/')
+    else:
+        domain = re.search(r"\/\/(.*)space\.(.+)\/?", space_url)
+        left = domain.group(1) if domain.group(1) else ''
+        right = '.' + domain.group(2) if domain.group(2) else ''
+        base_space_url = f'{left}space{right}'.rstrip('/')
+        api_url = f'https://{left}api{right}/'
 
     manf = ManifestManager()
     rich.print("[b]Welcome to [purple]Malevich Space[/purple]![/b]"
@@ -36,8 +39,6 @@ def login(
                "please create one and come back.[/bright_black]\n"
                )
 
-    # api_url = Prompt.ask("Malevich Space API URL", default=PROD_SPACE_API_URL)
-    # core_url = Prompt.ask("Malevich Core URL", default=DEFAULT_CORE_HOST)
     if not username:
         username = Prompt.ask(
             f"E-mail (or Username) on [bright_cyan]{base_space_url}[/bright_cyan]")

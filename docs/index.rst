@@ -144,14 +144,16 @@ Make Your Own Apps
 ==================
 
 We are continually expanding our list of available apps. If you find something missing that you need, we provide
-all the tools to create your own apps and optionally share them with the community.
+all the tools to create your own apps and optionally share them with the community. See :doc:`Apps/Building` for more details.
 
 
 .. toctree::
+   :hidden:
    :maxdepth: 3
    :caption: Contents:
 
    Getting Started <self>
+   Data/index
    Apps/index
    Flows/index
    API/index

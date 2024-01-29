@@ -20,7 +20,8 @@ malevich.models
     .. automodule:: malevich.models.results
         :members:
 
-        .. automodule:: malevich.models.base
-            :members:
+    .. automodule:: malevich.models.argument
+       
+        .. autoclass:: malevich.models.argument::ArgumentLink
         
             
