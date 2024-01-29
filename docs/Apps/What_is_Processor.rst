@@ -67,10 +67,10 @@ DF, DFS, Sink and OBJ
 Malevich makes use of specific data types when passing data between processors. Each
 of these types denote a specific entity that processor can receive as an input or return as an output.
 
-* `DF <../API/square/df.html#malevich.square.df.DF>`_ - a single instance of tabular data. The table can follow a specific schema. 
-* `DFS <../API/square/dfs.html#malevich.square.df.DFS>`_ - a collection of tabular data. The collection can be bound by a specific number of tables or be unlimited. Also, it can impose a schema on each table.
-* `Sink <../API/square/sink.html#malevich.square.df.Sink>`_ - a collection of DFS that allows you to denote a processor capable of being link to unbounded number of processors.
-* `OBJ <../API/square/obj.html#malevich.square.df.OBJ>`_ - a collection of files that can hold arbitrary binary data.
+* :class:`DF <malevich.square.df.DF>` - a single instance of tabular data. The table can follow a specific schema. 
+* :class:`DFS <malevich.square.df.DFS>` - a collection of tabular data. The collection can be bound by a specific number of tables or be unlimited. Also, it can impose a schema on each table.
+* :class:`Sink <malevich.square.df.Sink>` - a collection of DFS that allows you to denote a processor capable of being link to unbounded number of processors.
+* :class:`OBJ <malevich.square.df.OBJ>` - a collection of files that can hold arbitrary binary data.
 
 See, how they are applied in the following example:
 

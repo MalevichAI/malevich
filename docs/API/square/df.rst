@@ -11,7 +11,7 @@ used to denote a specification of units like processors in your apps.
         
         .. automethod:: malevich.square.df.DF.scheme_name
 
-    .. class:: malevich.square.df.DFS
+    .. class:: DFS
 
         Wrapper class for tabular data.
         
@@ -45,7 +45,7 @@ used to denote a specification of units like processors in your apps.
         consists of two data frames. The first data frame has scheme "users",
         and the second data frame has an arbitrary scheme.
         
-        2. Variable number of inputs
+        1. Variable number of inputs
         -----------------------------
         
         You may also assume an unbouded number of inputs. In this case, you

@@ -246,7 +246,6 @@ class OBJ:
 
     @cached_property
     def as_df(self) -> DF['obj']:   # noqa: F821
-<<<<<<< HEAD
         """df, file paths"""
         paths = []
         if os.path.isfile(self.__path):
@@ -256,20 +255,6 @@ class OBJ:
                 for name in files:
                     paths.append(os.path.join(address, name))
         return DF['obj'](pd.DataFrame.from_dict({"path": paths}))
-=======
-        """Converts the asset to a data frame
-        
-        If the asset is a folder, it will be converted to a data frame
-        with one column "path" containing paths produced by `os.walk`.
-        
-        If the asset is a file, it will be converted to a data frame
-        with one column "path" containing a single path to the file.
-        
-        Returns:
-            DF[obj]: A data frame with one column "path"
-        """
-        return DF["obj"](pd.DataFrame.from_dict({"path": [self.__path]}))
->>>>>>> docs
 
     @cached_property
     def df(self) -> pd.DataFrame:

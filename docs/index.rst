@@ -7,14 +7,14 @@ Getting Started
 
 Welcome to `Malevich <https://malevich.ai>`_ — a platform for building ML-driven prototypes and iterating them to production. This page provides a brief overview of the platform's capabilities that can be utilized from Python code or the command-line interface.
 
-Explore more about `building apps <Apps/Building_Apps.html>`_ and `assembling flows <Flows/Assembling_Flows.html>`_ to start developing on Malevich. Check out the `API reference <API/index.html>`_ for detailed insights into code functionalities.
+Explore more about :doc:`building apps <Apps/Building>` and :doc:`assembling flows </Flows/index>` to start developing on Malevich. Check out the :doc:`API reference <API/index>` for detailed insights into code functionalities.
 
-If you wish to contribute to the Malevich package, please refer to the `Contributing <Contributing.html>`_ page.
+If you wish to contribute to the Malevich package, please refer to the :doc:`Contributing </Contributing/index>` page.
 
 Installation
 ===============
 
-Malevich offers various tools for interacting with the platform, including the :code:`malevich` Python package. This package encompasses `Malevich Square <API/square.html>`_, CLI, Metascript, CI, and other minor tools. It is distributed via PyPI, allowing you to install it with :code:`pip`:
+Malevich offers various tools for interacting with the platform, including the :code:`malevich` Python package. This package encompasses :doc:`Malevich Square <API/square/index>`, CLI, Metascript, CI, and other minor tools. It is distributed via PyPI, allowing you to install it with :code:`pip`:
 
 .. code-block:: bash
 
@@ -157,3 +157,4 @@ all the tools to create your own apps and optionally share them with the communi
    Apps/index
    Flows/index
    API/index
+   Contributing/index

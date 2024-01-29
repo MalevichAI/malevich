@@ -17,7 +17,7 @@ To successfully build and run your first app, ensure you have the following:
 Getting Started
 ---------------
 
-If you are not yet familiar with `apps <./What_is_App.html>`_ or `processors <./What_is_Processor.html>`_, please review the corresponding pages first.
+If you are not yet familiar with :doc:`apps <What_is_App>` or :doc:`processors <What_is_Processor>`, please review the corresponding pages first.
 Let's create an app by running the following command:
 
 .. code-block:: console
@@ -124,11 +124,11 @@ Executing this flow will run the :code:`check_malevich` processor and output the
 Inputs and Outputs
 ------------------
 
-Each processor specifies its expected inputs and outputs. Inputs are defined through function arguments, which can be annotated with types such as `DF <../API/square/df.html#malevich.square.df.DF>`_, `DFS <../API/square/dfs.html#malevich.square.df.DFS>`_, `Sink <../API/square/sink.html#malevich.square.df.Sink>`_, and `OBJ <../API/square/obj.html#malevich.square.df.OBJ>`_. These types help define how data should be handled within flows.
+Each processor specifies its expected inputs and outputs. Inputs are defined through function arguments, which can be annotated with types such as :class:`DF <malevich.square.df.DF>`, :class:`DFS <malevich.square.df.DFS>`, :class:`OBJ <malevich.square.df.OBJ>`, and :class:`Sink <malevich.square.df.Sink>`. These types help define how data should be handled within flows.
 
-Processors are designed to be linked together in flows, where one's outputs feed into another's inputs. Each processor input corresponds to precisely one output of another processor. When a processor returns multiple outputs, they are bundled into a `DFS <../API/square/dfs.html#malevich.square.df.DFS>`_ object associated with a single input. Processors may also connect to data sources such as collections or assets; each source must link to a distinct processor input.
+Processors are designed to be linked together in flows, where one's outputs feed into another's inputs. Each processor input corresponds to precisely one output of another processor. When a processor returns multiple outputs, they are bundled into a :class:`DFS <malevich.square.df.DFS>` object associated with a single input. Processors may also connect to data sources such as collections or assets; each source must link to a distinct processor input.
 
-An exception occurs when a processor has only one input annotated as `Sink <../API/square/dfs.html#malevich.square.df.Sink>`_. These processors cannot receive data directly from sources but can accept inputs from an unlimited number of other processors.
+An exception occurs when a processor has only one input annotated as :class:`Sink <malevich.square.df.Sink>`. These processors cannot receive data directly from sources but can accept inputs from an unlimited number of other processors.
 
 Below are examples of processors with various configurations of inputs and outputs:
     
@@ -212,12 +212,12 @@ Below are examples of processors with various configurations of inputs and outpu
     
 .. note::
 
-    An argument of type :code:`DF` can also accept an asset (a :code:`OBJ` object), which will be converted into a dataframe with a single column named :code:`path` containing file paths from the asset. The relevant schema is known as :code:`obj`, which indicates the expected conversion.
+    An argument of type :class:`DF <malevich.square.df.DF>` can also accept an asset (a :class:`OBJ <malevich.square.df.OBJ>` object), which will be converted into a dataframe with a single column named :attr:`path <malevich.square.df.OBJ.path>` containing file paths from the asset. The relevant schema is known as :class:`obj <malevich.square.df.obj>`, which indicates the expected conversion.
 
 App Configuration
 -----------------
 
-Applications may accept user-defined configurations when running a flow by including an argument explicitly annotated with `Context <../API/square/utils.html#malevich.square.utils.Context>`_. This configuration resides within the context's `app_cfg <../API/square/utils.html#malevich.square.utils.Context.app_cfg>`_ attribute.
+Applications may accept user-defined configurations when running a flow by including an argument explicitly annotated with :class:`Context <malevich.square.utils.Context>`. This configuration resides within the context's :attr:`app_cfg` attribute.
 
 Example:
 

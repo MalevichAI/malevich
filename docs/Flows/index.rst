@@ -65,7 +65,6 @@ To compose and execute this flow, you would write code as follows:
 Explore subsequent sections to learn how it all works and how you can manage flows in Malevich:
 
 .. toctree::
-    :hidden:
     :maxdepth: 2
 
     Autoflow

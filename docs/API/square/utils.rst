@@ -149,58 +149,58 @@ malevich.square.utils
       at `GitHub <https://github.com/MalevichAI/malevich-library/tree/main/lib/src/media/apps/image/remove_background.py>`_.
 
 
-      .. autoattribute:: malevich.square.utils::Context.app_cfg
-         :no-index:
+      .. autoattribute:: app_cfg
+            :no-index:
 
-         Example:
-         --------
-         Assume, you have a processor that adds a column to a dataframe.
-         You can configure the name of the column and its value using
-         the app configuration:
-         
-         .. code-block:: python
-         
-            from malevich.square import DF, Any, Context, processor
-
-
-            @processor()
-            def add_column(df: DF[Any], context: Context):
-                  # Using .get() method to have default values
-                  column_name = context.app_cfg.get('column', 'new_column')
-                  value = context.app_cfg.get('value', 'new_value')
-                  position = context.app_cfg.get('position', 0)
-
-                  # After configuration is parsed, we can add a column
-                  # to the dataframe according to it
-
-                  if position < 0:
-                     position = len(df.columns) + position + 1
-
-                  df.insert(position, column_name, value)
-
-                  return df
-         
-         Source: `GitHub <https://github.com/MalevichAI/malevich-library/tree/main/lib/src/utility/apps/add/processor.py>`_.
-         
-         Metascript
-         ----------
-         When developing a flow in Metascript, you can pass the configuration
-         using the :code:`config` parameter:
-         
-         .. code-block:: python
-         
-            from malevich import flow, collection
-            from malevich.utility import add_column
+            Example:
+            --------
+            Assume, you have a processor that adds a column to a dataframe.
+            You can configure the name of the column and its value using
+            the app configuration:
             
-            @flow()
-            def my_flow():
-                  data = collection('data.csv')
-                  add_column(data, config={
-                     'column': 'A',
-                     'value': '10',
-                     'position': -1
-                  })
+            .. code-block:: python
+            
+               from malevich.square import DF, Any, Context, processor
+
+
+               @processor()
+               def add_column(df: DF[Any], context: Context):
+                     # Using .get() method to have default values
+                     column_name = context.app_cfg.get('column', 'new_column')
+                     value = context.app_cfg.get('value', 'new_value')
+                     position = context.app_cfg.get('position', 0)
+
+                     # After configuration is parsed, we can add a column
+                     # to the dataframe according to it
+
+                     if position < 0:
+                        position = len(df.columns) + position + 1
+
+                     df.insert(position, column_name, value)
+
+                     return df
+            
+            Source: `GitHub <https://github.com/MalevichAI/malevich-library/tree/main/lib/src/utility/apps/add/processor.py>`_.
+            
+            Metascript
+            ----------
+            When developing a flow in Metascript, you can pass the configuration
+            using the :code:`config` parameter:
+            
+            .. code-block:: python
+            
+               from malevich import flow, collection
+               from malevich.utility import add_column
                
+               @flow()
+               def my_flow():
+                     data = collection('data.csv')
+                     add_column(data, config={
+                        'column': 'A',
+                        'value': '10',
+                        'position': -1
+                     })
+                  
     
        
    .. autoclass:: malevich.square.utils::Context._ObjectStorage
