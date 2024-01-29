@@ -5,7 +5,12 @@ from .tree import ExecutionTree
 
 
 class Flow(metaclass=SingletonMeta):
-    """Orchestrate the execution of the pipeline"""
+    """Context-manager that holds the execution tree
+
+    The class is a singleton and can be used as a context-manager
+    to create a new execution tree. It holds a stack of trees to
+    maintain nested flows. The stack is thread-safe.
+    """
 
     # Internal representation of the execution tree
     __flow_stack = []

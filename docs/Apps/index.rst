@@ -10,7 +10,8 @@ Explore the following sections to learn more about apps:
 
 .. toctree::
     :maxdepth: 3
-
+    
+    self
     What_is_App
     What_is_Processor
     Building

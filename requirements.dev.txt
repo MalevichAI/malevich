@@ -16,7 +16,7 @@ asyncio
 aiohttp
 jsonpickle
 python-dotenv
-sphinx-rtd-theme
+pydata-sphinx-theme
 sphinxcontrib-applehelp
 sphinxcontrib-devhelp
 sphinxcontrib-htmlhelp

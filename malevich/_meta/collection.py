@@ -26,6 +26,11 @@ def collection(
     Empty collections are allowed and can be used as placeholders
     but will work only when running with Runners.
 
+    .. warning::
+
+        The :func:`collection <malevich._meta.collection>` function can only
+        be used inside the :func:`flow <malevich._meta.flow>` function.
+
     Args:
         name (str, optional): Name of the collection. Defaults to None.
         file (Optional[str], optional): Path to the file. Defaults to None.
@@ -44,7 +49,7 @@ def collection(
         AssertionError: If both file and data are provided
 
     Returns:
-        Collection: an object that is subject to be passed to processors
+        Collection: a traced object that is subject to be passed to processors
     """
     # Commented in favor of empty collections
     # for runners (Jan 10, 2024, v0.1.2)
