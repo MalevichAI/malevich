@@ -218,7 +218,7 @@ class PromisedTask(BaseTask):
 
         Returns:
             :class:`InterpretedTask`: The interpreted task
-        """
+        """  # noqa: E501
         if not self.__task:
             raise Exception(
                 "Unable to get interpreted task. "

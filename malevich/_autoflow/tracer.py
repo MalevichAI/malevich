@@ -1,6 +1,6 @@
 import uuid
 from hashlib import sha256
-from typing import Any, Generic, Iterable, Optional, TypeVar, Union
+from typing import Any, Generic, Optional, TypeVar
 
 from pydantic import BaseModel, Field
 

@@ -28,7 +28,7 @@ def flow(
     name: Optional[str] = None,
     description: Optional[str] = None,
     dfs_are_collections: Optional[bool] = None,
-    **kwargs: Any,
+    **kwargs: Any,  # noqa: ANN401
 ) -> Callable[[Callable[Args, T]], FlowFunction[Args, R]] | FlowFunction[Args, R]:
     """Converts a function into a flow
 
