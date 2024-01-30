@@ -15,6 +15,26 @@ class BadEdgeError(Exception):
 
 
 class ExecutionTree(Generic[T, LinkType]):
+    """An utility class holding a low-level representation of the execution graph
+
+    The class provides a set of basic operations on the graph, such as
+    adding edges, pruning, and traversing.
+
+    The tree is stored both as set of nodes and as a list of edges. The nodes
+    can be any hashable and comparable class, while the edges are triples
+    of the form `(callee, caller, link)` where `caller` and `callee` are
+    nodes and `link` is an arbitrary object.
+
+    The connection is directed from `callee` to `caller`. This is
+    because :code:`caller(callee)` notation requires the callee to be
+    evaluated first.
+
+    .. mermaid::
+
+        graph LR
+            Callee --> Caller
+
+    """
 
     def __init__(self, tree: Optional[list[tuple[T, T, LinkType]]] = None) -> None:
         if tree is not None:
@@ -26,18 +46,35 @@ class ExecutionTree(Generic[T, LinkType]):
             self.nodes_.add(u)
             self.nodes_.add(v)
 
-    def put_edge(self, caller: T, callee: T, link: LinkType = None) -> None:
-        if any(x[0] == caller and x[1] == callee for x in self.tree):
-            raise BadEdgeError("Edge already exists", (caller, callee, link))
-        if any(x[0] == callee and x[1] == caller for x in self.tree):
-            raise BadEdgeError("Edge already exists", (caller, callee, link))
-        if callee == caller:
-            raise BadEdgeError("Self-edge", (caller, callee, link))
-        self.tree.append((caller, callee, link))
-        self.nodes_.add(caller)
-        self.nodes_.add(callee)
+    def put_edge(self, callee: T, caller: T, link: LinkType = None) -> None:
+        """Add an edge to the execution tree
 
-    def prune(self, outer_nodes: Optional[list[T]] = None) -> None:
+        Args:
+            callee (T): The source node (a.k.a. Callee)
+            caller (T): The target node (a.k.a. caller)
+            link (LinkType, optional):
+                An arbitrary object that represents the edge payload
+                (e.g. argument name). Defaults to None.
+
+        Raises:
+            BadEdgeError: If the edge already exists, or if the edge is a self-edge
+        """
+        if any(x[0] == callee and x[1] == caller for x in self.tree):
+            raise BadEdgeError("Edge already exists", (callee, caller, link))
+        if any(x[0] == caller and x[1] == callee for x in self.tree):
+            raise BadEdgeError("Edge already exists", (callee, caller, link))
+        if caller == callee:
+            raise BadEdgeError("Self-edge", (callee, caller, link))
+        self.tree.append((callee, caller, link))
+        self.nodes_.add(callee)
+        self.nodes_.add(caller)
+
+    def prune(self, outer_nodes: list[T]) -> None:
+        """Removes specified nodes from the execution tree
+
+        Args:
+            outer_nodes (list[T]): List of nodes to remove
+        """
         self.tree = [
             x for x in self.tree
             if x[0] not in outer_nodes
@@ -48,12 +85,15 @@ class ExecutionTree(Generic[T, LinkType]):
             if x not in outer_nodes
         ])
 
-
     def edges_from(self, node: T) -> None:
+        """Returns all edges starting from the specified node"""
         return [n for n in self.tree if n[0] == node]
 
     def traverse(self) -> Iterator[tuple[T, T, LinkType]]:
-        """Traverse the execution tree in a determenistic order
+        """Traverse the execution tree
+
+        The traversal is performed in a multi-source
+        breadth-first manner.
 
         Returns:
             Generator[T]: Generator of nodes
@@ -92,6 +132,7 @@ class ExecutionTree(Generic[T, LinkType]):
             )
 
     def leaves(self) -> Iterable[T]:
+        """Returns all leaves of the execution tree"""
         return (
             x[1] for x in self.traverse()
             if not any(y[0] == x[1] for y in self.tree)
@@ -99,6 +140,7 @@ class ExecutionTree(Generic[T, LinkType]):
 
     @staticmethod
     def connected(a: 'ExecutionTree', b: 'ExecutionTree') -> bool:
+        """Checks if two execution trees are connected"""
         return any(
             x[0] == b and x[1] == a for x in a.traverse()
         ) or any(
@@ -106,4 +148,5 @@ class ExecutionTree(Generic[T, LinkType]):
         )
 
     def nodes(self) -> Iterable[T]:
+        """Returns all nodes of the execution tree"""
         return list(self.nodes_)

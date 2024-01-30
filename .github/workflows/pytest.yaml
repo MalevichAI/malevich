@@ -51,7 +51,7 @@ jobs:
         pip install -r ./malevich/requirements.dev.txt
 
     - name: Testing
-      run: pytest -s ./malevich/tests/
+      run: cd ./malevich && pytest -s ./tests/
       env:
         TESTS_SPACE_PASSWORD: ${{ secrets.TESTS_SPACE_PASSWORD }}
         TESTS_SPACE_USER: ${{ secrets.TESTS_SPACE_USER }}

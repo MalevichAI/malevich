@@ -6,7 +6,8 @@ from ..models.nodes.asset import AssetNode
 
 
 class AssetFactory:
-    """Use files in flow by converting them to assets"""
+    """Creates binary collections (assets) from files or folders"""
+
     @staticmethod
     def file(
         #self,
