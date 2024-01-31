@@ -22,6 +22,10 @@ jobs:
       - name: Sphinx build
         run: |
           sphinx-build docs build-docs
+      - name: Add CNAME
+        run: |
+          rm build-docs/CNAME
+          echo "docs.malevich.ai" > build-docs/CNAME
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/docs' }}
