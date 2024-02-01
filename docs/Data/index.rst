@@ -48,15 +48,26 @@ Example:
 
 
     @flow
-    def my_flow():
-        users = collection('Users Collection', df=data)
-        # or
-        users = collection('Users Collection', file='users.csv')
+    def my_flow(input_data=None, file_name=None):
+        # Create a collection either
+        # using data frame, or file name
+        if input_data is not None:
+            users = collection('Users Collection', df=input_data)
+        elif file_name is not None:
+            users = collection('Users Collection', file=file_name)
+        
 
-        # Operation on users
+        # Operation on `users` collection
         ...
 
         return ...
+    
+    task_from_data = my_flow(input_data=df)
+    task_from_file = my_flow(file_name='users.csv')
+
+    # Operations with task
+
+    ...
 
 Assets
 ------
