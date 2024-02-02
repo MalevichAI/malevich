@@ -29,6 +29,8 @@ from .constants import *
 from .interpreter.core import CoreInterpreter
 from .interpreter.space import SpaceInterpreter
 
+# Malevich Core
+import malevich_coretools as core_api
 
 manifest = ManifestManager()
 

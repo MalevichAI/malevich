@@ -33,7 +33,7 @@ def autotrace(func: Callable[C, R]) -> Callable[C, R]:
 
         varnames = func.__code__.co_varnames
         for i, arg in enumerate(args):
-            argument_name = varnames[max(i, len(varnames) - 1)]
+            argument_name = varnames[min(i, len(varnames) - 1)]
             if isinstance(arg, gn.traced):
                 arg._autoflow.calledby(
                     result,

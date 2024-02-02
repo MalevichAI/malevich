@@ -6,12 +6,14 @@ from uuid import uuid4 as u
 import malevich_coretools as mct
 import pandas as pd
 
+from ..models.injections import CoreInjectable
+
 from .._core.ops import batch_upload_collections
 from ..constants import DEFAULT_CORE_HOST
-from ..interpreter.core import CoreInjectable, CoreInterpreter
+from ..interpreter.core import CoreInterpreter
 from ..models.collection import Collection
 from ..models.flow_function import FlowFunction
-from ..models.task.interpreted import InterpretedTask
+from ..models.task.interpret.core import CoreTask
 from .base import BaseRunner
 
 AsyncCoreInjections = TypeVar("AsyncCoreInjections", bound=pd.DataFrame)
@@ -36,7 +38,7 @@ class AsyncCoreRunner(BaseRunner[AsyncCoreInjections]):
         self._interpreter = interpreter
         self._core_auth = core_auth
         self._core_host = core_host
-        self._interpreted_task: InterpretedTask = None
+        self._interpreted_task: CoreTask = None
         self._workers = workers
         self._executor: Executor = None
         self._prepared = False

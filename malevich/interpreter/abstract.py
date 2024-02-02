@@ -1,11 +1,9 @@
 import uuid
 from abc import abstractmethod
 from copy import deepcopy
-from typing import Generic, Iterable, TypeVar
+from typing import Any, Generic, Iterable, TypeVar
 
 import pandas as pd
-
-from malevich.models.task.interpreted import InterpretedTask
 
 from .._autoflow.tracer import traced
 from .._utility.tree import unwrap_tree
@@ -110,7 +108,7 @@ class Interpreter(Generic[State, Return]):
         else:
             self._state = self.state
 
-    def interpret(self, node: TreeNode) -> InterpretedTask:
+    def interpret(self, node: TreeNode):  # noqa: ANN201
         """Interprets the execution tree
 
         The interpretation process is divided into 5 steps:
@@ -255,7 +253,7 @@ class Interpreter(Generic[State, Return]):
         pass
 
     @abstractmethod
-    def get_task(self, state: State) -> InterpretedTask[State]:
+    def get_task(self, state: State) -> Any:
         """Called after the interpretation process ends
 
         Args:
@@ -265,14 +263,14 @@ class Interpreter(Generic[State, Return]):
             Task: Task to run
         """
 
-    @abstractmethod
-    def get_results(
-        self,
-        returned: Iterable[traced[BaseNode]] | traced[BaseNode] | None
-    ) -> Iterable[pd.DataFrame] | pd.DataFrame:
-        """Returns the result of the interpretation process
+    # @abstractmethod
+    # def get_results(
+    #     self,
+    #     returned: Iterable[traced[BaseNode]] | traced[BaseNode] | None
+    # ) -> Iterable[pd.DataFrame] | pd.DataFrame:
+    #     """Returns the result of the interpretation process
 
-        Args:
-            state (State): Current state
-        """
-        pass
+    #     Args:
+    #         state (State): Current state
+    #     """
+    #     pass
