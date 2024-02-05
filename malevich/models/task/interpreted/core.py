@@ -6,15 +6,15 @@ from typing import Any, Iterable, Optional, Type
 
 import malevich_coretools as core
 import pandas as pd
-from ....interpreter.abstract import Interpreter
 
 from malevich.models.types import FlowOutput
 
 from ...._autoflow.tracer import traced
 from ...._core.ops import batch_create_apps, batch_create_tasks, result_collection_name
 from ...._utility.logging import LogLevel, cout
+from ....interpreter.abstract import Interpreter
 from ...actions import Action
-from ...injections import BaseInjectable, CoreInjectable
+from ...injections import CoreInjectable
 from ...nodes.asset import AssetNode
 from ...nodes.base import BaseNode
 from ...nodes.collection import CollectionNode
@@ -52,9 +52,9 @@ class CoreTask(BaseTask):
     def __init__(
         self,
         state: CoreInterpreterState,
-        task_kwargs: list[dict] = None,
-        config_kwargs: dict[str, Any] = None,
-        leaf_node_uid: str = None,
+        task_kwargs: list[dict] = None,  # noqa: RUF013
+        config_kwargs: dict[str, Any] = None,  # noqa: RUF013
+        leaf_node_uid: str = None,  # noqa: RUF013
         partial: bool = False,
     ) -> None:
         super().__init__()
@@ -273,7 +273,7 @@ class CoreTask(BaseTask):
             - **kwargs (Any, optional): Keyword arguments to be passed to the
                 :func:`malevich.core_api.task_run` function.
 
-        """
+        """  # noqa: E501
         cout(
             message="Task is being executed on Core. It may take a while",
             action=Action.Run,
@@ -465,7 +465,11 @@ class CoreTask(BaseTask):
         return injectables
 
     def get_operations(self, *args, **kwargs) -> list[str]:
-        return [x.alias for x in self.state.ops.values() if isinstance(x, OperationNode)]
+        return [
+            x.alias
+            for x in self.state.ops.values()
+            if isinstance(x, OperationNode)
+        ]
 
     def async_run(
         self,

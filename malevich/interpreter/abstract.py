@@ -1,9 +1,7 @@
 import uuid
 from abc import abstractmethod
 from copy import deepcopy
-from typing import Any, Generic, Iterable, TypeVar
-
-import pandas as pd
+from typing import Any, Generic, TypeVar
 
 from .._autoflow.tracer import traced
 from .._utility.tree import unwrap_tree
@@ -253,7 +251,7 @@ class Interpreter(Generic[State, Return]):
         pass
 
     @abstractmethod
-    def get_task(self, state: State) -> Any:
+    def get_task(self, state: State) -> Any:  # noqa: ANN401
         """Called after the interpretation process ends
 
         Args:

@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import enum
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Generic, Optional, ParamSpec, Type, TypeVar
+from typing import Any, Callable, Generic, ParamSpec, TypeVar
 
 # from ...interpreter.abstract import Interpreter
 from ..injections import BaseInjectable
@@ -28,13 +28,13 @@ class BaseTask(ABC, Generic[StageClass]):
     def get_stage(self) -> StageClass:
         pass
 
-    def get_stage_class(self) -> Type[StageClass]:
+    def get_stage_class(self) -> type[StageClass]:
         return StageClass
 
     # Main Task Operations
     # ====================
     @abstractmethod
-    def interpret(self, interpreter: Any = None) -> None:
+    def interpret(self, interpreter: Any = None) -> None:  # noqa: ANN401
         """Attaches the task to particular platform"""
         pass
 
@@ -63,7 +63,7 @@ class BaseTask(ABC, Generic[StageClass]):
         #     callback(*cb_args, **cb_kwargs)
 
     @abstractmethod
-    def run(self, run_id: Optional[str] = None, *args, **kwargs) -> None:
+    def run(self, run_id: str | None = None, *args, **kwargs) -> None:
         """Performs a single run with a given ID"""
         pass
 
@@ -73,7 +73,7 @@ class BaseTask(ABC, Generic[StageClass]):
         callback: Callback = None,
         cb_args: tuple = (),
         cb_kwargs: dict = {},
-        run_id: Optional[str] = None,
+        run_id: str | None = None,
         **kwargs
     ) -> None:
         """Asynchronously performs a single run with a given ID"""
@@ -132,7 +132,7 @@ class BaseTask(ABC, Generic[StageClass]):
 
     @staticmethod
     @abstractmethod
-    def load(self, object_bytes: bytes) -> 'BaseTask':
+    def load(self, object_bytes: bytes) -> BaseTask:
         """Deserializes the task from bytes"""
         pass
 
@@ -156,6 +156,6 @@ class BaseTask(ABC, Generic[StageClass]):
     # Interpretation
     # ==============
     @abstractmethod
-    def get_interpreted_task(self) -> 'BaseTask':
+    def get_interpreted_task(self) -> BaseTask:
         """Returns the task interpreted for a particular platform"""
         pass

@@ -116,10 +116,10 @@ class SpaceTask(BaseTask):
     def get_interpreted_task(self) -> BaseTask:
         return None
 
-    def get_stage(self) -> Any:
+    def get_stage(self) -> Any:  # noqa: ANN401
         return None
 
-    def interpret(self, interpreter: Any = None) -> None:
+    def interpret(self, interpreter: Any = None) -> None:  # noqa: ANN401
         return None
 
     def dump(self) -> bytes:

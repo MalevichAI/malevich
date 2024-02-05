@@ -43,7 +43,7 @@ class CoreInterpreterState:
         # Involved operations
         self.ops: dict[str, BaseNode] = {}
         # Dependencies (same keys as in self.ops)
-        self.depends: dict[str, list[tuple[BaseNode, ArgumentLink]]] = defaultdict(list)  # noqa: E501
+        self.depends: dict[str, list[tuple[BaseNode, ArgumentLink]]] = defaultdict(list)
         # Registry reference (just a shortcut)
         self.reg = Registry()
         # Manifest manager reference (just a shortcut)

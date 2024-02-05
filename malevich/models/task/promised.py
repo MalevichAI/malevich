@@ -1,16 +1,12 @@
 
-import os
 import pickle
 
 # from .interpreted import InterpretedTask
 from enum import Enum
-from typing import Any, Coroutine, Optional, Type
+from typing import Any, Optional, Type
+
 from ...interpreter.abstract import Interpreter
-
-from malevich.models.task.base import Callback
-
 from ...interpreter.space import SpaceInterpreter
-from ...manifest import ManifestManager
 from ...models.nodes.tree import TreeNode
 from ...models.task.base import BaseTask
 from ...models.types import FlowOutput
@@ -137,7 +133,7 @@ class PromisedTask(BaseTask[PromisedStage]):
         """
         return self.__task.async_prepare(*args, **kwargs)
 
-    def async_run(self,*args, run_id: str = None, **kwargs) -> None:
+    def async_run(self,*args, run_id: str | None = None, **kwargs) -> None:
         """Asynchronously runs the task with the given run_id
 
         The method is non-blocking. Beware that you need to call :meth:`prepare`

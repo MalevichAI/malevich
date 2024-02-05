@@ -6,14 +6,13 @@ from uuid import uuid4 as u
 import malevich_coretools as mct
 import pandas as pd
 
-from ..models.injections import CoreInjectable
-
 from .._core.ops import batch_upload_collections
 from ..constants import DEFAULT_CORE_HOST
 from ..interpreter.core import CoreInterpreter
 from ..models.collection import Collection
 from ..models.flow_function import FlowFunction
-from ..models.task.interpret.core import CoreTask
+from ..models.injections import CoreInjectable
+from ..models.task.interpreted.core import CoreTask
 from .base import BaseRunner
 
 AsyncCoreInjections = TypeVar("AsyncCoreInjections", bound=pd.DataFrame)

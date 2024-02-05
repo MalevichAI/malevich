@@ -22,6 +22,9 @@ from .models.manifest import *
 # Expose contants
 from .constants import *
 
+# Make runners accessible from upper level
+from .runners import *
+
 # # Summaries
 # from ._utility.summary import *
 
@@ -32,7 +35,7 @@ from .interpreter.space import SpaceInterpreter
 # Malevich Core
 import malevich_coretools as core_api
 
-manifest = ManifestManager()
+manf = ManifestManager()
 
 __logger = logging.getLogger("log")
 __logger.setLevel(logging.CRITICAL)
