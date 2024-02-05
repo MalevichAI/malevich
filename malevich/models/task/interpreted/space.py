@@ -75,7 +75,8 @@ class SpaceTask(BaseTask):
                 flow_id=self.component.flow.uid,
                 host_id=self.state.component_manager.host.uid
             )
-            self.state.aux['task_id'] = task_id
+            self.state.aux['task_id'] = task_id['uid']
+            self.state.aux['core_task_id'] = task_id['coreId']
 
 
         self.state.space.boot_task(
