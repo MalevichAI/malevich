@@ -20,6 +20,10 @@ class SpaceTask(BaseTask):
     def load(object_bytes) -> 'SpaceTask':
         return pickle.loads(object_bytes)
 
+    @property
+    def tree(self) -> TreeNode:
+        return self.state.aux['tree']
+
     def __init__(
         self,
         state: SpaceInterpreterState,

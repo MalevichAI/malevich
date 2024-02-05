@@ -307,6 +307,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
         self._state.aux['name'] = self._state.aux['name'] or node.name
         self._state.aux['reverse_id'] = self._state.aux['reverse_id'] or node.reverse_id
         self._state.aux['description'] = self._state.aux['description'] or node.description  # noqa: E501
+        self._state.aux['tree'] = node
         return super().interpret(node)
 
     def before_interpret(self, state) -> SpaceInterpreterState:
