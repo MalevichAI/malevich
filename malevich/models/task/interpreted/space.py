@@ -55,17 +55,24 @@ class SpaceTask(BaseTask):
 
     def prepare(
         self,
+        use_v1: bool = False,
         *args,
         **kwargs
     ) -> None:
         self.state.aux['flow_id'] = self.component.flow.uid
+        if use_v1:
+            task_id = self.state.space.build_task(
+                flow_id=self.component.flow.uid,
+                host_id=self.state.component_manager.host.uid
+            )
+            self.state.aux['task_id'] = task_id[0]
+        else:
+            task_id = self.state.space.build_task_v2(
+                flow_id=self.component.flow.uid,
+                host_id=self.state.component_manager.host.uid
+            )
+            self.state.aux['task_id'] = task_id
 
-        task_id = self.state.space.build_task(
-            flow_id=self.component.flow.uid,
-            host_id=self.state.component_manager.host.uid
-        )
-
-        self.state.aux['task_id'] = task_id[0]
 
         self.state.space.boot_task(
             task_id=self.state.aux['task_id'],
