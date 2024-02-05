@@ -260,7 +260,7 @@ class Interpreter(Generic[State, Return]):
         Returns:
             Task: Task to run
         """
-
+        pass
     # @abstractmethod
     # def get_results(
     #     self,

@@ -2,8 +2,9 @@ import pickle
 from typing import Any, Iterable, Optional
 
 import pandas as pd
-from malevich_space.schema import LoadedComponentSchema
+from malevich_space.schema import InFlowAppSchema, LoadedComponentSchema
 
+from malevich_coretools.abstract.statuses import AppStatus
 from malevich.models.injections import BaseInjectable
 
 from ...._autoflow.tracer import traced
@@ -144,7 +145,7 @@ class SpaceTask(BaseTask):
         return []
 
     def get_operations(self) -> list[str]:
-        return super().get_operations()
+        return []
 
     def commit_returned(self, returned: FlowOutput) -> None:
         self._returned = returned
@@ -170,6 +171,17 @@ class SpaceTask(BaseTask):
             returned,
             alias2infid
         )
+
+        finished_ = set()
+        to_be_finished_ = set(infid_)
+        for update in self.state.space.subscribe_to_status(
+            run_id or self.state.aux['run_id']
+        ):
+            if update.status == AppStatus.COMPLETE:
+                finished_.add(update.in_flow_comp_id)
+
+            if finished_ == to_be_finished_:
+                break
 
         return [
             SpaceCollectionResult(
