@@ -22,7 +22,7 @@ Install apps using published Docker images. The information about
 the functionality provided by them will be pulled and parsed accordingly.
 """
 
-IMAGE_BASE = "public.ecr.aws/u6e1k0c7/{app}:latest"
+IMAGE_BASE = "public.ecr.aws/o1z1g3t0/{app}:latest"
 
 
 CorePlatform = Platform.CORE

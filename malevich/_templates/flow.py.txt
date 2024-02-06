@@ -1,0 +1,40 @@
+"""
+It is an example of creating and running
+a flow with your app on Malevich Core
+"""
+
+from malevich.{app} import find_pattern, lowercase
+import pandas as pd
+
+from malevich import CoreInterpreter, collection, flow
+
+
+@flow(reverse_id="welcome.flow")
+def welcome_flow():
+    """
+    This is a flow that connects
+    two processors of your app
+    """
+
+    messages = collection(
+        "messages",
+        df=pd.DataFrame(
+            {{"text": ["Hello Malevich!", "I am mastering apps and flows!"]}}
+        ),
+    )
+
+    found = find_pattern(
+        lowercase(messages)
+    )
+
+    return found
+
+
+if __name__ == "__main__":
+    task = welcome_flow()
+    task.interpret(
+        CoreInterpreter(
+            core_auth=("example", "Welcome to Malevich!"),
+        )
+    )
+    print(task())

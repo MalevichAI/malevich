@@ -125,12 +125,17 @@ def _create_task_safe(
 
 def batch_create_tasks(
     kwargs_list: list[dict],
+    auth: core.AUTH = None,
+    conn_url: Optional[str] = DEFAULT_CORE_HOST,
 ) -> None:
-    results: list[Future] = []
-    for kwargs_ in kwargs_list:
-        results.append(executor.submit(_create_task_safe, **kwargs_))
+    # results: list[Future] = []
+    # for kwargs_ in kwargs_list:
+    #     results.append(executor.submit(_create_task_safe, **kwargs_))
 
-    return [r.result() for r in results]
+    # return [r.result() for r in results]
+    with core.Batcher(auth=auth, conn_url=conn_url):
+        for kwargs_ in kwargs_list:
+           _create_task_safe(**kwargs_)
 
 
 def _upload_collection(
@@ -183,14 +188,14 @@ def _assure_collection(
     else:
         collection.core_id = _ids.ownIds[0]
 
-    if collection.core_id not in core.get_collections(
-        conn_url=conn_url,
-        auth=auth
-    ).ownIds:
-        raise Exception(
-            f"Collection {collection.collection_id} with core_id "
-            f"{collection.core_id} is not found in Core."
-        )
+    # if collection.core_id not in core.get_collections(
+    #     conn_url=conn_url,
+    #     auth=auth
+    # ).ownIds:
+    #     raise Exception(
+    #         f"Collection {collection.collection_id} with core_id "
+    #         f"{collection.core_id} is not found in Core."
+    #     )
 
     return collection.core_id
 
@@ -249,15 +254,22 @@ def _assure_asset(
             auth=auth,
             conn_url=conn_url,
         )
-    except Exception as _:
-        _upload_asset(asset, auth, conn_url)
-        return
-
-    if asset.is_composite:
-        for f_ in asset.real_path:
-            if os.path.basename(f_) not in objs.files:
-                _upload_asset(asset, auth, conn_url)
-                break
-    else:
-        if asset.core_path not in objs.files:
+    except Exception as e:
+        if asset.real_path is not None:
             _upload_asset(asset, auth, conn_url)
+            return
+        else:
+            raise Exception(
+                f"Asset {asset.core_path} is not found in Core. Cannot "
+                "upload it because real_path is not specified."
+            ) from e
+
+    if asset.real_path is not None:
+        if asset.is_composite:
+            for f_ in asset.real_path:
+                if os.path.basename(f_) not in objs.files:
+                    _upload_asset(asset, auth, conn_url)
+                    break
+        else:
+            if asset.core_path not in objs.files:
+                _upload_asset(asset, auth, conn_url)

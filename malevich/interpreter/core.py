@@ -149,8 +149,101 @@ class CoreInjectable(BaseInjectable[str, str]):
         return self.__uploaded_id
 
 
+core.task_run
+
 class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
-    """Inteprets the flow using Malevich Core API"""
+    """Interpret flows to be run on Malevich Core
+
+    Malevich Core is a computational cloud of Malevich. It provides
+    low-level access to the computational resources of Malevich. This
+    interpreter utilizes its API to run your flows.
+
+    .. note::
+
+        The interpreter can operate with dependencies installed with
+        both `image` and `space` installer.
+
+    Prepare
+    ---------
+
+    The prepare hook is a simple proxy to the `task_prepare` function
+    of Malevich Core API. All the parameters are optional.
+
+    Options:
+
+    *   :code:`with_logs (bool)`:
+            If set, return prepare logs if True after end
+    *   :code:`debug_mode (bool)`:
+            If set, displays additional information about errors
+    *   :code:`info_url (str)`:
+            URL to which the request is sent. If not specified, the default url is used.
+            Rewrite msg_url from configuration if exist
+    *   :code:`core_manage (bool)`:
+            If set, the requests will be managed by Core, otherwise by the DAG Manager.
+    *   :code:`with_show (bool)`:
+            Show results (like for each operation, default equals with_logs arg)
+    *   :code:`profile_mode (str)`:
+            If set, provides more information in logs.
+            Possible modes: :code:`no`, :code:`all`, :code:`time`,
+            :code:`df_info`, :code:`df_show`
+
+    Run
+    -----
+
+    The run hook is a simple proxy to the `task_run` function
+    of Malevich Core API. All the parameters are optional.
+
+    Options:
+
+        **Interpreter-specific parameters**
+
+        * :code:`run_id (str)`:
+            A custom identifier for the run. If not specified, a random
+            identifier is generated.
+        * :code:`overrides (dict[str, str])`:
+            A dictionary of overrides for the collections. The keys are
+            collection names, the values are collection IDs. The option
+            is managed by Runners, but can be provided manually.
+
+        **Core-API parameters**
+
+        * :code:`with_logs (bool)`:
+            If set return prepare logs if True after end
+        * :code:`debug_mode (bool)`:
+            If set, displays additional information about errors
+        * :code:`with_show (bool)`:
+            Show results in logs
+        * :code:`profile_mode (str)`:
+            If set, provides more information in logs.
+            Possible modes: :code:`no`, :code:`all`, :code:`time`,
+            :code:`df_info`, :code:`df_show`
+
+
+    Stop
+    ------
+
+    The stop hook is a simple proxy to the `task_stop` function.
+    It stops the task and does not have any options.
+
+    Results
+    -------
+
+    Results is represented as a list of :class:`malevich.results.core.CoreResult`
+    objects. Each object contains a payload which can be an asset, a dataframe or
+    a list of such. Use :code:`.get_df()`, :code:`.get_binary()`, :code:`.get_dfs()`
+    and :code:`.get_binary_dir()` to extract the results.
+
+    Configure
+    ---------
+
+    You can mark an operation to be run on a specific platform. To do so,
+    set :code:`platform` and :code:`platformSettings` parameters in the
+    :code:`.configure()` method. The :code:`platform` parameter can be
+    :code:`base` or :code:`vast`. The :code:`platformSettings` parameter
+    is a dictionary of settings for the platform. The settings are
+    platform-specific.
+
+    """
 
     def __init__(
         self,
@@ -220,12 +313,25 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         )
         return state
 
-    # def before_interpret(self, state: CoreInterpreterState) -> CoreInterpreterState:
-    #     # core.set_host_port(self.__core_host)
-    #     # core.update_core_credentials(self.__core_auth[0], self.__core_auth[1])
-    #     _log("Connection to Core is established.", 0, 0, True)
-    #     _log(f"Core host: {self.__core_host}", 0, -1, True)
-    #     return state
+    def before_interpret(self, state: CoreInterpreterState) -> CoreInterpreterState:
+        _log("Connection to Core is established.", 0, 0, True)
+        _log(f"Core host: {self.__core_host}", 0, -1, True)
+        try:
+            core.check_auth(
+                auth=self.__core_auth,
+                conn_url=self.__core_host
+            )
+        except Exception:
+            try:
+                core.create_user(
+                    auth=self.__core_auth,
+                    conn_url=self.__core_host
+                )
+            except Exception:
+                raise Exception(
+                    "Cannot connect to Core. Please, check your credentials."
+                )
+        return state
 
     def after_interpret(self, state: CoreInterpreterState) -> CoreInterpreterState:
         _log("Flow is built. Uploading to Core", step=True)
@@ -364,8 +470,8 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                     'task_id': core_id,
                     'app_id': core_id,
                     'tasks_depends': depends,
-                    'auth': state.params["core_auth"],
-                    'conn_url': state.params["core_host"],
+                    # 'auth': state.params["core_auth"],
+                    # 'conn_url': state.params["core_host"],
                 }
             )
 
@@ -437,9 +543,10 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
             *args,
             **kwargs
         ) -> None:
-            _log("Task is being prepared for execution. It may take a while",
-                 action=1
-                 )
+            _log(
+                "Task is being prepared for execution. It may take a while",
+                action=1
+            )
             if stage.value & PrepareStages.BUILD.value:
                 apps_ = batch_create_apps([
                     {
@@ -464,7 +571,11 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                 #         )
                 #     )
 
-                batch_create_tasks(task_kwargs)
+                batch_create_tasks(
+                    task_kwargs,
+                    auth=state.params["core_auth"],
+                    conn_url=state.params["core_host"]
+                )
                 # for _kwargs in task_kwargs:
                 #     core.create_task(**_kwargs, wait=False)
 
@@ -689,3 +800,4 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
             )
         # return results[0] if len(results) == 1 else results
         return results
+
