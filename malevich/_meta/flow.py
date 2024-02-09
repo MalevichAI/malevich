@@ -1,6 +1,6 @@
 from functools import wraps
 from inspect import signature
-from typing import Any, Callable, Optional, ParamSpec, TypeVar
+from typing import Any, Callable, Optional, ParamSpec, TypeVar, overload
 
 import pandas as pd
 
@@ -21,6 +21,13 @@ Args = ParamSpec("Args")
 reg = Registry()
 
 
+@overload
+def flow(
+    fn = None,
+    /,
+) -> FlowFunction[Args, R]:
+    pass
+
 def flow(
     fn = None,
     *,
@@ -28,8 +35,8 @@ def flow(
     name: Optional[str] = None,
     description: Optional[str] = None,
     dfs_are_collections: Optional[bool] = None,
-    **kwargs: Any,  # noqa: ANN401
-) -> Callable[[Callable[Args, T]], FlowFunction[Args, R]] | FlowFunction[Args, R]:
+    **kwargs: Any,
+) -> Callable[[Callable[Args, T]], FlowFunction[Args, R]]:
     """Converts a function into a flow
 
     The function is converted into :class:`malevich.models.flow_function.FlowFunction` object that can be
