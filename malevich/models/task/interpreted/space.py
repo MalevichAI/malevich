@@ -2,11 +2,11 @@ import pickle
 from typing import Any, Iterable, Optional
 
 import pandas as pd
+from malevich_coretools.abstract.statuses import AppStatus
 from malevich_space.schema import InFlowAppSchema, LoadedComponentSchema
 
-from malevich_coretools.abstract.statuses import AppStatus
 from malevich.models.injections import BaseInjectable
-
+from malevich_coretools.abstract.statuses import AppStatus
 from ...._autoflow.tracer import traced
 from ....interpreter.space import SpaceInterpreterState
 from ...nodes.base import BaseNode
@@ -167,21 +167,34 @@ class SpaceTask(BaseTask):
             run_id or self.state.aux['run_id']
         )
 
+        infid2alias = {
+            k: v for v, k in alias2infid.items()
+        }
+
+        print(self.state.aux['run_id'])
         _, infid_ = self._deflate(
             returned,
             alias2infid
         )
 
-        finished_ = set()
-        to_be_finished_ = set(infid_)
-        for update in self.state.space.subscribe_to_status(
-            run_id or self.state.aux['run_id']
-        ):
-            if update.status == AppStatus.COMPLETE:
-                finished_.add(update.in_flow_comp_id)
+        rs_, cs_ = self.state.space.get_run_status(
+            run_id=self.state.aux['run_id']
+        )
 
-            if finished_ == to_be_finished_:
-                break
+        if rs_ != AppStatus.COMPLETE:
+            finished_ = {x.in_flow_comp_id for x in cs_}
+            to_be_finished_ = set(infid_)
+            for update in self.state.space.subscribe_to_status(
+                run_id or self.state.aux['run_id']
+            ):
+                if update.status == AppStatus.FAIL:
+                    raise Exception(
+                        f"App {infid2alias[update.in_flow_comp_id]} failed.")
+                if update.status == AppStatus.COMPLETE:
+                    finished_.add(update.in_flow_comp_id)
+
+                if finished_ == to_be_finished_:
+                    break
 
         return [
             SpaceCollectionResult(
