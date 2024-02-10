@@ -334,7 +334,16 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                 'extra': extra,
                 'image_auth': (image_auth_user, image_auth_pass),
                 'image_ref': image_ref,
-                'app_cfg': op.config,
+                'app_cfg': {
+                    **op.config,
+                    '__core__': {
+                        'conn_url': self.__core_host,
+                        'auth': self.__core_auth,
+                        'app_id': app_core_name,
+                        'image_auth':  (image_auth_user, image_auth_pass),
+                        'image_ref': image_ref,
+                    }
+                },
                 'uid': op.uuid,
                 'platform': 'base'
             }
