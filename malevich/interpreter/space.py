@@ -136,20 +136,20 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
         # Replace multiple spaces with one
         _s = re.sub(r'\s+', ' ', collection_name)
         # Replace dashes and underscores with spaces
-        _s = re.sub(r'-|_', ' ', _s)
+        _s = re.sub(r'-', ' ', _s)
         # Title case
         return _s.title()
 
     def prettify_schema_id(self, schema_name: str) -> str:
-        _s = re.sub(r'[\s_-]+', ' ', schema_name)
+        _s = re.sub(r'[\s-]+', ' ', schema_name)
         return _s.replace(' ', '').lower()
 
     def prettify_component_name(self, component_name: str) -> str:
-        _s = re.sub(r'[\s_-]+', ' ', component_name)
+        _s = re.sub(r'[\s-]+', ' ', component_name)
         return _s.title()
 
     def prettify_config_name(self, component_name: str) -> str:
-        _s = re.sub(r'[\s_-]+', ' ', component_name)
+        _s = re.sub(r'[\s-]+', ' ', component_name)
         return 'Meta Config for ' + _s.title()
 
     def prettify_config_id(
@@ -233,11 +233,11 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
         self._state.host = host_
         self._state.space = space
 
-        self._state.aux = {
-            'name': name,
-            'reverse_id': reverse_id,
-            'description': description,
-        }
+        # self._state.aux = {
+        #     'name': name,
+        #     'reverse_id': reverse_id,
+        #     'description': description,
+        # }
 
         self.update_state()
 
@@ -303,12 +303,9 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
 
         return uid
 
-    def interpret(self, node: TreeNode) -> BaseTask:
-        self._state.aux['name'] = self._state.aux['name'] or node.name
-        self._state.aux['reverse_id'] = self._state.aux['reverse_id'] or node.reverse_id
-        self._state.aux['description'] = self._state.aux['description'] or node.description  # noqa: E501
-        self._state.aux['tree'] = node
-        return super().interpret(node)
+    def interpret(self, node: TreeNode, component: ComponentSchema) -> BaseTask:
+        self._state.aux.tree = node
+        return super().interpret(node, component)
 
     def before_interpret(self, state) -> SpaceInterpreterState:
         state.flow = FlowSchema()
@@ -352,7 +349,6 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                 )
 
                 _log(f"Schema {schema} is created", level=-1, action=0, step=True)
-
 
             # To upload the collection, it is required to
             # save the collection data in a csv file
@@ -676,124 +672,27 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
 
 
     def get_task(
-        self, state: SpaceInterpreterState
+        self,
+        state: SpaceInterpreterState
     ) -> BaseTask[SpaceInterpreterState]:
+        if self._component is None:
+            raise Exception("Expected _component to be not None")
+
+        self._component.flow = state.flow
+
         component = state.component_manager.component(
-            ComponentSchema(
-                name=state.aux['name'],
-                description=f"Meta flow {state.aux['name']}!",
-                reverse_id=state.aux['reverse_id'],
-                flow=state.flow,
-                # version=VersionSchema(
-                #     readable_name='0.0.0',
-                # )
-            ),
+            self._component,
             VersionMode.PATCH
         )
 
-        save_flow_path = cache.make_path_in_cache(
-            os.path.join(
-                'flows', f'{state.aux["reverse_id"]}_{state.interpretation_id}.json'
-            )
-        )
-
-        with open(save_flow_path, 'w+') as f:
-            json.dump(state.flow.model_dump(), f, indent=2)
-
-        # def prepare(
-        #     task: BaseTask[SpaceInterpreterState],
-        #     *args,
-        #     **kwargs
-        # ) -> None:
-        #     task.state.aux['flow_id'] = component.flow.uid
-
-        #     task_id = state.space.build_task(
-        #         flow_id=component.flow.uid,
-        #         host_id=state.component_manager.host.uid
+        # save_flow_path = cache.make_path_in_cache(
+        #     os.path.join(
+        #         'flows', f'{self._component.reverse_id}_{state.interpretation_id}.json'
         #     )
-
-        #     state.aux['task_id'] = task_id[0]
-
-        #     state.space.boot_task(
-        #         task_id=state.aux['task_id'],
-        #     )
-
-        # def run(
-        #     task: BaseTask[SpaceInterpreterState],
-        #     override: dict[str, pd.DataFrame] = [],
-        #     *args,
-        #     **kwargs
-        # ) -> None:
-        #     if not state.aux.get('task_id'):
-        #         raise Exception(
-        #             "Attempt to run a task which is not prepared. "
-        #             "Please prepare the task first."
-        #         )
-
-        #     start_schema = state.space.get_task_start_schema(
-        #         state.aux['task_id'],
-        #     )
-
-        #     in_flow_ca = {}
-        #     overrides = []
-        #     for sch in start_schema:
-        #         try:
-        #             in_flow_ca = state.space.get_ca_in_flow(
-        #                 flow_id=task.state.aux['flow_id'],
-        #                 in_flow_id=sch.in_flow_id
-        #             )
-
-        #             overrides.append({
-        #                 "inFlowCompUid": sch.in_flow_id,
-        #                 "caUid": task.state.collection_overrides[in_flow_ca],
-        #                 "caAlias": sch.injected_alias
-        #             })
-        #         except Exception:
-        #             # TODO fix!
-        #             continue
-
-        #     state.aux['run_id'] = state.space.run_task(
-        #         task_id=state.aux['task_id'],
-        #         ca_override=overrides
-        #     )
-
-        # def results(
-        #     task: BaseTask[SpaceInterpreterState],
-        #     returned: Iterable[traced[BaseNode]] | traced[BaseNode] | None,
-        #     *args,
-        #     **kwargs
-        # ) -> Iterable[SpaceCollectionResult]:
-        #     if returned is None:
-        #         return None
-
-        #     if isinstance(returned, traced):
-        #         returned = [returned]
-
-        #     alias2infid = self.state.space.get_snapshot_components(
-        #         state.aux['run_id']
-        #     )
-
-        #     _, infid_ = self._deflate(
-        #         returned,
-        #         alias2infid
-        #     )
-
-        #     return [
-        #        SpaceCollectionResult(
-        #             run_id=state.aux['run_id'],
-        #             in_flow_id=i,
-        #             space_ops=state.space
-        #         ) for i in infid_
-        #     ]
-
-        # return BaseTask(
-        #     prepare=prepare,
-        #     run=run,
-        #     # TODO: Stopping task on space
-        #     stop=lambda *args, **kwargs: None,
-        #     results=results,
-        #     state=state,
         # )
+
+        # with open(save_flow_path, 'w+') as f:
+        #     json.dump(state.flow.model_dump(), f, indent=2)
 
         return SpaceTask(
             state=self.state,

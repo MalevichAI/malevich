@@ -3,6 +3,8 @@ from abc import abstractmethod
 from copy import deepcopy
 from typing import Any, Generic, TypeVar
 
+from malevich_space.schema import ComponentSchema
+
 from .._autoflow.tracer import traced
 from .._utility.tree import unwrap_tree
 from ..models.argument import ArgumentLink
@@ -78,6 +80,7 @@ class Interpreter(Generic[State, Return]):
         self.__history = []
         self._tree = None
         self._run_bank = []
+        self._component = None
 
     def _get_run_id(self) -> str:
         _id = uuid.uuid4().hex
@@ -106,7 +109,7 @@ class Interpreter(Generic[State, Return]):
         else:
             self._state = self.state
 
-    def interpret(self, node: TreeNode):  # noqa: ANN201
+    def interpret(self, node: TreeNode, component: ComponentSchema = None):  # noqa: ANN201
         """Interprets the execution tree
 
         The interpretation process is divided into 5 steps:
@@ -127,6 +130,7 @@ class Interpreter(Generic[State, Return]):
         """
         # Setting the current interpreter
         setattr(node, "__interpreter__", self)
+        self._component = component
 
         if not self.supports_subtrees:
             self._tree = unwrap_tree(node.tree)

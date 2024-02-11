@@ -5,6 +5,8 @@ import pickle
 from enum import Enum
 from typing import Any, Optional, Type
 
+from malevich_space.schema import ComponentSchema
+
 from ...interpreter.abstract import Interpreter
 from ...interpreter.space import SpaceInterpreter
 from ...models.nodes.tree import TreeNode
@@ -36,11 +38,13 @@ class PromisedTask(BaseTask[PromisedStage]):
         self,
         results: FlowOutput,
         tree: TreeNode,
+        component: ComponentSchema
     ) -> None:
         self.__results = results
         self.__tree = tree
         self.__task = None
         self.__conf_memory = []
+        self.__component = component
 
     @property
     def tree(self) -> TreeNode:
@@ -88,7 +92,7 @@ class PromisedTask(BaseTask[PromisedStage]):
         """
         __interpreter = interpreter or SpaceInterpreter()
         try:
-            task = __interpreter.interpret(self.__tree)
+            task = __interpreter.interpret(self.__tree, self.__component)
             task.commit_returned(self.__results)
             self.__task = task
             # Apply the configuration that was stored in memory
@@ -147,7 +151,13 @@ class PromisedTask(BaseTask[PromisedStage]):
         return self.__task.async_stop(*args, **kwargs)
 
 
-    def run(self, run_id: Optional[str] = None, *args, **kwargs) -> None:
+    def run(
+        self,
+        run_id: str | None = None,
+        override: dict[str, Any] | None = None,
+        *args,
+        **kwargs
+    ) -> None:
         """Runs the task
 
         Accepts any arguments and keyword arguments and passes them to the
@@ -155,6 +165,9 @@ class PromisedTask(BaseTask[PromisedStage]):
         arguments and keyword arguments, see the documentation of the interpreter
         used before calling this method.
         """
+        if override is None:
+            override = dict()
+
         if not self.__task:
             raise Exception(
                 "Unable to run task, that has not been interpreted. "
@@ -163,7 +176,12 @@ class PromisedTask(BaseTask[PromisedStage]):
             )
         # TODO: try/except with error on this level
         # if task is not prepared
-        return self.__task.run(*args, **kwargs)
+        return self.__task.run(
+            *args,
+            run_id=run_id,
+            override=override,
+            **kwargs
+        )
 
     def stop(self, *args, **kwargs) -> None:
         """Stops the task

@@ -68,7 +68,7 @@ def flow(
         description = description or (function.__doc__.splitlines()[0] if function.__doc__ and len(function.__doc__.splitlines()) > 0 else "")  # noqa: E501
 
         @wraps(function)
-        def fn(*args: Args.args, **kwargs: Args.kwargs) -> R:
+        def fn(*args: Args.args, __component, **kwargs: Args.kwargs) -> R:
             is_subflow = Flow.isinflow()
             args = list(args)
             if is_subflow:
@@ -170,7 +170,9 @@ def flow(
                 assert all([o.owner.results is not None for o in outputs])
                 return outputs[0] if len(outputs) == 1 else outputs
             else:
-                return PromisedTask(results=__results, tree=t_node)
+                return PromisedTask(
+                    results=__results, tree=t_node, component=__component
+                )
 
         return FlowFunction(fn, reverse_id, name, description, **kwargs)
 

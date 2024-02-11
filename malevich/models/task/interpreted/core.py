@@ -1,6 +1,7 @@
 import enum
 import pickle
 import uuid
+import warnings
 from copy import deepcopy
 from typing import Any, Iterable, Optional, Type
 
@@ -10,10 +11,16 @@ import pandas as pd
 from malevich.models.types import FlowOutput
 
 from ...._autoflow.tracer import traced
-from ...._core.ops import batch_create_apps, batch_create_tasks, result_collection_name
+from ...._core.ops import (
+    batch_create_apps,
+    batch_create_tasks,
+    batch_upload_collections,
+    result_collection_name,
+)
 from ...._utility.logging import LogLevel, cout
 from ....interpreter.abstract import Interpreter
 from ...actions import Action
+from ...collection import Collection
 from ...injections import CoreInjectable
 from ...nodes.asset import AssetNode
 from ...nodes.base import BaseNode
@@ -243,12 +250,12 @@ class CoreTask(BaseTask):
 
     def run(
         self,
-        overrides: Optional[dict[str, str]] = None,
+        override: dict[str, pd.DataFrame] | None = None,
         run_id: Optional[str] = None,
         detached: bool = False,
         *args,
         **kwargs
-    ) -> None:
+    ) -> str:
         """Runs the task on Malevich Core
 
         Overrides is a dictionary of collection overrides within Malevich Core
@@ -284,7 +291,41 @@ class CoreTask(BaseTask):
             raise Exception("Attempt to run a task which is not prepared. "
                             "Please, run `.prepare()` first.")
 
+        if override:
+            collections = [
+                Collection(
+                    collection_id=f'core-interpreter-override-{k}-{run_id}',
+                    collection_data=v,
+                    persistent=False
+                ) for k, v in override.items()
+            ]
+
+            core_ids = batch_upload_collections(
+                collections,
+                conn_url=self.state.params.core_host,
+                auth=self.state.params.core_auth,
+            )
+
+            injectables = self.get_injectables()
+            key_to_core_id = {
+                k: core_id
+                for k, core_id in zip(override.keys(), core_ids)
+            }
+
+            real_overrides = {
+                injectable.get_inject_data():
+                key_to_core_id[injectable.get_inject_key()]
+                for injectable in injectables
+            }
+        else:
+            real_overrides = {}
+
+
         _cfg = deepcopy(self.state.cfg)
+
+        if not run_id:
+            run_id = uuid.uuid4().hex
+
         if run_id:
             _cfg.app_settings = [
                 core.AppSettings(
@@ -295,11 +336,13 @@ class CoreTask(BaseTask):
                     ) + '_' + str(run_id)
                 ) for s in _cfg.app_settings
             ]
+
+
         try:
-            if overrides:
+            if real_overrides:
                 _cfg.collections = {
                     **_cfg.collections,
-                    **overrides,
+                    **real_overrides,
                 }
                 _cfg_id = self.config_kwargs['cfg_id'] + \
                     '-overridden' + uuid.uuid4().hex
@@ -309,21 +352,23 @@ class CoreTask(BaseTask):
                     conn_url=self.state.params.core_host,
                     auth=self.state.params.core_auth,
                 )
-                return core.task_run(
+                core.task_run(
                     self.state.params.operation_id,
                     cfg_id=_cfg_id,
                     auth=self.state.params.core_auth,
                     conn_url=self.state.params.core_host,
                     wait=not detached,
+                    run_id=run_id,
                     *args,
                     **kwargs
                 )
             else:
-                return core.task_run(
+                core.task_run(
                     self.state.params.operation_id,
                     *args,
                     auth=self.state.params.core_auth,
                     conn_url=self.state.params.core_host,
+                    run_id=run_id,
                     wait=not detached,
                     **kwargs
                 )
@@ -335,6 +380,8 @@ class CoreTask(BaseTask):
                 conn_url=self.state.params.core_host,
             )
             raise e
+
+        return run_id
 
     def stop(
         self,
@@ -380,6 +427,19 @@ class CoreTask(BaseTask):
         if isinstance(self._returned, traced):
             returned = [returned]
 
+        def _deflat(li: list[traced[BaseNode]]) -> list[traced[BaseNode]]:
+            temp_returned = []
+            for r in li:
+                if isinstance(r.owner, TreeNode):
+                    temp_returned.extend(
+                        _deflat(r.owner.results)
+                    )
+                else:
+                    temp_returned.append(r)
+            return temp_returned
+
+        returned = _deflat(returned)
+
         results = []
         for r in returned:
             node = r.owner
@@ -407,14 +467,11 @@ class CoreTask(BaseTask):
                     auth=self.state.params.core_auth,
                     conn_url=self.state.params.core_host
                 ))
-
-            elif isinstance(node, TreeNode):
-                results.extend(self.get_results(
-                    task_id=self,
-                    returned=node.results,
-                    run_id=run_id
+            else:
+                warnings.warn(
+                    f"Cannot interpret {type(r)} as a result."
                 )
-            )
+
         # return results[0] if len(results) == 1 else results
         return results
 
@@ -480,7 +537,7 @@ class CoreTask(BaseTask):
     ) -> None:
         self.run(
             run_id=run_id,
-            overrides=overrides,
+            override=overrides,
             detached=True,
             *args,
             **kwargs

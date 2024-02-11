@@ -26,3 +26,4 @@ sphinxcontrib-mermaid
 sphinxcontrib-qthelp
 sphinxcontrib-serializinghtml
 kafka-python
+deprecated

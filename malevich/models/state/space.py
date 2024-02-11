@@ -13,11 +13,50 @@ from malevich_space.schema.flow import (
     OpSchema,
 )
 from malevich_space.schema.host import LoadedHostSchema
+from pydantic import BaseModel
+
+from ..nodes.tree import TreeNode
 
 
 class NodeType(Enum):
     COLLECTION = 'collection'
     OPERATION = 'operation'
+
+class SpaceAuxParams:
+    task_id: str
+    run_id: str
+    core_task_id: str
+    flow_id: str
+    tree: TreeNode
+
+    # operation_id: str
+    # task_id: str
+    # core_host: str
+    # core_auth: tuple[str, str]
+    # base_config: core.Cfg
+    # base_config_id: str
+
+    def __init__(self, **kwargs) -> None:
+        # self.operation_id = kwargs.get('operation_id', None)
+        # self.task_id = kwargs.get('task_id', None)
+        # self.core_host = kwargs.get('core_host', None)
+        # self.core_auth = kwargs.get('core_auth', None)
+        # self.base_config = kwargs.get('base_config', None)
+        # self.base_config_id = kwargs.get('base_config_id', None)
+        self.task_id = kwargs.get('task_id', None)
+        self.run_id = kwargs.get('run_id', None)
+        self.core_task_id = kwargs.get('core_task_id', None)
+        self.flow_id = kwargs.get('flow_id', None)
+        self.tree = kwargs.get('tree', None)
+
+    def __getitem__(self, key: str) -> Any:  # noqa: ANN401
+        return getattr(self, key)
+
+    def __setitem__(self, key: str, value: Any) -> None:  # noqa: ANN401
+        setattr(self, key, value)
+
+    def __contains__(self, key: str) -> bool:
+        return hasattr(self, str(key))
 
 class SpaceInterpreterState:
     """State of the Space interpreter."""
@@ -47,13 +86,12 @@ class SpaceInterpreterState:
         # A mapping from collection uid to CA uid for override (if new data is provided)
         self.collection_overrides: dict[str, str] = {}
         # A mapping from node uuid to dependencies
-        self.dependencies: dict[str,
-                                list[InFlowDependency]] = defaultdict(list)
+        self.dependencies: dict[str, list[InFlowDependency]] = defaultdict(list)
         # Unique id for the interpretation
         self.interpretation_id: str = uuid4().hex  # as in API interpreter xD
         # A dictionary for storing auxiliary information
         # task_id, flow_id, etc.
-        self.aux: dict[str, Any]
+        self.aux: SpaceAuxParams = SpaceAuxParams()
         self.children_states: dict[str, 'SpaceInterpreterState'] = {}
 
     def copy(self) -> 'SpaceInterpreterState':
