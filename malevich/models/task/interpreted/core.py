@@ -531,13 +531,13 @@ class CoreTask(BaseTask):
     def async_run(
         self,
         run_id: Optional[str] = None,
-        overrides: Optional[dict[str, str]] = None,
+        override: Optional[dict[str, str]] = None,
         *args,
         **kwargs
     ) -> None:
         self.run(
             run_id=run_id,
-            override=overrides,
+            override=override,
             detached=True,
             *args,
             **kwargs
