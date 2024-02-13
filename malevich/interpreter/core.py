@@ -170,8 +170,12 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
     def _result_collection_name(self, operation_id: str) -> str:
         return result_collection_name(operation_id)
 
-    def _write_cache(self, object: object, path: str) -> None:
-        json.dump(object, cache.get_file(os.path.join('core', path), 'w+'))
+    def _write_cache(self, object: object, name: str) -> None:
+        cache.core.write_entry(
+            json.dumps(object),
+            entry_name=name,
+            entry_group='interpreter/artifacts'
+        )
 
     def _create_cfg_safe(
         self,

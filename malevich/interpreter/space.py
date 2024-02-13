@@ -163,10 +163,6 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
             __b += '-' + rand
         return __b
 
-    def path_for_collection(self, collection_id: str) -> str:
-        """Returns a path for the collection in the cache."""
-        return os.path.join('space', 'collections', collection_id)
-
     def update_state(self, state: SpaceInterpreterState = None) -> None:
         """
         The state contains pydantic models, which are not deepcopyable.
@@ -352,16 +348,15 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
 
             # To upload the collection, it is required to
             # save the collection data in a csv file
-            cache_collection_path = cache.make_path_in_cache(
-                # Utilizing `~/.malevich/cache`
-                self.path_for_collection(node.owner.collection.collection_id)
+
+            _, path = cache.space.probe_new_entry(
+                node.owner.collection.collection_id,
+                entry_group='collections/temp'
             )
             # Save the collection data in the csv file
             if not node.owner.collection.collection_data.empty:
-                path = self.path_for_collection(
-                    node.owner.collection.collection_id)
                 node.owner.collection.collection_data.to_csv(
-                    cache_collection_path,
+                    path,
                     index=False
                 )
             else:
