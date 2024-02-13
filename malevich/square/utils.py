@@ -2,7 +2,7 @@
 import json
 import logging
 import pickle
-from typing import Any, Dict, List, Optional, Tuple, TypeVar, Union
+from typing import Any, Dict, Generic, List, Optional, Tuple, TypeVar, Union
 
 import boto3
 import jsonpickle
@@ -14,9 +14,10 @@ from .df import OBJ
 
 WORKDIR = "/julius"         # docker workdir    # FIXME "/malevich"
 APP_DIR = f"{WORKDIR}/apps"  # dir into which the user code is copied
+MinimalCfg = TypeVar('MinimalCfg')
 
 
-class Context:
+class Context(Generic[MinimalCfg]):
     class _DagKeyValue:
         """key-value storage, shared for all apps of one run\n
         values must be bytes, string, int or float; dictionary order is not guaranteed
@@ -264,7 +265,7 @@ class Context:
     def __init__(self) -> None:
         self.app_id: str = ""                                       # app id at startup
         self.run_id: str = ""                                       # run id at startup
-        self.app_cfg: Dict[str, Any] = {}                           # configuration given to the app at startup  # noqa: E501
+        self.app_cfg: Union[MinimalCfg, Dict[str, Any]] = {}        # configuration given to the app at startup  # noqa: E501
         self.msg_url: str = ""                                      # default url for msg operation              # noqa: E501
         self.email: Optional[str] = None                            # email for email_send operation             # noqa: E501
         self.dag_key_value = Context._DagKeyValue(
@@ -430,6 +431,18 @@ class Context:
         Returns:
             str: operation_id
         """
+        pass
+
+    def get_object(self, path: str) -> OBJ:
+        """create OBJ by path (for the current user), failed if that path ({prefix for user objs}/{path}) not exist.
+        Can be used if it is reliably known that the user has an object at this path
+
+        Args:
+            path (str): path to user object
+
+        Returns:
+            OBJ: OBJ by real path
+        """ # noqa: E501
         pass
 
     def as_object(self, paths: Dict[str, str], *, dir: Optional[str] = None) -> OBJ:
