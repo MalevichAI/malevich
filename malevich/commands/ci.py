@@ -1,5 +1,4 @@
 import re
-from typing import Annotated
 
 import rich
 import typer
