@@ -124,11 +124,14 @@ class GithubCIOps(CIOps):
             "SPACE_ORGANIZATION_ID"
         ]
 
-        registry_type = 'ghcr'
+        registry_type = DockerRegistry.GCR
         if 'ecr' in registry_url:
-            registry_type = 'ecr'
+            registry_type = (
+                DockerRegistry.PUBLIC_AWS_ECR if 'public' in registry_url
+                else DockerRegistry.PRIVATE_AWS_ECR
+            )
         elif 'yandex' in registry_url:
-            registry_type = 'yandex'
+            registry_type = DockerRegistry.YANDEX
 
         values = [
             space_user,
