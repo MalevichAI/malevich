@@ -74,7 +74,7 @@ def parse_config(config: str="") -> list:
     return result
 
 
-@dev.command('list-procs',help="List all processes and paths to their files")
+@dev.command('list-procs',help="List all processors and paths to their files")
 def list_procs(  # noqa: ANN201
     path = typer.Argument(
         '.',
