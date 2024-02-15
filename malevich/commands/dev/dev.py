@@ -13,7 +13,7 @@ dev = typer.Typer(help="Document operations")
 SECTIONS = ['heading', 'input', 'output', 'config', 'example']
 
 def error_exit(msg: str=""):  # noqa: ANN201
-    print(msg, file=sys.stdout)
+    print(msg, file=sys.stderr)
     exit(1)
 
 def parse_in_out(input: str="", idx:int=0) -> list:
@@ -74,7 +74,7 @@ def parse_config(config: str="") -> list:
     return result
 
 
-@dev.command('list',help="List all processes and paths to their files")
+@dev.command('list-procs',help="List all processes and paths to their files")
 def list_procs(  # noqa: ANN201
     path = typer.Argument(
         '.',
@@ -130,6 +130,9 @@ def get_processor_docstring(  # noqa: ANN201
         help="Path to the file",
     )
 ):
+    if not os.path.exists(path):
+        error_exit(f"Can not open {path}. No such file exists")
+
     with open(path) as f:
         tree = ast.parse(f.read())
         for node in ast.walk(tree):
@@ -166,7 +169,6 @@ def parse_docstring(  # noqa: ANN201
 ):
     idx = 0
     if file:
-        print(file, type(file))
         doc = open(doc).read()
 
     doc = doc.replace("\n", "\\n ")
@@ -218,7 +220,7 @@ def parse_docstring(  # noqa: ANN201
     if verbose:
         print(json.dumps(result))
 
-@dev.command('install_lib_hook', help="Configure git hooks path")
+@dev.command('install-lib-hook', help="Configure git hooks path")
 def intstall_hook(  # noqa: ANN201
     path=typer.Option(
         ".githooks/",
@@ -226,20 +228,17 @@ def intstall_hook(  # noqa: ANN201
     )
 ):
     if not os.path.exists(path):
-        print(
+        error_exit(
             f"Cannot find {path}. "
             "Make sure you've provided a valid path, and run from the right directory",
-            file=sys.stderr
         )
-        exit(1)
 
     try:
         call(
             ["git", "config", "core.hooksPath", path]
         )
     except CalledProcessError:
-        print(
+        error_exit(
             "Failed to execute the process",
             file=sys.stderr
         )
-        exit(1)
