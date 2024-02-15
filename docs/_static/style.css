@@ -10,3 +10,7 @@ html[data-theme="dark"] {
     --pst-color-secondary: #d85d84;
     --pst-color-primary: #AD70C2;
 }
+
+.navbar-brand .logo {
+    padding: 10px 15px;
+}

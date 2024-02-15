@@ -26,7 +26,7 @@ Create a collection
 To create a collection to be used in the flow, you have to use :func:`collection <malevich._meta.collection>` function. The
 function allows you to upload tabular data using :class:`pandas.DataFrame` object or :code:`csv` file. The function returns
 a `traced` object - a special placeholder that dictates the flow execution engine which operations should be performed on
-the data. The data is uploaded (or updated) only on :doc:`interpretation </Flows/Lifecycle>` stage (or even later).
+the data. The data is uploaded (or updated) only on :doc:`interpretation </SDK/Flows/Lifecycle>` stage (or even later).
 
 .. warning::
 
@@ -98,9 +98,3 @@ can be imported and used in the following way:
 
         return ...
 
-    
-.. toctree::
-    :hidden:
-    :maxdepth: 3
-
-    self

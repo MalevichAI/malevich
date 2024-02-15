@@ -110,8 +110,3 @@ When posting an issue, it is helpful to include:
 * A minimal working example that reproduces the bug or describes the feature request
 * The content of ``~/.malevich/logs`` folder (it will contain useful anonymous information about actions you have performed with Malevich)
 * The content of ``malevich.yaml`` file from the root of your project (if you have one)
-
-
-.. toctree:: 
-
-    self

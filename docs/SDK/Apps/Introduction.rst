@@ -1,7 +1,10 @@
 ============
-What is App?
+Introduction
 ============
 
+Apps are the main building blocks of the system. They contain 
+the actual logic of your product. You either can intergrate with 
+existing apps or build your custom apps.
 
 Apps can be understood as an environment consisting of the following objects:
 
