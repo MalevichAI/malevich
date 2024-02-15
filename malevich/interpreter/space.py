@@ -1,5 +1,3 @@
-import json
-import os
 import re
 from collections import defaultdict
 from typing import Optional
@@ -679,15 +677,6 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
             self._component,
             VersionMode.PATCH
         )
-
-        # save_flow_path = cache.make_path_in_cache(
-        #     os.path.join(
-        #         'flows', f'{self._component.reverse_id}_{state.interpretation_id}.json'
-        #     )
-        # )
-
-        # with open(save_flow_path, 'w+') as f:
-        #     json.dump(state.flow.model_dump(), f, indent=2)
 
         return SpaceTask(
             state=self.state,

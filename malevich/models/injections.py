@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Generic, Optional, TypeVar
 
-from deprecated import deprecated
-
 T = TypeVar("T")
 Key = TypeVar("Key")
 # Data = TypeVar("Output")

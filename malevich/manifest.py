@@ -5,7 +5,6 @@ from typing import Any, Iterable, Optional
 
 import pydantic_yaml as pydml
 
-from ._utility.singleton import SingletonMeta
 from .models.manifest import Manifest, Secret, Secrets
 
 

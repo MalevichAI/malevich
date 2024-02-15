@@ -3,7 +3,7 @@ import pickle
 
 # from .interpreted import InterpretedTask
 from enum import Enum
-from typing import Any, Optional, Type
+from typing import Any, Type
 
 from malevich_space.schema import ComponentSchema
 

@@ -3,10 +3,9 @@ from typing import Any, Optional
 
 from pydantic import BaseModel
 
-from .space import SpaceDependency
-
 from ...constants import DEFAULT_CORE_HOST
 from ..dependency import Dependency
+from .space import SpaceDependency
 
 
 class ImageOptions(BaseModel):

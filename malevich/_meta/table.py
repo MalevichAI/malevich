@@ -1,5 +1,4 @@
 import os
-from typing import Type
 
 _backend = os.environ.get("MALEVICH_DF_BACKEND", "pandas")
 

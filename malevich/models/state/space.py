@@ -13,7 +13,6 @@ from malevich_space.schema.flow import (
     OpSchema,
 )
 from malevich_space.schema.host import LoadedHostSchema
-from pydantic import BaseModel
 
 from ..nodes.tree import TreeNode
 

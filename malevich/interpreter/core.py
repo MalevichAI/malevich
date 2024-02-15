@@ -1,5 +1,4 @@
 import json
-import os
 import uuid
 from collections import defaultdict
 from typing import Iterable, Optional
