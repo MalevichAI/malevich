@@ -7,6 +7,7 @@ from ._autoflow.function import autotrace
 from ._autoflow.flow import *
 
 # Metascript
+from ._meta import *
 from ._meta.collection import collection
 from ._meta.flow import flow
 from ._meta.config import config
