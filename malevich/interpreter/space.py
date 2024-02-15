@@ -223,7 +223,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
         self._state.component_manager = ComponentManager(
             host=host_,
             space=space,
-            comp_dir=os.path.expanduser('~/.malevich/cache')
+            comp_dir='./'
         )
 
         self._state.host = host_

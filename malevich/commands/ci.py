@@ -121,17 +121,18 @@ def init(  # noqa: ANN201
         registry_type = Prompt.ask(
             "Enter the Docker Container Registry type",
             choices=[str(x.value) for x in DockerRegistry],
+            default=DockerRegistry.PUBLIC_AWS_ECR,
         )
 
         if registry_type != DockerRegistry.PRIVATE_AWS_ECR:
             registry_url = Prompt.ask(
-                "Enter the Docker Container Registry URL "
-                f"[i bright_black]({IMAGE_BASE.split('/')[0]})[/i bright_black]",
+                "Enter the Docker Container Registry URL ",
+                default=IMAGE_BASE.split('/')[0]
             )
 
         registry_id = Prompt.ask(
-            f"Enter the Docker Container Registry ID "
-            f"[i bright_black]({IMAGE_BASE.split('/')[1]})[/i bright_black]",
+            "Enter the Docker Container Registry ID ",
+            default=IMAGE_BASE.split('/')[1]
         )
 
         image_user = Prompt.ask(

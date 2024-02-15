@@ -16,13 +16,10 @@ class DockerRegistry(enum.Enum):
     YANDEX = "yandex"
     GCR = "ghcr"
 
+class _NotSet:
+    pass
 
 class GithubCIOps(CIOps):
-    def __has_malevich_actions(self, repo_dir: str) -> bool:
-        return os.path.exists(
-            os.path.join(repo_dir, ".github", "workflows", "malevich-ci.yml")
-        )
-
     def __create_action(self, repo_dir: str, branch: str) -> str:
         os.makedirs(os.path.join(repo_dir, ".github",
                     "workflows"), exist_ok=True)
@@ -77,11 +74,11 @@ class GithubCIOps(CIOps):
         space_token: str,
         space_url: str,
         branch: str,
-        registry_url: str='ghcr.io',
-        registry_id: str='owner',
-        image_user: str='USERNAME',
-        image_token: str='token',
-        org_id: str='empty',
+        registry_url: str = 'ghcr.io',
+        registry_id: str = _NotSet,
+        image_user: str = 'USERNAME',
+        image_token: str = _NotSet,
+        org_id: str = 'empty',
         verbose: bool = False,
     ) -> None:
         """Setup CI for a Github repository
@@ -110,7 +107,16 @@ class GithubCIOps(CIOps):
                 "Authorization": f"Bearer {token}",
                 "X-GitHub-Api-Version": "2022-11-28"
             }
-        ).json()
+        )
+        if pub_key.status_code >= 400:
+            raise Exception(
+                "We couldn't get the public key from Github. "
+                "Most probably, given credentials are invalid or "
+                "do not have enough permissions. "
+                "Below is the response from Github:\n"
+                f"{pub_key.json()}"
+            )
+        pub_key = pub_key.json()
 
         keys = [
             "SPACE_USERNAME",
@@ -138,15 +144,15 @@ class GithubCIOps(CIOps):
             space_token,
             space_url,
             image_user,
-            token if image_token == 'token' else image_token,
+            token if image_token == _NotSet else image_token,
             registry_url,
-            repository.split('/')[0].lower() if registry_id == 'owner' else registry_id,
+            repository.split('/')[0].lower() if registry_id == _NotSet else registry_id,
             registry_type,
             org_id
         ]
 
         for key, value in zip(keys, values):
-            payload = PublicKey.encrypt(pub_key['key'],value)
+            payload = PublicKey.encrypt(pub_key['key'], value)
             url = f'https://api.github.com/repos/{repository}/actions/secrets/{key}'
 
             requests.put(
@@ -180,13 +186,15 @@ class GithubCIOps(CIOps):
                     "-m",
                     "add: malevich-ci.yml && malevich-ci-manual.yml"
                 )
-                self._log(verbose,
-                        f"Committed actions file {action_file}, {manual_action_file}"
+                self._log(
+                    verbose,
+                    f"Committed actions file {action_file}, {manual_action_file}"
                 )
                 git_repo.git.push()
             except Exception as e:
-                self._log(verbose,
-                        f"{action_file} and {manual_action_file} already exist"
+                self._log(
+                    verbose,
+                    f"{action_file} and {manual_action_file} already exist"
                 )
 
                 print(e)
