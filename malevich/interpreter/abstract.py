@@ -1,11 +1,9 @@
 import uuid
 from abc import abstractmethod
 from copy import deepcopy
-from typing import Generic, Iterable, TypeVar
+from typing import Any, Generic, TypeVar
 
-import pandas as pd
-
-from malevich.models.task.interpreted import InterpretedTask
+from malevich_space.schema import ComponentSchema
 
 from .._autoflow.tracer import traced
 from .._utility.tree import unwrap_tree
@@ -82,6 +80,7 @@ class Interpreter(Generic[State, Return]):
         self.__history = []
         self._tree = None
         self._run_bank = []
+        self._component = None
 
     def _get_run_id(self) -> str:
         _id = uuid.uuid4().hex
@@ -110,7 +109,7 @@ class Interpreter(Generic[State, Return]):
         else:
             self._state = self.state
 
-    def interpret(self, node: TreeNode) -> InterpretedTask:
+    def interpret(self, node: TreeNode, component: ComponentSchema = None):  # noqa: ANN201
         """Interprets the execution tree
 
         The interpretation process is divided into 5 steps:
@@ -131,6 +130,7 @@ class Interpreter(Generic[State, Return]):
         """
         # Setting the current interpreter
         setattr(node, "__interpreter__", self)
+        self._component = component
 
         if not self.supports_subtrees:
             self._tree = unwrap_tree(node.tree)
@@ -255,7 +255,7 @@ class Interpreter(Generic[State, Return]):
         pass
 
     @abstractmethod
-    def get_task(self, state: State) -> InterpretedTask[State]:
+    def get_task(self, state: State) -> Any:  # noqa: ANN401
         """Called after the interpretation process ends
 
         Args:
@@ -264,15 +264,15 @@ class Interpreter(Generic[State, Return]):
         Returns:
             Task: Task to run
         """
-
-    @abstractmethod
-    def get_results(
-        self,
-        returned: Iterable[traced[BaseNode]] | traced[BaseNode] | None
-    ) -> Iterable[pd.DataFrame] | pd.DataFrame:
-        """Returns the result of the interpretation process
-
-        Args:
-            state (State): Current state
-        """
         pass
+    # @abstractmethod
+    # def get_results(
+    #     self,
+    #     returned: Iterable[traced[BaseNode]] | traced[BaseNode] | None
+    # ) -> Iterable[pd.DataFrame] | pd.DataFrame:
+    #     """Returns the result of the interpretation process
+
+    #     Args:
+    #         state (State): Current state
+    #     """
+    #     pass

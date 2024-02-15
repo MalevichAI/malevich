@@ -1,19 +1,10 @@
 import pandas as pd
+from pandas.io.json import build_table_schema
 
 
 def pd_to_json_schema(df: pd.DataFrame, format=False) -> dict:
-    mappings = {
-        'integer': 'number',
-        'float': 'number',
-        'boolean': 'boolean',
-        'string': 'string',
-        'object': 'string', # we will regret
-        'datetime': 'string',
-        'date': 'string',
-        'datetime64[ns]': 'string',
-        'category': 'string',
-        'timedelta[ns]': 'string',
-    }
+    df = df.infer_objects()
+    table_schema = build_table_schema(df)
 
     schema = {
         'type': 'object',
@@ -21,23 +12,13 @@ def pd_to_json_schema(df: pd.DataFrame, format=False) -> dict:
         'required': [],
     }
 
-    for col in df.columns:
-        col_type = df[col].dtype.name
-        schema['properties'][col] = {
-            'type': mappings.get(col_type, 'string'),
+    for t in table_schema['fields']:
+        if t['name'] == 'index':
+            continue
+
+        schema['properties'][t['name']] = {
+            'type': t['type']
         }
-        if format:
-            if col_type == 'object':
-                schema['properties'][col]['format'] = 'date-time'
-            if col_type == 'datetime64[ns]':
-                schema['properties'][col]['format'] = 'date-time'
-            if col_type == 'date':
-                schema['properties'][col]['format'] = 'date'
-            if col_type == 'boolean':
-                schema['properties'][col]['format'] = 'boolean'
-            if col_type == 'integer':
-                schema['properties'][col]['format'] = 'int64'
-            if col_type == 'float':
-                schema['properties'][col]['format'] = 'float64'
+
 
     return schema

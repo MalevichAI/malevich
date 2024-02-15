@@ -2,8 +2,6 @@
 import json
 import logging
 import pickle
-from typing import Any, Dict, Generic, List, Optional, Tuple, TypeVar, Union
-
 import boto3
 import jsonpickle
 import numpy as np
@@ -12,255 +10,462 @@ from botocore.response import StreamingBody
 
 from .df import OBJ
 
-WORKDIR = "/julius"         # docker workdir    # FIXME "/malevich"
-APP_DIR = f"{WORKDIR}/apps"  # dir into which the user code is copied
+
+WORKDIR = "/julius"        
+"""
+Working directory from which the app is run.
+Equivalent to :code:`os.getcwd()` from within the app.
+"""
+
+APP_DIR = f"{WORKDIR}/apps"
+"""
+Directory into which the user code is copied during app construction.
+"""
+
 MinimalCfg = TypeVar('MinimalCfg')
 
-
 class Context(Generic[MinimalCfg]):
+    """
+    Context contains all the necessary information about the run 
+    and the environment in which it is executed. Also, context provides 
+    a number of auxiliary functions  for interacting with the environment, such as
+    working with shared storage (:meth:`share`, :meth:`get_share_path`, :meth:`delete_share`), 
+    dealing with common objects (:attr:`common`), 
+    access to the key-value storage (:attr:`dag_key_value`), 
+    and object storage (:attr:`object_storage`).
+
+    """
+
     class _DagKeyValue:
-        """key-value storage, shared for all apps of one run\n
-        values must be bytes, string, int or float; dictionary order is not guaranteed
+        """
+        Simple key-value storage, shared for all apps of one run.
+        Values must be bytes, string, int or float; dictionary order is not guaranteed
         """
 
         def __init__(self, run_id: Optional[str] = None) -> None:
             pass
 
         def get_bytes(self, key: str) -> bytes:
-            """a more optimal way to get a binary value by key (`get` can also be used)
+            """Gets a binary value by key more optimally.
+
+            Consider using this to retrieve binary data in
+            more efficient way, but keep in mind that :meth:`get` 
+            can also be used
 
             Args:
                 key (str): key in storage
 
             Returns:
-                bytes: value by key
+                bytes: Value stored by key
             """
             pass
 
         async def async_get_bytes(self, key: str) -> bytes:
-            """a more optimal way to get a binary value by key (`get` can also be used)
+            """Gets a binary value by key more optimally.
+
+            Consider using this to retrieve binary data in
+            more efficient way, but keep in mind that :meth:`get` 
+            can also be used
 
             Args:
                 key (str): key in storage
 
             Returns:
-                bytes: value by key
+                bytes: Value stored by key
             """
             pass
 
         def get(self, keys: List[str]) -> Dict[str, Any]:
-            """return key -> values by keys
+            """Gets values by keys
+
+            Retrieves a slice of storage by keys. If a key is not found, 
+            the value will be set to None
 
             Args:
-                keys (List[str]): list of keys
+                keys (list[str]): list of keys
 
             Returns:
-                Dict[str, Any]: dict key -> value, if there is no value, it will be None
+                Dict[str, Any]: A dictionary of key-value pairs. 
             """
             pass
 
         async def async_get(self, keys: List[str]) -> Dict[str, Any]:
-            """return key -> values by keys
+            """Gets values by keys
+
+            Retrieves a slice of storage by keys. If a key is not found, 
+            the value will be set to None
 
             Args:
-                keys (List[str]): list of keys
+                keys (list[str]): list of keys
 
             Returns:
-                Dict[str, Any]: dict key -> value, if there is no value, it will be None
+                Dict[str, Any]: A dictionary of key-value pairs. 
             """
             pass
 
         def get_all(self) -> Dict[str, Any]:
-            """return key -> value with all stored values
+            """Gets all values
+
+            Retrieves the whole storage as a dictionary.
 
             Returns:
-                Dict[str, Any]: dict key -> value
+                Dict[str, Any]: A dictionary of key-value pairs. 
             """
             pass
 
         async def async_get_all(self) -> Dict[str, Any]:
-            """return key -> value with all stored values
+            """Gets all values
+
+            Retrieves the whole storage as a dictionary.
 
             Returns:
-                Dict[str, Any]: dict key -> value
+                Dict[str, Any]: A dictionary of key-value pairs. 
             """
             pass
 
         def update(self, keys_values: Dict[str, Any]) -> None:
-            """sets the value by key by dict key -> value, if it has already been set - overwrites it
+            """Sets values by keys
+
+            Accepts a dictionary of key-value pairs and sets them in storage.
+            If a key already exists, it will be overwritten.
 
             Args:
-                keys_values (Dict[str, Any]): dict key -> value
-            """  # noqa: E501
+                keys_values (dict): A dictionary of key-value pairs.
+            """
             pass
 
         async def async_update(self, keys_values: Dict[str, Any]) -> None:
-            """sets the value by key by dict key -> value, if it has already been set - overwrites it
+            """Sets values by keys
+
+            Accepts a dictionary of key-value pairs and sets them in storage.
+            If a key already exists, it will be overwritten.
 
             Args:
-                keys_values (Dict[str, Any]): dict key -> value
-            """  # noqa: E501
+                keys_values (dict): A dictionary of key-value pairs.
+            """
             pass
 
         def clear(self) -> None:
-            """deletes everything saved
-            """
+            """Purges the storage"""
             pass
 
         async def async_clear(self) -> None:
-            """deletes everything saved
-            """
+            """Purges the storage"""
             pass
 
     class _ObjectStorage:
-        """object storage, works through the shared part of the app file system - mount and with `s3`.\n
-        it is common to the user, i.e. can be used between different runs
-        for the operation you need to put or take the result from it - `share`/`get_share_path`.\n
-        in any case, the mount may be in an unsynchronized state for some apps; therefore, in many functions there is `all_apps`, which guarantees behavior as if everything was synchronized - the operation is applied to all mounts.\n
-        it can work in two ways - locally and with a remote part - there is a `local` parameter for this. If you run with it, then everything will work with mount, otherwise with remote object storage.
-        """  # noqa: E501
+        """
+        A storage for binary objects common to the user.
+
+        Works with cloud S3 storage and app shared file system. Provides
+        an access to the objects shared with :meth:`Context.share` method.
+        and accessible with :meth:`Context.get_share_path` method.
+
+        All methods of the object storage have :code:`local` parameter. If it is
+        set to :code:`True`, the operation will be performed on the local file system.
+        Otherwise, the operation will be performed on the remote object storage.
+
+        The information might be unsynchronized between apps. To ensure that the
+        information is synchronized, use :code:`all_apps` parameter. If it is set to
+        :code:`True`, the operation will be performed on all apps. Otherwise, the
+        operation will be performed only on apps the method is called from.
+
+        """
 
         def get_keys(self, local: bool = False, all_apps: bool = False) -> List[str]:
-            """get keys from local mount or remote object storage
+            """
+            Get keys from local mount or remote object storage.
 
             Args:
-                local (bool, optional): use for this operation mount (True) or remote object storage (False). Defaults to False.
-                all_apps (bool, optional): get result by all apps (if you need results from other apps and the mount is not synchronized between them). Defaults to False.
+                local (bool, optional): whether to use local mount or remote object storage.
+                    If set to :code:`True`, the operation will 
+                    be performed on the local file system. Otherwise, 
+                    the operation will be performed on the remote object storage. Defaults to False.
+                all_apps (bool, optional): whether to synchronize the operation between all apps.
+                    If set to :code:`True`, the operation will be performed on all apps. 
+                    Otherwise, the operation will be performed only on apps the method is called from.
+                    Defaults to False.
 
             Returns:
-                List[str]: keys from local mount or remote object storage
-            """  # noqa: E501
+                List[str]: Keys from local mount or remote object storage.
+            """
             pass
 
         async def async_get_keys(self, local: bool = False, all_apps: bool = False) -> List[str]:  # noqa: E501
-            """get keys from local mount or remote object storage
+            """
+            Get keys from local mount or remote object storage.
 
             Args:
-                local (bool, optional): use for this operation mount (True) or remote object storage (False). Defaults to False.
-                all_apps (bool, optional): get result by all apps (if you need results from other apps and the mount is not synchronized between them). Defaults to False.
+                local (bool, optional): whether to use local mount or remote object storage.
+                    If set to :code:`True`, the operation will 
+                    be performed on the local file system. Otherwise, 
+                    the operation will be performed on the remote object storage. Defaults to False.
+                all_apps (bool, optional): whether to synchronize the operation between all apps.
+                    If set to :code:`True`, the operation will be performed on all apps. 
+                    Otherwise, the operation will be performed only on apps the method is called from.
+                    Defaults to False.
 
             Returns:
-                List[str]: keys from local mount or remote object storage
-            """  # noqa: E501
+                List[str]: Keys from local mount or remote object storage.
+            """
             pass
 
         def get(self, keys: List[str], force: bool = False, all_apps: bool = True) -> List[str]:    # noqa: E501
-            """update mount for this app (or all apps if all_apps=True), return keys for whom it was possible and happened
+            """
+            Updates mount for this app (or all apps), return keys for which it was successful
 
             Args:
-                keys (List[str]): keys by which values are obtained (if this is not possible, this key will not be returned in result)
-                force (bool, optional): if installed, it will ignore what is locally and load data from the remote object storage, otherwise it will only take what does not exist. Defaults to False.
-                all_apps (bool, optional): do it operation in all apps, otherwise only for apps with associated mount. Defaults to True.
+                keys (List[str]): 
+                    Keys by which values are obtained.
+                    If this is not possible, this key will not be returned in result)
+                force (bool, optional): 
+                    If set, it will ignore what is locally and 
+                    load data from the remote object storage. 
+                    Otherwise it will only take what does not exist. 
+                    Defaults to False.
+                all_apps (bool, optional): 
+                    If set to true, the operation will be performed in all apps.
+                    Otherwise only for apps with associated mount. 
+                    Defaults to True.
 
             Returns:
-                List[str]: keys by which it was possible to obtain the value and load it into the mount
-            """  # noqa: E501
+                List[str]: Keys by which it was possible 
+                to obtain the value and load it into the mount
+            """
             pass
 
         async def async_get(self, keys: List[str], force: bool = False, all_apps: bool = True) -> List[str]:    # noqa: E501
-            """update mount for this app (or all apps if all_apps=True), return keys for whom it was possible and happened
+            """
+            Updates mount for this app (or all apps), return keys for which it was successful
 
             Args:
-                keys (List[str]): keys by which values are obtained (if this is not possible, this key will not be returned in result)
-                force (bool, optional): if installed, it will ignore what is locally and load data from the remote object storage, otherwise it will only take what does not exist. Defaults to False.
-                all_apps (bool, optional): do it operation in all apps, otherwise only for apps with associated mount. Defaults to True.
+                keys (List[str]): 
+                    Keys by which values are obtained.
+                    If this is not possible, this key will not be returned in result)
+                force (bool, optional): 
+                    If set, it will ignore what is locally and 
+                    load data from the remote object storage. 
+                    Otherwise it will only take what does not exist. 
+                    Defaults to False.
+                all_apps (bool, optional): 
+                    If set to true, the operation will be performed in all apps.
+                    Otherwise only for apps with associated mount. 
+                    Defaults to True.
 
             Returns:
-                List[str]: keys by which it was possible to obtain the value and load it into the mount
-            """  # noqa: E501
+                List[str]: Keys by which it was possible 
+                to obtain the value and load it into the mount
+            """
             pass
 
-        def get_all(self, local: bool = False, force: bool = False, all_apps: bool = True) -> List[str]:    # noqa: E501
-            """update mount and return all keys in it, if `local` - return result only for mount (or all apps mounts if `all_apps`), otherwise - load all by remote object storage
+        def get_all(
+            self,
+            local: bool = False,
+            force: bool = False,
+            all_apps: bool = True
+        ) -> List[str]:
+            """
+            Updates mount and return all keys in it, 
+            if `local` - return result only for mount (or all apps mounts if `all_apps`), 
+            otherwise - load all by remote object storage
 
             Args:
-                local (bool, optional): interacts only with the local part. Defaults to False.
-                force (bool, optional): if installed, it will ignore what is locally and load data from the remote object storage, otherwise it will only take what does not exist. Defaults to False.
-                all_apps (bool, optional): do it operation in all apps, otherwise only for apps with associated mount. Defaults to True.
+                local (bool, optional): whether to use local mount or remote object storage.
+                    If set to :code:`True`, the operation will 
+                    be performed on the local file system. Otherwise, 
+                    the operation will be performed on the remote object storage. Defaults to False.
+                force (bool, optional): 
+                    If set, it will ignore what is locally and 
+                    load data from the remote object storage. 
+                    Otherwise it will only take what does not exist. 
+                    Defaults to False.
+                all_apps (bool, optional): 
+                    If set to true, the operation will be performed in all apps.
+                    Otherwise only for apps with associated mount. 
+                    Defaults to True.
 
             Returns:
-                List[str]: all keys in mount, that loaded
-            """  # noqa: E501
+                List[str]: All keys in the mount or all apps mounts if `all_apps` is True, 
+                otherwise load all keys from remote object storage.
+            """
             pass
 
-        async def async_get_all(self, local: bool = False, force: bool = False, all_apps: bool = True) -> List[str]:    # noqa: E501
-            """update mount and return all keys in it, if `local` - return result only for mount (or all apps mounts if `all_apps`), otherwise - load all by remote object storage
+        async def async_get_all(
+            self,
+            local: bool = False,
+            force: bool = False,
+            all_apps: bool = True
+        ) -> List[str]:
+            """
+            Updates mount and return all keys in it, 
+            if `local` - return result only for mount (or all apps mounts if `all_apps`), 
+            otherwise - load all by remote object storage
 
             Args:
-                local (bool, optional): interacts only with the local part. Defaults to False.
-                force (bool, optional): if installed, it will ignore what is locally and load data from the remote object storage, otherwise it will only take what does not exist. Defaults to False.
-                all_apps (bool, optional): do it operation in all apps, otherwise only for apps with associated mount. Defaults to True.
+                local (bool, optional): whether to use local mount or remote object storage.
+                    If set to :code:`True`, the operation will 
+                    be performed on the local file system. Otherwise, 
+                    the operation will be performed on the remote object storage. Defaults to False.
+                force (bool, optional): 
+                    If set, it will ignore what is locally and 
+                    load data from the remote object storage. 
+                    Otherwise it will only take what does not exist. 
+                    Defaults to False.
+                all_apps (bool, optional): 
+                    If set to true, the operation will be performed in all apps.
+                    Otherwise only for apps with associated mount. 
+                    Defaults to True.
 
             Returns:
-                List[str]: all keys in mount, that loaded
-            """  # noqa: E501
+                List[str]: All keys in the mount or all apps mounts if `all_apps` is True, 
+                otherwise load all keys from remote object storage.
+            """
             pass
 
-        def update(self, keys: List[str], presigned_expire: Optional[int] = -1) -> Dict[str, str]:  # noqa: E501
-            """update remote object storage by this keys, values should be in local mount for this keys; maybe create presigned url
+        def update(
+            self,
+            keys: List[str],
+            presigned_expire: Optional[int] = -1
+        ) -> Dict[str, str]:
+            """Updates objects in remote storage
+
+            Retrieves objects from local mount and updates remote object storage.
+            If :code:`presigned_expire` is set to a positive value, creates
+            and returns presigned urls for the objects.
+
+            If :code:`presigned_expire` is None, set to default timeout.
+
+            If :code:`presigned_expire` is negative, returns an empty dictionary.
 
             Args:
-                keys (List[str]): keys, for which it is updated remote object storage
-                presigned_expire (Optional[int]): if < 0 - do nothing, otherwise create presigned url (value in seconds, None - default value). Defaults to -1.
+                keys (List[str]): Keys to update
+                presigned_expire (int, optional): 
+                    If positve, life span of presigned urls in seconds.
+                    If None, set to default timeout.
+                    Defaults to -1.
+
+            Returns:
+                Dict[str, str]: Mapping of keys to presigned urls
+            """
+            pass
+
+        async def async_update(
+            self, 
+            keys: List[str],
+            presigned_expire: Optional[int] = -1
+        ) -> Dict[str, str]:
+            """Updates objects in remote storage
+
+            Retrieves objects from local mount and updates remote object storage.
+            If :code:`presigned_expire` is set to a positive value, creates
+            and returns presigned urls for the objects.
+
+            If :code:`presigned_expire` is None, set to default timeout.
+
+            If :code:`presigned_expire` is negative, returns an empty dictionary.
+
+            Args:
+                keys (List[str]): Keys to update
+                presigned_expire (int, optional): 
+                    If positve, life span of presigned urls in seconds.
+                    If None, set to default timeout.
+                    Defaults to -1.
 
             Returns:
                 Dict[str, str]: key to presigned url
-            """  # noqa: E501
+            """
             pass
 
-        async def async_update(self, keys: List[str]) -> None:
-            """update remote object storage by this keys, values should be in local mount for this keys; maybe create presigned url
+        def presigned(
+            self,
+            keys: List[str],
+            expire: Optional[int] = None
+        ) -> Dict[str, str]:
+            """Creates presigned urls for specified keys
 
             Args:
-                keys (List[str]): keys, for which it is updated remote object storage
-                presigned_expire (Optional[int]): if < 0 - do nothing, otherwise create presigned url (value in seconds, None - default value). Defaults to -1.
-
+                keys (List[str]): Keys to create presigned urls for
+                expire (int, optional): 
+                    Life span of presigned urls in seconds (must be positive).
+                    If None, set to default timeout.
+                    Defaults to None.
             Returns:
-                Dict[str, str]: key to presigned url
-            """  # noqa: E501
+                Dict[str, str]: Mapping of keys to presigned urls
+            """
             pass
 
-        def presigned(self, keys: List[str], expire: Optional[int] = None) -> Dict[str, str]:  # noqa: E501
-            """create presigned url for keys
+        async def async_presigned(
+            self,
+            keys: List[str],
+            expire: Optional[int] = None
+        ) -> Dict[str, str]:
+            """Creates presigned urls for specified keys
 
             Args:
-                keys (List[str]): keys, for which it is updated remote object storage
-                expire (Optional[int], optional): should be > 0; create presigned url (value in seconds, None - default value). Defaults to None.
-
+                keys (List[str]): Keys to create presigned urls for
+                expire (int, optional): 
+                    Life span of presigned urls in seconds (must be positive).
+                    If None, set to default timeout.
+                    Defaults to None.
             Returns:
-                Dict[str, str]: key to presigned url
-            """  # noqa: E501
-            pass
-
-        async def async_presigned(self, keys: List[str], expire: Optional[int] = None) -> Dict[str, str]:  # noqa: E501
-            """create presigned url for keys
-
-            Args:
-                keys (List[str]): keys, for which it is updated remote object storage
-                expire (Optional[int], optional): should be > 0; create presigned url (value in seconds, None - default value). Defaults to None.
-
-            Returns:
-                Dict[str, str]: key to presigned url
-            """  # noqa: E501
+                Dict[str, str]: Mapping of keys to presigned urls
+            """
             pass
 
         def delete(self, keys: List[str]) -> None:
-            """delete values in mount and remote storage for this keys
+            """Deletes values in mount and remote storage
 
             Args:
-                keys (List[str]): keys for which you need to delete from object storage
+                keys (List[str]): Keys to delete
             """
             pass
 
         async def async_delete(self, keys: List[str]) -> None:
-            """delete values in mount and remote storage for this keys
+            """Deletes values in mount and remote storage
 
             Args:
-                keys (List[str]): keys for which you need to delete from object storage
+                keys (List[str]): Keys to delete
             """
             pass
 
-    """context for run"""
+    app_id: str
+    """
+    App ID (unique for each app). 
+    This ID given to an app at startup by interpreters.
+    """
+
+    run_id: str
+    """
+    Run ID (unique for each run).
+    """
+
+    app_cfg: Dict[str, Any]
+    """
+    App configuration. Given to the app at startup
+    and contains arbitrary configuration data. The configuration
+    is preserved between runs. This field is used to
+    dictate the behaviour of the app.
+    """
+
+    dag_key_value: _DagKeyValue
+    """
+    Key-value storage. Shared between all apps of one run.
+    Values must be bytes, string, int or float; dictionary order is not guaranteed
+    """
+
+    object_storage: _ObjectStorage
+    """
+    Object storage, shared between all apps of one run.
+    """
+
+    common: Any
+    """
+    An object shared between all runs of the app.
+    It is not being explicitly serialized, so may be any object.
+    In comparison, objects put into :attr:`app_cfg` can be used
+    in the same way, but they are serialized and deserialized limiting
+    the types that can be used. That is not the case for :attr:`common`.
+    """
 
     def __init__(self) -> None:
         self.app_id: str = ""                                       # app id at startup
@@ -274,91 +479,231 @@ class Context(Generic[MinimalCfg]):
         self.common = None                                          # arbitrary common variable between app runs # noqa: E501
         self.logger = logging.getLogger(f"{self.operation_id}${self.run_id}")
 
-    def share(self, path: str, all_runs: bool = False, path_prefix: str = APP_DIR, force: bool = False, synchronize: bool = True) -> None:  # noqa: E501
-        """copy dir (if it doesn't already exist or `force=True`) or file along the path starting from the `path_prefix` (apps directory in app (`APP_DIR`) by default) to the shared directory for all apps
-
+    def share(
+        self, 
+        path: str, 
+        all_runs: bool = False, 
+        path_prefix: str = APP_DIR, 
+        force: bool = False, 
+        synchronize: bool = True
+    ) -> None:
+        """Shares a file or a directory between all apps for the current deployment.
+        
+        The file or directory is copied to a shared directory, which is
+        accessible by all apps. The file should be accessible by the
+        following path:
+        
+            :code:`{path_prefix}/{path}`
+            
+        where :code:`path_prefix` and :code:`path` are the corresponding arguments.
+        
+        -----------------------------------------------------------------------------
+        
+        Note, that:
+        
+        *   The :code:`path_prefix` is not included into shared key.    
+        *   If :code:`all_runs` is set to :code:`True`, 
+            the file or directory will be shared between all runs of the app. 
+            Otherwise, it will be shared only between the apps of the current run.
+        *   If :code:`synchronize` is set to :code:`True`, 
+            the file or directory will be copied to all apps. 
+            Otherwise, it will be copied only to apps with a common mount.
+        *   If the file or directory already exists in the shared directory, 
+            it will not be copied unless :code:`force` is set to :code:`True`.
+        
+        -----------------------------------------------------------------------------
+        
+        .. note::
+        
+            See `Sharing files <#sharing-files>`_ for more details.
+        
         Args:
-            path (str): path to share, the "real path" by which it is stored
-            all_runs (bool, optional): share it for all runs, otherwise for all - this value should be the same in `get_share_path`. Defaults to False.
-            path_prefix (str, optional): prefix for the path (specifies the location when loading and is no longer used). Defaults to APP_DIR.
-            force (bool, optional): remove share if it exist. Defaults to False.
-            synchronize (bool, optional): synchronize across all apps, otherwise some apps with a common mount will be synchronized. Defaults to True.
-        """  # noqa: E501
+            path (str):
+                Key of shared file or directory
+            all_runs (bool, optional): 
+                Whether to share the file or directory between all runs. 
+                Defaults to False.
+            path_prefix (str, optional): 
+                Path prefix. 
+                Defaults to `APP_DIR`.
+            force (bool, optional): 
+                Whether to overwrite the file or directory if it already exists. 
+                Defaults to False.
+            synchronize (bool, optional): 
+                Whether to synchronize the file or directory between all apps. 
+                Defaults to True.
+        """
         pass
 
-    async def async_share(self, path: str, all_runs: bool = False, path_prefix: str = APP_DIR, force: bool = False, synchronize: bool = True) -> None:  # noqa: E501
-        """copy dir (if it doesn't already exist or `force=True`) or file along the path starting from the `path_prefix` (apps directory in app (`APP_DIR`) by default) to the shared directory for all apps
+    async def async_share(
+        self, 
+        path: str,
+        all_runs: bool = False,
+        path_prefix: str = APP_DIR,
+        force: bool = False,
+        synchronize: bool = True
+    ) -> None:  # noqa: E501
+        """Shares a file or a directory between all apps for the current deployment.
+        
+        It is an asynchronous version of :meth:`share`.
 
         Args:
-            path (str): path to share, the "real path" by which it is stored
-            all_runs (bool, optional): share it for all runs, otherwise for all - this value should be the same in `get_share_path`. Defaults to False.
-            path_prefix (str, optional): prefix for the path (specifies the location when loading and is no longer used). Defaults to APP_DIR.
-            force (bool, optional): remove share if it exist. Defaults to False.
-            synchronize (bool, optional): synchronize across all apps, otherwise some apps with a common mount will be synchronized. Defaults to True.
-        """  # noqa: E501
+            path (str):
+                Key of shared file or directory
+            all_runs (bool, optional): 
+                Whether to share the file or directory between all runs. 
+                Defaults to False.
+            path_prefix (str, optional): 
+                Path prefix. 
+                Defaults to `APP_DIR`.
+            force (bool, optional): 
+                Whether to overwrite the file or directory if it already exists. 
+                Defaults to False.
+            synchronize (bool, optional): 
+                Whether to synchronize the file or directory between all apps. 
+                Defaults to True.
+        """
         pass
 
-    def share_many(self, paths: List[str], all_runs: bool = False, path_prefix: str = APP_DIR, force: bool = False, synchronize: bool = True) -> None:  # noqa: E501
-        """same as `share` but for multiple paths, ignore not exists path
+    def share_many(
+        self, 
+        paths: List[str], 
+        all_runs: bool = False, 
+        path_prefix: str = APP_DIR, 
+        force: bool = False, 
+        synchronize: bool = True
+    ) -> None:
+        """Shares multiple files or directories.
+        
+        The same as :meth:`share`, but for multiple files or directories.
+        Ignores paths that do not exist.
         """
 
-    async def async_share_many(self, paths: List[str], all_runs: bool = False, path_prefix: str = APP_DIR, force: bool = False, synchronize: bool = True) -> None:  # noqa: E501
-        """same as `share` but for multiple paths, ignore not exists path
+    async def async_share_many(
+        self,
+        paths: List[str],
+        all_runs: bool = False,
+        path_prefix: str = APP_DIR,
+        force: bool = False,
+        synchronize: bool = True
+    ) -> None:
+        """Shares multiple files or directories.
+        
+        The same as :meth:`async_share`, but for multiple files or directories.
+        Ignores paths that do not exist.
         """
 
-    def get_share_path(self, path: str, all_runs: bool = False, not_exist_ok: bool = False) -> str:  # noqa: E501
-        """return real path by `path`, that shared before with function `share`
+    def get_share_path(
+        self, 
+        path: str, 
+        all_runs: bool = False, 
+        not_exist_ok: bool = False
+    ) -> str | None:
+        """Retrieves a real file path by shared key.
+        
+        Once file is shared, it is copied to a shared directory, which is
+        accessible by all apps. However, to actually access the file, you
+        have to retrieve its real path using in the mounted file system.
+        
+        .. note::
+        
+            See `Accessing shared files <#accessing-shared-files>`_ for more details.
+            
 
         Args:
-            path (str): path, with which share was called earlier
-            all_runs (bool, optional): value, with which share was called earlier. Defaults to False.
-            not_exist_ok (bool, optional): throw if path not exist if False. Defaults to False.
+            path (str): Shared file key
+            all_runs (bool, optional):
+                To access files shared between all runs, set to :code:`True`.
+                Defaults to False.
+            not_exist_ok (bool, optional): 
+                Whether to raise an exception if the file does not exist.
 
         Returns:
-            str: real path
-        """  # noqa: E501
+            str: Readable file path or None (if :code:`not_exist_ok` is set to :code:`True`)
+        """ 
         pass
 
-    def delete_share(self, path: str, all_runs: bool = False, synchronize: bool = True) -> None:    # noqa: E501
-        """delete dir or file, that shared between all apps, `path` like path is the same as used in function `share`
+    def delete_share(
+        self, 
+        path: str, 
+        all_runs: bool = False, 
+        synchronize: bool = True
+    ) -> None:
+        """Deletes previously shared file or directory.
+        
+        Args:
+            path (str): Shared file key
+            all_runs (bool, optional): 
+                Whether to delete files shared between all runs. 
+                Defaults to False.
+            synchronize (bool, optional): 
+                Whether to synchronize the deletion between all apps. 
+                Defaults to True.
+        """
+        pass
+
+    async def async_delete_share(
+        self, path: str, all_runs: bool = False, synchronize: bool = True
+    ) -> None:
+        """Deletes previously shared file or directory.
 
         Args:
-            path (str): path, with which share was called earlier
-            all_runs (bool, optional): value, with which share was called earlier. Defaults to False.
-            synchronize (bool, optional): synchronize for all mounts. Defaults to True.
-        """  # noqa: E501
+            path (str): Shared file key
+            all_runs (bool, optional): 
+                Whether to delete files shared between all runs. 
+                Defaults to False.
+            synchronize (bool, optional): 
+                Whether to synchronize the deletion between all apps. 
+                Defaults to True.
+        """
         pass
 
-    async def async_delete_share(self, path: str, all_runs: bool = False, synchronize: bool = True) -> None:  # noqa: E501
-        """delete dir or file, that shared between all apps, `path` like path is the same as used in function `share`
+    def synchronize(
+        self, 
+        paths: Optional[List[str]] = None, 
+        all_runs: bool = False
+    ) -> None:  # TODO synchronize removing  
+        """Forcefully synchronizes paths accross all apps.
+        
+        Setting :code:`paths` to :code:`None` or an empty list will synchronize
+        all shared files and directories.
 
         Args:
-            path (str): path, with which share was called earlier
-            all_runs (bool, optional): value, with which share was called earlier. Defaults to False.
-            synchronize (bool, optional): synchronize for all mounts. Defaults to True.
-        """  # noqa: E501
+            paths (Optional[List[str]], optional): Paths to synchronize.
+            all_runs (bool, optional):
+                Whether to synchronize files shared between all runs. 
+                Should be set to the same value as :meth:`share` method was called with.
+                Defaults to False.
+        """ 
         pass
 
-    def synchronize(self, paths: Optional[List[str]] = None, all_runs: bool = False) -> None:  # TODO synchronize removing  # noqa: E501
-        """synchronize all mounts,
+    async def async_synchronize(
+        self, paths: Optional[List[str]] = None, all_runs: bool = False
+    ) -> None:  # noqa: E501
+        """Forcefully synchronizes paths accross all apps.
+        
+        Setting :code:`paths` to :code:`None` or an empty list will synchronize
+        all shared files and directories.
 
         Args:
-            paths (Optional[List[str]], optional): paths to synchronize, if paths = None or [] - synchronize from root mount. Defaults to None.
-            all_runs (bool, optional): value, with which share was called earlier. Defaults to False.
-        """  # noqa: E501
+            paths (Optional[List[str]], optional): Paths to synchronize.
+            all_runs (bool, optional):
+                Whether to synchronize files shared between all runs. 
+                Should be set to the same value as :meth:`share` method was called with.
+                Defaults to False.
+        """ 
         pass
 
-    async def async_synchronize(self, paths: Optional[List[str]] = None, all_runs: bool = False) -> None:  # noqa: E501
-        """synchronize all mounts,
-
-        Args:
-            paths (Optional[List[str]], optional): paths to synchronize, if paths = None or [] - synchronize from root mount. Defaults to None.
-            all_runs (bool, optional): value, with which share was called earlier. Defaults to False.
-        """  # noqa: E501
-        pass
-
-    def msg(self, data: Union[str, Dict], url: Optional[str] = None, headers: Optional[Dict[str, str]] = None, wait: bool = False, wrap: bool = True, with_result: bool = False):  # noqa: E501, ANN201
-        """send http msg to system or any url
+    def msg(
+        self, 
+        data: Union[str, Dict],
+        url: Optional[str] = None,
+        headers: Optional[Dict[str, str]] = None,
+        wait: bool = False,
+        wrap: bool = True,
+        with_result: bool = False
+    ) -> None:
+        """Sends http msg to system or any url
 
         Args:
             data (Union[str, Dict]): msg data
@@ -371,7 +716,7 @@ class Context(Generic[MinimalCfg]):
         pass
 
     async def async_msg(self, data: Union[str, Dict], url: Optional[str] = None, headers: Optional[Dict[str, str]] = None, wait: bool = False, wrap: bool = True, with_result: bool = False):  # noqa: ANN201, E501
-        """send http msg to system or any url
+        """Sens http msg to system or any url
 
         Args:
             data (Union[str, Dict]): msg data
@@ -384,7 +729,7 @@ class Context(Generic[MinimalCfg]):
         pass
 
     def email_send(self, message: str, subject: Optional[str] = None, type: str = "gmail") -> None:  # noqa: E501
-        """send email
+        """Send an email
 
         Args:
             message (str): text message
@@ -394,7 +739,7 @@ class Context(Generic[MinimalCfg]):
         pass
 
     def metadata(self, df_name: str) -> Optional[Union[Dict[str, Any], List[Dict[str, Any]]]]:  # noqa: E501
-        """get metadata by df_name (if it saved with collection)
+        """Gets metadata by df_name (if it saved with collection)
 
         Args:
             df_name (str): df name
@@ -406,7 +751,7 @@ class Context(Generic[MinimalCfg]):
 
     @property
     def scale_info(self) -> Tuple[int, int]:
-        """get scale info: `index` and `index count`. `index count` - how many `apps` run it, `index` in [0, `index count`)
+        """Gets scale info: `index` and `index count`. `index count` - how many `apps` run it, `index` in [0, `index count`)
 
         Returns:
             Tuple[int, int]: `index` and `index count`
@@ -414,7 +759,7 @@ class Context(Generic[MinimalCfg]):
         pass
 
     def get_scale_part(self, df: pd.DataFrame) -> pd.DataFrame:
-        """get scale part of df (`index` and `index count` used for that) - any app get different data
+        """Gets scale part of df (`index` and `index count` used for that) - all apps app get different data
 
         Args:
             df (pd.DataFrame): df to scale
@@ -426,7 +771,7 @@ class Context(Generic[MinimalCfg]):
 
     @property
     def operation_id(self) -> str:
-        """return operation_id
+        """Operation identifier
 
         Returns:
             str: operation_id
@@ -434,41 +779,57 @@ class Context(Generic[MinimalCfg]):
         pass
 
     def get_object(self, path: str) -> OBJ:
-        """create OBJ by path (for the current user), failed if that path ({prefix for user objs}/{path}) not exist.
-        Can be used if it is reliably known that the user has an object at this path
-
+        """Composes a path to an asset (OBJ) and returns it as :class:`OBJ`
+        
+        If the asset (object) does not exist, the function
+        fails with an error.
+    
         Args:
-            path (str): path to user object
+            path (str): Path to object (asset)
 
         Returns:
-            OBJ: OBJ by real path
-        """ # noqa: E501
+            OBJ: An OBJ wrap around a path
+        """
         pass
 
+
     def as_object(self, paths: Dict[str, str], *, dir: Optional[str] = None) -> OBJ:
-        """copy paths to specific dir and create OBJ by this dir.
-        Created files paths: [{prefix for user objs}/{dir}/{save_path} for save_path in paths.values()]
+        """Creates an asset (OBJ) by copying paths to specific directory and creating :class:`OBJ` by this dir.
+        
+        Assets (:class:`OBJ`) are simply a path within a directory accessible from within container
+        by a certain user. This function creates a new asset by copying specified files into separate directory
+        and creating an asset pointing to whole folder.
 
         Args:
-            paths (Dict[str, str]): real path with data -> subpath in result dir
-            dir (Optional[str], optional): dir name, generated if not set. Defaults to None
+            paths (Dict[str, str]): Path to an actual object -> subpath in asset directory
+            dir (Optional[str], optional): target directory name. If not set, it is generated. Defaults to None
 
         Returns:
-            OBJ: OBJ by created dir
+            OBJ: OBJ with created directory captured
         """ # noqa: E501
         pass
 
 
 def to_binary(smth: Any) -> bytes:  # noqa: ANN401
+    """Converts object to binary
+    
+    Args:
+        smth (Any): object to convert
+    """
     return pickle.dumps(smth)
 
 
-def from_binary(smth: bytes) -> Any:  # noqa: ANN401
+def from_binary(smth: bytes) -> Any:
+    """Converts binary to object
+    
+    Args:
+        smth (bytes): binary to convert
+    """
     return pickle.loads(smth)
 
 
 def load(url: str, path: str, path_prefix: str = APP_DIR) -> None:
-    """get request url and save result to path
+    """Get request url and save result to path
 
     Args:
         url (str): url to load
@@ -479,7 +840,8 @@ def load(url: str, path: str, path_prefix: str = APP_DIR) -> None:
 
 
 class S3Helper:
-    """ready-made auxiliary wrapper for interacting with custom s3
+    """
+    Ready-made auxiliary wrapper for interacting with custom s3
     """
 
     def __init__(self, client: Any, s3_bucket: str) -> None:  # noqa: ANN401
@@ -499,7 +861,7 @@ class S3Helper:
         return S3Helper(s3_client, cfg['s3_bucket'])
 
     def get_object(self, key: str, bucket: Optional[str] = None) -> Optional[StreamingBody]:  # noqa: E501
-        """use get_object from client by `bucket` and `key`
+        """Uses :code:`get_object` from client by `bucket` and `key`
 
         Args:
             key (str): object storage key
@@ -511,7 +873,7 @@ class S3Helper:
         pass
 
     def get_df(self, key: str, bucket: Optional[str] = None) -> pd.DataFrame:
-        """use get_object result and cast it to df
+        """Uses :code:`get_object` result and cast it to data frame
 
         Args:
             key (str): object storage key
@@ -523,7 +885,7 @@ class S3Helper:
         pass
 
     def save_object(self, body: Any, key: str, bucket: Optional[str] = None) -> None:  # noqa: ANN401
-        """use put_object from client by `bucket`, `key` and `body`
+        """Uses :code:`put_object` from client by `bucket`, `key` and `body`
 
         Args:
             body (Any): saved data
@@ -533,7 +895,7 @@ class S3Helper:
         pass
 
     def save_df(self, df: pd.DataFrame, key: str, bucket: Optional[str] = None) -> None:
-        """use save_object to save df by `bucket` and `key`
+        """Uses :code:`save_object` to save df by `bucket` and `key`
 
         Args:
             df (pd.DataFrame): df to save
@@ -543,7 +905,7 @@ class S3Helper:
         pass
 
     def delete_object(self, key: str, bucket: Optional[str] = None) -> None:
-        """delete object by `bucket` and `key`
+        """Deletes object by `bucket` and `key`
 
         Args:
             key (str): object storage key
@@ -553,7 +915,14 @@ class S3Helper:
 
 
 class SmtpSender:
-    """ready-made auxiliary wrapper for interacting with smtp
+    """
+    Ready-made auxiliary wrapper for interacting with SMTP
+    
+    Args:
+        login (str): login
+        password (str): password
+        smtp_server (str, optional): smtp server. Defaults to "smtp.gmail.com".
+        smtp_port (int, optional): smtp port. Defaults to 465.
     """
 
     def __init__(self, login: str, password: str, smtp_server: str = "smtp.gmail.com", smtp_port: int = 465) -> None:  # noqa: E501
@@ -563,7 +932,7 @@ class SmtpSender:
         self.password = password
 
     def send(self, receivers: list[str], subject: str, message: str) -> None:
-        """send message
+        """Sends an email
 
         Args:
             receivers (list[str]): list of emails
@@ -730,8 +1099,25 @@ def _tensor_from_df(x: pd.DataFrame) -> list:
     return _out
 
 
-def to_df(x: Any, force: bool = False) -> pd.DataFrame:  # noqa: ANN401
-    """creates a dataframe in a certain way, `force` should be used for complex objects ('ndarray', 'Tensor' and python primitives work without it. It crashes on basic types ('int', 'str', etc)), scheme of received dataframe - `default_scheme`"""  # noqa: E501
+def to_df(x: Any, force: bool = False) -> pd.DataFrame:
+    """Creates a data frame from an arbitrary object
+    
+    - `torch.Tensor`: Tensor is serialized using torch.save and then encoded using base112. Autograd information is preserved.
+    - `numpy`, `list`, `tuple`, `range`, `bytearray`: Data is serialized using pickle and stored as is in `data` column.
+    - `set`, `frozenset`: Data is converted to list and stored as is in `data` column.
+    - `dict`: Data is serialized using json and stored as is in `data` column.
+    - `int`, float, complex, str, bytes, bool: Data is stored as is in `data` column.
+    
+    
+    Args:
+        x (Any): Object to convert to data frame
+        force (bool, optional): 
+            If set, it will ignore the type of the object and serialize it using pickle.
+            Defaults to False.
+
+    Returns:
+        pd.DataFrame: Data frame with a single column :code:`data`
+    """ # noqa: E501
     if force:
         return pd.DataFrame({"data": [jsonpickle.encode(x)]})
     elif type(x).__name__ == "Tensor" or (isinstance(x, list) and len(x) > 0 and type(x[0]).__name__ == "Tensor"):
@@ -748,9 +1134,20 @@ def to_df(x: Any, force: bool = False) -> pd.DataFrame:  # noqa: ANN401
 
 # TODO create same with pyspark
 def from_df(x: pd.DataFrame, type_name: Optional[str] = None, force: bool = False) -> Any:  # noqa: ANN401, E501
-    """decodes the `to_df` data from the dataframe, `force` is used if it was used in the encoding function - `to_df`. You should specify the type (by type_name: for example 'ndarray', 'list', 'Tensor', 'int') that was put in this `to_df` dataframe.
-    possible type_names: 'ndarray', 'list', 'tuple', 'Tensor', 'set', 'frozenset', 'dict', 'bytearray'. Otherwise considered a primitive base type
-    if force==True ignore type_name anyway"""  # noqa: E501
+    """Converts a data frame obtained by running :func:`to_df` back to an object
+    
+    Args:
+        x (pd.DataFrame): Data frame to convert
+        type_name (Optional[str], optional): 
+            Type of the object to convert to. If not specified, the type is inferred from the data frame.
+            Defaults to None.
+        force (bool, optional): 
+            If set, it will ignore the type of the object and deserialize it using pickle.
+            Defaults to False.
+            
+    Returns:
+        Any: Object of type :code:`type_name` or inferred type
+    """
     if force:
         return jsonpickle.decode(x.data[0])
     elif type_name == 'ndarray':

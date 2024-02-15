@@ -224,10 +224,16 @@ class CoreResult(BaseResult[CoreResultPayload]):
         results = []
         for result in results_:
             if CoreResult.is_asset(result):
+# if asset
+                # NOTE: Path now returned without /mnt_obj/<user>
+                # prefix, but I remained the code as it was
+                # before, just in case
+
                 obj_path = CoreResult.extract_path_to_asset(
                     result.path.iloc[0],
                     user=self._auth[0],
                 )
+                # ================================================
                 try:
                     objects_ = core.get_collection_objects(
                         obj_path,
@@ -235,6 +241,7 @@ class CoreResult(BaseResult[CoreResultPayload]):
                         conn_url=self._conn_url,
                         recursive=True
                     )
+# # if one file
                     if len(objects_.files) == 1:
                         object_ = core.get_collection_object(
                             obj_path + "/" + objects_.files[0],
@@ -246,6 +253,7 @@ class CoreResult(BaseResult[CoreResultPayload]):
                             is_asset=True,
                         ))
                     else:
+# # if multiple files
                         paths = []
                         obj_bytes = []
                         for file_ in objects_.files:
@@ -262,6 +270,7 @@ class CoreResult(BaseResult[CoreResultPayload]):
                             is_composite_asset=True,
                             paths=paths,
                         ))
+# if failed, try without recursive
                 except Exception as _:
                     try:
                         object_ = core.get_collection_object(
@@ -273,11 +282,13 @@ class CoreResult(BaseResult[CoreResultPayload]):
                             data=[object_],
                             is_asset=True,
                         ))
+# totall failure = keep it as a collection
                     except Exception as _:
                         results.append(CoreResultPayload(
                             data=result,
                             is_collection=True,
                         ))
+# if collection
             else:
                 results.append(CoreResultPayload(
                     data=result,
@@ -311,7 +322,7 @@ class CoreResult(BaseResult[CoreResultPayload]):
                         "Please use `get_binary` or `get_binary_dir` instead"
                     )
             else:
-                return NotImplementedError(
+                raise NotImplementedError(
                     "Cannot return a single DataFrame from multiple results. "
                     "Please use `get_dfs` instead and check the number of results "
                     "using `num_elements` property"
@@ -366,9 +377,10 @@ class CoreResult(BaseResult[CoreResultPayload]):
                 elif result[0].is_asset():
                     return result[0].data
             else:
-                return NotImplementedError(
+                raise NotImplementedError(
                     "Cannot return a single binary from multiple results. "
-                    "Please use `get_binary_dir` instead and check the number of results "
+                    "Please use `get_binary_dir` instead and "
+                    "check the number of results "
                     "using `num_elements` property"
                 )
         else:

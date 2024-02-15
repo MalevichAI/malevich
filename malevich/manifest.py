@@ -9,7 +9,7 @@ from ._utility.singleton import SingletonMeta
 from .models.manifest import Manifest, Secret, Secrets
 
 
-class ManifestManager(metaclass=SingletonMeta):
+class ManifestManager:
     @staticmethod
     def secret_pattern() -> str:
         return r"secret#[0-9]{1,6}"
@@ -18,10 +18,12 @@ class ManifestManager(metaclass=SingletonMeta):
     def is_secret(value: str) -> bool:
         return re.match(ManifestManager.secret_pattern(), value) is not None
 
-    def __init__(self) -> None:
-        self.__path = os.path.join(os.getcwd(), "malevich.yaml")
-        self.__secrets_path = os.path.join(
-            os.getcwd(), "malevich.secrets.yaml")
+    def __init__(self, workdir: str | None = None) -> None:
+        if workdir is None:
+            workdir = os.getcwd()
+
+        self.__path = os.path.join(workdir, "malevich.yaml")
+        self.__secrets_path = os.path.join(workdir, "malevich.secrets.yaml")
         if not os.path.exists(self.__path):
             with open(self.__path, "w") as _file:
                 pydml.to_yaml_file(_file, Manifest())

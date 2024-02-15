@@ -188,14 +188,14 @@ def _assure_collection(
     else:
         collection.core_id = _ids.ownIds[0]
 
-    if collection.core_id not in core.get_collections(
-        conn_url=conn_url,
-        auth=auth
-    ).ownIds:
-        raise Exception(
-            f"Collection {collection.collection_id} with core_id "
-            f"{collection.core_id} is not found in Core."
-        )
+    # if collection.core_id not in core.get_collections(
+    #     conn_url=conn_url,
+    #     auth=auth
+    # ).ownIds:
+    #     raise Exception(
+    #         f"Collection {collection.collection_id} with core_id "
+    #         f"{collection.core_id} is not found in Core."
+    #     )
 
     return collection.core_id
 

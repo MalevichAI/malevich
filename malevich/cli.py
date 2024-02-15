@@ -7,10 +7,12 @@ from malevich_space.cli.cli import app as space_app
 import malevich.help as help
 
 from .commands.ci import app as ci_app
+from .commands.dev.dev import dev as dev_app
 from .commands.flow import flow as flow_app
 from .commands.install import auto_use
 from .commands.list import list_packages
 from .commands.manifest import app as manifest_app
+from .commands.new import new
 from .commands.prefs import prefs as prefs
 from .commands.remove import remove
 from .commands.restore import restore
@@ -66,6 +68,16 @@ app.registered_commands.append(
     )
 )
 
+# malevich list
+app.registered_commands.append(
+    typer.models.CommandInfo(
+        name="new",
+        help=help.list_["--help"],
+        callback=new,
+        cls=typer.core.TyperCommand
+    )
+)
+
 # _________________________________________________
 
 # Space Additional Commands
@@ -113,6 +125,8 @@ app.add_typer(ci_app, name="ci", help=help.ci["--help"])
 # malevich prefs
 app.add_typer(prefs, name="prefs")
 
+# malevich dev
+app.add_typer(dev_app, name='dev')
 # _________________________________________________
 
 

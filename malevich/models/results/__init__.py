@@ -5,14 +5,11 @@ from .core import *
 from .space import *
 
 # Possible result types
-Result = list[
-    _typing.Union[
-        BaseResult,
-        CoreLocalDFResult,
-        CoreResult,
-        CoreResultPayload,
-        SpaceCollectionResult
-    ]
+Result = _typing.Union[
+    BaseResult,
+    CoreLocalDFResult,
+    CoreResult,
+    SpaceCollectionResult
 ]
 
 
