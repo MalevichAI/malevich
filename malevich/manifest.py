@@ -15,7 +15,7 @@ class ManifestManager:
 
     @staticmethod
     def is_secret(value: str) -> bool:
-        return re.match(ManifestManager.secret_pattern(), value) is not None
+        return re.match(ManifestManager.secret_pattern(), str(value)) is not None
 
     def __init__(self, workdir: str | None = None) -> None:
         if workdir is None:
