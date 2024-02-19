@@ -2,8 +2,6 @@
 import json
 import logging
 import pickle
-from typing import Any, Dict, List, Optional, Tuple, TypeVar, Union
-
 import boto3
 import jsonpickle
 import numpy as np
@@ -24,8 +22,9 @@ APP_DIR = f"{WORKDIR}/apps"
 Directory into which the user code is copied during app construction.
 """
 
+MinimalCfg = TypeVar('MinimalCfg')
 
-class Context:
+class Context(Generic[MinimalCfg]):
     """
     Context contains all the necessary information about the run 
     and the environment in which it is executed. Also, context provides 
@@ -471,7 +470,7 @@ class Context:
     def __init__(self) -> None:
         self.app_id: str = ""                                       # app id at startup
         self.run_id: str = ""                                       # run id at startup
-        self.app_cfg: Dict[str, Any] = {}                           # configuration given to the app at startup  # noqa: E501
+        self.app_cfg: Union[MinimalCfg, Dict[str, Any]] = {}        # configuration given to the app at startup  # noqa: E501
         self.msg_url: str = ""                                      # default url for msg operation              # noqa: E501
         self.email: Optional[str] = None                            # email for email_send operation             # noqa: E501
         self.dag_key_value = Context._DagKeyValue(
@@ -778,6 +777,21 @@ class Context:
             str: operation_id
         """
         pass
+
+    def get_object(self, path: str) -> OBJ:
+        """Composes a path to an asset (OBJ) and returns it as :class:`OBJ`
+        
+        If the asset (object) does not exist, the function
+        fails with an error.
+    
+        Args:
+            path (str): Path to object (asset)
+
+        Returns:
+            OBJ: An OBJ wrap around a path
+        """
+        pass
+
 
     def as_object(self, paths: Dict[str, str], *, dir: Optional[str] = None) -> OBJ:
         """Creates an asset (OBJ) by copying paths to specific directory and creating :class:`OBJ` by this dir.
