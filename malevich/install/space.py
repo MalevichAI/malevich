@@ -2,13 +2,12 @@ import re
 from typing import Optional
 
 from malevich_space.ops import SpaceOps
-from pydantic import BaseModel
 
 from .._utility.space.space import resolve_setup
 from ..manifest import ManifestManager
-from ..models.manifest import Dependency
+from ..models.installers.space import SpaceDependency, SpaceDependencyOptions
 from .installer import Installer
-from .mimic import mimic_package
+from .stub import create_package_stub
 
 manf = ManifestManager()
 
@@ -57,19 +56,6 @@ def {name}({args}config: dict = {{}}):
 """
 
 
-class SpaceDependencyOptions(BaseModel):
-    reverse_id: str
-    branch: Optional[str] = None
-    version: Optional[str] = None
-    image_ref: Optional[str] = None
-    image_auth_user: Optional[str] = None
-    image_auth_pass: Optional[str] = None
-
-
-class SpaceDependency(Dependency):
-    options: SpaceDependencyOptions
-
-
 class SpaceInstaller(Installer):
     name = 'space'
 
@@ -92,7 +78,9 @@ class SpaceInstaller(Installer):
     ) -> SpaceDependency:
 
         component = self.__ops.get_parsed_component_by_reverse_id(
-            reverse_id=reverse_id)
+            reverse_id=reverse_id
+        )
+
         if component is None:
             raise Exception(f"Component {reverse_id} not found")
 
@@ -161,12 +149,7 @@ class SpaceInstaller(Installer):
                 package_id=package_name
             )
 
-        mimic_package(
-            package=re.sub(r"[^a-zA-Z0-9_]", "_", package_name),
-            metascript=metascript,
-        )
-
-        return SpaceDependency(
+        dependency = SpaceDependency(
             package_id=package_name,
             version=component.version.readable_name,
             installer="space",
@@ -179,6 +162,14 @@ class SpaceInstaller(Installer):
                 image_auth_pass=itoken
             )
         )
+
+        create_package_stub(
+            package_name=re.sub(r"[^a-zA-Z0-9_]", "_", package_name),
+            metascript=metascript,
+            dependency=dependency
+        )
+
+        return dependency
 
     def restore(self, dependency: SpaceDependency) -> None:
         return self.install(

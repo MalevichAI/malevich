@@ -7,6 +7,7 @@ from malevich_space.cli.cli import app as space_app
 import malevich.help as help
 
 from .commands.ci import app as ci_app
+from .commands.dev.dev import dev as dev_app
 from .commands.flow import flow as flow_app
 from .commands.install import auto_use
 from .commands.list import list_packages
@@ -124,6 +125,8 @@ app.add_typer(ci_app, name="ci", help=help.ci["--help"])
 # malevich prefs
 app.add_typer(prefs, name="prefs")
 
+# malevich dev
+app.add_typer(dev_app, name='dev')
 # _________________________________________________
 
 

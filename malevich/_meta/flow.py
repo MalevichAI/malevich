@@ -1,6 +1,6 @@
 from functools import wraps
 from inspect import signature
-from typing import Any, Callable, Optional, ParamSpec, TypeVar
+from typing import Any, Callable, Optional, ParamSpec, TypeVar, overload
 
 import pandas as pd
 
@@ -21,6 +21,23 @@ Args = ParamSpec("Args")
 reg = Registry()
 
 
+@overload
+def flow(
+    fn = None,
+    /,
+) -> FlowFunction[Args, R]:
+    pass
+
+@overload
+def flow(
+    *,
+    reverse_id: Optional[str] = None,
+    name: Optional[str] = None,
+    description: Optional[str] = None,
+    dfs_are_collections: Optional[bool] = None,
+) -> Callable[[Callable[Args, T]], FlowFunction[Args, R]]:
+    pass
+
 def flow(
     fn = None,
     *,
@@ -28,8 +45,8 @@ def flow(
     name: Optional[str] = None,
     description: Optional[str] = None,
     dfs_are_collections: Optional[bool] = None,
-    **kwargs: Any,  # noqa: ANN401
-) -> Callable[[Callable[Args, T]], FlowFunction[Args, R]] | FlowFunction[Args, R]:
+    **kwargs: Any,
+) -> Callable[[Callable[Args, T]], FlowFunction[Args, R]]:
     """Converts a function into a flow
 
     The function is converted into :class:`malevich.models.flow_function.FlowFunction` object that can be
@@ -61,7 +78,7 @@ def flow(
         description = description or (function.__doc__.splitlines()[0] if function.__doc__ and len(function.__doc__.splitlines()) > 0 else "")  # noqa: E501
 
         @wraps(function)
-        def fn(*args: Args.args, **kwargs: Args.kwargs) -> R:
+        def fn(*args: Args.args, __component, **kwargs: Args.kwargs) -> R:
             is_subflow = Flow.isinflow()
             args = list(args)
             if is_subflow:
@@ -163,7 +180,9 @@ def flow(
                 assert all([o.owner.results is not None for o in outputs])
                 return outputs[0] if len(outputs) == 1 else outputs
             else:
-                return PromisedTask(results=__results, tree=t_node)
+                return PromisedTask(
+                    results=__results, tree=t_node, component=__component
+                )
 
         return FlowFunction(fn, reverse_id, name, description, **kwargs)
 

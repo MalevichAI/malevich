@@ -70,7 +70,12 @@ class FlowFunction(Generic[Params, R]):
     def description(self) -> str:
         return self.__component.description
 
+    @property
+    def component(self) -> str:
+        return self.__component
+
     def __call__(self, *args: Params.args, **kwds: Params.kwargs) -> R:
-        return self._Captured(*args, **kwds)
+        return self._Captured(*args, __component=self.__component, **kwds)
+
 
 
