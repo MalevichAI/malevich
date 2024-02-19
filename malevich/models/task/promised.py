@@ -244,17 +244,19 @@ class PromisedTask(BaseTask[PromisedStage]):
             task_bytes_ = b""
         tree_bytes_ = pickle.dumps(self.__tree)
         results_bytes_ = pickle.dumps(self.__results)
+        component_bytes_ = pickle.dumps(self.__component)
         return pickle.dumps(
-            (task_bytes_, tree_bytes_, results_bytes_,)
+            (task_bytes_, tree_bytes_, results_bytes_, component_bytes_)
         )
 
     @staticmethod
     def load(object_bytes: bytes) -> 'PromisedTask':
         """Static method. Deserialize bytes into task object"""
-        task_bytes_, tree_bytes_, results_bytes_ = pickle.loads(object_bytes)
+        task_bytes_, tree_bytes_, results_bytes_, component_bytes_ = pickle.loads(object_bytes)  # noqa: E501
         task = PromisedTask(
             results=pickle.loads(results_bytes_),
-            tree=pickle.loads(tree_bytes_)
+            tree=pickle.loads(tree_bytes_),
+            component=pickle.loads(component_bytes_)
         )
         if len(task_bytes_) > 0:
             task._attach_task(pickle.loads(task_bytes_))
