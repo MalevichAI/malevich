@@ -77,6 +77,9 @@ def flow(
         name = name or function.__name__.replace("_", " ").title()
         description = description or function.__doc__
 
+        if description is None:
+            description = f"Meta flow: {name}"
+
         @wraps(function)
         def fn(*args: Args.args, __component, **kwargs: Args.kwargs) -> R:
             is_subflow = Flow.isinflow()

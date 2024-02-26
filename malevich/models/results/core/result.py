@@ -209,7 +209,7 @@ class CoreResult(BaseResult[CoreResultPayload]):
             x.id for x in core.get_collections_by_group_name(
                 self.core_group_name,
                 operation_id=self.core_operation_id,
-                run_id=self.run_id,
+                run_id=self.core_run_id,
                 auth=self._auth,
                 conn_url=self._conn_url
             ).data

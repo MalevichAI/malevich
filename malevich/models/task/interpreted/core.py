@@ -142,7 +142,7 @@ class CoreTask(BaseTask):
             operation: str,
             # Configurable parameters
             platform: str = 'base',
-            platformSettings: Optional[dict[str, Any]] = None,  # noqa: N803
+            platform_settings: Optional[dict[str, Any]] = None,
             # Rest of the parameters for compatibility
             **kwargs
         ) -> None:
@@ -172,8 +172,8 @@ class CoreTask(BaseTask):
         }[operation]
 
         self.state.app_args[uuid_]['platform'] = platform
-        if platformSettings:
-            self.state.app_args[uuid_]['platformSettings'] = platformSettings
+        if platform_settings:
+            self.state.app_args[uuid_]['platform_settings'] = platform_settings
 
     def prepare(
         self,

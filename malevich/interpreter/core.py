@@ -147,9 +147,9 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
     ---------
 
     You can mark an operation to be run on a specific platform. To do so,
-    set :code:`platform` and :code:`platformSettings` parameters in the
+    set :code:`platform` and :code:`platform_settings` parameters in the
     :code:`.configure()` method. The :code:`platform` parameter can be
-    :code:`base` or :code:`vast`. The :code:`platformSettings` parameter
+    :code:`base` or :code:`vast`. The :code:`platform_settings` parameter
     is a dictionary of settings for the platform. The settings are
     platform-specific.
 
