@@ -10,10 +10,12 @@ from .._utility.package import package_manager
 
 def new(
     app_name: Annotated[str, typer.Argument(...)],
-    base_path: Annotated[str, typer.Option("--path", "-p", show_default=False)] = os.getcwd(),
+    base_path: Annotated[
+        str, typer.Option("--path", "-p", show_default=False)
+    ] = os.getcwd(),
     force: Annotated[bool, typer.Option("--force", "-f", show_default=False)] = False,
-):
-    Dockerfile_ = os.path.join(
+) -> None:
+    dockerfile_ = os.path.join(
         package_manager.get_malevich_path(),
         "_templates",
         "Dockerfile.app"
@@ -46,7 +48,7 @@ def new(
     )
 
     shutil.copyfile(
-        Dockerfile_,
+        dockerfile_,
         os.path.join(
             base_path,
             app_name,

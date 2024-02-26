@@ -1,6 +1,6 @@
 import uuid
 from hashlib import sha256
-from typing import Any, Generic, Iterable, Optional, TypeVar, Union
+from typing import Any, Generic, Optional, TypeVar
 
 from pydantic import BaseModel, Field
 
@@ -79,7 +79,10 @@ class traced(Generic[T]):  # noqa: N801
 
     @property
     def owner(self) -> T:
-        return self._owner
+        if hasattr(self, '_owner'):
+            return getattr(self, '_owner')
+        else:
+            return None
 
     def __eq__(self, other: "traced") -> bool:
         if not isinstance(other, traced):

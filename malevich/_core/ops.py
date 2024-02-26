@@ -17,8 +17,8 @@ from ..models.nodes.asset import AssetNode
 executor = ProcessPoolExecutor(max_workers=cpu_count())
 
 
-def result_collection_name(operation_id: str) -> str:
-    return f"result-{operation_id}"
+def result_collection_name(operation_id: str, alias: str = '') -> str:
+    return f"result-{operation_id}-{alias}"
 
 
 def _create_app_safe(
@@ -28,12 +28,13 @@ def _create_app_safe(
         auth: core.AUTH = None,
         conn_url: Optional[str] = DEFAULT_CORE_HOST,
         *args,
+        alias: str = '',
         **kwargs,
 ) -> None:
     settings = core.AppSettings(
         appId=app_id,
         taskId=app_id,
-        saveCollectionsName=result_collection_name(uid)
+        saveCollectionsName=result_collection_name(uid, alias)
     )
 
     kwargs_ = {
