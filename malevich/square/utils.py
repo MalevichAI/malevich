@@ -2,7 +2,7 @@
 import json
 import logging
 import pickle
-from typing import Any, Dict, List, Optional, Tuple, TypeVar, Union
+from typing import Any, Dict, Generic, List, Optional, Tuple, TypeVar, Union
 
 import boto3
 import jsonpickle
@@ -12,8 +12,7 @@ from botocore.response import StreamingBody
 
 from .df import OBJ
 
-
-WORKDIR = "/julius"        
+WORKDIR = "/julius"
 """
 Working directory from which the app is run.
 Equivalent to :code:`os.getcwd()` from within the app.
@@ -24,17 +23,17 @@ APP_DIR = f"{WORKDIR}/apps"
 Directory into which the user code is copied during app construction.
 """
 
+MinimalCfg = TypeVar('MinimalCfg')
 
-class Context:
+class Context(Generic[MinimalCfg]):
     """
-    Context contains all the necessary information about the run 
-    and the environment in which it is executed. Also, context provides 
+    Context contains all the necessary information about the run
+    and the environment in which it is executed. Also, context provides
     a number of auxiliary functions  for interacting with the environment, such as
-    working with shared storage (:meth:`share`, :meth:`get_share_path`, :meth:`delete_share`), 
-    dealing with common objects (:attr:`common`), 
-    access to the key-value storage (:attr:`dag_key_value`), 
+    working with shared storage (:meth:`share`, :meth:`get_share_path`, :meth:`delete_share`),
+    dealing with common objects (:attr:`common`),
+    access to the key-value storage (:attr:`dag_key_value`),
     and object storage (:attr:`object_storage`).
-
     """
 
     class _DagKeyValue:
@@ -50,7 +49,7 @@ class Context:
             """Gets a binary value by key more optimally.
 
             Consider using this to retrieve binary data in
-            more efficient way, but keep in mind that :meth:`get` 
+            more efficient way, but keep in mind that :meth:`get`
             can also be used
 
             Args:
@@ -65,7 +64,7 @@ class Context:
             """Gets a binary value by key more optimally.
 
             Consider using this to retrieve binary data in
-            more efficient way, but keep in mind that :meth:`get` 
+            more efficient way, but keep in mind that :meth:`get`
             can also be used
 
             Args:
@@ -79,28 +78,28 @@ class Context:
         def get(self, keys: List[str]) -> Dict[str, Any]:
             """Gets values by keys
 
-            Retrieves a slice of storage by keys. If a key is not found, 
+            Retrieves a slice of storage by keys. If a key is not found,
             the value will be set to None
 
             Args:
                 keys (list[str]): list of keys
 
             Returns:
-                Dict[str, Any]: A dictionary of key-value pairs. 
+                Dict[str, Any]: A dictionary of key-value pairs.
             """
             pass
 
         async def async_get(self, keys: List[str]) -> Dict[str, Any]:
             """Gets values by keys
 
-            Retrieves a slice of storage by keys. If a key is not found, 
+            Retrieves a slice of storage by keys. If a key is not found,
             the value will be set to None
 
             Args:
                 keys (list[str]): list of keys
 
             Returns:
-                Dict[str, Any]: A dictionary of key-value pairs. 
+                Dict[str, Any]: A dictionary of key-value pairs.
             """
             pass
 
@@ -110,7 +109,7 @@ class Context:
             Retrieves the whole storage as a dictionary.
 
             Returns:
-                Dict[str, Any]: A dictionary of key-value pairs. 
+                Dict[str, Any]: A dictionary of key-value pairs.
             """
             pass
 
@@ -120,7 +119,7 @@ class Context:
             Retrieves the whole storage as a dictionary.
 
             Returns:
-                Dict[str, Any]: A dictionary of key-value pairs. 
+                Dict[str, Any]: A dictionary of key-value pairs.
             """
             pass
 
@@ -179,11 +178,11 @@ class Context:
 
             Args:
                 local (bool, optional): whether to use local mount or remote object storage.
-                    If set to :code:`True`, the operation will 
-                    be performed on the local file system. Otherwise, 
+                    If set to :code:`True`, the operation will
+                    be performed on the local file system. Otherwise,
                     the operation will be performed on the remote object storage. Defaults to False.
                 all_apps (bool, optional): whether to synchronize the operation between all apps.
-                    If set to :code:`True`, the operation will be performed on all apps. 
+                    If set to :code:`True`, the operation will be performed on all apps.
                     Otherwise, the operation will be performed only on apps the method is called from.
                     Defaults to False.
 
@@ -198,11 +197,11 @@ class Context:
 
             Args:
                 local (bool, optional): whether to use local mount or remote object storage.
-                    If set to :code:`True`, the operation will 
-                    be performed on the local file system. Otherwise, 
+                    If set to :code:`True`, the operation will
+                    be performed on the local file system. Otherwise,
                     the operation will be performed on the remote object storage. Defaults to False.
                 all_apps (bool, optional): whether to synchronize the operation between all apps.
-                    If set to :code:`True`, the operation will be performed on all apps. 
+                    If set to :code:`True`, the operation will be performed on all apps.
                     Otherwise, the operation will be performed only on apps the method is called from.
                     Defaults to False.
 
@@ -216,21 +215,21 @@ class Context:
             Updates mount for this app (or all apps), return keys for which it was successful
 
             Args:
-                keys (List[str]): 
+                keys (List[str]):
                     Keys by which values are obtained.
                     If this is not possible, this key will not be returned in result)
-                force (bool, optional): 
-                    If set, it will ignore what is locally and 
-                    load data from the remote object storage. 
-                    Otherwise it will only take what does not exist. 
+                force (bool, optional):
+                    If set, it will ignore what is locally and
+                    load data from the remote object storage.
+                    Otherwise it will only take what does not exist.
                     Defaults to False.
-                all_apps (bool, optional): 
+                all_apps (bool, optional):
                     If set to true, the operation will be performed in all apps.
-                    Otherwise only for apps with associated mount. 
+                    Otherwise only for apps with associated mount.
                     Defaults to True.
 
             Returns:
-                List[str]: Keys by which it was possible 
+                List[str]: Keys by which it was possible
                 to obtain the value and load it into the mount
             """
             pass
@@ -240,21 +239,21 @@ class Context:
             Updates mount for this app (or all apps), return keys for which it was successful
 
             Args:
-                keys (List[str]): 
+                keys (List[str]):
                     Keys by which values are obtained.
                     If this is not possible, this key will not be returned in result)
-                force (bool, optional): 
-                    If set, it will ignore what is locally and 
-                    load data from the remote object storage. 
-                    Otherwise it will only take what does not exist. 
+                force (bool, optional):
+                    If set, it will ignore what is locally and
+                    load data from the remote object storage.
+                    Otherwise it will only take what does not exist.
                     Defaults to False.
-                all_apps (bool, optional): 
+                all_apps (bool, optional):
                     If set to true, the operation will be performed in all apps.
-                    Otherwise only for apps with associated mount. 
+                    Otherwise only for apps with associated mount.
                     Defaults to True.
 
             Returns:
-                List[str]: Keys by which it was possible 
+                List[str]: Keys by which it was possible
                 to obtain the value and load it into the mount
             """
             pass
@@ -266,27 +265,27 @@ class Context:
             all_apps: bool = True
         ) -> List[str]:
             """
-            Updates mount and return all keys in it, 
-            if `local` - return result only for mount (or all apps mounts if `all_apps`), 
+            Updates mount and return all keys in it,
+            if `local` - return result only for mount (or all apps mounts if `all_apps`),
             otherwise - load all by remote object storage
 
             Args:
                 local (bool, optional): whether to use local mount or remote object storage.
-                    If set to :code:`True`, the operation will 
-                    be performed on the local file system. Otherwise, 
+                    If set to :code:`True`, the operation will
+                    be performed on the local file system. Otherwise,
                     the operation will be performed on the remote object storage. Defaults to False.
-                force (bool, optional): 
-                    If set, it will ignore what is locally and 
-                    load data from the remote object storage. 
-                    Otherwise it will only take what does not exist. 
+                force (bool, optional):
+                    If set, it will ignore what is locally and
+                    load data from the remote object storage.
+                    Otherwise it will only take what does not exist.
                     Defaults to False.
-                all_apps (bool, optional): 
+                all_apps (bool, optional):
                     If set to true, the operation will be performed in all apps.
-                    Otherwise only for apps with associated mount. 
+                    Otherwise only for apps with associated mount.
                     Defaults to True.
 
             Returns:
-                List[str]: All keys in the mount or all apps mounts if `all_apps` is True, 
+                List[str]: All keys in the mount or all apps mounts if `all_apps` is True,
                 otherwise load all keys from remote object storage.
             """
             pass
@@ -298,27 +297,27 @@ class Context:
             all_apps: bool = True
         ) -> List[str]:
             """
-            Updates mount and return all keys in it, 
-            if `local` - return result only for mount (or all apps mounts if `all_apps`), 
+            Updates mount and return all keys in it,
+            if `local` - return result only for mount (or all apps mounts if `all_apps`),
             otherwise - load all by remote object storage
 
             Args:
                 local (bool, optional): whether to use local mount or remote object storage.
-                    If set to :code:`True`, the operation will 
-                    be performed on the local file system. Otherwise, 
+                    If set to :code:`True`, the operation will
+                    be performed on the local file system. Otherwise,
                     the operation will be performed on the remote object storage. Defaults to False.
-                force (bool, optional): 
-                    If set, it will ignore what is locally and 
-                    load data from the remote object storage. 
-                    Otherwise it will only take what does not exist. 
+                force (bool, optional):
+                    If set, it will ignore what is locally and
+                    load data from the remote object storage.
+                    Otherwise it will only take what does not exist.
                     Defaults to False.
-                all_apps (bool, optional): 
+                all_apps (bool, optional):
                     If set to true, the operation will be performed in all apps.
-                    Otherwise only for apps with associated mount. 
+                    Otherwise only for apps with associated mount.
                     Defaults to True.
 
             Returns:
-                List[str]: All keys in the mount or all apps mounts if `all_apps` is True, 
+                List[str]: All keys in the mount or all apps mounts if `all_apps` is True,
                 otherwise load all keys from remote object storage.
             """
             pass
@@ -340,7 +339,7 @@ class Context:
 
             Args:
                 keys (List[str]): Keys to update
-                presigned_expire (int, optional): 
+                presigned_expire (int, optional):
                     If positve, life span of presigned urls in seconds.
                     If None, set to default timeout.
                     Defaults to -1.
@@ -351,7 +350,7 @@ class Context:
             pass
 
         async def async_update(
-            self, 
+            self,
             keys: List[str],
             presigned_expire: Optional[int] = -1
         ) -> Dict[str, str]:
@@ -367,7 +366,7 @@ class Context:
 
             Args:
                 keys (List[str]): Keys to update
-                presigned_expire (int, optional): 
+                presigned_expire (int, optional):
                     If positve, life span of presigned urls in seconds.
                     If None, set to default timeout.
                     Defaults to -1.
@@ -386,7 +385,7 @@ class Context:
 
             Args:
                 keys (List[str]): Keys to create presigned urls for
-                expire (int, optional): 
+                expire (int, optional):
                     Life span of presigned urls in seconds (must be positive).
                     If None, set to default timeout.
                     Defaults to None.
@@ -404,7 +403,7 @@ class Context:
 
             Args:
                 keys (List[str]): Keys to create presigned urls for
-                expire (int, optional): 
+                expire (int, optional):
                     Life span of presigned urls in seconds (must be positive).
                     If None, set to default timeout.
                     Defaults to None.
@@ -431,7 +430,7 @@ class Context:
 
     app_id: str
     """
-    App ID (unique for each app). 
+    App ID (unique for each app).
     This ID given to an app at startup by interpreters.
     """
 
@@ -471,7 +470,7 @@ class Context:
     def __init__(self) -> None:
         self.app_id: str = ""                                       # app id at startup
         self.run_id: str = ""                                       # run id at startup
-        self.app_cfg: Dict[str, Any] = {}                           # configuration given to the app at startup  # noqa: E501
+        self.app_cfg: Union[MinimalCfg, Dict[str, Any]] = {}        # configuration given to the app at startup  # noqa: E501
         self.msg_url: str = ""                                      # default url for msg operation              # noqa: E501
         self.email: Optional[str] = None                            # email for email_send operation             # noqa: E501
         self.dag_key_value = Context._DagKeyValue(
@@ -481,101 +480,101 @@ class Context:
         self.logger = logging.getLogger(f"{self.operation_id}${self.run_id}")
 
     def share(
-        self, 
-        path: str, 
-        all_runs: bool = False, 
-        path_prefix: str = APP_DIR, 
-        force: bool = False, 
-        synchronize: bool = True
-    ) -> None:
-        """Shares a file or a directory between all apps for the current deployment.
-        
-        The file or directory is copied to a shared directory, which is
-        accessible by all apps. The file should be accessible by the
-        following path:
-        
-            :code:`{path_prefix}/{path}`
-            
-        where :code:`path_prefix` and :code:`path` are the corresponding arguments.
-        
-        -----------------------------------------------------------------------------
-        
-        Note, that:
-        
-        *   The :code:`path_prefix` is not included into shared key.    
-        *   If :code:`all_runs` is set to :code:`True`, 
-            the file or directory will be shared between all runs of the app. 
-            Otherwise, it will be shared only between the apps of the current run.
-        *   If :code:`synchronize` is set to :code:`True`, 
-            the file or directory will be copied to all apps. 
-            Otherwise, it will be copied only to apps with a common mount.
-        *   If the file or directory already exists in the shared directory, 
-            it will not be copied unless :code:`force` is set to :code:`True`.
-        
-        -----------------------------------------------------------------------------
-        
-        .. note::
-        
-            See `Sharing files <#sharing-files>`_ for more details.
-        
-        Args:
-            path (str):
-                Key of shared file or directory
-            all_runs (bool, optional): 
-                Whether to share the file or directory between all runs. 
-                Defaults to False.
-            path_prefix (str, optional): 
-                Path prefix. 
-                Defaults to `APP_DIR`.
-            force (bool, optional): 
-                Whether to overwrite the file or directory if it already exists. 
-                Defaults to False.
-            synchronize (bool, optional): 
-                Whether to synchronize the file or directory between all apps. 
-                Defaults to True.
-        """
-        pass
-
-    async def async_share(
-        self, 
+        self,
         path: str,
         all_runs: bool = False,
         path_prefix: str = APP_DIR,
         force: bool = False,
         synchronize: bool = True
-    ) -> None:  # noqa: E501
+    ) -> None:
         """Shares a file or a directory between all apps for the current deployment.
-        
+
+        The file or directory is copied to a shared directory, which is
+        accessible by all apps. The file should be accessible by the
+        following path:
+
+            :code:`{path_prefix}/{path}`
+
+        where :code:`path_prefix` and :code:`path` are the corresponding arguments.
+
+        -----------------------------------------------------------------------------
+
+        Note, that:
+
+        *   The :code:`path_prefix` is not included into shared key.
+        *   If :code:`all_runs` is set to :code:`True`,
+            the file or directory will be shared between all runs of the app.
+            Otherwise, it will be shared only between the apps of the current run.
+        *   If :code:`synchronize` is set to :code:`True`,
+            the file or directory will be copied to all apps.
+            Otherwise, it will be copied only to apps with a common mount.
+        *   If the file or directory already exists in the shared directory,
+            it will not be copied unless :code:`force` is set to :code:`True`.
+
+        -----------------------------------------------------------------------------
+
+        .. note::
+
+            See `Sharing files <#sharing-files>`_ for more details.
+
+        Args:
+            path (str):
+                Key of shared file or directory
+            all_runs (bool, optional):
+                Whether to share the file or directory between all runs.
+                Defaults to False.
+            path_prefix (str, optional):
+                Path prefix.
+                Defaults to `APP_DIR`.
+            force (bool, optional):
+                Whether to overwrite the file or directory if it already exists.
+                Defaults to False.
+            synchronize (bool, optional):
+                Whether to synchronize the file or directory between all apps.
+                Defaults to True.
+        """
+        pass
+
+    async def async_share(
+        self,
+        path: str,
+        all_runs: bool = False,
+        path_prefix: str = APP_DIR,
+        force: bool = False,
+        synchronize: bool = True
+    ) -> None:
+        """Shares a file or a directory between all apps for the current deployment.
+
         It is an asynchronous version of :meth:`share`.
 
         Args:
             path (str):
                 Key of shared file or directory
-            all_runs (bool, optional): 
-                Whether to share the file or directory between all runs. 
+            all_runs (bool, optional):
+                Whether to share the file or directory between all runs.
                 Defaults to False.
-            path_prefix (str, optional): 
-                Path prefix. 
+            path_prefix (str, optional):
+                Path prefix.
                 Defaults to `APP_DIR`.
-            force (bool, optional): 
-                Whether to overwrite the file or directory if it already exists. 
+            force (bool, optional):
+                Whether to overwrite the file or directory if it already exists.
                 Defaults to False.
-            synchronize (bool, optional): 
-                Whether to synchronize the file or directory between all apps. 
+            synchronize (bool, optional):
+                Whether to synchronize the file or directory between all apps.
                 Defaults to True.
         """
         pass
 
     def share_many(
-        self, 
-        paths: List[str], 
-        all_runs: bool = False, 
-        path_prefix: str = APP_DIR, 
-        force: bool = False, 
+        self,
+        paths: List[str],
+        all_runs: bool = False,
+        path_prefix: str = APP_DIR,
+        force: bool = False,
         synchronize: bool = True
     ) -> None:
         """Shares multiple files or directories.
-        
+
         The same as :meth:`share`, but for multiple files or directories.
         Ignores paths that do not exist.
         """
@@ -589,56 +588,56 @@ class Context:
         synchronize: bool = True
     ) -> None:
         """Shares multiple files or directories.
-        
+
         The same as :meth:`async_share`, but for multiple files or directories.
         Ignores paths that do not exist.
         """
 
     def get_share_path(
-        self, 
-        path: str, 
-        all_runs: bool = False, 
+        self,
+        path: str,
+        all_runs: bool = False,
         not_exist_ok: bool = False
     ) -> str | None:
         """Retrieves a real file path by shared key.
-        
+
         Once file is shared, it is copied to a shared directory, which is
         accessible by all apps. However, to actually access the file, you
         have to retrieve its real path using in the mounted file system.
-        
+
         .. note::
-        
+
             See `Accessing shared files <#accessing-shared-files>`_ for more details.
-            
+
 
         Args:
             path (str): Shared file key
             all_runs (bool, optional):
                 To access files shared between all runs, set to :code:`True`.
                 Defaults to False.
-            not_exist_ok (bool, optional): 
+            not_exist_ok (bool, optional):
                 Whether to raise an exception if the file does not exist.
 
         Returns:
             str: Readable file path or None (if :code:`not_exist_ok` is set to :code:`True`)
-        """ 
+        """
         pass
 
     def delete_share(
-        self, 
-        path: str, 
-        all_runs: bool = False, 
+        self,
+        path: str,
+        all_runs: bool = False,
         synchronize: bool = True
     ) -> None:
         """Deletes previously shared file or directory.
-        
+
         Args:
             path (str): Shared file key
-            all_runs (bool, optional): 
-                Whether to delete files shared between all runs. 
+            all_runs (bool, optional):
+                Whether to delete files shared between all runs.
                 Defaults to False.
-            synchronize (bool, optional): 
-                Whether to synchronize the deletion between all apps. 
+            synchronize (bool, optional):
+                Whether to synchronize the deletion between all apps.
                 Defaults to True.
         """
         pass
@@ -650,53 +649,53 @@ class Context:
 
         Args:
             path (str): Shared file key
-            all_runs (bool, optional): 
-                Whether to delete files shared between all runs. 
+            all_runs (bool, optional):
+                Whether to delete files shared between all runs.
                 Defaults to False.
-            synchronize (bool, optional): 
-                Whether to synchronize the deletion between all apps. 
+            synchronize (bool, optional):
+                Whether to synchronize the deletion between all apps.
                 Defaults to True.
         """
         pass
 
     def synchronize(
-        self, 
-        paths: Optional[List[str]] = None, 
+        self,
+        paths: Optional[List[str]] = None,
         all_runs: bool = False
-    ) -> None:  # TODO synchronize removing  
+    ) -> None:  # TODO synchronize removing
         """Forcefully synchronizes paths accross all apps.
-        
+
         Setting :code:`paths` to :code:`None` or an empty list will synchronize
         all shared files and directories.
 
         Args:
             paths (Optional[List[str]], optional): Paths to synchronize.
             all_runs (bool, optional):
-                Whether to synchronize files shared between all runs. 
+                Whether to synchronize files shared between all runs.
                 Should be set to the same value as :meth:`share` method was called with.
                 Defaults to False.
-        """ 
+        """
         pass
 
     async def async_synchronize(
         self, paths: Optional[List[str]] = None, all_runs: bool = False
-    ) -> None:  # noqa: E501
+    ) -> None:
         """Forcefully synchronizes paths accross all apps.
-        
+
         Setting :code:`paths` to :code:`None` or an empty list will synchronize
         all shared files and directories.
 
         Args:
             paths (Optional[List[str]], optional): Paths to synchronize.
             all_runs (bool, optional):
-                Whether to synchronize files shared between all runs. 
+                Whether to synchronize files shared between all runs.
                 Should be set to the same value as :meth:`share` method was called with.
                 Defaults to False.
-        """ 
+        """
         pass
 
     def msg(
-        self, 
+        self,
         data: Union[str, Dict],
         url: Optional[str] = None,
         headers: Optional[Dict[str, str]] = None,
@@ -779,9 +778,35 @@ class Context:
         """
         pass
 
+    def has_object(self, path: str) -> bool:
+        """Checks whether there is an asset (OBJ) at the path
+
+        Args:
+            path (str): Path to object (asset)
+
+        Returns:
+            bool: exist or not
+        """
+        pass
+
+    def get_object(self, path: str) -> OBJ:
+        """Composes a path to an asset (OBJ) and returns it as :class:`OBJ`
+
+        If the asset (object) does not exist, the function
+        fails with an error.
+
+        Args:
+            path (str): Path to object (asset)
+
+        Returns:
+            OBJ: An OBJ wrap around a path
+        """
+        pass
+
+
     def as_object(self, paths: Dict[str, str], *, dir: Optional[str] = None) -> OBJ:
         """Creates an asset (OBJ) by copying paths to specific directory and creating :class:`OBJ` by this dir.
-        
+
         Assets (:class:`OBJ`) are simply a path within a directory accessible from within container
         by a certain user. This function creates a new asset by copying specified files into separate directory
         and creating an asset pointing to whole folder.
@@ -798,7 +823,7 @@ class Context:
 
 def to_binary(smth: Any) -> bytes:  # noqa: ANN401
     """Converts object to binary
-    
+
     Args:
         smth (Any): object to convert
     """
@@ -807,7 +832,7 @@ def to_binary(smth: Any) -> bytes:  # noqa: ANN401
 
 def from_binary(smth: bytes) -> Any:
     """Converts binary to object
-    
+
     Args:
         smth (bytes): binary to convert
     """
@@ -903,7 +928,7 @@ class S3Helper:
 class SmtpSender:
     """
     Ready-made auxiliary wrapper for interacting with SMTP
-    
+
     Args:
         login (str): login
         password (str): password
@@ -1087,17 +1112,17 @@ def _tensor_from_df(x: pd.DataFrame) -> list:
 
 def to_df(x: Any, force: bool = False) -> pd.DataFrame:
     """Creates a data frame from an arbitrary object
-    
+
     - `torch.Tensor`: Tensor is serialized using torch.save and then encoded using base112. Autograd information is preserved.
     - `numpy`, `list`, `tuple`, `range`, `bytearray`: Data is serialized using pickle and stored as is in `data` column.
     - `set`, `frozenset`: Data is converted to list and stored as is in `data` column.
     - `dict`: Data is serialized using json and stored as is in `data` column.
     - `int`, float, complex, str, bytes, bool: Data is stored as is in `data` column.
-    
-    
+
+
     Args:
         x (Any): Object to convert to data frame
-        force (bool, optional): 
+        force (bool, optional):
             If set, it will ignore the type of the object and serialize it using pickle.
             Defaults to False.
 
@@ -1121,16 +1146,16 @@ def to_df(x: Any, force: bool = False) -> pd.DataFrame:
 # TODO create same with pyspark
 def from_df(x: pd.DataFrame, type_name: Optional[str] = None, force: bool = False) -> Any:  # noqa: ANN401, E501
     """Converts a data frame obtained by running :func:`to_df` back to an object
-    
+
     Args:
         x (pd.DataFrame): Data frame to convert
-        type_name (Optional[str], optional): 
+        type_name (Optional[str], optional):
             Type of the object to convert to. If not specified, the type is inferred from the data frame.
             Defaults to None.
-        force (bool, optional): 
+        force (bool, optional):
             If set, it will ignore the type of the object and deserialize it using pickle.
             Defaults to False.
-            
+
     Returns:
         Any: Object of type :code:`type_name` or inferred type
     """
