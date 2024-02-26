@@ -141,7 +141,7 @@ class SpaceTask(BaseTask):
                     "`get_injectables()` to obtain a list of valid keys "
                     "for override."
                 )
-                continue
+                # continue
 
             uid = self.state.space.create_collection(
                 host_id=self.state.host.uid,
@@ -153,7 +153,7 @@ class SpaceTask(BaseTask):
                     for _, row in df.iterrows()
                 ]
             )
-
+            print(uid)
             coll_override[id_to_ca[in_flow_id]] = uid
 
 
@@ -169,7 +169,7 @@ class SpaceTask(BaseTask):
                 # TODO fix!
                 continue
 
-
+        print(overrides)
         self.state.aux.run_id = self.state.space.run_task(
             task_id=self.state.aux.task_id,
             ca_override=overrides

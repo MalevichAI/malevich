@@ -3,6 +3,7 @@ from collections import defaultdict
 from typing import Any
 
 import malevich_coretools as core
+from malevich_space.schema import ComponentSchema
 
 from ..._utility.registry import Registry
 from ...manifest import ManifestManager
@@ -64,3 +65,7 @@ class CoreInterpreterState:
         self.app_args: dict[str, Any] = {}
         # Collections
         self.extra_colls: dict[str, dict[str, str]] = defaultdict(dict)
+        # Alias to task id
+        self.task_aliases: dict[str, str] = {}
+        # Component
+        self.component: ComponentSchema | None = None

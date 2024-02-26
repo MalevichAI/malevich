@@ -7,6 +7,8 @@ from typing import Any, Type
 
 from malevich_space.schema import ComponentSchema
 
+from malevich.models.endpoint import MetaEndpoint
+
 from ...interpreter.abstract import Interpreter
 from ...interpreter.space import SpaceInterpreter
 from ...models.nodes.tree import TreeNode
@@ -324,3 +326,11 @@ class PromisedTask(BaseTask[PromisedStage]):
                 "a particular platform"
             )
         return self.__task
+
+    def publish(self, *args, **kwargs) -> MetaEndpoint:
+        if not self.__task:
+            raise Exception(
+                "Cannot publish uninterpreted task. "
+                "Use `.interpret()` first."
+            )
+        return self.__task.publish(*args, **kwargs)

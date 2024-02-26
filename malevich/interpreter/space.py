@@ -3,6 +3,7 @@ from collections import defaultdict
 from typing import Optional
 from uuid import uuid4
 
+from gql import gql
 from malevich_space.ops.component_manager import ComponentManager
 from malevich_space.ops.space import SpaceOps
 from malevich_space.schema import SpaceSetup, VersionMode
@@ -677,6 +678,53 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
             self._component,
             VersionMode.PATCH
         )
+
+        return SpaceTask(
+            state=self.state,
+            component=component
+        )
+
+    def attach(
+        self,
+        reverse_id: str,
+        deployment_id: str | None = None
+    ) -> SpaceTask:
+        assert reverse_id or deployment_id, (
+            'Either reverse_id or deployment_id should be set'
+        )
+
+        if reverse_id:
+            component = self.state.space.get_parsed_component_by_reverse_id(
+                reverse_id=reverse_id
+            )
+            if component is not None and component.flow is not None:
+                self.state.flow = component.flow
+                self.state.aux.flow_id = component.flow.uid
+
+        if deployment_id:
+            try:
+                self.state.space.get_task_start_schema
+                results = self.state.space.client.execute(
+                    gql("""
+                        query MyQuery($task_id: String!) {
+                            task(uid: $task_id) {
+                                details {
+                                    coreId
+                                }
+                            }
+                        }
+                        """
+                    ), variable_values={'task_id': deployment_id}
+                )
+                self.state.aux.core_task_id = results['task']['details']['coreId']
+                self.state.aux.task_id = deployment_id
+            except Exception:
+                if reverse_id is None or component is None:
+                    raise Exception(
+                        'Could not attach to the flow. '
+                        '`deployment_id` is not correct and '
+                        '`reverse_id` is either not correct or provided'
+                    )
 
         return SpaceTask(
             state=self.state,

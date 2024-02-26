@@ -3,11 +3,14 @@ import pickle
 import uuid
 import warnings
 from copy import deepcopy
-from typing import Any, Iterable, Optional, Type
+from typing import Any, Iterable, Literal, Optional, Type
 
 import malevich_coretools as core
 import pandas as pd
+from malevich_space.schema import ComponentSchema
+from requests import HTTPError
 
+from malevich.models.endpoint import MetaEndpoint
 from malevich.models.types import FlowOutput
 
 from ...._autoflow.tracer import traced
@@ -63,6 +66,7 @@ class CoreTask(BaseTask):
         config_kwargs: dict[str, Any] = None,  # noqa: RUF013
         leaf_node_uid: str = None,  # noqa: RUF013
         partial: bool = False,
+        component: ComponentSchema | None = None
     ) -> None:
         super().__init__()
         if state is None:
@@ -74,6 +78,8 @@ class CoreTask(BaseTask):
         self.leaf_node_uid = leaf_node_uid
         self._partial = partial
         self._returned = None
+        self.run_id = None
+        self.component = component
 
     def _create_cfg_safe(
         self,
@@ -127,7 +133,6 @@ class CoreTask(BaseTask):
                 pass
 
         return CoreTaskStage.NO_TASK
-
 
     def get_stage_class(self) -> Type[CoreTaskStage]:
         pass
@@ -320,23 +325,18 @@ class CoreTask(BaseTask):
         else:
             real_overrides = {}
 
-
         _cfg = deepcopy(self.state.cfg)
 
-        if not run_id:
-            run_id = uuid.uuid4().hex
-
-        if run_id:
-            _cfg.app_settings = [
-                core.AppSettings(
-                    taskId=s.taskId,
-                    appId=s.appId,
-                    saveCollectionsName=(s.saveCollectionsName if isinstance(
-                        s.saveCollectionsName, str) else s.saveCollectionsName[0]
-                    ) + '_' + str(run_id)
-                ) for s in _cfg.app_settings
-            ]
-
+        self.run_id = run_id or uuid.uuid4().hex
+        _cfg.app_settings = [
+            core.AppSettings(
+                taskId=s.taskId,
+                appId=s.appId,
+                saveCollectionsName=(s.saveCollectionsName if isinstance(
+                    s.saveCollectionsName, str) else s.saveCollectionsName[0]
+                )
+            ) for s in _cfg.app_settings
+        ]
 
         try:
             if real_overrides:
@@ -409,13 +409,14 @@ class CoreTask(BaseTask):
 
     def results(
         self,
-        #returned: Iterable[traced[BaseNode]] | traced[BaseNode] | None,
+        # returned: Iterable[traced[BaseNode]] | traced[BaseNode] | None,
         run_id: Optional[str] = None,
         # For compatibility with other interpreters
         *args,
         **kwargs
     ) -> Iterable[CoreResult | CoreLocalDFResult]:
-        cout(message="Task results are being fetched from Core", action=Action.Results)
+        cout(message="Task results are being fetched from Core",
+             action=Action.Results)
         if self.state.params.operation_id is None:
             raise Exception("Attempt to run a task which is not prepared. "
                             "Please, run `.prepare()` first.")
@@ -423,6 +424,9 @@ class CoreTask(BaseTask):
         returned = self._returned
         if not self._returned:
             return None
+
+        if not run_id:
+            run_id = self.run_id
 
         if isinstance(self._returned, traced):
             returned = [returned]
@@ -451,20 +455,17 @@ class CoreTask(BaseTask):
                 )
             elif isinstance(node, OperationNode):
                 results.append(CoreResult(
-                    core_group_name=result_collection_name(node.uuid) + (
-                        f'_{run_id}' if run_id else ''
-                    ),
+                    core_group_name=result_collection_name(node.uuid),
                     core_operation_id=self.state.params.operation_id,
+                    core_run_id=run_id,
                     auth=self.state.params.core_auth,
                     conn_url=self.state.params.core_host,
                 ))
             elif isinstance(node, AssetNode):
                 results.append(CoreResult(
-                    core_group_name=result_collection_name(node.uuid) + (
-                        f'_{run_id}' if run_id else ''
-                    ),
+                    core_group_name=result_collection_name(node.uuid),
                     core_operation_id=self.state.params.operation_id,
-                    auth=self.state.params.core_auth,
+                    core_run_id=run_id,
                     conn_url=self.state.params.core_host
                 ))
             else:
@@ -511,6 +512,7 @@ class CoreTask(BaseTask):
                     if cfg_coll_id == node.collection.collection_id:
                         injectables.append(
                             CoreInjectable(
+                                node=node,
                                 collection_id=node.collection.collection_id,
                                 alias=node.alias,
                                 uploaded_id=core_coll_id
@@ -587,4 +589,79 @@ class CoreTask(BaseTask):
         raise Exception(
             "Trying to access a tree of type `CoreTask`. Get tree from `PromisedTask`"
             " instead."
+        )
+
+    def publish(
+        self,
+        capture_results: list[str] | Literal['all'] | Literal['last'] = 'last',
+        enable_not_auth: bool = True,
+        *args,
+        **kwargs
+    ) -> MetaEndpoint:
+        from malevich_coretools import create_endpoint
+        if self.get_stage() != CoreTaskStage.BUILT:
+            self.prepare(stage=PrepareStages.BUILD)
+
+        cfg = deepcopy(self.state.cfg)
+        if capture_results == 'last':
+            cfg.app_settings = [
+                x for x in cfg.app_settings
+                if x.taskId == self.state.params.task_id
+            ]
+        elif isinstance(capture_results, list):
+            task_ids = [
+                self.state.task_aliases[x]
+                for x in capture_results
+            ]
+            cfg.app_settings = [
+                x for x in cfg.app_settings
+                if x.taskId in task_ids
+            ]
+        cfg_id = f'endpoint-config-{uuid.uuid4().hex}'
+
+        self._create_cfg_safe(
+            cfg_id=cfg_id,
+            cfg=cfg
+        )
+
+        injectables = self.get_injectables()
+        schemes = []
+        for inj in injectables:
+            try:
+                core.create_scheme(
+                    inj.node.scheme,
+                    name=f'meta_scheme_{inj.node.collection.magic()}',
+                    auth=self.state.params.core_auth,
+                    conn_url=self.state.params.core_host,
+                )
+            except Exception:
+                pass
+            schemes.append(f'meta_scheme_{inj.node.collection.magic()}')
+
+        _hash = create_endpoint(
+            task_id=self.state.params.task_id,
+            cfg_id=cfg_id,
+            auth=self.state.params.core_auth,
+            conn_url=self.state.params.core_host,
+            enable_not_auth=enable_not_auth,
+            expected_colls_with_schemes={
+                k.get_inject_data(): s
+                for k, s in zip(injectables, schemes)
+            },
+            description=(
+                self.component.description if self.component
+                else 'Auto-generated meta endpoint'
+            ),
+            *args,
+            **kwargs
+        )
+
+        _endpoint = core.get_endpoint(
+            hash=_hash,
+            auth=self.state.params.core_auth,
+            conn_url=self.state.params.core_host,
+        )
+
+        return MetaEndpoint(
+            **_endpoint.model_dump(), conn_url=self.state.params.core_host
         )

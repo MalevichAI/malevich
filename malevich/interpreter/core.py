@@ -4,6 +4,7 @@ from collections import defaultdict
 from typing import Iterable, Optional
 
 import malevich_coretools as core
+from malevich_space.schema import ComponentSchema
 import pandas as pd
 
 from .._autoflow.tracer import traced
@@ -204,6 +205,9 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                 **kwargs
             )
 
+    def interpret(self, node: TreeNode, component: ComponentSchema = None):  # noqa: ANN201
+        return super().interpret(node, component)
+
     def create_node(
         self, state: CoreInterpreterState, node: traced[BaseNode]
     ) -> CoreInterpreterState:
@@ -228,7 +232,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
 
     def before_interpret(self, state: CoreInterpreterState) -> CoreInterpreterState:
         _log("Connection to Core is established.", 0, 0, True)
-        _log(f"Core host: {self.__core_host}", 0, -1, True)
+        _log(f"Core host: {self.__core_host}", 0, 0, True)
         try:
             core.check_auth(
                 auth=self.__core_auth,
@@ -324,8 +328,12 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                 }
                 state.extra_colls[op.uuid][link.name] = coll
 
-            app_core_name = op.uuid + \
-                f"-{extra['processor_id']}-{op.alias}"
+            app_core_name = op.uuid + f"-{extra['processor_id']}-{op.alias}"
+
+            if op.alias:
+                state.task_aliases[op.alias] = app_core_name
+
+
 
             if not op.alias:
                 op.alias = extra["processor_id"] + '-' + \
@@ -348,9 +356,10 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                     }
                 },
                 'uid': op.uuid,
-                'platform': 'base'
+                'platform': 'base',
+                'alias': op.alias
             }
-            state.results[op.uuid] = self._result_collection_name(op.uuid)
+            state.results[op.uuid] = result_collection_name(op.uuid, op.alias)
 
         _log("Uploading to Core is completed.", step=True)
         return state
@@ -430,53 +439,54 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
             task_kwargs=task_kwargs,
             config_kwargs=config_kwargs,
             leaf_node_uid=leaves[0].owner.uuid,
+            component=self._component,
         )
 
-    def get_results(
-        self,
-        task_id: str,
-        returned: Iterable[traced[BaseNode]] | traced[BaseNode] | None,
-        run_id: Optional[str] = None,
-    ) -> Iterable[pd.DataFrame]:
-        if not returned:
-            return None
+    # def get_results(
+    #     self,
+    #     task_id: str,
+    #     returned: Iterable[traced[BaseNode]] | traced[BaseNode] | None,
+    #     run_id: Optional[str] = None,
+    # ) -> Iterable[pd.DataFrame]:
+    #     if not returned:
+    #         return None
 
-        if isinstance(returned, traced):
-            returned = [returned]
+    #     if isinstance(returned, traced):
+    #         returned = [returned]
 
-        results = []
-        for r in returned:
-            node = r.owner
-            if isinstance(node, CollectionNode):
-                results.append(
-                    CoreLocalDFResult(
-                        dfs=[node.collection.collection_data]
-                    )
-                )
-            elif isinstance(node, OperationNode):
-                results.append(CoreResult(
-                    core_group_name=
-                        self._result_collection_name(node.uuid) +   #group_name
-                        (f'_{run_id}' if run_id else ''),           #group_name
-                    core_operation_id=task_id,
-                    auth=self.state.params["core_auth"],
-                    conn_url=self.state.params["core_host"],
-                ))
-            elif isinstance(node, AssetNode):
-                results.append(CoreResult(
-                    core_group_name=
-                        self._result_collection_name(node.uuid) +   #group_name
-                        (f'_{run_id}' if run_id else ''),           #group_name
-                    core_operation_id=task_id,
-                    auth=self.state.params["core_auth"],
-                    conn_url=self.state.params["core_host"],
-                ))
+    #     results = []
+    #     for r in returned:
+    #         node = r.owner
+    #         if isinstance(node, CollectionNode):
+    #             results.append(
+    #                 CoreLocalDFResult(
+    #                     dfs=[node.collection.collection_data]
+    #                 )
+    #             )
+    #         elif isinstance(node, OperationNode):
+    #             results.append(CoreResult(
+    #                 core_group_name=
+    #                     self._result_collection_name(node.uuid) +   #group_name
+    #                     (f'_{run_id}' if run_id else ''),           #group_name
+    #                 core_operation_id=task_id,
+    #                 auth=self.state.params["core_auth"],
+    #                 conn_url=self.state.params["core_host"],
+    #             ))
+    #         elif isinstance(node, AssetNode):
+    #             results.append(CoreResult(
+    #                 core_group_name=
+    #                     self._result_collection_name(node.uuid) +   #group_name
+    #                     (f'_{run_id}' if run_id else ''),           #group_name
+    #                 core_operation_id=task_id,
+    #                 auth=self.state.params["core_auth"],
+    #                 conn_url=self.state.params["core_host"],
+    #             ))
 
-            elif isinstance(node, TreeNode):
-                results.extend(self.get_results(
-                    task_id=task_id, returned=node.results, run_id=run_id
-                )
-            )
-        # return results[0] if len(results) == 1 else results
-        return results
+    #         elif isinstance(node, TreeNode):
+    #             results.extend(self.get_results(
+    #                 task_id=task_id, returned=node.results, run_id=run_id
+    #             )
+    #         )
+    #     # return results[0] if len(results) == 1 else results
+    #     return results
 

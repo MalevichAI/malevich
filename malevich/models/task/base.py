@@ -3,7 +3,12 @@ from __future__ import annotations
 import asyncio
 import enum
 from abc import ABC, abstractmethod
+from functools import wraps
 from typing import Any, Callable, Generic, ParamSpec, TypeVar
+
+from malevich_coretools import create_endpoint
+
+from ..endpoint import MetaEndpoint
 
 # from ...interpreter.abstract import Interpreter
 from ..injections import BaseInjectable
@@ -159,3 +164,10 @@ class BaseTask(ABC, Generic[StageClass]):
     def get_interpreted_task(self) -> BaseTask:
         """Returns the task interpreted for a particular platform"""
         pass
+
+
+    def publish(self, *args, **kwargs) -> MetaEndpoint:
+        raise NotImplementedError(
+            f"Publishing is not available for {self.__class__.__name__}"
+        )
+
