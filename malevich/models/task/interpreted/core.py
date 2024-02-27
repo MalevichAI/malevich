@@ -638,6 +638,9 @@ class CoreTask(BaseTask):
                 pass
             schemes.append(f'meta_scheme_{inj.node.collection.magic()}')
 
+        if 'prepare' not in kwargs:
+            kwargs['prepare'] = True
+
         _hash = create_endpoint(
             task_id=self.state.params.task_id,
             cfg_id=cfg_id,
