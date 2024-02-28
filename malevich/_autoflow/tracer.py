@@ -1,6 +1,6 @@
 import uuid
 from hashlib import sha256
-from typing import Any, Generic, Iterable, Optional, TypeVar, Union
+from typing import Any, Generic, Optional, TypeVar
 
 from pydantic import BaseModel, Field
 
@@ -11,7 +11,7 @@ from .tree import ExecutionTree
 class root(BaseModel):   # noqa: N801
     """A root element of the execution tree
 
-    Used as a default value for the owner of the tracer
+    Used as a default value for the owner of the traced objects
     """
 
     id: str = Field(..., default_factory=lambda: uuid.uuid4().hex)
@@ -29,22 +29,38 @@ T = TypeVar("T", bound=Any)
 
 
 class autoflow(Generic[T]):  # noqa: N801
-    """Autoflow is a bridge between the tracer and the execution tree"""
+    """Autoflow is a bridge between traced objects and the execution tree
+
+    It holds both the reference to the execution tree and the reference
+    to the traced object. Can be reattached to another traced object. Provides
+    interfaces for reporting a new dependency in the execution tree.
+    """
 
     def __init__(self, tree: ExecutionTree[T, Any]) -> None:
         self._tree_ref = tree
         self._component_ref = None
 
     def attach(self, component: T) -> None:
+        """Attach the autoflow to a traced object"""
         self._component_ref = component
 
     def calledby(self, caller: 'traced', argument: Optional[str] = None) -> None:
+        """Report a new dependency in the execution tree"""
         assert isinstance(caller, traced), "Caller must be a traced object"
         self._tree_ref.put_edge(self._component_ref, caller, argument)
 
 
 class traced(Generic[T]):  # noqa: N801
-    """Tracer is a special object that is used to track the execution of the pipeline"""
+    """
+    Traced objects are wrappers around regular Python objects
+    They hold a reference to the current execution tree and
+    provides an access to :class:`autoflow` to enable dependency tracking
+
+    These objects CAN ONLY BE CREATED inside a flow.
+    """
+
+    _autoflow: autoflow
+    """Autoflow bridge"""
 
     def __init__(
         self,
@@ -63,7 +79,10 @@ class traced(Generic[T]):  # noqa: N801
 
     @property
     def owner(self) -> T:
-        return self._owner
+        if hasattr(self, '_owner'):
+            return getattr(self, '_owner')
+        else:
+            return None
 
     def __eq__(self, other: "traced") -> bool:
         if not isinstance(other, traced):
@@ -91,6 +110,13 @@ class traced(Generic[T]):  # noqa: N801
 
 
 class tracedLike(traced[T]):  # noqa: N801
+    """This class is used to immitate the traced object without actually tracing it
+
+    It is used to provide homogeneous interface for tree nodes
+    without attaching them to a particular tree.
+
+    These objects CAN BE CREATED from outside of a flow.
+    """
     def __init__(self, owner: T = root()) -> None:
         self._owner = owner
 
@@ -112,24 +138,3 @@ class tracedLike(traced[T]):  # noqa: N801
 
     def __repr__(self) -> str:
         return super().__repr__() + "*"
-
-
-class multitracer(traced, list[T], Generic[T]):   # noqa: N801
-    """Multitracer is a tracer for collections"""
-
-    def __init__(
-        self,
-        owner: T = root(),
-        __iterable: Iterable[T] = []
-    ) -> None:
-        super().__init__(__iterable)
-        super().__init__(owner)
-
-
-def trace(x: T) -> Union[traced[T], T]:
-    """Create a hidden tracer for the given object"""
-    if isinstance(x, list):
-        return multitracer.__init__(x)
-    else:
-        traced.__init__(x)
-    return x

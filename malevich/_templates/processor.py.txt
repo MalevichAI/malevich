@@ -1,0 +1,91 @@
+"""
+It is an example file containing couple of Malevich
+objects that consitute an app.
+
+See the documentation for more information:
+
+https://malevichai.github.io/malevich/Apps/Building.html
+
+"""
+
+# Square is subpackage that contains all the functions
+# needed to build the app.
+from malevich.square import DF, Context, init, processor, scheme
+
+
+@scheme()
+class UserMessage:
+    """
+    A message from a user.
+    """
+    text: str
+
+
+@init()
+def check_malevich() -> None:
+    """
+    Initializer functions are executed before
+    the each run of the app. Let's check if
+    Malevich is live!
+    """
+    import requests
+
+    response = requests.get("https://malevich.ai")
+
+    assert response.status_code == 200, "Malevich is not live!"
+
+
+@processor()
+def find_pattern(messages: DF[UserMessage], context: Context):
+    """
+    Processors are the main building blocks of the app.
+    They represents the logic of the app.
+
+    Let's assume we receieve messages from users and we want
+    to find a pattern in them. We declare an argument
+    called `messages`. It is a DataFrame where each
+    row follows the `UserMessage` schema.
+
+    The context is a special object that contains
+    information about the app and its configuration.
+    We will use it to specify the pattern
+
+    The app will return a data frame with a
+    single column called `found` that will
+    contain message 'Yes!' if the pattern
+    is found and 'No!' otherwise.
+    """
+    import re
+    import pandas as pd
+
+    pattern = context.app_cfg.get("pattern", "malevich")
+
+    results = []
+    for message in messages.text.to_list():
+        if re.search(pattern, message):
+            results.append("Yes!")
+        else:
+            results.append("No!")
+
+    return pd.DataFrame({"found": results})
+
+
+@processor()
+def lowercase(data: DF, context: Context):
+    """
+    Let's create another processor that will
+    lowercase the messages for us to find
+    the pattern easier.
+
+    Let's make the processor more general: iterate
+    over all cells in the data frame and lowercase
+    the string values.
+    """
+    import pandas as pd
+
+    for column in data.columns:
+        if data[column].dtype == "object":
+            data[column] = data[column].str.lower()
+
+    return data
+

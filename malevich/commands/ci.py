@@ -49,30 +49,31 @@ def init(  # noqa: ANN201
         show_default=False,
     ),
     registry_url: str = typer.Option(
-        None,
+        'ghcr.io',
         help="Docker Image Registry URL, for example `public.ecr.aws` or 'cr.yandex'",
         show_default=False,
     ),
     registry_id: str = typer.Option(
-        None,
+        'owner',
         help="Docker Registry ID",
         show_default=False,
     ),
-    registry_type: DockerRegistry = typer.Option(
-        None,
-        help="Docker Registry type",
-        show_default=False,
-    ),
+
     image_user: str = typer.Option(
-        None,
+        'USERNAME',
         help="Username to access the Docker Image Registry",
         show_default=False,
     ),
     image_token: str = typer.Option(
-        None,
+        'token',
         help="Password to access the Docker Image Registry",
         show_default=False,
     ),
+    org_id: str = typer.Option(
+        'empty',
+        help="Malevich space organization ID",
+        show_default=False
+    )
 ):
     """Initialize the Github CI/CD pipeline."""
     rich.print("Welcome to the Github CI/CD pipeline initialization wizard!")
@@ -120,17 +121,18 @@ def init(  # noqa: ANN201
         registry_type = Prompt.ask(
             "Enter the Docker Container Registry type",
             choices=[str(x.value) for x in DockerRegistry],
+            default=DockerRegistry.PUBLIC_AWS_ECR,
         )
 
         if registry_type != DockerRegistry.PRIVATE_AWS_ECR:
             registry_url = Prompt.ask(
-                "Enter the Docker Container Registry URL "
-                f"[i bright_black]({IMAGE_BASE.split('/')[0]})[/i bright_black]",
+                "Enter the Docker Container Registry URL ",
+                default=IMAGE_BASE.split('/')[0]
             )
 
         registry_id = Prompt.ask(
-            f"Enter the Docker Container Registry ID "
-            f"[i bright_black]({IMAGE_BASE.split('/')[1]})[/i bright_black]",
+            "Enter the Docker Container Registry ID ",
+            default=IMAGE_BASE.split('/')[1]
         )
 
         image_user = Prompt.ask(
@@ -154,9 +156,9 @@ def init(  # noqa: ANN201
         registry_id=registry_id,
         image_user=image_user,
         image_token=image_token,
+        org_id=org_id,
         verbose=True
     )
-
 
 app = typer.Typer()
 app.add_typer(github, name="github", help="Github CI/CD pipeline")

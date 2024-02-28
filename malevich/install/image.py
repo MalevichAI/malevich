@@ -10,11 +10,11 @@ from typing import Optional
 import malevich_coretools as core
 
 from .._utility.host import fix_host
-from ..constants import DEFAULT_CORE_HOST
+from ..constants import DEFAULT_CORE_HOST, IMAGE_BASE
 from ..install.installer import Installer
 from ..manifest import ManifestManager
 from ..models.installers.image import ImageDependency, ImageOptions
-from .mimic import mimic_package
+from .stub import create_package_stub
 
 _pydantic_types = {
     "string": str.__name__,
@@ -245,10 +245,6 @@ class ImageInstaller(Installer):
             app_info, package_name
         )
 
-        mimic_package(
-            package_name,
-            metascript,
-        )
 
         m = ManifestManager()
         iauth_user, iauth_pass, cauth_user, cauth_token = m.put_secrets(
@@ -258,30 +254,38 @@ class ImageInstaller(Installer):
             core_auth_token=core_auth[1] if core_auth else None,
             salt=checksum,
         )
-
-        return ImageDependency(
+        dependency = ImageDependency(
             package_id=package_name,
             version="",
             installer="image",
             options=ImageOptions(
-                checksum=checksum,
                 core_host=core_host,
                 core_auth_token=cauth_token,
                 core_auth_user=cauth_user,
                 image_auth_user=iauth_user,
                 image_auth_pass=iauth_pass,
                 image_ref=image_ref,
-                # operations=operations,
             ),
         )
 
-    def restore(self, dependency: ImageDependency) -> None:
+        create_package_stub(
+            package_name,
+            metascript,
+            dependency
+        )
+
+        return dependency
+
+    def restore(self, dependency: ImageDependency) -> ImageDependency:
         core_user = dependency.options.core_auth_user
         core_token = dependency.options.core_auth_token
+        image_ref = dependency.options.image_ref
+        if not image_ref:
+            image_ref = IMAGE_BASE.format(app=dependency.package_id)
 
         return self.install(
             package_name=dependency.package_id,
-            image_ref=dependency.options.image_ref,
+            image_ref=image_ref,
             image_auth=(
                 dependency.options.image_auth_user or "",
                 dependency.options.image_auth_pass or ""

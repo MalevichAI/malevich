@@ -13,6 +13,7 @@ from ..models.nodes import CollectionNode
 
 def collection(
     name: str,
+    *,
     file: Optional[str] = None,
     df: Optional[pd.DataFrame] = None,
     scheme: SchemaMetadata = None,
@@ -21,19 +22,35 @@ def collection(
 ) -> gn.traced[CollectionNode]:
     """Creates a collection from a file or a dataframe
 
-    The name might be required when working with some of interpreters
+    Collection holds tabular data and is subject to be passed to processors.
+
+    Empty collections are allowed and can be used as placeholders
+    but will work only when running with Runners.
+
+    .. warning::
+
+        The :func:`collection <malevich._meta.collection>` function can only
+        be used inside the :func:`flow <malevich._meta.flow>` function.
 
     Args:
         name (str, optional): Name of the collection. Defaults to None.
         file (Optional[str], optional): Path to the file. Defaults to None.
         df (Optional[pd.DataFrame], optional): Dataframe. Defaults to None.
         scheme (Optional[SchemaMetadata], optional): Schema of the collection.
+        alias (Optional[str], optional):
+            An optional short name for the collection.
+            If not set, will be infered from the name.
+        persistent (bool, optional):
+            If the flag is set, the collection is only updated
+            when the collection is not present on the platform.
+            If persistent collection with the same name is already present,
+            the data is not updated. Defaults to False.
 
     Raises:
         AssertionError: If both file and data are provided
 
     Returns:
-        Collection: an object that is subject to be passed to processors
+        Collection: a traced object that is subject to be passed to processors
     """
     # Commented in favor of empty collections
     # for runners (Jan 10, 2024, v0.1.2)

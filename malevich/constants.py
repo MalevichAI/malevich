@@ -1,6 +1,7 @@
 from malevich_space.constants import *  # noqa: F403
 
 from .models.platform import Platform
+from .path import MALEVICH_CACHE, MALEVICH_HOME  # noqa: F401
 
 DEFAULT_CORE_HOST = "https://core.malevich.ai/"
 
@@ -22,7 +23,7 @@ Install apps using published Docker images. The information about
 the functionality provided by them will be pulled and parsed accordingly.
 """
 
-IMAGE_BASE = "public.ecr.aws/u6e1k0c7/{app}:latest"
+IMAGE_BASE = "public.ecr.aws/o1z1g3t0/{app}:latest"
 
 
 CorePlatform = Platform.CORE
