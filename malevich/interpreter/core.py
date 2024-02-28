@@ -328,17 +328,13 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                 }
                 state.extra_colls[op.uuid][link.name] = coll
 
-            app_core_name = op.uuid + f"-{extra['processor_id']}-{op.alias}"
-
-            if op.alias:
-                state.task_aliases[op.alias] = app_core_name
-
-
-
             if not op.alias:
-                op.alias = extra["processor_id"] + '-' + \
-                    str(_name(extra["processor_id"]))
+                op.alias = extra["processor_id"] + '-' + str(_name(extra["processor_id"]))  # noqa: E501
+                app_core_name = op.uuid + f"-{op.alias}"
+            else:
+                app_core_name = op.uuid + f"-{extra['processor_id']}-{op.alias}"
 
+            state.task_aliases[op.alias] = app_core_name
             state.core_ops[op.uuid] = app_core_name
             state.app_args[op.uuid] = {
                 'app_id': app_core_name,
@@ -427,7 +423,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         state.params.base_config_id = __cfg
         state.params.base_config = state.cfg
 
-        self._create_cfg_safe(**config_kwargs)
+        # self._create_cfg_safe(**config_kwargs)
         # ____________________________________________
 
         # NOTE: New core representation should affect this line

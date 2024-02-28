@@ -1,6 +1,7 @@
 from malevich_space.constants import *  # noqa: F403
 
 from .models.platform import Platform
+from .path import MALEVICH_CACHE, MALEVICH_HOME  # noqa: F401
 
 DEFAULT_CORE_HOST = "https://core.malevich.ai/"
 

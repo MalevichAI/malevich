@@ -276,7 +276,7 @@ class ImageInstaller(Installer):
 
         return dependency
 
-    def restore(self, dependency: ImageDependency) -> None:
+    def restore(self, dependency: ImageDependency) -> ImageDependency:
         core_user = dependency.options.core_auth_user
         core_token = dependency.options.core_auth_token
         image_ref = dependency.options.image_ref

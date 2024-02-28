@@ -221,8 +221,8 @@ class CoreTask(BaseTask):
 
             for settings, _ in apps_:
                 self.state.cfg.app_settings.append(settings)
+            self.config_kwargs['cfg'] = self.state.cfg
                 # TODO: Write cache
-
             batch_create_tasks(
                 self.task_kwargs,
                 auth=self.state.params.core_auth,
@@ -358,7 +358,7 @@ class CoreTask(BaseTask):
                     auth=self.state.params.core_auth,
                     conn_url=self.state.params.core_host,
                     wait=not detached,
-                    run_id=run_id,
+                    run_id=self.run_id,
                     *args,
                     **kwargs
                 )
@@ -368,7 +368,7 @@ class CoreTask(BaseTask):
                     *args,
                     auth=self.state.params.core_auth,
                     conn_url=self.state.params.core_host,
-                    run_id=run_id,
+                    run_id=self.run_id,
                     wait=not detached,
                     **kwargs
                 )
@@ -380,8 +380,7 @@ class CoreTask(BaseTask):
                 conn_url=self.state.params.core_host,
             )
             raise e
-
-        return run_id
+        return self.run_id
 
     def stop(
         self,
@@ -455,7 +454,7 @@ class CoreTask(BaseTask):
                 )
             elif isinstance(node, OperationNode):
                 results.append(CoreResult(
-                    core_group_name=result_collection_name(node.uuid),
+                    core_group_name=self.state.results[node.uuid],
                     core_operation_id=self.state.params.operation_id,
                     core_run_id=run_id,
                     auth=self.state.params.core_auth,
@@ -463,7 +462,7 @@ class CoreTask(BaseTask):
                 ))
             elif isinstance(node, AssetNode):
                 results.append(CoreResult(
-                    core_group_name=result_collection_name(node.uuid),
+                    core_group_name=self.state.results[node.uuid],
                     core_operation_id=self.state.params.operation_id,
                     core_run_id=run_id,
                     conn_url=self.state.params.core_host
