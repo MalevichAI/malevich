@@ -4,8 +4,8 @@ from collections import defaultdict
 from typing import Iterable, Optional
 
 import malevich_coretools as core
-from malevich_space.schema import ComponentSchema
 import pandas as pd
+from malevich_space.schema import ComponentSchema
 
 from .._autoflow.tracer import traced
 from .._core.ops import (
@@ -25,7 +25,6 @@ from ..models.nodes.asset import AssetNode
 from ..models.nodes.tree import TreeNode
 from ..models.preferences import VerbosityLevel
 from ..models.registry.core_entry import CoreRegistryEntry
-from ..models.results.core.result import CoreLocalDFResult, CoreResult
 from ..models.state.core import CoreInterpreterState
 from ..models.task.interpreted.core import CoreTask
 
@@ -330,9 +329,8 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
 
             if not op.alias:
                 op.alias = extra["processor_id"] + '-' + str(_name(extra["processor_id"]))  # noqa: E501
-                app_core_name = op.uuid + f"-{op.alias}"
-            else:
-                app_core_name = op.uuid + f"-{extra['processor_id']}-{op.alias}"
+
+            app_core_name = op.uuid + f"-{extra['processor_id']}-{op.alias}"
 
             state.task_aliases[op.alias] = app_core_name
             state.core_ops[op.uuid] = app_core_name
