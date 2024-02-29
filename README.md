@@ -1,94 +1,185 @@
-# Malevich
+<div align="center">
+    <h1>Malevich</h1>
+    <h4>Your toolkit for crafting AI-powered products effortlessly</h4>
+    <a href="https://docs.malevich.ai"><img src="https://malevich-cdn.s3.amazonaws.com/github/github_readme_docs.svg"/></a>
+    <a href="https://github.com/malevichAI/malevich-library"><img src="https://malevich-cdn.s3.amazonaws.com/github/github_readme_library.svg"/></a>
+    <a href="https://docs.malevich.ai"><img src="https://malevich-cdn.s3.amazonaws.com/github/github_readme_try.svg"/></a>
+</div>
 
-Welcome to ${\textsf{\color{magenta}Malevich}}$, the innovative platform where building, iterating, and deploying machine learning-driven products is transformed into an art form. Designed for teams eager to streamline the journey from concept to production, we offers a low-code UI that enables you to craft sophisticated ML prototypes and systems with the simplicity and joy of assembling LEGO blocks. Our intuitive interface fosters collaborative brainstorming and rapid prototyping, ensuring that everyone can contribute and get up to speed in no time.
+---
 
-# Package
 
-We provide you with a Python package that delivers the Command Line Interface (CLI), Malevich Square, and Malevich Meta services to your system. These services are used to build flows and apps, that will then appear in your workspace.
+Have you ever dreamt about harnessing the power of AI services like [Open AI](https://openai.com/), or flexing the muscles of pre-trained models from [Hugging Face](https://huggingface.co/), or simplifying natural language processing tasks using [spaCy](https://spacy.io/)? Say hello to **Malevich**, your dream has been turned into reality! Here, we provide an AI playground where your imagination gets to lead, and complexities take a back seat. With our pre-built components, you are just a few steps away from converting your innovative ideas into something tangible.
+
+# Getting Started
+
+Malevich offers a Python package that help you to build your apps and flows. Dive deep into our [documentation](https://docs.malevich.ai) and explore the enormous possibilities. Let's walkthrough how you can create mesmerizing products with simple lines of code.
 
 ## Installation
 
-The package is distributed using `pip` package manager. Run the following command to install Malevich to your system:
+Malevich can be brought to your system using the `pip` package manager. Just run the command:
 
 ```bash
 python3 -m pip install malevich
 ```
 
-Check the setup with 
+Make sure everything is set up:
 
 ```bash
 malevich --help
 ```
 
-# Quick Start
-
-## Login
-
-To first cool thing you can do with Malevich library is deploying your flow to UI! To do it, you need firstly tell the library who you are. This is done using a file `myspace.yaml` which stores your credentials. Use the following command to login to Space:
-
-```bash
-malevich space login
-```
-
-You will be prompted for username, password and optionally for Malevich Space URL and organization id.
-
 ## Install Apps
 
-When you install an app, you register it in your system using the `malevich.yaml` file and creating a _stub_. A stub is a generated script, that enables you to import Malevich apps as they are sub-packages of malevich. You can see, what apps are registered and available as stubs using
+Malevich works like a package manager allowing you to install apps and use them from within the code. Let's install some apps that will constitute our pipeline:
 
 ```bash
-malevich list
+malevich install spacy openai scrape
 ```
 
-Let us start with installing an app called **Utility**. Utility is the most basic yet powerful app provided with Malevich. It helps you to glue flows and perform operations on dataframes. To install the app, use the following command:
+Our shelf has plenty to offer, browse through our [library](https://space.malevich.ai/workspace?tab=public&filter=app) and find the apps that meet your needs.
 
-```bash
-malevich install utility
-```
+## Connect Apps
 
-Once you installed the app, it should appear as a subpackage. which means you may import a processor from it and explore it:
+The real magic happens when apps are interconnected into a complex and useful pipeline. Let's do it by writing a tiny amount of code:
 
 ```python
-from malevich.utility import locs
-```
+# flow.py
 
-## Simple Flow
-
-The simplest possible flow you may write is selecting a collumn from a collection.
-
-```python
-# myflow.py
-
+import os
 import pandas as pd
-from malevich.utility import locs
-from malevich import flow, config, collection
-from malevich.interpreter.space import SpaceInterpreter
+from malevich import collection, flow
+from malevich.openai import prompt_completion
+from malevich.scrape import scrape_web
+from malevich.spacy import extract_named_entities
 
+prompt = """
+You are a professional journalist. You've received
+news containing many references to different people.
+Your task is to understand the roles of these {entities}
+and write a brief summary about them. The brief should
+include the following information:
 
-@flow(reverse_id="my-first-flow", name="My First Flow")
-def my_first_flow():
-    """This function is a flow definition!"""
-    # Create a collection
-    my_collection = collection(
-        df=pd.DataFrame({'left_column': ['A', 'a'], 'right_column': ['B', 'b']})
-        name="My First Meta Collection"
-    )
-    
-    # Select `right_column`
-    return locs(my_collection, config(column='right_column'))
+- Who is the person?
+- What is their role in the news?
+- What are the main events they are involved in?
 
-# The function returns a deployment (a.k.a task), which
-# can run on Malevich Space, or Malevich Core
-deployment = my_first_flow()
+Only include individuals for whom there is sufficient
+information in the news. Otherwise, omit their names
+entirely from the brief.
+"""
 
-# Deliver flow to the platform!
-deployment.interpret(SpaceInterpreter())
+@flow()
+def write_brief():
+   # Scrape some news from the OpenAI blog.
+   links = collection(
+      'News Links',
+      df=pd.DataFrame(
+            [
+               'https://openai.com/blog/sam-altman-returns-as-ceo-openai-has-a-new-initial-board',
+            ], columns=['link']
+      )
+   )
+
+   # The scraper app will retrieve information from websites specified by XPath —
+   # a query language that allows extracting information from markup documents.
+   text = scrape_web(
+      links,
+      config={
+         'spider': 'xpath',
+         'min_length': 100,
+         'max_results': 25,
+         'links_are_independent': True,
+         'max_depth': 1,
+         'spider_cfg': {
+            'components': [{
+               'key': 'news-text',
+               # Specify XPath query.
+               'xpath': "//div[@id='content']//text()"
+            }],
+            'output_type': 'text',
+            'include_keys': False
+         }
+      })
+
+   # Extract names of entities.
+   entities = extract_named_entities(
+      text, config={
+         'output_format': 'list',
+         'filter_labels': ['PERSON'],
+      }
+   )
+
+   # Write a brief about the news using OpenAI API
+   # to generate text based on our prompt and extracted names.
+   return text, prompt_completion(
+      entities,
+      config={
+         'user_prompt': prompt,
+         'openai_api_key': os.getenv('OPENAI_API_KEY'),
+      }
+   )
+
+if __name__ == '__main__':
+   from malevich import CoreInterpreter
+
+   # Create a task for writing a brief.
+   pipeline = write_brief()
+
+   # Before running the task, interpret it to make
+   # the platform aware of dependencies and execution flow.
+   pipeline.interpret(
+      CoreInterpreter(
+         core_auth=('example', 'Welcome to Malevich!')
+      )
+   )
+
+   # Execute the task.
+   text, brief = pipeline()
+
+   # Save results.
+   text.get_df().to_csv('text.csv')
+   brief.get_df().to_csv('brief.csv')
+
 ```
-After running `python3 myflow.py` you will see a new flow named `My First Flow` in Malevich Space workspace  
 
-# Dive Deeper
+## Execute
 
-Check you the [documentation](https://docs.malevich.ai) to get an idea about other apps and possibilities of Malevich!
+Before executing the code, make sure you have the Open AI API key in your environment - don't worry, it's simple:
 
+```bash
+export OPENAI_API_KEY=<YOUR KEY>
+```
 
+Now, all you need is a simple command to run the script:
 
+```bash
+python flow.py
+```
+Voila! Your results are stored in `text.csv` and `brief.csv` files.
+
+## Deploy
+
+Running scripts is cool, but what if you want to integrate this flow into your own app? That's done by adding just a one line:
+
+```python
+# ...
+
+if __name__ == '__main__':
+    from malevich import CoreInterpreter
+    
+    # Create a task for writing a brief.
+    pipeline = write_brief()
+    
+    # Before deployment, interpret it to make
+    # the platform aware of dependencies and execution flow.
+    pipeline.interpret(
+      CoreInterpreter(
+         core_auth=('example', 'Welcome to Malevich!')
+      )
+    )
+
+    # Deploy the flow
+    print(pipeline.publish().get_url())
+```
+By running this script, you will receive a link to an HTTP endpoint, which can be integrated into your application, be it a desktop, mobile, web app, or any other program. Enjoy the ride!
