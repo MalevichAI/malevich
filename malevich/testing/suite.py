@@ -104,7 +104,7 @@ class FlowTestSuite:
                         )
                     )
                 except Exception as e:
-                    if e_ := cls.on_run_end(f, e):
+                    if e_ := cls.on_run_error(f, e):
                         raise e_
 
                 try:
