@@ -8,8 +8,11 @@
 
 ---
 
+Malevich is an innovative platform for building, iterating and deploying AI-driven products:
 
-Have you ever dreamt about harnessing the power of AI services like [Open AI](https://openai.com/), or flexing the muscles of pre-trained models from [Hugging Face](https://huggingface.co/), or simplifying natural language processing tasks using [spaCy](https://spacy.io/)? Say hello to **Malevich**, your dream has been turned into reality! Here, we provide an AI playground where your imagination gets to lead, and complexities take a back seat. With our pre-built components, you are just a few steps away from converting your innovative ideas into something tangible.
+- A rich set of pre-built components greatly shortens the gap between an idea and a first run.
+- You are not limited to our components: easily implement and integrate your own codebase.
+- Deploying on GPU in a matter of setting one parameter.
 
 # Getting Started
 
@@ -17,7 +20,7 @@ Malevich offers a Python package that help you to build your apps and flows. Div
 
 ## Installation
 
-Malevich can be brought to your system using the `pip` package manager. Just run the command:
+To install Malevich, you should have Python 3.11+ and `pip` package manager installed. Run the following command to install our package:
 
 ```bash
 python3 -m pip install malevich
@@ -41,7 +44,7 @@ Our shelf has plenty to offer, browse through our [library](https://space.malevi
 
 ## Connect Apps
 
-The real magic happens when apps are interconnected into a complex and useful pipeline. Let's do it by writing a tiny amount of code:
+The real magic happens when apps are interconnected into a complex and useful pipeline. Let's do it by writing a few lines of code:
 
 ```python
 # flow.py
@@ -145,7 +148,7 @@ if __name__ == '__main__':
 
 ## Execute
 
-Before executing the code, make sure you have the Open AI API key in your environment - don't worry, it's simple:
+Before executing the code, make sure you have the Open AI API key in your environment:
 
 ```bash
 export OPENAI_API_KEY=<YOUR KEY>
@@ -156,11 +159,11 @@ Now, all you need is a simple command to run the script:
 ```bash
 python flow.py
 ```
-Voila! Your results are stored in `text.csv` and `brief.csv` files.
+Your results are stored in `text.csv` and `brief.csv` files.
 
 ## Deploy
 
-Running scripts is cool, but what if you want to integrate this flow into your own app? That's done by adding just a one line:
+Running scripts is cool, but what if you want to integrate this flow into your own app? That's done by adding just one line:
 
 ```python
 # ...
@@ -182,4 +185,4 @@ if __name__ == '__main__':
     # Deploy the flow
     print(pipeline.publish().get_url())
 ```
-By running this script, you will receive a link to an HTTP endpoint, which can be integrated into your application, be it a desktop, mobile, web app, or any other program. Enjoy the ride!
+By running this script, you will get a link to an HTTP endpoint hosted by Malevich, which can be integrated into your application, be it a desktop, mobile, web app, or any other program. Enjoy the ride!
