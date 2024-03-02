@@ -3,10 +3,7 @@ from __future__ import annotations
 import asyncio
 import enum
 from abc import ABC, abstractmethod
-from functools import wraps
 from typing import Any, Callable, Generic, ParamSpec, TypeVar
-
-from malevich_coretools import create_endpoint
 
 from ..endpoint import MetaEndpoint
 

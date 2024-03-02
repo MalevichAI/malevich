@@ -1,7 +1,9 @@
 import os
+import sys
 from typing import Any, Type
 
 from pydantic import BaseModel
+from pytest import fixture
 
 from ..interpreter.abstract import Interpreter
 from ..models.flow_function import FlowFunction
@@ -9,9 +11,14 @@ from ..models.installers.image import ImageDependency
 from ..models.installers.space import SpaceDependency
 from ..models.results.base import BaseResult
 from ..models.task.promised import PromisedTask
-from .env import EnvManager
+from .env import EnvManager, test_manifest
 
 env_manager = EnvManager()
+
+@fixture(autouse=True, scope='session')
+def clean_env() -> None:
+    global env_manager
+    env_manager.clean_env()
 
 class FlowTestEnv(BaseModel):
     dependencies: dict[str, ImageDependency | SpaceDependency] = []
@@ -63,63 +70,69 @@ class FlowTestSuite:
 
     @classmethod
     def test_flow(cls: Type['FlowTestSuite']) -> None:
-        env_manager.request_env([*cls.environment.dependencies.values()])
+        stubs, _ = env_manager.request_env([*cls.environment.dependencies.values()])
         for k, v in cls.environment.env_vars.items():
             os.environ[k] = v
 
-        for attr in dir(cls):
-            f = getattr(cls, attr)
-            if isinstance(f, FlowFunction):
-                task: PromisedTask = f(
-                    *cls.func_args,
-                    **cls.func_kwargs
-                )
-                task.interpret(cls.interpreter)
-                if not isinstance(task, PromisedTask):
-                    raise TypeError(
-                        f"FlowFunction {f} did not return a PromisedTask"
-                    )
+        packages = ['malevich.' + x[0] for x in stubs]
+        for module in [*sys.modules.keys()]:
+            if module in packages:
+                sys.modules.pop(module)
 
-                try:
-                    cls.on_prepare_start(f)
-                    cls.on_prepare_end(
-                        f,
-                        task.prepare(
-                            *cls.prepare_args,
-                            **cls.prepare_kwargs
+        with test_manifest:
+            for attr in dir(cls):
+                f = getattr(cls, attr)
+                if isinstance(f, FlowFunction):
+                    task: PromisedTask = f(
+                        *cls.func_args,
+                        **cls.func_kwargs
+                    )
+                    task.interpret(cls.interpreter)
+                    if not isinstance(task, PromisedTask):
+                        raise TypeError(
+                            f"FlowFunction {f} did not return a PromisedTask"
                         )
-                    )
-                except Exception as e:
-                    if e_ := cls.on_prepare_error(f, e):
-                        raise e_
 
-
-                try:
-                    cls.on_run_start(f)
-                    cls.on_run_end(
-                        f,
-                        task.run(
-                            *cls.run_args,
-                            **cls.run_kwargs
+                    try:
+                        cls.on_prepare_start(f)
+                        cls.on_prepare_end(
+                            f,
+                            task.prepare(
+                                *cls.prepare_args,
+                                **cls.prepare_kwargs
+                            )
                         )
-                    )
-                except Exception as e:
-                    if e_ := cls.on_run_end(f, e):
-                        raise e_
+                    except Exception as e:
+                        if e_ := cls.on_prepare_error(f, e):
+                            raise e_
 
-                try:
-                    task.stop()
-                except Exception:
-                    pass
 
-                try:
-                    results = task.results(
-                        **cls.result_kwargs
-                    )
-                    cls.on_result(f, results)
-                except Exception as e:
-                    if e_ := cls.on_result_error(f, e):
-                        raise e_
+                    try:
+                        cls.on_run_start(f)
+                        cls.on_run_end(
+                            f,
+                            task.run(
+                                *cls.run_args,
+                                **cls.run_kwargs
+                            )
+                        )
+                    except Exception as e:
+                        if e_ := cls.on_run_error(f, e):
+                            raise e_
+
+                    try:
+                        task.stop()
+                    except Exception:
+                        pass
+
+                    try:
+                        results = task.results(
+                            **cls.result_kwargs
+                        )
+                        cls.on_result(f, results)
+                    except Exception as e:
+                        if e_ := cls.on_result_error(f, e):
+                            raise e_
 
         for k in cls.environment.env_vars:
             os.environ.pop(k)

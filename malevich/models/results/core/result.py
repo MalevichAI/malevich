@@ -153,7 +153,7 @@ class CoreResult(BaseResult[CoreResultPayload]):
 
     @staticmethod
     def is_asset(data: pd.DataFrame) -> bool:
-        return data.shape == (1, 1) and data.columns[0] == "path"
+        return data.columns[0] == "path"
 
     @staticmethod
     def extract_path_to_asset(path: str, user: str) -> str:

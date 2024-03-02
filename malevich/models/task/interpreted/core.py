@@ -8,7 +8,6 @@ from typing import Any, Iterable, Literal, Optional, Type
 import malevich_coretools as core
 import pandas as pd
 from malevich_space.schema import ComponentSchema
-from requests import HTTPError
 
 from malevich.models.endpoint import MetaEndpoint
 from malevich.models.types import FlowOutput
@@ -18,7 +17,6 @@ from ...._core.ops import (
     batch_create_apps,
     batch_create_tasks,
     batch_upload_collections,
-    result_collection_name,
 )
 from ...._utility.logging import LogLevel, cout
 from ....interpreter.abstract import Interpreter
@@ -212,9 +210,9 @@ class CoreTask(BaseTask):
         if stage.value & PrepareStages.BUILD.value:
             apps_ = batch_create_apps([
                 {
+                    **_app_args,
                     'auth': self.state.params.core_auth,
                     'conn_url': self.state.params.core_host,
-                    **_app_args,
                     'extra_collections_from': self.state.extra_colls[_app_args['uid']]
                 } for _app_args in self.state.app_args.values()
             ])
