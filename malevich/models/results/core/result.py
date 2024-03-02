@@ -434,6 +434,10 @@ class CoreLocalDFResult(BaseResult[pd.DataFrame]):
         self._auth = auth
         self._conn_url = conn_url
 
+    def num_elements(self) -> int:
+        """The number of elements (assets/collections) in the result"""
+        return 1
+
     def get(self) -> pd.DataFrame | None:
         """Simply extracts saved data frame
 
