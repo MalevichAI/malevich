@@ -444,7 +444,7 @@ class CoreLocalDFResult(BaseResult[pd.DataFrame]):
         Returns:
             :class:`DataFrame`: Saved data frame
         """
-        if self._coll.collection_data:
+        if self._coll.collection_data is not None:
             return self._coll.collection_data
 
         # NOTE: Maybe it is better to try
