@@ -1,10 +1,9 @@
 import json
 import uuid
 from collections import defaultdict
-from typing import Iterable, Optional
+from typing import Optional
 
 import malevich_coretools as core
-import pandas as pd
 from malevich_space.schema import ComponentSchema
 
 from .._autoflow.tracer import traced

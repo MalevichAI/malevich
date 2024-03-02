@@ -34,7 +34,7 @@ class OverrideManifest:
 
     def __exit__(self, exc_type, exc_value, traceback) -> None:
         setattr(ManifestManager(), "_ManifestManager__path", self._backup_path)
-        setattr(ManifestManager(), "_ManifestManager__secrets_path", self._backup_secrets_path)
+        setattr(ManifestManager(), "_ManifestManager__secrets_path", self._backup_secrets_path)  # noqa: E501
 
 
 class ManifestManager(metaclass=SingletonMeta):

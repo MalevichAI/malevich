@@ -12,7 +12,7 @@ class MetaEndpoint(Endpoint):
     conn_url: str
 
     def get_url(self) -> str:
-        return f'{self.conn_url}{ENDPOINTS_RUN}/{self.hash}'
+        return f'{self.conn_url.rstrip("/")}/{ENDPOINTS_RUN(self.hash)}'
 
     def run(
         self,

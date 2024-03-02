@@ -95,7 +95,8 @@ class PromisedTask(BaseTask[PromisedStage]):
         __interpreter = interpreter or SpaceInterpreter()
         try:
             task = __interpreter.interpret(self.__tree, self.__component)
-            task.commit_returned(self.__results)
+            if self.__results:
+                task.commit_returned(self.__results)
             self.__task = task
             # Apply the configuration that was stored in memory
             for operation, kwargs in self.__conf_memory:
