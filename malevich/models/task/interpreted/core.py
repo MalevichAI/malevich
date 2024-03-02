@@ -447,7 +447,9 @@ class CoreTask(BaseTask):
             if isinstance(node, CollectionNode):
                 results.append(
                     CoreLocalDFResult(
-                        dfs=[node.collection.collection_data]
+                        coll=node.collection,
+                        conn_url=self.state.params.core_host,
+                        auth=self.state.params.core_auth,
                     )
                 )
             elif isinstance(node, OperationNode):
