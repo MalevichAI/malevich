@@ -29,6 +29,7 @@ class ProcessorFunction(Generic[Config, ProcFunArgs, ProcFunReturn]):
         self.__call__ = self._fn_call
 
     def _fn_call(self, *args: FnArgs.args, **kwargs: FnArgs.kwargs) -> FnReturn:
+        # FIXME: literal 'config' is overused. Should be replaced with constant.
         if kwargs.get('config', None) is None:
             kwargs['config'] = {}
 
