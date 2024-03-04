@@ -15,3 +15,5 @@ jsonpickle
 python-dotenv
 kafka-python
 deprecated
+datamodel-code-generator
+ruff
