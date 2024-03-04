@@ -49,7 +49,7 @@ jobs:
       run: |
         pip install ./malevich
         pip install -r ./malevich/requirements.dev.txt
-        malevich space login --username=$${{secrets.TESTS_SPACE_USER}} --password=$${{secrets.TESTS_SPACE_PASSWORD}} --api-url=$${{secrets.API_URL}}
+        malevich space login --username=${{secrets.TESTS_SPACE_USER}} --password=${{secrets.TESTS_SPACE_PASSWORD}} --api-url=${{secrets.API_URL}}
 
     - name: Testing
       run: cd ./malevich && pytest -s ./tests/
