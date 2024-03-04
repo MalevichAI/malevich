@@ -14,7 +14,7 @@ class TestAlias(FlowTestSuite):
 
     @flow
     def tweak_aliases():
-        from malevich import collection, table, run, config
+        from malevich import collection, table
         from malevich.utility import rename, merge, add_column
 
         data = collection(
@@ -35,11 +35,11 @@ class TestAlias(FlowTestSuite):
             )
         )
 
-        data2 = run(rename(data, config(A='F')), alias='rename1')
+        data2 = rename(data, A='F', alias='rename1')
 
-        data3 = run(add_column(data1, config(column='Z', value=10)), alias='add_column1')
+        data3 = add_column(data1, column='Z', value=10, alias='add_column1')
 
-        return run(merge(data, data1, data2, data3), alias='merge1')
+        return merge(data, data1, data2, data3, alias='merge1')
     
     @staticmethod
     def on_interpretation(task: PromisedTask) -> None:

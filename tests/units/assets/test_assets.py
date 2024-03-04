@@ -14,7 +14,7 @@ class TestAsset(FlowTestSuite):
     @flow
     def assets_one_file():
         from malevich import asset
-        from malevich.utility import  get_links_to_files
+        from malevich.utility import get_links_to_files
 
         file = asset.file('tests/units/assets/file.txt')
 

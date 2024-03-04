@@ -40,7 +40,7 @@ class TestManyToOne(FlowTestSuite):
         col1 = collection(name="col1", df=table([[1, 2, 3, 4]], columns=['A', 'B', 'C', 'D']))
         col2 = collection(name="col2", df=table([[5, 6, 7, 8]], columns=['E', 'F', 'G', 'H']))
         col3 = collection(name="col3", df=table([[9, 10, 11, 12]], columns=['I', 'J', 'K', 'L']))
-        return merge(rename(col1), rename(col2), rename(col3), config(how='cross'))
+        return merge(rename(col1), rename(col2), rename(col3), how='cross')
 
     @staticmethod
     def on_result(flow, results):
@@ -71,8 +71,8 @@ class TestOneToMany(FlowTestSuite):
             )
         )
         
-        add = add_column(col, config(column='E', value=10))
-        renamed = rename(col, config(D='Q')) 
+        add = add_column(col, column='E', value=10)
+        renamed = rename(col, D='Q') 
 
         result = merge(add, renamed)
 
@@ -106,7 +106,7 @@ class TestSpaceFlow(FlowTestSuite):
         from malevich.utility import rename, merge
 
         data = collection(name='test_data', df=table([1, 2, 3, 4, 5], columns=['test1']))
-        return run(merge(run(rename(data), alias='pass'), run(rename(data, config(test1='test2')), alias='change')), alias="combine")
+        return merge(rename(data, alias='pass'), rename(data, test1='test2', alias='change'), alias="combine")
 
     @staticmethod
     def on_result(flow, results) -> None:
