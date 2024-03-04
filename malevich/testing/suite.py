@@ -83,9 +83,11 @@ class FlowTestSuite:
             os.environ[k] = v
 
         packages = ['malevich.' + x[0] for x in stubs]
-        for module in [*sys.modules.keys()]:
-            if module in packages:
-                sys.modules.pop(module)
+        for package in packages:
+            for module in [*sys.modules.keys()]:
+                if package in module:
+                    sys.modules.pop(module)
+
 
         with test_manifest:
             for attr in dir(cls):

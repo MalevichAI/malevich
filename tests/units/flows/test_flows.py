@@ -1,6 +1,7 @@
 from malevich import CoreInterpreter, SpaceInterpreter,flow
 from malevich.models.flow_function import FlowFunction
 from malevich.models.results.base import BaseResult
+from malevich import VersionMode
 from malevich.testing import FlowTestEnv, FlowTestSuite, ImageDependency, SpaceDependency, SpaceDependencyOptions
 import os
 
@@ -98,7 +99,7 @@ class TestSpaceFlow(FlowTestSuite):
             "utility": SpaceDependency(package_id="utility", options=SpaceDependencyOptions(reverse_id='utility')),
         }
     )
-    interpreter = SpaceInterpreter(version_mode='default')
+    interpreter = SpaceInterpreter(version_mode=VersionMode.DEFAULT)
 
     @flow
     def space_flow():
