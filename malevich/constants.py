@@ -28,3 +28,8 @@ IMAGE_BASE = "public.ecr.aws/o1z1g3t0/{app}:latest"
 
 CorePlatform = Platform.CORE
 SpacePlatofrm = Platform.SPACE
+
+
+reserved_config_fields = [
+    ('alias', 'str'),
+]

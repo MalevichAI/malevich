@@ -10,11 +10,12 @@ from typing import Optional
 import malevich_coretools as core
 
 from .._utility.host import fix_host
+from .._utility.stub import Stub
 from ..constants import DEFAULT_CORE_HOST, IMAGE_BASE
 from ..install.installer import Installer
 from ..manifest import ManifestManager
 from ..models.installers.image import ImageDependency, ImageOptions
-from .stub import create_package_stub
+from ..path import Paths
 
 _pydantic_types = {
     "string": str.__name__,
@@ -65,6 +66,7 @@ def {name}({args}config: dict = {{}}):
         config=config,
         processor_id="{name}",
         package_id="{package_id}",
+        alias=alias,
     )
 """
     init = """
@@ -160,9 +162,9 @@ class ImageInstaller(Installer):
             args_str_ = ""
 
             for arg_ in processor.arguments:
-                if "return" in arg_[0 ]\
-                    or (arg_[1] and "Context" in arg_[1]) \
-                    or (arg_[1] and "Sink" in arg_[1]):
+                if "return" in arg_[0]\
+                        or (arg_[1] and "Context" in arg_[1]) \
+                        or (arg_[1] and "Sink" in arg_[1]):
                     continue
                 schema = None
                 for name in operations.schemes.keys():
@@ -240,12 +242,6 @@ class ImageInstaller(Installer):
         )
         checksum = hashlib.sha256(
             app_info.model_dump_json().encode()).hexdigest()
-        # metascript, operations = ImageInstaller.create_operations(
-        metascript = ImageInstaller.create_operations(
-            app_info, package_name
-        )
-
-
         m = ManifestManager()
         iauth_user, iauth_pass, cauth_user, cauth_token = m.put_secrets(
             image_auth_user=image_auth[0],
@@ -268,11 +264,38 @@ class ImageInstaller(Installer):
             ),
         )
 
-        create_package_stub(
-            package_name,
-            metascript,
-            dependency
+        operation_ids = {
+            str(op.id): hashlib.sha256(op.model_dump_json().encode()).hexdigest()
+            for op in app_info.processors.values()
+        }
+
+        Stub.from_app_info(
+            app_info=app_info,
+            path=Paths.module(package_name),
+            package_name=package_name,
+            dependency=dependency,
+            operation_ids=operation_ids,
+            registry_records={
+                processor_id: {
+                    "operation_id": operation_id,
+                    "image_ref": image_ref,
+                    "image_auth_user": iauth_user,
+                    "image_auth_pass": iauth_pass,
+                    "processor_id": processor_id,
+                }
+                for processor_id, operation_id in operation_ids.items()
+            },
         )
+        # metascript, operations = ImageInstaller.create_operations(
+        # metascript = ImageInstaller.create_operations(
+        #     app_info, package_name
+        # )
+
+        # create_package_stub(
+        #     package_name,
+        #     metascript,
+        #     dependency
+        # )
 
         return dependency
 

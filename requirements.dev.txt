@@ -27,3 +27,4 @@ sphinxcontrib-qthelp
 sphinxcontrib-serializinghtml
 kafka-python
 deprecated
+datamodel-code-generator
