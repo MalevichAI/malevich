@@ -45,7 +45,7 @@ class ProcessorFunction(Generic[Config, ProcFunArgs, ProcFunReturn]):
         extra_fields = {**kwargs}
         extra_fields.pop('config')
         for reserved, _ in reserved_config_fields:
-            extra_fields.pop(reserved)
+            extra_fields.pop(reserved, None)
 
         kwargs['config'] = {
             **kwargs['config'],
