@@ -121,6 +121,7 @@ def list_procs(  # noqa: ANN201
             f.write(json.dumps(data))
     else:
         print(json.dumps(data))
+    return json.dumps(data)
 
 
 @dev.command("get-doc",help="Get process docstring")
@@ -143,7 +144,7 @@ def get_processor_docstring(  # noqa: ANN201
             if isinstance(node, ast.FunctionDef) and node.name == name:
                 doc = ast.get_docstring(node)
                 print(doc)
-                exit(0)
+                return doc
     print(
         'Could not find processor inside a file. '
         'Make sure you have provided correct arguments'
@@ -223,6 +224,7 @@ def parse_docstring(  # noqa: ANN201
 
     if verbose:
         print(json.dumps(result))
+    return json.dumps(result)
 
 @dev.command('install-lib-hook', help="Configure git hooks path")
 def intstall_hook(  # noqa: ANN201
