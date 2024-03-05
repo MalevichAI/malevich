@@ -145,6 +145,7 @@ def get_processor_docstring(  # noqa: ANN201
                 doc = ast.get_docstring(node)
                 print(doc)
                 return doc
+
     print(
         'Could not find processor inside a file. '
         'Make sure you have provided correct arguments'
