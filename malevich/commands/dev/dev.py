@@ -59,8 +59,13 @@ def parse_config(config: str="") -> list:
         config,
         re.MULTILINE
     )
-    if len(columns) == 0:
-        error_exit("Failed to parse config columns")
+    if len(columns) != len(re.findall(r"^\s+- ", config, re.MULTILINE)):
+        in_doc = len(re.findall(r'^\s+- ', config, re.MULTILINE))
+        error_exit(
+            "Failed to parse config columns\n"
+            f"Number of columns in doc (started with ' - ') is {in_doc}), "
+            f"Number of columns parsed is {len(columns)}"
+        )
     for column in columns:
         result.append(
             {
