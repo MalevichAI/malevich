@@ -53,10 +53,9 @@ def parse_in_out(input: str="", idx:int=0) -> list:
 def parse_config(config: str="") -> list:
     result = []
     columns = re.findall(
-        r"^\s+- (?P<FIELD_NAME>`?\w+`?)\:\s"
-        r"(?P<FIELD_TYPE>`?[\w\[\(\{\<\]\)\}\>]+`?)"
-        r"(?P<DEFAULT_CLAUSE>\,\sdefault (?P<DEFAULT_VALUE>.+))?\."
-        r"[\s\n\t]+(?P<FIELD_DESCRIPTION>.+)\.$",
+        r"^\s+- (?P<FIELD_NAME>`?\w+`?)\:\s(?P<FIELD_TYPE>`?[|\w\[\{\<\]\}\>]+`?)"
+        r"(?P<DEFAULT_CLAUSE>\,\sdefault (?P<DEFAULT_VALUE>.+))?\.[\s\n\t]+"
+        r"(?P<FIELD_DESCRIPTION>.+)\.$",
         config,
         re.MULTILINE
     )
