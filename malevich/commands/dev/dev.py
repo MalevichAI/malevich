@@ -102,7 +102,10 @@ def list_procs(  # noqa: ANN201
                     tree = ast.parse(f.read())
                     for node in ast.walk(tree):
                         # Looking for functions with @processor decorator
-                        if isinstance(node, ast.FunctionDef):
+                        if (
+                            isinstance(node, ast.FunctionDef) or
+                            isinstance(node, ast.AsyncFunctionDef)
+                           ):
                             function_name = node.name
                             decorators = [
                                 # id may be absent?
@@ -141,7 +144,10 @@ def get_processor_docstring(  # noqa: ANN201
     with open(path) as f:
         tree = ast.parse(f.read())
         for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef) and node.name == name:
+            if (
+                isinstance(node, ast.FunctionDef)
+                or isinstance(node, ast.AsyncFunctionDef)
+            ) and node.name == name:
                 doc = ast.get_docstring(node)
                 print(doc)
                 return doc
