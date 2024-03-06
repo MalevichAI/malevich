@@ -314,7 +314,13 @@ def intstall_hook(  # noqa: ANN201
 
 @dev.command("make-configs", help="Create Context configurations for processors")
 def make_config(  # noqa: ANN201
-    path=typer.Argument(..., help="Path to start directory")
+    path=typer.Argument(..., help="Path to start directory"),
+    verbose: Annotated[
+        bool,
+        typer.Option(
+            "--verbose", "-v", help="If enabled, will print result JSON to stdout"
+        ),
+    ] = False,
 ):
     data = json.loads(list_procs(path))
     by_path = {}
@@ -326,6 +332,7 @@ def make_config(  # noqa: ANN201
     for path_ in by_path.keys():
         modules = []
         models_path = None
+        print(f"Processing {path_}...")
         for name_ in by_path[path_]:
             doc = get_processor_docstring(name_, path_)
             schema = json.loads(parse_docstring(doc))
@@ -400,18 +407,21 @@ def make_config(  # noqa: ANN201
                     flags=re.MULTILINE,
                 )
                 if search_import is None:
-                    print(f"Added{module['classname']} to __init__.py") #FIXME: REMOVE
+                    if verbose:
+                        print(f"Added {module['classname']} to __init__.py")
                     file += f"from .{module['module']} import {module['classname']}\n"
                 if re.search(
                     rf"^from .models import {module['classname']}$",
                     procs,
                     flags=re.MULTILINE
                 ) is None:
-                    print(f"Added{module['classname']} to {path_}") #FIXME: REMOVE
+                    if verbose:
+                        print(f"Added{module['classname']} to {path_}")
                     procs = f"from .models import {module['classname']}\n" + procs
 
                 search_proc = re.search(
-                    rf"(?P<DEF>^(async )?def {module['name']}\(.+ Context)(\[\w+\])?",
+                    rf"(?P<DEF>^(async )?def {module['name']}"
+                    r"\([\s\S]*? Context)(\[\w+\])?",
                     procs,
                     flags=re.MULTILINE,
                 )
@@ -419,7 +429,8 @@ def make_config(  # noqa: ANN201
                     "Context", f"Context[{module['classname']}]"
                 )
                 procs = re.sub(
-                    rf"(?P<DEF>^(async )?def {module['name']}\(.+ Context(\[\w+\])?)",
+                    rf"(?P<DEF>^(async )?def {module['name']}"
+                    r"\([\s\S]*? Context(\[\w+\])?)",
                     group,
                     procs,
                     flags=re.MULTILINE
