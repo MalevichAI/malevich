@@ -85,11 +85,21 @@ def list_procs(  # noqa: ANN201
         help="Directory to extract processors from",
         show_default=False
     ),
-    out = typer.Option(
-        None,
-        help="File to save results in",
-        show_default=False
-    )
+    out: Annotated[
+        str|None,
+        typer.Option(
+            "--out",
+            help="File to save results in",
+            show_default=False
+        )
+    ] = None,
+    verbose: Annotated[
+        bool,
+        typer.Option(
+            "--verbose",
+            "-v",
+            help="If enabled, will print result JSON to stdout"),
+    ] = False
 ):
     data = []
 
@@ -119,10 +129,11 @@ def list_procs(  # noqa: ANN201
                                         'path': os.path.abspath(f'{root}/{file}'),
                                     }
                                 )
+
     if out is not None:
         with open(out, 'w') as f:
             f.write(json.dumps(data))
-    else:
+    if verbose:
         print(json.dumps(data))
     return json.dumps(data)
 
@@ -136,7 +147,22 @@ def get_processor_docstring(  # noqa: ANN201
     path = typer.Argument(
         ...,
         help="Path to the file",
-    )
+    ),
+    out: Annotated[
+        str|None,
+        typer.Option(
+            "--out",
+            help="File to save results in",
+            show_default=False
+        )
+    ] = None,
+    verbose: Annotated[
+        bool,
+        typer.Option(
+            "--verbose",
+            "-v",
+            help="If enabled, will print result docstring to stdout"),
+    ] = False
 ):
     if not os.path.exists(path):
         error_exit(f"Can not open {path}. No such file exists")
@@ -149,7 +175,10 @@ def get_processor_docstring(  # noqa: ANN201
                 or isinstance(node, ast.AsyncFunctionDef)
             ) and node.name == name:
                 doc = ast.get_docstring(node)
-                print(doc)
+                if out is not None:
+                    open(out, 'w').write(doc)
+                if verbose:
+                    print(doc)
                 return doc
 
     print(
@@ -169,8 +198,16 @@ def parse_docstring(  # noqa: ANN201
         typer.Option(
             "--file",
             "-f",
-            help="If enabled, will read from argument path")
+            help="If enabled, will read from argument string")
     ] = False,
+    out: Annotated[
+        str|None,
+        typer.Option(
+            "--out",
+            help="File to save results in",
+            show_default=False
+        )
+    ] = None,
     verbose: Annotated[
         bool,
         typer.Option(
@@ -229,6 +266,8 @@ def parse_docstring(  # noqa: ANN201
     except Exception:
         error_exit(f"Docstring doesn't suit the rules in {SECTIONS[idx]} section")
 
+    if out:
+        open(out, 'w').write(json.dumps(result))
     if verbose:
         print(json.dumps(result))
     return json.dumps(result)
@@ -237,7 +276,8 @@ def parse_docstring(  # noqa: ANN201
 def intstall_hook(  # noqa: ANN201
     path=typer.Option(
         ".githooks/",
-        help="Folder with hooks"
+        help="Folder with hooks",
+        show_default=False,
     )
 ):
     if not os.path.exists(path):
@@ -252,6 +292,5 @@ def intstall_hook(  # noqa: ANN201
         )
     except CalledProcessError:
         error_exit(
-            "Failed to execute the process",
-            file=sys.stderr
+            "Failed to execute the process"
         )
