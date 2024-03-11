@@ -13,7 +13,7 @@ from ..manifest import ManifestManager
 
 
 def login(
-    no_input: bool = typer.Option(default=False),
+    no_input: bool = typer.Option(False, "--no-input"),
     api_url: str = PROD_SPACE_API_URL,
     core_url: str = DEFAULT_CORE_HOST,
     space_url: Optional[str] = None,

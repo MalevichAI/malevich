@@ -18,7 +18,7 @@ class ProcessorFunction(Generic[Config, ProcFunArgs, ProcFunReturn]):
         self,
         fn: Callable[FnArgs, FnReturn],
         use_sinktrace: bool = False,
-        config_model: Type[BaseModel] = BaseModel,
+        config_model: Type[Config] = BaseModel,
     ) -> None:
         self.base_fn = fn
         if use_sinktrace:
@@ -34,9 +34,9 @@ class ProcessorFunction(Generic[Config, ProcFunArgs, ProcFunReturn]):
             kwargs['config'] = {}
 
         if isinstance(kwargs['config'], BaseModel):
-            assert type(kwargs['config']) == Config, (
+            assert type(kwargs['config']) == self.__config_model, (
                 f"You have set config={kwargs['config']}, "
-                f"but it should be of type {Config}."
+                f"but it should be of type {self.__config_model}."
             )
 
             kwargs['config'] = kwargs['config'].model_dump()
@@ -72,6 +72,8 @@ def proc(
     def decorator(
         fn: Callable[FnArgs, FnReturn]
     ) -> ProcessorFunction[ProcConfig, FnArgs, FnReturn]:
-        return ProcessorFunction(fn, use_sinktrace, config_model)
+        return ProcessorFunction[ProcConfig, FnArgs, FnReturn](
+            fn, use_sinktrace, config_model
+        )
 
     return decorator
