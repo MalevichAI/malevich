@@ -53,11 +53,9 @@ class ManifestManager(metaclass=SingletonMeta):
         self.__path = os.path.join(workdir, "malevich.yaml")
         self.__secrets_path = os.path.join(workdir, "malevich.secrets.yaml")
         if not os.path.exists(self.__path):
-            with open(self.__path, "w") as _file:
-                pydml.to_yaml_file(_file, Manifest())
+            pydml.to_yaml_file(self.__path, Manifest())
         if not os.path.exists(self.__secrets_path):
-            with open(self.__secrets_path, "w") as _file:
-                pydml.to_yaml_file(_file, Secrets())
+            pydml.to_yaml_file(self.__secrets_path, Secrets())
         with open(self.__path) as _file:
             self.__manifest = pydml.parse_yaml_file_as(Manifest, _file)
             self.__backup = self.__manifest.model_dump()

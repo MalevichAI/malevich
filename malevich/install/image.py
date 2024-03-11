@@ -133,6 +133,11 @@ class ImageInstaller(Installer):
             for op in app_info.processors.values()
         }
 
+        operation_names = {
+            str(op.id): op.name
+            for op in app_info.processors.values()
+        }
+
         Stub.from_app_info(
             app_info=app_info,
             path=Paths.module(package_name),
@@ -145,7 +150,7 @@ class ImageInstaller(Installer):
                     "image_ref": image_ref,
                     "image_auth_user": iauth_user,
                     "image_auth_pass": iauth_pass,
-                    "processor_id": processor_id,
+                    "processor_id": operation_names[processor_id],
                 }
                 for processor_id, operation_id in operation_ids.items()
             },

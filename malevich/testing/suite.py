@@ -37,6 +37,15 @@ class FlowTestSuite:
     interpreter: Interpreter = None
 
     @staticmethod
+    def __offload_modules(stubs):
+        packages = ['malevich.' + x[0] for x in stubs]
+        for package in packages:
+            for module in [*sys.modules.keys()]:
+                if package in module:
+                    sys.modules.pop(module)
+
+
+    @staticmethod
     def on_interpretation(task: PromisedTask) -> None:
         pass
 
@@ -78,15 +87,12 @@ class FlowTestSuite:
 
     @classmethod
     def test_flow(cls: Type['FlowTestSuite']) -> None:
+        old_stubs, _ = env_manager.get_current_env()
+        cls.__offload_modules(old_stubs)
         stubs, _ = env_manager.request_env([*cls.environment.dependencies.values()])
         for k, v in cls.environment.env_vars.items():
             os.environ[k] = v
-
-        packages = ['malevich.' + x[0] for x in stubs]
-        for module in [*sys.modules.keys()]:
-            if module in packages:
-                sys.modules.pop(module)
-
+        cls.__offload_modules(stubs)
         with test_manifest:
             for attr in dir(cls):
                 f = getattr(cls, attr)
