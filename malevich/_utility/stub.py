@@ -163,10 +163,10 @@ class StubFunction(BaseModel):
                 else:
                     annotation = str(config_fields[field].annotation)
 
-                if config_fields[field].is_required() or 'Optional' in str(annotation):
-                    def_ += f'\n\t{field}: "{annotation}"' + ","
-                else:
+                if not config_fields[field].is_required() or 'Optional' in str(annotation):
                     def_ += f'\n\t{field}: Optional["{annotation}"]' + " = None,"
+                else:
+                    def_ += f'\n\t{field}: "{annotation}"' + ","
 
         for rkey, rtype in reserved_config_fields:
             def_ += f'\n\t{rkey}: Optional["{rtype}"]' + " = None,"

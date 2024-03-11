@@ -22,11 +22,11 @@ class NodeType(Enum):
     OPERATION = 'operation'
 
 class SpaceAuxParams:
-    task_id: str
-    run_id: str
-    core_task_id: str
-    flow_id: str
-    tree: TreeNode
+    task_id: str | None
+    run_id: str | None
+    core_task_id: str | None
+    flow_id: str | None
+    tree: TreeNode | None
 
     # operation_id: str
     # task_id: str

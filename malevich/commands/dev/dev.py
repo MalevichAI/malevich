@@ -53,15 +53,19 @@ def parse_in_out(input: str="", idx:int=0) -> list:
 def parse_config(config: str="") -> list:
     result = []
     columns = re.findall(
-        r"^\s+- (?P<FIELD_NAME>`?\w+`?)\:\s"
-        r"(?P<FIELD_TYPE>`?[\w\[\(\{\<\]\)\}\>]+`?)"
-        r"(?P<DEFAULT_CLAUSE>\,\sdefault (?P<DEFAULT_VALUE>.+))?\."
-        r"[\s\n\t]+(?P<FIELD_DESCRIPTION>.+)\.$",
+        r"^\s+- (?P<FIELD_NAME>`?\w+`?)\:\s(?P<FIELD_TYPE>`?[|\w\[\{\<\]\}\>]+`?)"
+        r"(?P<DEFAULT_CLAUSE>\,\sdefault (?P<DEFAULT_VALUE>.+))?\.[\s\n\t]+"
+        r"(?P<FIELD_DESCRIPTION>.+)\.$",
         config,
         re.MULTILINE
     )
-    if len(columns) == 0:
-        error_exit("Failed to parse config columns")
+    if len(columns) != len(re.findall(r"^\s+- ", config, re.MULTILINE)):
+        in_doc = len(re.findall(r'^\s+- ', config, re.MULTILINE))
+        error_exit(
+            "Failed to parse config columns\n"
+            f"Number of columns in doc (started with ' - ') is {in_doc}), "
+            f"Number of columns parsed is {len(columns)}"
+        )
     for column in columns:
         result.append(
             {

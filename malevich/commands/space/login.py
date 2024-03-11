@@ -17,6 +17,7 @@ def login(
     space_url: Optional[str] = None,
     username: Optional[str] = None,
     password: Optional[str] = None,
+    org_id: Optional[str] = None,
 ) -> None:
     if not space_url:
         domain = re.search(r"\/\/(.*)api\.(.+)\/?", api_url)
@@ -44,11 +45,16 @@ def login(
             f"E-mail (or Username) on [bright_cyan]{base_space_url}[/bright_cyan]")
     if not password:
         password = Prompt.ask("Password", password=True)
-
+    if not org_id:
+        org_id = Prompt.ask(
+            "Organization Slug (leave blank to use personal account)",
+            default=None,
+        )
     setup = SpaceSetup(
         api_url=api_url,
         username=username,
         password=password,
+        org=org_id,
         host=HostSchema(
             conn_url=core_url,
         )

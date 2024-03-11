@@ -412,7 +412,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                 )
 
                 _, schema_core_id = self._upload_schema(
-                    state=state, node=node, skip_create=True
+                    state=state, node=node.owner, skip_create=False
                 )
 
                 if not path:
@@ -445,7 +445,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                         node.owner.collection.collection_id
                     )
                     uid = self._upload_collection(
-                        state, node,
+                        state, node.owner,
                         core_id=f'override-{coll_id}-{state.interpretation_id}'
                     )
                     state.collection_overrides[component.collection.uid] = uid
@@ -721,6 +721,22 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
             self._component,
             self._version_mode,
         )
+
+        if self._version_mode != VersionMode.DEFAULT:
+            self.state.space.client.execute(
+                gql("""
+                query AutoLayout($flow: String!) {
+                    flow(uid: $flow) {
+                        autoLayout {
+                            pageInfo {
+                                totalLen
+                            }
+                        }
+                    }
+                }
+                """),
+                variable_values={'flow': component.flow.uid}
+            )
 
         return SpaceTask(
             state=self.state,

@@ -1,10 +1,12 @@
 import pickle
 import uuid
 import warnings
+from enum import Enum
 from functools import cache
-from typing import Any, Iterable, Optional
+from typing import Iterable, Optional
 
 import pandas as pd
+from gql import gql
 from malevich_coretools.abstract.statuses import AppStatus, TaskStatus
 from malevich_space.schema import LoadedComponentSchema
 
@@ -17,6 +19,15 @@ from ...nodes.tree import TreeNode
 from ...results.space.collection import SpaceCollectionResult
 from ...types import FlowOutput
 from ..base import BaseTask
+
+
+class SpaceTaskStage(Enum):
+    INTERPRETED     = "interpreted"
+    # from Space definition
+    GENERATED       = "generated"
+    STARTED         = "started"
+    STOPPED         = "stopped"
+
 
 
 class SpaceTask(BaseTask):
@@ -124,12 +135,6 @@ class SpaceTask(BaseTask):
                     in_flow_id=sch.in_flow_id
                 )
                 id_to_ca[sch.in_flow_id] = in_flow_ca
-
-                # overrides.append({
-                #     "inFlowCompUid": sch.in_flow_id,
-                #     "caUid": self.state.collection_overrides[in_flow_ca],
-                #     "caAlias": sch.injected_alias
-                # })
             except Exception:
                 # TODO fix!
                 continue
@@ -175,15 +180,46 @@ class SpaceTask(BaseTask):
         return self.state.aux.run_id
 
     def configure(self, operation: str, **kwargs) -> None:
+        # NOTE: Nothing to tweak
         return None
 
     def get_interpreted_task(self) -> BaseTask:
-        return None
+        return self
 
-    def get_stage(self) -> Any:  # noqa: ANN401
-        return None
+    def get_stage(self) -> SpaceTaskStage:
+        if not self.state.aux.task_id:
+            return SpaceTaskStage.INTERPRETED
 
-    def interpret(self, interpreter: Any = None) -> None:  # noqa: ANN401
+        request = gql(
+            """
+            query GetTaskBootState($task_id: String!) {
+                task(uid: $task_id) {
+                    details {
+                    bootState
+                    }
+                }
+            }
+            """
+        )
+        response = self.state.space.client.execute(
+            request,
+            variable_values={'task_id': self.state.aux.task_id}
+        )
+        state = response['task']['details']['bootState']
+        try:
+           return SpaceTaskStage[state.upper()]
+        except Exception:
+            import warnings
+            warnings.warn(
+                "API returned bootState that "
+                "is not in `SpaceTaskStage` enumerator"
+            )
+            return SpaceTaskStage.INTERPRETED
+
+    def get_stage_class(self) -> type:
+        return SpaceTaskStage
+
+    def interpret(self, interpreter=None) -> None:
         return None
 
     def dump(self) -> bytes:
