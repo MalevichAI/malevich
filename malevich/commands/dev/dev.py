@@ -336,7 +336,8 @@ def make_config(  # noqa: ANN201
         for name_ in by_path[path_]:
             doc = get_processor_docstring(name_, path_)
             schema = json.loads(parse_docstring(doc))
-            if "configuration" in schema.keys():
+            if "configuration" in schema.keys() and len(schema['configuration']) > 0:
+                print(schema['configuration'])
                 schema_path = os.path.join(
                     os.path.dirname(path_), "models", f"{name_}_model.json"
                 )
