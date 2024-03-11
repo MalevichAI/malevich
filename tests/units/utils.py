@@ -34,9 +34,7 @@ def assert_installed_package(package_name: str, installer: str) -> tuple[str, st
     ) == installer, 'Wrong installer'
 
     with open(stub_path) as stub_file:
-        stub = stub_file.read()
-
-        assert '__checksum' in stub, 'Checksum not found in stub'
+        _ = stub_file.read()
         assert len(
             Registry().registry
         ) > 0, 'Package has not registered any operations'

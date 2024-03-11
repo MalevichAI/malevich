@@ -2,11 +2,11 @@ from typer.testing import CliRunner
 from malevich.cli import app
 from malevich.manifest import manf
 # Importing fixtures
-from ..fixtures.package import package
-from ..fixtures.core_provider import CoreProvider, core_provider
-from ..fixtures.ghcr_package import ghcr_package
-from ..fixtures.runner import runner
-from ..utils import assert_installed_package, wipe_installed_package
+from fixtures.package import package
+from fixtures.core_provider import CoreProvider, core_provider
+from fixtures.ghcr_package import ghcr_package
+from fixtures.runner import runner
+from utils import assert_installed_package, wipe_installed_package
 
 
 def test_default_image_install(runner: CliRunner, package: str) -> None:

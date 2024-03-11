@@ -3,6 +3,7 @@ from malevich.models.flow_function import FlowFunction
 from malevich.models.results.base import BaseResult
 from malevich import VersionMode
 from malevich.testing import FlowTestEnv, FlowTestSuite, ImageDependency, SpaceDependency, SpaceDependencyOptions
+from pydantic import BaseModel
 import os
 
 class TestUtility(FlowTestSuite):
@@ -61,7 +62,7 @@ class TestOneToMany(FlowTestSuite):
 
    @flow
    def test():
-        from malevich import config, collection, table
+        from malevich import collection, table
         from malevich.utility import merge, add_column, rename
         
         col = collection(
@@ -72,8 +73,8 @@ class TestOneToMany(FlowTestSuite):
             )
         )
         
-        add = add_column(col, column='E', value=10)
-        renamed = rename(col, D='Q') 
+        add = add_column(col, config=add_column.config(column='E', value=10))
+        renamed = rename(col, config={'D':'Q'}) 
 
         result = merge(add, renamed)
 
