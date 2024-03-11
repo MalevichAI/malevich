@@ -52,7 +52,7 @@ jobs:
         malevich space login --username=${{secrets.TESTS_SPACE_USER}} --password=${{secrets.TESTS_SPACE_PASSWORD}} --api-url=${{secrets.TESTS_API_URL}} --no-input
 
     - name: Testing
-      run: cp -rf ./malevich/tests && rm -rf ./malevich && pytest -s ./tests/
+      run: cp -rf ./malevich/tests ./tests && rm -rf ./malevich && pytest -s ./tests/
       env:
         TESTS_SPACE_PASSWORD: ${{ secrets.TESTS_SPACE_PASSWORD }}
         TESTS_SPACE_USER: ${{ secrets.TESTS_SPACE_USER }}
