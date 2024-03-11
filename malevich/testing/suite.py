@@ -37,6 +37,14 @@ class FlowTestSuite:
     interpreter: Interpreter = None
 
     @staticmethod
+    def on_interpretation(task: PromisedTask) -> None:
+        pass
+
+    @staticmethod
+    def on_interpretation_error(task: PromisedTask, error: Exception) -> Exception | None:  # noqa: E501
+        return error
+
+    @staticmethod
     def on_prepare_start(flow: FlowFunction) -> None:
         pass
 
@@ -87,7 +95,12 @@ class FlowTestSuite:
                         *cls.func_args,
                         **cls.func_kwargs
                     )
-                    task.interpret(cls.interpreter)
+                    try:
+                        task.interpret(cls.interpreter)
+                        cls.on_interpretation(task)
+                    except Exception as e:
+                        if e_ := cls.on_interpretation_error(task, e):
+                            raise e_
                     if not isinstance(task, PromisedTask):
                         raise TypeError(
                             f"FlowFunction {f} did not return a PromisedTask"
