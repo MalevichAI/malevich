@@ -168,6 +168,8 @@ class StubFunction(BaseModel):
 
                 if not config_fields[field].is_required() and 'Optional' not in str(annotation):  # noqa: E501
                     def_ += f'\n\t{field}: Optional["{annotation}"]' + " = None,"
+                elif not config_fields[field].is_required():
+                    def_ += f'\n\t{field}: "{annotation}"' + " = None,"
                 else:
                     def_ += f'\n\t{field}: "{annotation}"' + ","
 
