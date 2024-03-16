@@ -25,6 +25,7 @@ the functionality provided by them will be pulled and parsed accordingly.
 
 IMAGE_BASE = "public.ecr.aws/o1z1g3t0/{app}:latest"
 
+CORE_INTERPRETER_IN_APP_INFO_KEY = '__core__'
 
 CorePlatform = Platform.CORE
 SpacePlatofrm = Platform.SPACE
@@ -33,3 +34,4 @@ SpacePlatofrm = Platform.SPACE
 reserved_config_fields = [
     ('alias', 'str'),
 ]
+
