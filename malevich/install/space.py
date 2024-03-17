@@ -190,7 +190,7 @@ class SpaceInstaller(Installer):
                     "branch": component.branch.uid,
                     "version": component.version.uid,
                     "processor_name": op.core_id,
-                    "processor_id": op.uid,
+                    "processor_id":  op.core_id,
                     "image_ref": ('dependencies', package_name, 'options', 'image_ref'),
                     "image_auth_user": (
                         'dependencies', package_name, 'options', 'image_auth_user'
