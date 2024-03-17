@@ -111,3 +111,24 @@ There is an example of running an endpoint from JavaScript:
     .then((response) => response.text())
     .then((result) => console.log(result))
     .catch((error) => console.error(error));
+
+
+
+Update an endpoint
+------------------
+
+You can update already running endpoint. It can be some minor adjustments or a complete change of the logic. To update,
+you can run :meth:`publish <malevich.models.task.promised.PromisedTask.publish>` method with `hash=` argument. It will update the endpoint under specified hash.
+
+
+.. code-block:: python
+
+    @flow
+    def new_logic():
+        ...
+
+
+    task = new_logic()
+    task.interpret(CoreInterpreter(core_auth=('example', 'Welcome to Malevich!')))
+    endpoint = task.publish(hash='...')
+

@@ -329,6 +329,16 @@ class PromisedTask(BaseTask[PromisedStage]):
         return self.__task
 
     def publish(self, *args, **kwargs) -> MetaEndpoint:
+        """Creates a HTTP endpoint for the task
+
+        Accepts any arguments and keyword arguments and passes them to the
+        underlying callback created in the interpreter itself. For particular
+        arguments and keyword arguments, see the documentation of the interpreter
+        used before calling this method.
+
+        Returns:
+            :class:`malevich.models.endpoint.MetaEndpoint`: An endpoint object
+        """
         if not self.__task:
             raise Exception(
                 "Cannot publish uninterpreted task. "
