@@ -36,10 +36,6 @@ class FlowFunction(Generic[Params, R]):
         """
         self._Captured = f
 
-        # self.reverse_id = reverse_id
-        # self.name = name
-        # self.description = description
-
         _ignored = []
         for k in kwargs:
             if k not in self.allowed_flow_function_kwargs:

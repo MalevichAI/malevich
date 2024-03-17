@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 from ...constants import DEFAULT_CORE_HOST
 from ..dependency import Dependency
+from .compat import CompatabilityStrategy, compare_images
 from .space import SpaceDependency
 
 
@@ -28,22 +29,16 @@ class ImageDependency(Dependency):
     def checksum(self) -> str:
         return hashlib.sha256(self.model_dump_json().encode()).hexdigest()
 
-    def compatible_with(self, other: Dependency) -> bool:
-        if isinstance(other, ImageDependency):
-            compat = self.options.image_ref == other.options.image_ref
-            if self.options.image_auth_user is not None:
-                compat &= self.options.image_auth_user == other.options.image_auth_user
-            if self.options.image_auth_pass is not None:
-                compat &= self.options.image_auth_pass == other.options.image_auth_pass
-            return compat
+    def compatible_with(
+        self,
+        other: 'Dependency',
+        compatability_strategy: CompatabilityStrategy = CompatabilityStrategy()
+    ) -> bool:
+        if isinstance(other, SpaceDependency) or isinstance(other, ImageDependency):
+            return compare_images(
+                self.options.image_ref,
+                other.options.image_ref,
+                compatability_strategy
+            )
         else:
-            if isinstance(other, SpaceDependency):
-                compat = self.options.image_ref == other.options.image_ref
-                if self.options.image_auth_user is not None:
-                    compat &= \
-                        self.options.image_auth_user == other.options.image_auth_user
-                if self.options.image_auth_pass is not None:
-                    compat &= \
-                        self.options.image_auth_pass == other.options.image_auth_pass
-                return compat
-        return False
+            return False

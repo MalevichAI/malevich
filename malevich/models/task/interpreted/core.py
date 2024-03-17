@@ -8,7 +8,6 @@ from typing import Any, Iterable, Literal, Optional, Type
 import malevich_coretools as core
 import pandas as pd
 from malevich_space.schema import ComponentSchema
-from requests import HTTPError
 
 from malevich.models.endpoint import MetaEndpoint
 from malevich.models.types import FlowOutput
@@ -18,7 +17,6 @@ from ...._core.ops import (
     batch_create_apps,
     batch_create_tasks,
     batch_upload_collections,
-    result_collection_name,
 )
 from ...._utility.logging import LogLevel, cout
 from ....interpreter.abstract import Interpreter
@@ -212,17 +210,17 @@ class CoreTask(BaseTask):
         if stage.value & PrepareStages.BUILD.value:
             apps_ = batch_create_apps([
                 {
+                    **_app_args,
                     'auth': self.state.params.core_auth,
                     'conn_url': self.state.params.core_host,
-                    **_app_args,
                     'extra_collections_from': self.state.extra_colls[_app_args['uid']]
                 } for _app_args in self.state.app_args.values()
             ])
 
             for settings, _ in apps_:
                 self.state.cfg.app_settings.append(settings)
+            self.config_kwargs['cfg'] = self.state.cfg
                 # TODO: Write cache
-
             batch_create_tasks(
                 self.task_kwargs,
                 auth=self.state.params.core_auth,
@@ -358,7 +356,7 @@ class CoreTask(BaseTask):
                     auth=self.state.params.core_auth,
                     conn_url=self.state.params.core_host,
                     wait=not detached,
-                    run_id=run_id,
+                    run_id=self.run_id,
                     *args,
                     **kwargs
                 )
@@ -368,7 +366,7 @@ class CoreTask(BaseTask):
                     *args,
                     auth=self.state.params.core_auth,
                     conn_url=self.state.params.core_host,
-                    run_id=run_id,
+                    run_id=self.run_id,
                     wait=not detached,
                     **kwargs
                 )
@@ -380,8 +378,7 @@ class CoreTask(BaseTask):
                 conn_url=self.state.params.core_host,
             )
             raise e
-
-        return run_id
+        return self.run_id
 
     def stop(
         self,
@@ -450,12 +447,14 @@ class CoreTask(BaseTask):
             if isinstance(node, CollectionNode):
                 results.append(
                     CoreLocalDFResult(
-                        dfs=[node.collection.collection_data]
+                        coll=node.collection,
+                        conn_url=self.state.params.core_host,
+                        auth=self.state.params.core_auth,
                     )
                 )
             elif isinstance(node, OperationNode):
                 results.append(CoreResult(
-                    core_group_name=result_collection_name(node.uuid),
+                    core_group_name=self.state.results[node.uuid],
                     core_operation_id=self.state.params.operation_id,
                     core_run_id=run_id,
                     auth=self.state.params.core_auth,
@@ -463,7 +462,7 @@ class CoreTask(BaseTask):
                 ))
             elif isinstance(node, AssetNode):
                 results.append(CoreResult(
-                    core_group_name=result_collection_name(node.uuid),
+                    core_group_name=self.state.results[node.uuid],
                     core_operation_id=self.state.params.operation_id,
                     core_run_id=run_id,
                     conn_url=self.state.params.core_host
@@ -637,6 +636,9 @@ class CoreTask(BaseTask):
             except Exception:
                 pass
             schemes.append(f'meta_scheme_{inj.node.collection.magic()}')
+
+        if 'prepare' not in kwargs:
+            kwargs['prepare'] = True
 
         _hash = create_endpoint(
             task_id=self.state.params.task_id,

@@ -35,6 +35,7 @@ from .interpreter.space import SpaceInterpreter
 
 # Malevich Core
 import malevich_coretools as core_api
+from malevich_space.schema import VersionMode
 
 manf = ManifestManager()
 

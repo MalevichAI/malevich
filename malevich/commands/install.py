@@ -67,6 +67,7 @@ def auto_use(
                     progress.stop()
                     rich.print("\n\n[red]Installation failled[/red]")
                     rich.print(err)
+                    raise err
                     exit(-1)
                 else:
                     progress.update(

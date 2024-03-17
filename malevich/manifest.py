@@ -5,10 +5,39 @@ from typing import Any, Iterable, Optional
 
 import pydantic_yaml as pydml
 
+from ._utility.singleton import SingletonMeta
 from .models.manifest import Manifest, Secret, Secrets
 
 
-class ManifestManager:
+class OverrideManifest:
+    def __init__(self, path: str) -> None:
+        self._path = path
+        self._backup_path = getattr(ManifestManager(), "_ManifestManager__path")
+        self._backup_secrets_path = getattr(
+            ManifestManager(), "_ManifestManager__secrets_path"
+        )
+
+    def __enter__(self) -> None:
+        self._instance = ManifestManager(self._path)
+
+        setattr(
+            self._instance,
+            "_ManifestManager__path",
+            os.path.join(self._path, "malevich.yaml")
+        )
+
+        setattr(
+            self._instance,
+            "_ManifestManager__secrets_path",
+            os.path.join(self._path, "malevich.secrets.yaml")
+        )
+
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
+        setattr(ManifestManager(), "_ManifestManager__path", self._backup_path)
+        setattr(ManifestManager(), "_ManifestManager__secrets_path", self._backup_secrets_path)  # noqa: E501
+
+
+class ManifestManager(metaclass=SingletonMeta):
     @staticmethod
     def secret_pattern() -> str:
         return r"secret#[0-9]{1,6}"
@@ -24,11 +53,9 @@ class ManifestManager:
         self.__path = os.path.join(workdir, "malevich.yaml")
         self.__secrets_path = os.path.join(workdir, "malevich.secrets.yaml")
         if not os.path.exists(self.__path):
-            with open(self.__path, "w") as _file:
-                pydml.to_yaml_file(_file, Manifest())
+            pydml.to_yaml_file(self.__path, Manifest())
         if not os.path.exists(self.__secrets_path):
-            with open(self.__secrets_path, "w") as _file:
-                pydml.to_yaml_file(_file, Secrets())
+            pydml.to_yaml_file(self.__secrets_path, Secrets())
         with open(self.__path) as _file:
             self.__manifest = pydml.parse_yaml_file_as(Manifest, _file)
             self.__backup = self.__manifest.model_dump()
@@ -253,5 +280,6 @@ class ManifestManager:
         self.__manifest = Manifest(**dump)
         self.save()
         return self.__manifest
+
 
 manf = ManifestManager()

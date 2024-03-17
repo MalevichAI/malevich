@@ -275,6 +275,7 @@ def install_from_image(
     except Exception as err:
         rich.print("\n\n[red]Installation failled[/red]")
         rich.print(err)
+        raise err
         exit(-1)
 
 
