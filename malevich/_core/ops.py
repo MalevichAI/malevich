@@ -250,11 +250,20 @@ def _assure_asset(
     conn_url: Optional[str] = None,
 ) -> None:
     try:
-        objs = core.get_collection_objects(
-            asset.core_path,
-            auth=auth,
-            conn_url=conn_url,
-        )
+        if not asset.is_composite:
+            objs = [
+                core.get_collection_object(
+                    asset.core_path,
+                    auth=auth,
+                    conn_url=conn_url,
+                )
+            ]
+        else:
+            objs = core.get_collection_objects(
+                asset.core_path,
+                auth=auth,
+                conn_url=conn_url,
+            )
     except Exception as e:
         if asset.real_path is not None:
             _upload_asset(asset, auth, conn_url)

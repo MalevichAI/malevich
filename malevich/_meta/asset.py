@@ -2,19 +2,33 @@ import os
 from typing import Optional
 
 from .._autoflow import tracer as gn  # engine
+from ..annotations import Asset
 from ..models.nodes.asset import AssetNode
 
 
 class AssetFactory:
     """Creates binary collections (assets) from files or folders"""
 
+    def __new__(
+        cls,
+        core_path: str,
+        alias: Optional[str] = None
+    ) -> Asset:
+        return gn.traced(
+            AssetNode(
+                core_path=core_path,
+                alias=alias,
+            )
+        )
+
+    # TODO: non-traced interface
     @staticmethod
     def file(
         #self,
         path: str,
         name: Optional[str] = None,
         alias: Optional[str] = None
-    ) -> gn.traced[AssetNode]:
+    ) -> Asset:
         """Creates an asset with a single file inside
 
         The argument `name` is used as a name of the asset, so it
@@ -44,7 +58,7 @@ class AssetFactory:
         files: Optional[list[str]] = None,
         folder_path: Optional[str] = None,
         alias: Optional[str] = None,
-    ) -> gn.traced[AssetNode]:
+    ) -> Asset:
         """Creates an asset with multiple files inside
 
         Files are read from specified folder path, or using

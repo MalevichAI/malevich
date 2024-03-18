@@ -40,7 +40,7 @@ class CoreResultPayload:
                 "Composite asset must be an asset"
 
         self._data = data
-        self._is_asset = is_asset
+        self._is_asset = is_asset or is_composite_asset
         self._is_composite_asset = is_composite_asset
         self._is_collection = is_collection
         self._paths = paths or []
@@ -89,6 +89,14 @@ class CoreResultPayload:
                 return self._data[0]
         else:
             return self._data
+
+    def get_path(self) -> str:
+        assert len(self._paths) == 1, (
+            '`get_path` only works with exactly 1 path, '
+            f'but there are {len(self._paths)}'
+        )
+
+        return self._paths[0]
 
     def __str__(self) -> str:
         return (
@@ -229,7 +237,7 @@ class CoreResult(BaseResult[CoreResultPayload]):
             if CoreResult.is_asset(result):
 # if asset
                 # NOTE: Path now returned without /mnt_obj/<user>
-                # prefix, but I remained the code as it was
+                # prefix, but I left the code as it was
                 # before, just in case
 
                 obj_path = CoreResult.extract_path_to_asset(
@@ -254,6 +262,7 @@ class CoreResult(BaseResult[CoreResultPayload]):
                         results.append(CoreResultPayload(
                             data=[object_],
                             is_asset=True,
+                            paths=[obj_path + "/" + objects_.files[0]]
                         ))
                     else:
 # # if multiple files
@@ -284,6 +293,7 @@ class CoreResult(BaseResult[CoreResultPayload]):
                         results.append(CoreResultPayload(
                             data=[object_],
                             is_asset=True,
+                            paths=[obj_path],
                         ))
 # totall failure = keep it as a collection
                     except Exception as _:
@@ -408,7 +418,10 @@ class CoreResult(BaseResult[CoreResultPayload]):
                         "Please use `get_df` or `get_dfs` instead"
                     )
                 elif res.is_asset():
-                    results_.update(res.data)
+                    if res.is_composite_asset():
+                        results_.update(res.data)
+                    else:
+                        results_[res.get_path()] = res.data
             return results_
         else:
             warnings.warn(f"No results found for {self.core_group_name}")

@@ -9,7 +9,7 @@ from malevich_space.ops.space import SpaceOps
 from malevich_space.schema import SpaceSetup, VersionMode
 from malevich_space.schema.cfg import CfgSchema
 from malevich_space.schema.collection_alias import CollectionAliasSchema
-from malevich_space.schema.component import ComponentSchema
+from malevich_space.schema.component import ComponentSchema, LoadedComponentSchema
 from malevich_space.schema.flow import (
     FlowSchema,
     InFlowAppSchema,
@@ -23,7 +23,7 @@ from malevich_space.schema.schema import SchemaMetadata
 from malevich.models.nodes.tree import TreeNode
 
 from .._autoflow import tracer as gn
-from .._autoflow.tracer import traced
+from .._autoflow.tracer import traced, tracedLike
 from .._utility.cache.manager import CacheManager
 from .._utility.logging import LogLevel, cout
 from .._utility.registry import Registry
@@ -752,43 +752,85 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
             'Either reverse_id or deployment_id should be set'
         )
 
-        if reverse_id:
-            component = self.state.space.get_parsed_component_by_reverse_id(
-                reverse_id=reverse_id
-            )
-            if component is not None and component.flow is not None:
-                self.state.flow = component.flow
-                self.state.aux.flow_id = component.flow.uid
-                self.state.components_alias = {
-                    x.uid: x.alias
-                    for x in self.state.flow.components
-                }
-
+        leaf_ = None
+        successful = False
         if deployment_id:
             try:
                 results = self.state.space.client.execute(
                     gql("""
                         query GetTaskCoreId($task_id: String!) {
-                            task(uid: $task_id) {
+                            task(uid: $task_id)` {
                                 details {
                                     coreId
+                                }
+                                component {
+                                    details {
+                                        reverseId
+                                    }
                                 }
                             }
                         }
                         """
-                        ), variable_values={'task_id': deployment_id}
+                    ), variable_values={'task_id': deployment_id}
                 )
                 self.state.aux.core_task_id = results['task']['details']['coreId']
+                reverse_id = results['task']['component']['details']['reverseId']
                 self.state.aux.task_id = deployment_id
+                successful |= True
             except Exception:
-                if reverse_id is None or component is None:
+                if reverse_id is None:
                     raise Exception(
                         'Could not attach to the flow. '
                         '`deployment_id` is not correct and '
                         '`reverse_id` is either not correct or provided'
                     )
 
-        return SpaceTask(
+        component: LoadedComponentSchema | None = self.state.space.get_parsed_component_by_reverse_id(
+            reverse_id=reverse_id
+        )
+
+        if component is not None and component.flow is not None:
+            self.state.flow = component.flow
+            self.state.aux.flow_id = component.flow.uid
+            self.state.components_alias = {
+                x.uid: x.alias
+                for x in component.flow.components
+            }
+            successful |= True
+            all_components = {x.uid for x in component.flow.components}
+            prev_components = set.union(
+                set(),
+                *[{x.uid for x in y.prev}
+                 for y in component.flow.components]
+            )
+            leaves = all_components.difference(prev_components)
+            # NOTE: there can be more leaves in future
+            leave_aliasses = [
+                x.alias
+                for x in component.flow.components
+                if x.uid in (leaves)
+            ]
+
+            leaf_nodes = [
+                tracedLike(BaseNode(alias=x))
+                for x in leave_aliasses
+            ]
+
+        else:
+            raise Exception(
+                'Could not attach to the flow. Component failed to be parsed.'
+            )
+
+        if not successful:
+            raise Exception(
+                "Failed to attach to the task. Possible reasons are: "
+                "could not find neither component nor deployment."
+            )
+
+        task = SpaceTask(
             state=self.state,
             component=component
         )
+
+        task.commit_returned(leaf_nodes)
+        return task

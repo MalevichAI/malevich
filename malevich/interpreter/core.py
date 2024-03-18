@@ -6,6 +6,8 @@ from typing import Optional
 import malevich_coretools as core
 from malevich_space.schema import ComponentSchema
 
+from ..models.in_app_core_info import InjectedAppInfo
+
 from .._autoflow.tracer import traced
 from .._core.ops import (
     _assure_asset,
@@ -14,7 +16,7 @@ from .._core.ops import (
 )
 from .._utility.cache.manager import CacheManager
 from .._utility.logging import LogLevel, cout
-from ..constants import DEFAULT_CORE_HOST
+from ..constants import CORE_INTERPRETER_IN_APP_INFO_KEY, DEFAULT_CORE_HOST
 from ..interpreter.abstract import Interpreter
 from ..models.actions import Action
 from ..models.argument import ArgumentLink
@@ -340,13 +342,13 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                 'image_ref': image_ref,
                 'app_cfg': {
                     **op.config,
-                    '__core__': {
-                        'conn_url': self.__core_host,
-                        'auth': self.__core_auth,
-                        'app_id': app_core_name,
-                        'image_auth':  (image_auth_user, image_auth_pass),
-                        'image_ref': image_ref,
-                    }
+                    CORE_INTERPRETER_IN_APP_INFO_KEY: InjectedAppInfo(
+                        conn_url=self.__core_host,
+                        auth=self.__core_auth,
+                        app_id=app_core_name,
+                        image_auth=(image_auth_user, image_auth_pass),
+                        image_ref=image_ref
+                    ).model_dump()
                 },
                 'uid': op.uuid,
                 'platform': 'base',

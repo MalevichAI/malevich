@@ -157,14 +157,19 @@ class StubFunction(BaseModel):
                     )
 
                 if 'typing' in str(config_fields[field].annotation):
+                    # typing.Union, typing.Optional
                     annotation = str(config_fields[field].annotation)
                 elif hasattr(config_fields[field].annotation, "__name__"):
+                    # class
                     annotation = config_fields[field].annotation.__name__
                 else:
+                    # etc.
                     annotation = str(config_fields[field].annotation)
 
-                if not config_fields[field].is_required() or 'Optional' in str(annotation):
+                if not config_fields[field].is_required() and 'Optional' not in str(annotation):  # noqa: E501
                     def_ += f'\n\t{field}: Optional["{annotation}"]' + " = None,"
+                elif not config_fields[field].is_required():
+                    def_ += f'\n\t{field}: "{annotation}"' + " = None,"
                 else:
                     def_ += f'\n\t{field}: "{annotation}"' + ","
 

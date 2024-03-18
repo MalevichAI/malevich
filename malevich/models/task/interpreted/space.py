@@ -78,7 +78,9 @@ class SpaceTask(BaseTask):
         *args,
         **kwargs
     ) -> None:
-        self.state.aux.flow_id = self.component.flow.uid
+        if not self.state.aux.flow_id:
+            self.state.aux.flow_id = self.component.flow.uid
+
         if use_v1:
             task_id = self.state.space.build_task(
                 flow_id=self.component.flow.uid,
@@ -341,7 +343,7 @@ class SpaceTask(BaseTask):
         run_id: Optional[str] = None,
         *args,
         **kwargs
-    ) -> Iterable[SpaceCollectionResult]:
+    ) -> list[SpaceCollectionResult]:
         import asyncio
         import warnings
 
