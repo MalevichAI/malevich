@@ -118,7 +118,7 @@ Update an endpoint
 ------------------
 
 You can update already running endpoint. It can be some minor adjustments or a complete change of the logic. To update,
-you can run :meth:`publish <malevich.models.task.promised.PromisedTask.publish>` method with `hash=` argument. It will update the endpoint under specified hash.
+you can run :meth:`publish <malevich.models.task.promised.PromisedTask.publish>` method with ``hash=`` argument. It will update the endpoint under specified hash.
 
 
 .. code-block:: python
