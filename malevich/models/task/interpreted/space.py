@@ -299,7 +299,7 @@ class SpaceTask(BaseTask):
             )
 
         exc_message = None
-        if rs_ != AppStatus.COMPLETE:
+        if rs_ != AppStatus.COMPLETE.value:
             finished_ = {
                 x.in_flow_comp_id for x in cs_ if x.status == AppStatus.COMPLETE.value
             }
