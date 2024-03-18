@@ -94,6 +94,27 @@ class TestOneToMany(FlowTestSuite):
             assert row['E'] == 10
             assert row['Q'] == row['D']
 
+class TestSpaceCoreFlow(FlowTestSuite):
+    environment = FlowTestEnv(
+        dependencies={
+            "utility": SpaceDependency(package_id="utility", options=SpaceDependencyOptions(reverse_id='utility'))
+        }
+    )
+    interpreter = CoreInterpreter(core_auth=('leo', 'pak'))
+    
+    @flow
+    def my_flow():
+        from malevich import collection, table
+        from malevich.utility import add_column
+
+        x = collection('test_collection', df=table([1, 2, 3], columns=['x']))
+        return add_column(x)
+
+    @staticmethod
+    def on_result(flow, results):
+        assert 'new_column' in results[0].get_df()
+
+
 class TestSpaceFlow(FlowTestSuite):
     environment = FlowTestEnv(
         dependencies={
