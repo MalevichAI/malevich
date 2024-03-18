@@ -56,7 +56,6 @@ class TestManyToOne(FlowTestSuite):
 class TestOneToMany(FlowTestSuite):
    environment = FlowTestEnv(dependencies={
       "utility": ImageDependency(package_id='utility'),
-      "scrape": ImageDependency(package_id="scrape")
    })
    interpreter = CoreInterpreter(core_auth=('leo', 'pak'))
 
