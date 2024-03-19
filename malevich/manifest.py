@@ -90,6 +90,19 @@ class ManifestManager(metaclass=SingletonMeta):
         pydml.to_yaml_file(self.__secrets_path, self.__secrets)
         self.__secrets = pydml.parse_yaml_file_as(Secrets, self.__secrets_path)
 
+    @staticmethod
+    def __map(obj, f) -> dict | list | None:
+        """Deep key map"""
+        if isinstance(obj, list):
+            for i, x in enumerate(obj):
+                obj[i] = ManifestManager.__map(x, f)
+        if isinstance(obj, dict):
+            for x in obj:
+                obj[x] = ManifestManager.__map(obj[x], f)
+        else:
+            obj = f(obj)
+        return obj
+
     def __query_list(
             self, __list: list[str | dict[str, Any]], __key: str
         ) -> Any:  # noqa: ANN401
@@ -145,14 +158,28 @@ class ManifestManager(metaclass=SingletonMeta):
                 cursor = cursor[key]
             else:
                 return None
-        if (
-            cursor is not None
-            and resolve_secrets
-            and isinstance(cursor, str)
-            and re.match(r"^secret#[0-9]{1,6}", cursor)
-        ):
-            return self.query_secret(cursor).secret_value
+
+        if resolve_secrets:
+            def __mapf(x) -> str:
+                if (
+                    x is not None
+                    and isinstance(x, str)
+                    and re.match(r"^secret#[0-9]{1,6}", x)
+                ):
+                    return self.query_secret(x, only_value=True)
+                else:
+                    return x
+
+            return ManifestManager.__map(cursor, __mapf)
         return cursor
+        # if (
+        #     cursor is not None
+        #     and resolve_secrets
+        #     and isinstance(cursor, str)
+        #     and re.match(r"^secret#[0-9]{1,6}", cursor)
+        # ):
+        #     return self.query_secret(cursor).secret_value
+        # return cursor
 
     def put(
         self, *path: Iterable[str], value: Any, append: bool = False  # noqa: ANN401

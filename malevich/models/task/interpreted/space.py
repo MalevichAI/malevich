@@ -142,14 +142,6 @@ class SpaceTask(BaseTask):
                 continue
 
         for in_flow_id, df in override.items():
-            if id_to_ca[in_flow_id] not in coll_override:
-                warnings.warn(
-                    f"{in_flow_id} not a valid operation. Call "
-                    "`get_injectables()` to obtain a list of valid keys "
-                    "for override."
-                )
-                # continue
-
             uid = self.state.space.create_collection(
                 host_id=self.state.host.uid,
                 # core_id=f'override-{coll_id}-{state.interpretation_id}',
@@ -242,9 +234,10 @@ class SpaceTask(BaseTask):
         alias_to_in_flow_id = {
             x.alias: x.uid
             for x in self.component.flow.components
+            if x.collection is not None
         }
         aliases = set()
-        aliases.update(*alias_to_snapshot.keys())
+        # aliases.update(alias_to_snapshot.keys())
         aliases.update(alias_to_in_flow_id.keys())
 
         return [
@@ -299,7 +292,7 @@ class SpaceTask(BaseTask):
             )
 
         exc_message = None
-        if rs_ != AppStatus.COMPLETE:
+        if rs_ != AppStatus.COMPLETE.value:
             finished_ = {
                 x.in_flow_comp_id for x in cs_ if x.status == AppStatus.COMPLETE.value
             }

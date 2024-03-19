@@ -6,7 +6,7 @@ import typer.core
 
 from malevich._utility.package import PackageManager
 
-from ..commands.prefs import prefs as prefs
+from .._cli.prefs import prefs as prefs
 from ..manifest import ManifestManager
 
 

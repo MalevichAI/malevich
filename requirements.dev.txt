@@ -29,3 +29,4 @@ kafka-python
 deprecated
 datamodel-code-generator
 wget
+duckdb
