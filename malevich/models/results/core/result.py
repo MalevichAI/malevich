@@ -40,7 +40,7 @@ class CoreResultPayload:
                 "Composite asset must be an asset"
 
         self._data = data
-        self._is_asset = is_asset
+        self._is_asset = is_asset or is_composite_asset
         self._is_composite_asset = is_composite_asset
         self._is_collection = is_collection
         self._paths = paths or []
@@ -89,6 +89,14 @@ class CoreResultPayload:
                 return self._data[0]
         else:
             return self._data
+
+    def get_path(self) -> str:
+        assert len(self._paths) == 1, (
+            '`get_path` only works with exactly 1 path, '
+            f'but there are {len(self._paths)}'
+        )
+
+        return self._paths[0]
 
     def __str__(self) -> str:
         return (
@@ -153,7 +161,7 @@ class CoreResult(BaseResult[CoreResultPayload]):
 
     @staticmethod
     def is_asset(data: pd.DataFrame) -> bool:
-        return data.shape == (1, 1) and data.columns[0] == "path"
+        return len(data.columns) > 0 and data.columns[0] == "path"
 
     @staticmethod
     def extract_path_to_asset(path: str, user: str) -> str:
@@ -163,6 +171,7 @@ class CoreResult(BaseResult[CoreResultPayload]):
         self,
         core_group_name: str,
         core_operation_id: str,
+        core_run_id: str,
         conn_url: str,
         auth: core.AUTH,
     ) -> None:
@@ -170,6 +179,12 @@ class CoreResult(BaseResult[CoreResultPayload]):
         self._conn_url = conn_url
         self._auth = auth
         self.core_operation_id = core_operation_id
+        self.core_run_id = core_run_id
+
+    @property
+    def num_elements(self) -> int:
+        """The number of elements (assets/collections) in the result"""
+        return super().num_elements
 
     @property
     def num_elements(self) -> int:
@@ -207,6 +222,7 @@ class CoreResult(BaseResult[CoreResultPayload]):
             x.id for x in core.get_collections_by_group_name(
                 self.core_group_name,
                 operation_id=self.core_operation_id,
+                run_id=self.core_run_id,
                 auth=self._auth,
                 conn_url=self._conn_url
             ).data
@@ -226,7 +242,7 @@ class CoreResult(BaseResult[CoreResultPayload]):
             if CoreResult.is_asset(result):
 # if asset
                 # NOTE: Path now returned without /mnt_obj/<user>
-                # prefix, but I remained the code as it was
+                # prefix, but I left the code as it was
                 # before, just in case
 
                 obj_path = CoreResult.extract_path_to_asset(
@@ -251,6 +267,7 @@ class CoreResult(BaseResult[CoreResultPayload]):
                         results.append(CoreResultPayload(
                             data=[object_],
                             is_asset=True,
+                            paths=[obj_path + "/" + objects_.files[0]]
                         ))
                     else:
 # # if multiple files
@@ -281,6 +298,7 @@ class CoreResult(BaseResult[CoreResultPayload]):
                         results.append(CoreResultPayload(
                             data=[object_],
                             is_asset=True,
+                            paths=[obj_path],
                         ))
 # totall failure = keep it as a collection
                     except Exception as _:
@@ -405,7 +423,10 @@ class CoreResult(BaseResult[CoreResultPayload]):
                         "Please use `get_df` or `get_dfs` instead"
                     )
                 elif res.is_asset():
-                    results_.update(res.data)
+                    if res.is_composite_asset():
+                        results_.update(res.data)
+                    else:
+                        results_[res.get_path()] = res.data
             return results_
         else:
             warnings.warn(f"No results found for {self.core_group_name}")
@@ -431,13 +452,17 @@ class CoreLocalDFResult(BaseResult[pd.DataFrame]):
         self._auth = auth
         self._conn_url = conn_url
 
+    def num_elements(self) -> int:
+        """The number of elements (assets/collections) in the result"""
+        return 1
+
     def get(self) -> pd.DataFrame | None:
         """Simply extracts saved data frame
 
         Returns:
             :class:`DataFrame`: Saved data frame
         """
-        if self._coll.collection_data:
+        if self._coll.collection_data is not None:
             return self._coll.collection_data
 
         # NOTE: Maybe it is better to try

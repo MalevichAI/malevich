@@ -79,7 +79,10 @@ class traced(Generic[T]):  # noqa: N801
 
     @property
     def owner(self) -> T:
-        return self._owner
+        if hasattr(self, '_owner'):
+            return getattr(self, '_owner')
+        else:
+            return None
 
     def __eq__(self, other: "traced") -> bool:
         if not isinstance(other, traced):

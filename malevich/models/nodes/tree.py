@@ -19,9 +19,6 @@ class TreeNode(BaseNode):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def __eq__(self, __value: object) -> bool:
-        return self.uuid == __value.uuid
-
     def get_senstivite_fields(self) -> dict[str, str]:
         in_nodes_fields = {}
         for u, v, _ in self.tree.tree:
@@ -61,3 +58,13 @@ class TreeNode(BaseNode):
 
     def __hash__(self) -> int:
         return super().__hash__()
+
+
+    def __eq__(self, __value: object) -> bool:
+        if not isinstance(__value, TreeNode):
+            return False
+
+        eq_ = self.uuid == __value.uuid
+        if self.underlying_node or __value.underlying_node:
+            eq_ &= self.underlying_node == __value.underlying_node
+        return eq_

@@ -3,19 +3,8 @@ from typing import Any, Optional
 from malevich_space.schema import SpaceSetup
 from pydantic import BaseModel
 
+from .dependency import Dependency
 from .preferences import UserPreferences
-
-
-class Dependency(BaseModel):
-    package_id: str
-    version: str
-    installer: str
-    options: Any
-
-    def simple(self) -> dict[str, Any]:
-        return {
-            **self.options.model_dump()
-        }
 
 
 class Manifest(BaseModel):

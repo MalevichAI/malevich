@@ -3,6 +3,7 @@ from .collection import collection
 from .config import config
 from .flow import flow
 from .run import run
+from .table import table
 
 __all__ = [
     "AssetFactory",
@@ -10,4 +11,5 @@ __all__ = [
     "config",
     "flow",
     "run",
+    "table"
 ]

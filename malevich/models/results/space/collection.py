@@ -24,6 +24,9 @@ class SpaceCollectionResult(BaseResult[list[pd.DataFrame]]):
         self.in_flow_id = in_flow_id
         self._ops = space_ops
 
+    def num_elements(self) -> int:
+        return len(self.get())
+
     @cache
     def get(self) -> list[pd.DataFrame]:
         """Fetches a list of DataFrames with the actual result

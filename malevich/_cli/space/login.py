@@ -1,22 +1,41 @@
 import re
+<<<<<<< HEAD:malevich/commands/space/login.py
 from typing import Optional
 
 import rich
+=======
+from typing import Annotated, Optional
+
+import rich
+import typer
+>>>>>>> dev/unstable:malevich/_cli/space/login.py
 from malevich_space.ops import SpaceOps
 from malevich_space.schema import HostSchema, SpaceSetup
 from rich.prompt import Prompt
 
+<<<<<<< HEAD:malevich/commands/space/login.py
 from ...commands.prefs import prefs as prefs
+=======
+from ..._cli.prefs import prefs as prefs
+>>>>>>> dev/unstable:malevich/_cli/space/login.py
 from ...constants import DEFAULT_CORE_HOST, PROD_SPACE_API_URL
 from ..manifest import ManifestManager
 
 
 def login(
+<<<<<<< HEAD:malevich/commands/space/login.py
+=======
+    no_input: bool = typer.Option(False, "--no-input"),
+>>>>>>> dev/unstable:malevich/_cli/space/login.py
     api_url: str = PROD_SPACE_API_URL,
     core_url: str = DEFAULT_CORE_HOST,
     space_url: Optional[str] = None,
     username: Optional[str] = None,
     password: Optional[str] = None,
+<<<<<<< HEAD:malevich/commands/space/login.py
+=======
+    org_id: Optional[str] = None,
+>>>>>>> dev/unstable:malevich/_cli/space/login.py
 ) -> None:
     if not space_url:
         domain = re.search(r"\/\/(.*)api\.(.+)\/?", api_url)
@@ -31,6 +50,7 @@ def login(
         base_space_url = f'{left}space{right}'.rstrip('/')
         api_url = f'https://{left}api{right}/'
 
+<<<<<<< HEAD:malevich/commands/space/login.py
     manf = ManifestManager()
     rich.print("[b]Welcome to [purple]Malevich Space[/purple]![/b]"
                " The command allows you to connect your account "
@@ -45,10 +65,46 @@ def login(
     if not password:
         password = Prompt.ask("Password", password=True)
 
+=======
+
+    if no_input and (username is None or password is None):
+        rich.print("[red]You have to set --username and --password parameters, "
+                   "if --no-input is used[/red]")
+        exit(-1)
+
+    manf = ManifestManager()
+    rich.print(
+        "[b]Welcome to [purple]Malevich Space[/purple]![/b]"
+        " The command allows you to connect your account "
+        f"to [bright_cyan]{space_url}[/bright_cyan]"
+        "[bright_black]\nIf you don't have an account, "
+        "please create one and come back.[/bright_black]\n"
+    )
+
+    if not username:
+        username = Prompt.ask(
+            f"E-mail (or Username) on [bright_cyan]{base_space_url}[/bright_cyan]"
+        )
+    if not password:
+        password = Prompt.ask(
+            "Password",
+            password=True
+        )
+
+    if not org_id and not no_input:
+        org_id = Prompt.ask(
+            "Organization Slug (leave blank to use personal account)",
+            default=None,
+        )
+>>>>>>> dev/unstable:malevich/_cli/space/login.py
     setup = SpaceSetup(
         api_url=api_url,
         username=username,
         password=password,
+<<<<<<< HEAD:malevich/commands/space/login.py
+=======
+        org=org_id,
+>>>>>>> dev/unstable:malevich/_cli/space/login.py
         host=HostSchema(
             conn_url=core_url,
         )

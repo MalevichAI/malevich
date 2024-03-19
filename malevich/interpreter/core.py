@@ -1,39 +1,37 @@
-import enum
 import json
-import os
 import uuid
 from collections import defaultdict
-from copy import deepcopy
-from typing import Any, Iterable, Optional
+from typing import Optional
 
 import malevich_coretools as core
-import pandas as pd
+from malevich_space.schema import ComponentSchema
 
 from .._autoflow.tracer import traced
 from .._core.ops import (
     _assure_asset,
-    batch_create_apps,
-    batch_create_tasks,
     batch_upload_collections,
     result_collection_name,
 )
 from .._utility.cache.manager import CacheManager
 from .._utility.logging import LogLevel, cout
-from .._utility.registry import Registry
-from ..constants import DEFAULT_CORE_HOST
+from ..constants import CORE_INTERPRETER_IN_APP_INFO_KEY, DEFAULT_CORE_HOST
 from ..interpreter.abstract import Interpreter
-from ..manifest import ManifestManager
 from ..models.actions import Action
 from ..models.argument import ArgumentLink
 from ..models.exceptions import InterpretationError
-from ..models.injections import BaseInjectable
+from ..models.in_app_core_info import InjectedAppInfo
 from ..models.nodes import BaseNode, CollectionNode, OperationNode
 from ..models.nodes.asset import AssetNode
 from ..models.nodes.tree import TreeNode
 from ..models.preferences import VerbosityLevel
 from ..models.registry.core_entry import CoreRegistryEntry
+<<<<<<< HEAD
 from ..models.results.core.result import CoreLocalDFResult, CoreResult
 from ..models.task.interpreted import InterpretedTask
+=======
+from ..models.state.core import CoreInterpreterState
+from ..models.task.interpreted.core import CoreTask
+>>>>>>> dev/unstable
 
 cache = CacheManager()
 
@@ -66,38 +64,100 @@ def _name(base: str) -> int:
     return names_[base]
 
 
-class PrepareStages(enum.Enum):
-    BUILD = 0b01
-    BOOT = 0b10
-    ALL = 0b11
+
+class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
+    """Interpret flows to be run on Malevich Core
+
+    Malevich Core is a computational cloud of Malevich. It provides
+    low-level access to the computational resources of Malevich. This
+    interpreter utilizes its API to run your flows.
+
+    .. note::
+
+        The interpreter can operate with dependencies installed with
+        both `image` and `space` installer.
+
+    Prepare
+    ---------
+
+    The prepare hook is a simple proxy to the `task_prepare` function
+    of Malevich Core API. All the parameters are optional.
+
+    Options:
+
+    *   :code:`with_logs (bool)`:
+            If set, return prepare logs if True after end
+    *   :code:`debug_mode (bool)`:
+            If set, displays additional information about errors
+    *   :code:`info_url (str)`:
+            URL to which the request is sent. If not specified, the default url is used.
+            Rewrite msg_url from configuration if exist
+    *   :code:`core_manage (bool)`:
+            If set, the requests will be managed by Core, otherwise by the DAG Manager.
+    *   :code:`with_show (bool)`:
+            Show results (like for each operation, default equals with_logs arg)
+    *   :code:`profile_mode (str)`:
+            If set, provides more information in logs.
+            Possible modes: :code:`no`, :code:`all`, :code:`time`,
+            :code:`df_info`, :code:`df_show`
+
+    Run
+    -----
+
+    The run hook is a simple proxy to the `task_run` function
+    of Malevich Core API. All the parameters are optional.
+
+    Options:
+
+        **Interpreter-specific parameters**
+
+        * :code:`run_id (str)`:
+            A custom identifier for the run. If not specified, a random
+            identifier is generated.
+        * :code:`overrides (dict[str, str])`:
+            A dictionary of overrides for the collections. The keys are
+            collection names, the values are collection IDs. The option
+            is managed by Runners, but can be provided manually.
+
+        **Core-API parameters**
+
+        * :code:`with_logs (bool)`:
+            If set return prepare logs if True after end
+        * :code:`debug_mode (bool)`:
+            If set, displays additional information about errors
+        * :code:`with_show (bool)`:
+            Show results in logs
+        * :code:`profile_mode (str)`:
+            If set, provides more information in logs.
+            Possible modes: :code:`no`, :code:`all`, :code:`time`,
+            :code:`df_info`, :code:`df_show`
 
 
-class CoreParams:
-    operation_id: str
-    task_id: str
-    core_host: str
-    core_auth: tuple[str, str]
-    base_config: core.Cfg
-    base_config_id: str
+    Stop
+    ------
 
-    def __init__(self, **kwargs) -> None:
-        self.operation_id = kwargs.get('operation_id', None)
-        self.task_id = kwargs.get('task_id', None)
-        self.core_host = kwargs.get('core_host', None)
-        self.core_auth = kwargs.get('core_auth', None)
-        self.base_config = kwargs.get('base_config', None)
-        self.base_config_id = kwargs.get('base_config_id', None)
+    The stop hook is a simple proxy to the `task_stop` function.
+    It stops the task and does not have any options.
 
-    def __getitem__(self, key: str) -> Any:  # noqa: ANN401
-        return getattr(self, key)
+    Results
+    -------
 
-    def __setitem__(self, key: str, value: Any) -> None:  # noqa: ANN401
-        setattr(self, key, value)
+    Results is represented as a list of :class:`malevich.results.core.CoreResult`
+    objects. Each object contains a payload which can be an asset, a dataframe or
+    a list of such. Use :code:`.get_df()`, :code:`.get_binary()`, :code:`.get_dfs()`
+    and :code:`.get_binary_dir()` to extract the results.
 
-    def __contains__(self, key: str) -> bool:
-        return hasattr(self, str(key))
+    Configure
+    ---------
 
+    You can mark an operation to be run on a specific platform. To do so,
+    set :code:`platform` and :code:`platform_settings` parameters in the
+    :code:`.configure()` method. The :code:`platform` parameter can be
+    :code:`base` or :code:`vast`. The :code:`platform_settings` parameter
+    is a dictionary of settings for the platform. The settings are
+    platform-specific.
 
+<<<<<<< HEAD
 class CoreInterpreterState:
     """State of the CoreInterpreter"""
 
@@ -243,6 +303,8 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
     is a dictionary of settings for the platform. The settings are
     platform-specific.
 
+=======
+>>>>>>> dev/unstable
     """
 
     def __init__(
@@ -260,8 +322,12 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
     def _result_collection_name(self, operation_id: str) -> str:
         return result_collection_name(operation_id)
 
-    def _write_cache(self, object: object, path: str) -> None:
-        json.dump(object, cache.get_file(os.path.join('core', path), 'w+'))
+    def _write_cache(self, object: object, name: str) -> None:
+        cache.core.write_entry(
+            json.dumps(object),
+            entry_name=name,
+            entry_group='interpreter/artifacts'
+        )
 
     def _create_cfg_safe(
         self,
@@ -291,6 +357,9 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                 **kwargs
             )
 
+    def interpret(self, node: TreeNode, component: ComponentSchema = None):  # noqa: ANN201
+        return super().interpret(node, component)
+
     def create_node(
         self, state: CoreInterpreterState, node: traced[BaseNode]
     ) -> CoreInterpreterState:
@@ -315,7 +384,11 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
 
     def before_interpret(self, state: CoreInterpreterState) -> CoreInterpreterState:
         _log("Connection to Core is established.", 0, 0, True)
+<<<<<<< HEAD
         _log(f"Core host: {self.__core_host}", 0, -1, True)
+=======
+        _log(f"Core host: {self.__core_host}", 0, 0, True)
+>>>>>>> dev/unstable
         try:
             core.check_auth(
                 auth=self.__core_auth,
@@ -411,38 +484,47 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                 }
                 state.extra_colls[op.uuid][link.name] = coll
 
-            app_core_name = op.uuid + \
-                f"-{extra['processor_id']}-{op.alias}"
-
             if not op.alias:
-                op.alias = extra["processor_id"] + '-' + \
-                    str(_name(extra["processor_id"]))
+                op.alias = extra["processor_id"] + '-' + str(_name(extra["processor_id"]))  # noqa: E501
 
+            app_core_name = op.uuid + f"-{extra['processor_id']}-{op.alias}"
+
+            state.task_aliases[op.alias] = app_core_name
             state.core_ops[op.uuid] = app_core_name
             state.app_args[op.uuid] = {
                 'app_id': app_core_name,
                 'extra': extra,
                 'image_auth': (image_auth_user, image_auth_pass),
                 'image_ref': image_ref,
-                'app_cfg': op.config,
+                'app_cfg': {
+                    **op.config,
+                    CORE_INTERPRETER_IN_APP_INFO_KEY: InjectedAppInfo(
+                        conn_url=self.__core_host,
+                        auth=self.__core_auth,
+                        app_id=app_core_name,
+                        image_auth=(image_auth_user, image_auth_pass),
+                        image_ref=image_ref
+                    ).model_dump()
+                },
                 'uid': op.uuid,
-                'platform': 'base'
+                'platform': 'base',
+                'alias': op.alias
             }
-            state.results[op.uuid] = self._result_collection_name(op.uuid)
+            state.results[op.uuid] = result_collection_name(op.uuid, op.alias)
 
         _log("Uploading to Core is completed.", step=True)
         return state
 
     def get_task(
         self, state: CoreInterpreterState
-    ) -> InterpretedTask[CoreInterpreterState]:
+    ) -> CoreTask:
         """Creates an instance of task using interpreted state
 
         Args:
             state (CoreInterpreterState): State of the interpreter
 
         Returns:
-            InterpretedTask[CoreInterpreterState]: An instance of task
+            CoreTask: An instance of task
         """
         _log("Task is being compiled...")
         task_kwargs = []
@@ -496,13 +578,14 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         state.params.base_config_id = __cfg
         state.params.base_config = state.cfg
 
-        self._create_cfg_safe(**config_kwargs)
+        # self._create_cfg_safe(**config_kwargs)
         # ____________________________________________
 
         # NOTE: New core representation should affect this line
         # Extracting the only leave to supply it to task run
         leaves = [*self._tree.leaves()]
 
+<<<<<<< HEAD
         # ____________________________________________
         # Now, callbacks are declared. Callbacks are then available
         # from PromisedTask interface. That way of function declaration
@@ -746,25 +829,29 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
             run=run,
             stop=stop,
             results=results,
+=======
+        return CoreTask(
+>>>>>>> dev/unstable
             state=state,
-            get_injectables=injectables,
-            # TODO: Make it more robust
-            get_operations=ops,
-            configure=configure
+            task_kwargs=task_kwargs,
+            config_kwargs=config_kwargs,
+            leaf_node_uid=leaves[0].owner.uuid,
+            component=self._component,
         )
 
-    def get_results(
-        self,
-        task_id: str,
-        returned: Iterable[traced[BaseNode]] | traced[BaseNode] | None,
-        run_id: Optional[str] = None,
-    ) -> Iterable[pd.DataFrame]:
-        if not returned:
-            return None
+    # def get_results(
+    #     self,
+    #     task_id: str,
+    #     returned: Iterable[traced[BaseNode]] | traced[BaseNode] | None,
+    #     run_id: Optional[str] = None,
+    # ) -> Iterable[pd.DataFrame]:
+    #     if not returned:
+    #         return None
 
-        if isinstance(returned, traced):
-            returned = [returned]
+    #     if isinstance(returned, traced):
+    #         returned = [returned]
 
+<<<<<<< HEAD
         results = []
         for r in returned:
             node = r.owner
@@ -801,3 +888,41 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
         # return results[0] if len(results) == 1 else results
         return results
 
+=======
+    #     results = []
+    #     for r in returned:
+    #         node = r.owner
+    #         if isinstance(node, CollectionNode):
+    #             results.append(
+    #                 CoreLocalDFResult(
+    #                     dfs=[node.collection.collection_data]
+    #                 )
+    #             )
+    #         elif isinstance(node, OperationNode):
+    #             results.append(CoreResult(
+    #                 core_group_name=
+    #                     self._result_collection_name(node.uuid) +   #group_name
+    #                     (f'_{run_id}' if run_id else ''),           #group_name
+    #                 core_operation_id=task_id,
+    #                 auth=self.state.params["core_auth"],
+    #                 conn_url=self.state.params["core_host"],
+    #             ))
+    #         elif isinstance(node, AssetNode):
+    #             results.append(CoreResult(
+    #                 core_group_name=
+    #                     self._result_collection_name(node.uuid) +   #group_name
+    #                     (f'_{run_id}' if run_id else ''),           #group_name
+    #                 core_operation_id=task_id,
+    #                 auth=self.state.params["core_auth"],
+    #                 conn_url=self.state.params["core_host"],
+    #             ))
+
+    #         elif isinstance(node, TreeNode):
+    #             results.extend(self.get_results(
+    #                 task_id=task_id, returned=node.results, run_id=run_id
+    #             )
+    #         )
+    #     # return results[0] if len(results) == 1 else results
+    #     return results
+
+>>>>>>> dev/unstable
