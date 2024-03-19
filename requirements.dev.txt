@@ -28,3 +28,4 @@ sphinxcontrib-serializinghtml
 kafka-python
 deprecated
 datamodel-code-generator
+duckdb
