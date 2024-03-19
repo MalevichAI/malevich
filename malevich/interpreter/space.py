@@ -96,30 +96,6 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
     Prepare
     ---------
 
-<<<<<<< HEAD
-class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
-    """
-    Interpret flows to be added and uploaded to your Malevich Space workspace.
-
-    .. note::
-
-        The interpreter can only operate with dependencies installed with
-        both `space` installer.
-
-    .. warning::
-
-        Interpreting flows with this interpreter will immediately upload
-        the flow to your Malevich Space workspace. Use :meth:`.interpret`
-        wisely.
-
-    Interpretation is equivalent to the Add
-    action or :code:`malevich space component add` command.
-
-    Prepare
-    ---------
-
-=======
->>>>>>> dev/unstable
     Preparation creates a deployment of the flow in the Malevich Space.
     It is equialent to the Build action or :code:`malevich space component build` and
     :code:`malevich space component boot` commands.
@@ -208,14 +184,8 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
         self,
         setup: SpaceSetup = None,
         ops: SpaceOps = None,
-<<<<<<< HEAD
-        name: Optional[str] = None,
-        reverse_id: Optional[str] = None,
-        description: Optional[str] = None,
-=======
         version_mode: VersionMode = VersionMode.PATCH,
         update_collections: bool = False,
->>>>>>> dev/unstable
     ) -> None:
         """Space Interpreter
 
@@ -227,12 +197,8 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
         self._state = SpaceInterpreterState()
         if not setup and not ops:
             try:
-<<<<<<< HEAD
-                setup = resolve_setup(manf.query("space", resolve_secrets=True))
-=======
                 setup = resolve_setup(manf.query(
                     "space", resolve_secrets=True))
->>>>>>> dev/unstable
             except Exception as e:
                 raise InterpretationError(
                     "Failed to resolve space setup. "
