@@ -2,9 +2,10 @@ from malevich import CoreInterpreter, SpaceInterpreter,flow
 from malevich.models.flow_function import FlowFunction
 from malevich.models.results.base import BaseResult
 from malevich import VersionMode
-from malevich.testing import FlowTestEnv, FlowTestSuite, ImageDependency, SpaceDependency, SpaceDependencyOptions
+from malevich.testing import FlowTestEnv, FlowTestSuite, ImageDependency, SpaceDependency, SpaceDependencyOptions, ImageOptions
 from pydantic import BaseModel
 import os
+import pandas as pd
 
 class TestUtility(FlowTestSuite):
   environment = FlowTestEnv(dependencies={
@@ -136,4 +137,29 @@ class TestSpaceFlow(FlowTestSuite):
         for _, row in data.iterrows():
             assert row['test1'] == row['test2']
 
+class TestEmptyDFResult(FlowTestSuite):
+    environment = FlowTestEnv(dependencies={
+      "empty": ImageDependency(package_id="empty", options=ImageOptions(image_ref="ghcr.io/malevichai/test:empty"))
+    })
+    interpreter = CoreInterpreter(core_auth=('leo', 'pak'))    
+
+    @flow
+    def test_empty_df():
+        from malevich import collection
+        from malevich.empty import get_empty
+
+        data = collection(
+            name="empty",
+            df=pd.DataFrame(
+                ['hello'],
+                columns=['empty']
+            )
+        )
+
+        data1 = get_empty(data)
+
+        return data1 
     
+    @staticmethod
+    def on_result(flow, results) -> None:
+        assert results[0].get_dfs()[0].size == 0
