@@ -21,6 +21,16 @@ class MetaEndpoint(Endpoint):
         *args,
         **kwargs
     ) -> AppLogsWithResults | FlattenAppLogsWithResults:
+        """Runs the endpoint with the given override.
+
+        Args:
+            endpoint_override (EndpointOverride): Override for the endpoint.
+            with_auth (bool, optional): Whether to authenticate the author of the run.
+                Defaults to False.
+
+        Returns:
+            AppLogsWithResults | FlattenAppLogsWithResults
+        """
         return run_endpoint(
             self.hash,
             endpoint_override,

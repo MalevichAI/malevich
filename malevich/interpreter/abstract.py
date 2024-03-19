@@ -255,7 +255,7 @@ class Interpreter(Generic[State, Return]):
         pass
 
     @abstractmethod
-    def get_task(self, state: State) -> Any:  # noqa: ANN401
+    def get_task(self, state: State) -> Return:
         """Called after the interpretation process ends
 
         Args:

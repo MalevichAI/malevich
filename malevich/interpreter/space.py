@@ -75,7 +75,7 @@ def _name(base: str) -> int:
     return names_[base]
 
 
-class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
+class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
     """
     Interpret flows to be added and uploaded to your Malevich Space workspace.
 

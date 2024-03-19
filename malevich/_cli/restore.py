@@ -3,7 +3,7 @@ import concurrent.futures
 import rich
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-from ..commands.prefs import prefs as prefs
+from .._cli.prefs import prefs as prefs
 from ..install.image import ImageInstaller
 from ..install.installer import Installer
 from ..install.space import SpaceInstaller
