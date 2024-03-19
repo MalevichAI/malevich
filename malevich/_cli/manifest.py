@@ -101,5 +101,9 @@ def query(path: list[str], resolve_secrets: bool = False) -> None:
     else:
         rich.print(__q)
 
+@app.command("show", help="Show manifest file")
+def show() -> None:
+    manf = ManifestManager()
+    rich.print(manf.as_dict())
 
 app.add_typer(secrets, name="secrets")
