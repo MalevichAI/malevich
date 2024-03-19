@@ -6,11 +6,7 @@ import typer.core
 
 from malevich._utility.package import PackageManager
 
-<<<<<<< HEAD:malevich/commands/remove.py
-from ..commands.prefs import prefs as prefs
-=======
 from .._cli.prefs import prefs as prefs
->>>>>>> dev/unstable:malevich/_cli/remove.py
 from ..manifest import ManifestManager
 
 

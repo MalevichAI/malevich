@@ -55,8 +55,6 @@ class PackageManager(metaclass=SingletonMeta):
             raise Exception(f"Package {package_name} does not exist")
         return package_path
 
-<<<<<<< HEAD
-=======
     def is_package(self, package_fol_path: str) -> None:
         is_package = os.path.exists(package_fol_path)
         is_package &= os.path.isdir(package_fol_path)
@@ -88,7 +86,6 @@ class PackageManager(metaclass=SingletonMeta):
                     is_old_package = False
         return is_new_package or is_old_package
 
->>>>>>> dev/unstable
     def get_all_packages(self) -> list[str]:
         return [
             package
