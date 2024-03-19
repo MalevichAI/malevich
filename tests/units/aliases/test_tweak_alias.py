@@ -39,7 +39,7 @@ class TestAlias(FlowTestSuite):
 
         data3 = add_column(data1, column='Z', value=10, alias='add_column1')
 
-        return merge(data, data1, data2, data3, alias='merge1')
+        return merge(data2, data3, alias='merge1')
     
     @staticmethod
     def on_interpretation(task: PromisedTask) -> None:

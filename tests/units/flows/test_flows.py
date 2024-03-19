@@ -139,7 +139,14 @@ class TestSpaceFlow(FlowTestSuite):
 
 class TestEmptyDFResult(FlowTestSuite):
     environment = FlowTestEnv(dependencies={
-      "empty": ImageDependency(package_id="empty", options=ImageOptions(image_ref="ghcr.io/malevichai/test:empty"))
+        "empty": ImageDependency(
+            package_id="empty",
+            options=ImageOptions(
+                image_ref="ghcr.io/malevichai/test:empty",
+                image_auth_user="USERNAME",
+                image_auth_pass=os.getenv("TEST_GHCR_PACKAGE_PASSWORD")
+            )
+        )
     })
     interpreter = CoreInterpreter(core_auth=('leo', 'pak'))    
 
