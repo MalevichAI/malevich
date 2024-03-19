@@ -1,3 +1,4 @@
+import os
 import shutil
 import tempfile
 
@@ -8,7 +9,7 @@ from malevich_space.ops.env import get_file_path
 from ...manifest import ManifestManager
 
 
-class __ManifestAsEnv:
+class __ManifestAsEnv:  # noqa: N801
     def __init__(self) -> None:
         self.space = None
         self.tmp = None
@@ -19,11 +20,12 @@ class __ManifestAsEnv:
         space = manf.query('space', resolve_secrets=True)
         self.space = {'space': space}
         self.tmp = tempfile.NamedTemporaryFile('w')
+        if os.path.exists(self.__path):
+            shutil.copyfileobj(
+                open(self.__path),
+                self.tmp
+            )
 
-        shutil.copyfileobj(
-            open(self.__path),
-            self.tmp
-        )
         self.tmp.seek(0)
         with open(self.__path, 'w') as f:
             yaml.dump(self.space, f)
