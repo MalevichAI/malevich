@@ -1,10 +1,12 @@
 import pickle
 import uuid
 import warnings
+from enum import Enum
 from functools import cache
-from typing import Any, Iterable, Optional
+from typing import Iterable, Optional
 
 import pandas as pd
+from gql import gql
 from malevich_coretools.abstract.statuses import AppStatus, TaskStatus
 from malevich_space.schema import LoadedComponentSchema
 
@@ -17,6 +19,15 @@ from ...nodes.tree import TreeNode
 from ...results.space.collection import SpaceCollectionResult
 from ...types import FlowOutput
 from ..base import BaseTask
+
+
+class SpaceTaskStage(Enum):
+    INTERPRETED     = "interpreted"
+    # from Space definition
+    GENERATED       = "generated"
+    STARTED         = "started"
+    STOPPED         = "stopped"
+
 
 
 class SpaceTask(BaseTask):
@@ -67,7 +78,9 @@ class SpaceTask(BaseTask):
         *args,
         **kwargs
     ) -> None:
-        self.state.aux.flow_id = self.component.flow.uid
+        if not self.state.aux.flow_id:
+            self.state.aux.flow_id = self.component.flow.uid
+
         if use_v1:
             task_id = self.state.space.build_task(
                 flow_id=self.component.flow.uid,
@@ -124,25 +137,11 @@ class SpaceTask(BaseTask):
                     in_flow_id=sch.in_flow_id
                 )
                 id_to_ca[sch.in_flow_id] = in_flow_ca
-
-                # overrides.append({
-                #     "inFlowCompUid": sch.in_flow_id,
-                #     "caUid": self.state.collection_overrides[in_flow_ca],
-                #     "caAlias": sch.injected_alias
-                # })
             except Exception:
                 # TODO fix!
                 continue
 
         for in_flow_id, df in override.items():
-            if id_to_ca[in_flow_id] not in coll_override:
-                warnings.warn(
-                    f"{in_flow_id} not a valid operation. Call "
-                    "`get_injectables()` to obtain a list of valid keys "
-                    "for override."
-                )
-                continue
-
             uid = self.state.space.create_collection(
                 host_id=self.state.host.uid,
                 # core_id=f'override-{coll_id}-{state.interpretation_id}',
@@ -153,7 +152,6 @@ class SpaceTask(BaseTask):
                     for _, row in df.iterrows()
                 ]
             )
-
             coll_override[id_to_ca[in_flow_id]] = uid
 
 
@@ -169,7 +167,6 @@ class SpaceTask(BaseTask):
                 # TODO fix!
                 continue
 
-
         self.state.aux.run_id = self.state.space.run_task(
             task_id=self.state.aux.task_id,
             ca_override=overrides
@@ -177,15 +174,46 @@ class SpaceTask(BaseTask):
         return self.state.aux.run_id
 
     def configure(self, operation: str, **kwargs) -> None:
+        # NOTE: Nothing to tweak
         return None
 
     def get_interpreted_task(self) -> BaseTask:
-        return None
+        return self
 
-    def get_stage(self) -> Any:  # noqa: ANN401
-        return None
+    def get_stage(self) -> SpaceTaskStage:
+        if not self.state.aux.task_id:
+            return SpaceTaskStage.INTERPRETED
 
-    def interpret(self, interpreter: Any = None) -> None:  # noqa: ANN401
+        request = gql(
+            """
+            query GetTaskBootState($task_id: String!) {
+                task(uid: $task_id) {
+                    details {
+                    bootState
+                    }
+                }
+            }
+            """
+        )
+        response = self.state.space.client.execute(
+            request,
+            variable_values={'task_id': self.state.aux.task_id}
+        )
+        state = response['task']['details']['bootState']
+        try:
+           return SpaceTaskStage[state.upper()]
+        except Exception:
+            import warnings
+            warnings.warn(
+                "API returned bootState that "
+                "is not in `SpaceTaskStage` enumerator"
+            )
+            return SpaceTaskStage.INTERPRETED
+
+    def get_stage_class(self) -> type:
+        return SpaceTaskStage
+
+    def interpret(self, interpreter=None) -> None:
         return None
 
     def dump(self) -> bytes:
@@ -206,9 +234,10 @@ class SpaceTask(BaseTask):
         alias_to_in_flow_id = {
             x.alias: x.uid
             for x in self.component.flow.components
+            if x.collection is not None
         }
         aliases = set()
-        aliases.update(*alias_to_snapshot.keys())
+        # aliases.update(alias_to_snapshot.keys())
         aliases.update(alias_to_in_flow_id.keys())
 
         return [
@@ -263,7 +292,7 @@ class SpaceTask(BaseTask):
             )
 
         exc_message = None
-        if rs_ != AppStatus.COMPLETE:
+        if rs_ != AppStatus.COMPLETE.value:
             finished_ = {
                 x.in_flow_comp_id for x in cs_ if x.status == AppStatus.COMPLETE.value
             }
@@ -307,7 +336,7 @@ class SpaceTask(BaseTask):
         run_id: Optional[str] = None,
         *args,
         **kwargs
-    ) -> Iterable[SpaceCollectionResult]:
+    ) -> list[SpaceCollectionResult]:
         import asyncio
         import warnings
 

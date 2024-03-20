@@ -2,6 +2,8 @@ from typing import Any, Optional
 
 from pydantic import BaseModel
 
+from .installers.compat import CompatabilityStrategy
+
 
 class Dependency(BaseModel):
     package_id: str
@@ -14,7 +16,11 @@ class Dependency(BaseModel):
             **self.options.model_dump()
         }
 
-    def compatible_with(self, other: 'Dependency') -> bool:
+    def compatible_with(
+        self,
+        other: 'Dependency',
+        compatability_strategy: CompatabilityStrategy = CompatabilityStrategy()
+    ) -> bool:
         pass
 
     def checksum(self) -> str:

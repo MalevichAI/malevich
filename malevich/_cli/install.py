@@ -6,8 +6,8 @@ import typer
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from .._utility.args import parse_kv_args
-from ..commands.prefs import prefs as prefs
-from ..commands.use import _install_from_image, _install_from_space
+from .._cli.prefs import prefs as prefs
+from .._cli.use import _install_from_image, _install_from_space
 
 logging.getLogger("gql.transport.requests").setLevel(logging.ERROR)
 
@@ -67,6 +67,7 @@ def auto_use(
                     progress.stop()
                     rich.print("\n\n[red]Installation failled[/red]")
                     rich.print(err)
+                    raise err
                     exit(-1)
                 else:
                     progress.update(

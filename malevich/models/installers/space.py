@@ -3,6 +3,8 @@ from typing import Optional
 
 from pydantic import BaseModel
 
+from malevich.models.installers.compat import CompatabilityStrategy, compare_images
+
 from ..dependency import Dependency
 
 
@@ -22,7 +24,9 @@ class SpaceDependency(Dependency):
     def checksum(self) -> str:
         return hashlib.sha256(self.model_dump_json().encode()).hexdigest()
 
-    def compatible_with(self, other: Dependency) -> bool:
+    def compatible_with(
+        self, other: Dependency, compatability_strategy: CompatabilityStrategy
+    ) -> bool:
         if isinstance(other, SpaceDependency):
             compat = self.options.reverse_id == other.options.reverse_id
             if self.options.branch is not None:
@@ -30,10 +34,10 @@ class SpaceDependency(Dependency):
             if self.options.version is not None:
                 compat &= self.options.version == other.options.version
             if self.options.image_ref is not None:
-                compat &= self.options.image_ref == other.options.image_ref
-            if self.options.image_auth_user is not None:
-                compat &= self.options.image_auth_user == other.options.image_auth_user
-            if self.options.image_auth_pass is not None:
-                compat &= self.options.image_auth_pass == other.options.image_auth_pass
+                compat &= compare_images(
+                    self.options.image_ref,
+                    other.options.image_ref,
+                    compatability_strategy
+                )
             return compat
         return False

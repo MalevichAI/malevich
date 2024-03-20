@@ -19,7 +19,7 @@ class Installer(ABC):
         pass
 
     @abstractmethod
-    def restore(self, dependency: Dependency) -> None:
+    def restore(self, dependency: Dependency) -> Dependency:
         """Restore function. Called by CLI commands with the Dependency object"""
         pass
 

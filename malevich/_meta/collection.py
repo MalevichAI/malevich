@@ -13,6 +13,7 @@ from ..models.nodes import CollectionNode
 
 def collection(
     name: str,
+    *,
     file: Optional[str] = None,
     df: Optional[pd.DataFrame] = None,
     scheme: SchemaMetadata = None,

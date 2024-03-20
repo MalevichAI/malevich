@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Generic, Optional, TypeVar
 
+from .nodes.collection import CollectionNode
+
 T = TypeVar("T")
 Key = TypeVar("Key")
 # Data = TypeVar("Output")
@@ -20,10 +22,12 @@ class CoreInjectable(BaseInjectable[str, str]):
         collection_id: str,
         alias: str,
         uploaded_id: Optional[str] = None,
+        node: CollectionNode | None = None,
     ) -> None:
         self.__collection_id = collection_id
         self.__alias = alias
         self.__uploaded_id = uploaded_id
+        self.__node = node
 
     def get_inject_data(self) -> str:
         return self.__collection_id
@@ -33,6 +37,10 @@ class CoreInjectable(BaseInjectable[str, str]):
 
     def get_uploaded_id(self) -> Optional[str]:
         return self.__uploaded_id
+
+    @property
+    def node(self) -> CollectionNode | None:
+        return self.__node
 
 
 class SpaceInjectable(BaseInjectable[str, str]):

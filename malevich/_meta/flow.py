@@ -75,7 +75,10 @@ def flow(
 
         reverse_id = reverse_id or function.__name__
         name = name or function.__name__.replace("_", " ").title()
-        description = description or (function.__doc__.splitlines()[0] if function.__doc__ and len(function.__doc__.splitlines()) > 0 else "")  # noqa: E501
+        description = description or function.__doc__
+
+        if description is None:
+            description = f"Meta flow: {name}"
 
         @wraps(function)
         def fn(*args: Args.args, __component, **kwargs: Args.kwargs) -> R:
