@@ -19,7 +19,7 @@ class __ManifestAsEnv:  # noqa: N801
         manf = ManifestManager()
         space = manf.query('space', resolve_secrets=True)
         self.space = {'space': space}
-        self.tmp = tempfile.NamedTemporaryFile('w')
+        self.tmp = tempfile.NamedTemporaryFile('w+')
         if os.path.exists(self.__path):
             shutil.copyfileobj(
                 open(self.__path),
@@ -31,7 +31,8 @@ class __ManifestAsEnv:  # noqa: N801
             yaml.dump(self.space, f)
 
     def __exit__(self, exc_type, exc_value, traceback) -> bool:
-        old_space = yaml.load(open(self.tmp.name), Loader=yaml.FullLoader)
+        self.tmp.seek(0)
+        old_space = yaml.load(self.tmp, Loader=yaml.FullLoader)
         self.tmp.close()
         with open(self.__path, 'w') as f:
             yaml.dump(old_space, f)
