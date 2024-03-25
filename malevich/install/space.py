@@ -1,22 +1,15 @@
-import re
 from typing import Optional
 
 from malevich_space.ops import SpaceOps
 
-from ..constants import DEFAULT_CORE_HOST
-
 from .._core.scan import scan_core
-
-from ..path import Paths
-
-from .._utility.stub import Stub
-
 from .._utility.space.space import resolve_setup
+from .._utility.stub import Stub
+from ..constants import DEFAULT_CORE_HOST
 from ..manifest import ManifestManager
 from ..models.installers.space import SpaceDependency, SpaceDependencyOptions
+from ..path import Paths
 from .installer import Installer
-from .stub import create_package_stub
-
 
 manf = ManifestManager()
 
@@ -173,7 +166,9 @@ class SpaceInstaller(Installer):
         Stub.from_app_info(
             app_info=scan_core(
                 image_ref=component.app.container_ref,
-                image_auth=(component.app.container_user, component.app.container_token),
+                image_auth=(
+                    component.app.container_user, component.app.container_token
+                ),
                 core_host=DEFAULT_CORE_HOST,
             ),
             path=Paths.module(package_name),

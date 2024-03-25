@@ -1,6 +1,5 @@
 import pickle
 import uuid
-import warnings
 from enum import Enum
 from functools import cache
 from typing import Iterable, Optional
@@ -338,9 +337,9 @@ class SpaceTask(BaseTask):
         **kwargs
     ) -> list[SpaceCollectionResult]:
         import asyncio
-        import warnings
 
         try:
+            import warnings
             with warnings.catch_warnings():
                 warnings.filterwarnings(
                     "ignore", message="There is no current event loop"

@@ -15,7 +15,9 @@
 # # # print(x.publish().get_url())
 # # # print(x.publish(capture_results=['rename_1']).get_url())
 # # # # endpoint.get_url()
-# # y.run(endpoint_override=EndpointOverride(cfg=UserConfig(rawMapCollections={'x': [{'x': 10}])))
+# # y.run(endpoint_override=EndpointOverride(
+#                   cfg=UserConfig(rawMapCollections={'x': [{'x': 10}]
+# )))
 
 
 # # from malevich import CoreInterpreter, flow
@@ -61,7 +63,7 @@
 # #       print(results[0].get_df())
 
 
-# @flow 
+# @flow
 # def my_flow():
 #     from malevich import table, asset
 #     from malevich.utility import  get_links_to_files, s3_save_files_auto
@@ -92,13 +94,14 @@
 # f.stop()
 # print(f.results()[0].get())
 
-from malevich import flow, CoreInterpreter, VersionMode, collection
+from malevich import CoreInterpreter, collection, flow
+from malevich.annotations import OpResult
 from malevich.utility import add_column
-from malevich.core_api import create_endpoint
+
 
 # create_endpoint()
 @flow(reverse_id='fafaf')
-def x():
+def x() -> OpResult:
   y = collection('y')
   return add_column(y)
 

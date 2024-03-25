@@ -5,9 +5,9 @@ import rich
 import typer
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-from .._utility.args import parse_kv_args
 from .._cli.prefs import prefs as prefs
 from .._cli.use import _install_from_image, _install_from_space
+from .._utility.args import parse_kv_args
 
 logging.getLogger("gql.transport.requests").setLevel(logging.ERROR)
 

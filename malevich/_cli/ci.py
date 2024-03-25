@@ -12,7 +12,7 @@ github = typer.Typer()
 
 
 @github.command(help="Initialize the Github CI/CD pipeline")
-def init(  # noqa: ANN201
+def init(
     interactive: bool = typer.Option(
         False,
         help="Run the initialization wizard",
