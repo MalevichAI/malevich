@@ -1,8 +1,12 @@
 import duckdb
-
+import os
 from ..path import Paths
 
-conn = duckdb.connect(Paths.db())
+try:
+    conn = duckdb.connect(Paths.db())
+except Exception:
+    os.remove(Paths.db())
+    conn = duckdb.connect(Paths.db())
 
 def get_db() -> duckdb.DuckDBPyConnection:
     conn.execute(

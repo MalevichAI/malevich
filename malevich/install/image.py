@@ -148,8 +148,8 @@ class ImageInstaller(Installer):
                 processor_id: {
                     "operation_id": operation_id,
                     "image_ref": image_ref,
-                    "image_auth_user": iauth_user,
-                    "image_auth_pass": iauth_pass,
+                    "image_auth_user": ('dependencies', package_name, 'options', 'image_auth_user'),  # noqa: E501
+                    "image_auth_pass": ('dependencies', package_name, 'options', 'image_auth_pass'),  # noqa: E501
                     "processor_id": operation_names[processor_id],
                 }
                 for processor_id, operation_id in operation_ids.items()

@@ -178,7 +178,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
 
     @property
     def state(self) -> SpaceInterpreterState:
-        return self._state.copy()
+        return self._state
 
     def __init__(
         self,
@@ -745,21 +745,20 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
 
     def attach(
         self,
-        reverse_id: str,
+        reverse_id: str | None = None,
         deployment_id: str | None = None
     ) -> SpaceTask:
         assert reverse_id or deployment_id, (
             'Either reverse_id or deployment_id should be set'
         )
 
-        leaf_ = None
         successful = False
         if deployment_id:
             try:
-                results = self.state.space.client.execute(
+                results = self._state.space.client.execute(
                     gql("""
                         query GetTaskCoreId($task_id: String!) {
-                            task(uid: $task_id)` {
+                            task(uid: $task_id) {
                                 details {
                                     coreId
                                 }
@@ -773,9 +772,9 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
                         """
                     ), variable_values={'task_id': deployment_id}
                 )
-                self.state.aux.core_task_id = results['task']['details']['coreId']
+                self._state.aux.core_task_id = results['task']['details']['coreId']
                 reverse_id = results['task']['component']['details']['reverseId']
-                self.state.aux.task_id = deployment_id
+                self._state.aux.task_id = deployment_id
                 successful |= True
             except Exception:
                 if reverse_id is None:
@@ -785,14 +784,14 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
                         '`reverse_id` is either not correct or provided'
                     )
 
-        component: LoadedComponentSchema | None = self.state.space.get_parsed_component_by_reverse_id(
+        component: LoadedComponentSchema | None = self._state.space.get_parsed_component_by_reverse_id(
             reverse_id=reverse_id
         )
 
         if component is not None and component.flow is not None:
-            self.state.flow = component.flow
-            self.state.aux.flow_id = component.flow.uid
-            self.state.components_alias = {
+            self._state.flow = component.flow
+            self._state.aux.flow_id = component.flow.uid
+            self._state.components_alias = {
                 x.uid: x.alias
                 for x in component.flow.components
             }
@@ -828,7 +827,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
             )
 
         task = SpaceTask(
-            state=self.state,
+            state=self._state,
             component=component
         )
 
