@@ -487,7 +487,7 @@ def procs_info(
 
 @dev.command("in-app-install", help="Install malevich inside the app")
 def in_app_install() -> None:
-    if os.getcwd() == 'julius/malevich':
+    if os.getcwd() == '/julius/malevich':
         pkg_ = site.getsitepackages()[0]
         shutil.copytree(
             '/julius/malevich/square',
