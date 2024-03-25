@@ -339,7 +339,7 @@ def make_config(
         for name_ in by_path[path_]:
             doc = get_processor_docstring(name_, path_)
             schema = json.loads(parse_docstring(doc))
-            if "configuration" in schema.keys() and len(schema['configuration']) > 0:
+            if "configuration" in schema.keys() and len(schema["configuration"]) > 0:
                 schema_path = os.path.join(
                     os.path.dirname(path_), "models", f"{name_}_model.json"
                 )
@@ -413,11 +413,14 @@ def make_config(
                     if verbose:
                         rich.print(f"Added {module['classname']} to __init__.py")
                     file += f"from .{module['module']} import {module['classname']}\n"
-                if re.search(
-                    rf"^from .models import {module['classname']}$",
-                    procs,
-                    flags=re.MULTILINE
-                ) is None:
+                if (
+                    re.search(
+                        rf"^from .models import {module['classname']}$",
+                        procs,
+                        flags=re.MULTILINE,
+                    )
+                    is None
+                ):
                     if verbose:
                         rich.print(f"Added{module['classname']} to {path_}")
                     procs = f"from .models import {module['classname']}\n" + procs
@@ -436,19 +439,17 @@ def make_config(
                     r"\([\s\S]*? Context(\[\w+\])?)",
                     group,
                     procs,
-                    flags=re.MULTILINE
+                    flags=re.MULTILINE,
                 )
-            with open(init_file, 'w') as f:
+            with open(init_file, "w") as f:
                 f.write(file)
-            with open(path_, 'w') as f:
+            with open(path_, "w") as f:
                 f.write(procs)
+
 
 @dev.command("procs-info", help="Get processors info in JSON format")
 def procs_info(
-    path = typer.Argument(
-        "./",
-        show_default=False
-    ),
+    path=typer.Argument("./", show_default=False),
     out: Annotated[
         Union[str, None],
         typer.Option("--out", help="File to save results in", show_default=False),
@@ -460,9 +461,9 @@ def procs_info(
             "--verbose",
             "-v",
             help="Verbose mode",
-        )
-    ] = False
-) -> str|None:
+        ),
+    ] = False,
+) -> str | None:
     procs = json.loads(list_procs(path))
     if len(procs) == 0:
         rich.print("No procs found.")
@@ -474,25 +475,26 @@ def procs_info(
                 f"Processing [bold]{p['name']}[/bold] "
                 f"from [italic]{p['path']}[/italic]"
             )
-        doc = get_processor_docstring(p['name'], p['path'])
+        doc = get_processor_docstring(p["name"], p["path"])
         info.append(json.loads(parse_docstring(doc)))
 
     if verbose:
         rich.print(info)
     if out is not None:
-        with open(out, 'w') as f:
+        with open(out, "w") as f:
             f.write(json.dumps(info))
     return json.dumps(info)
 
 
 @dev.command("in-app-install", help="Install malevich inside the app")
 def in_app_install() -> None:
-    if os.getcwd() == '/julius/malevich':
+    if os.getcwd() == "/julius":
         pkg_ = site.getsitepackages()[0]
+        shutil.rmtree(os.path.join(pkg_, "malevich", "square"))
         shutil.copytree(
-            '/julius/malevich/square',
-            os.path.join(pkg_, 'malevich', 'square')
+            "/julius/malevich/square", os.path.join(pkg_, "malevich", "square")
         )
-        shutil.rmtree('/julius/malevich/square')
+        shutil.rmtree("/julius/malevich")
+        shutil.move(os.path.join(pkg_, "malevich"), "/julius/malevich")
     else:
         error_exit("You are running command outside of the app")
