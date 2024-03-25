@@ -2,6 +2,8 @@ import ast
 import json
 import os
 import re
+import shutil
+import site
 import sys
 from pathlib import Path
 from subprocess import CalledProcessError, call
@@ -481,3 +483,16 @@ def procs_info(
         with open(out, 'w') as f:
             f.write(json.dumps(info))
     return json.dumps(info)
+
+
+@dev.command("in-app-install", help="Install malevich inside the app")
+def in_app_install() -> None:
+    if os.getcwd() == 'julius/malevich':
+        pkg_ = site.getsitepackages()[0]
+        shutil.copytree(
+            '/julius/malevich/square',
+            os.path.join(pkg_, 'malevich', 'square')
+        )
+        shutil.rmtree('/julius/malevich/square')
+    else:
+        error_exit("You are running command outside of the app")
