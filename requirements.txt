@@ -17,3 +17,4 @@ kafka-python
 deprecated
 datamodel-code-generator
 ruff
+duckdb
