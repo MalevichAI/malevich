@@ -718,7 +718,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
         self,
         reverse_id: str | None = None,
         deployment_id: str | None = None,
-        attach_to_the_last: bool = False,
+        attach_to_last: bool = False,
     ) -> SpaceTask:
         assert (
             reverse_id or deployment_id
@@ -756,7 +756,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
                         "`reverse_id` is either not correct or provided"
                     )
 
-        elif attach_to_the_last:
+        elif attach_to_last:
             results = self._state.space.client.execute(
                 gql(
                     """
@@ -776,8 +776,9 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
                         }
                     }
                     """
-                )
-            )["data"]["tasks"]["component"]["edges"]
+                ),
+                variable_values={"reverse_id": reverse_id}
+            )["tasks"]["component"]["edges"]
 
             nodes = []
             for result in results:

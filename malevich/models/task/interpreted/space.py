@@ -349,7 +349,7 @@ class SpaceTask(BaseTask):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
 
-        def raise_exc(e) -> None:
+        def raise_exc(e, *args) -> None:
             raise e
 
         loop.set_exception_handler(raise_exc)
