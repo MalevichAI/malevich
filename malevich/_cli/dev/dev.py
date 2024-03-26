@@ -375,10 +375,11 @@ def make_config(
                     output=Path(schema_model),
                     class_name=name_,
                     input_file_type=InputFileType.JsonSchema,
+                    disable_timestamp=True
                 )
                 model = open(schema_model).read()
                 model = re.sub(
-                    r"^class", "scheme()\nclass", model, flags=re.MULTILINE
+                    r"^class", "@scheme()\nclass", model, flags=re.MULTILINE
                 ).replace(
                     "from __future__ import annotations",
                     "from __future__ import annotations\n"
