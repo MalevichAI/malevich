@@ -62,7 +62,9 @@ def wrap_command(core_f):
         # merge signatures
         f_signature = f_signature.replace(
             parameters=[
-                x for x in [*fn_sig.parameters.values(), *f_signature.parameters.values()]
+                x for x in [
+                    *fn_sig.parameters.values(), *f_signature.parameters.values()
+                    ]
                 if x.name != 'kwargs'
             ]
         )

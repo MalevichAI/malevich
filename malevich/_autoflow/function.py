@@ -26,7 +26,7 @@ def autotrace(func: Callable[C, R]) -> Callable[C, R]:
     **kwargs, raises a warning and does not link the argument.
     """
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):  # noqa: ANN202
+    def wrapper(*args, **kwargs):
         result = func(*args, **kwargs)
         result = gn.traced(result) if not isinstance(
             result, gn.traced) else result
@@ -61,7 +61,7 @@ def sinktrace(func: Callable[C, R]) -> Callable[C, R]:
     This decorator is applied to processors that contains
     """
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):  # noqa: ANN202
+    def wrapper(*args, **kwargs):
         from ..models.nodes.collection import CollectionNode
         for arg in args:
             if isinstance(arg, CollectionNode):
