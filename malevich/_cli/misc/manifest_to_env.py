@@ -31,7 +31,6 @@ class __ManifestAsEnv:  # noqa: N801
             yaml.dump(self.space, f)
 
     def __exit__(self, exc_type, exc_value, traceback) -> bool:
-        self.tmp.seek(0)
         old_space = yaml.load(self.tmp, Loader=yaml.FullLoader)
         self.tmp.close()
         with open(self.__path, 'w') as f:

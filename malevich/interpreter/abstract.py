@@ -1,7 +1,7 @@
 import uuid
 from abc import abstractmethod
 from copy import deepcopy
-from typing import Any, Generic, TypeVar
+from typing import Generic, TypeVar
 
 from malevich_space.schema import ComponentSchema
 
