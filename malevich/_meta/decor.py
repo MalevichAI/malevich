@@ -27,6 +27,13 @@ class ProcessorFunction(Generic[Config, ProcFunArgs, ProcFunReturn]):
             self.__fn = autotrace(fn)
         self.__config_model = config_model
         self.__call__ = self._fn_call
+        self.__required_fields = [
+            key
+            for key, value in self.__fn.__annotations__.items()
+            if hasattr(value, '__metadata__')
+            and (metadata := getattr(value, '__metadata__'))
+            and metadata[0].required
+        ]
 
     def _fn_call(self, *args: FnArgs.args, **kwargs: FnArgs.kwargs) -> FnReturn:
         # FIXME: literal 'config' is overused. Should be replaced with constant.
@@ -52,6 +59,13 @@ class ProcessorFunction(Generic[Config, ProcFunArgs, ProcFunReturn]):
             **kwargs['config'],
             **extra_fields,
         }
+
+        if (diff_ := set.difference(set(self.__required_fields), kwargs.keys())) != set():
+            fields_ = ', '.join([f"`{x}`" for x in diff_])
+            raise Exception(
+                f"Missing required fields {fields_}"
+                f" in configuration of the processor `{self.__fn.__name__}`"
+            )
 
         return self.__fn(*args, **kwargs)
 
