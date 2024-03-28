@@ -2,13 +2,13 @@ from gql import gql
 from malevich_space.ops import SpaceOps
 from malevich_space.schema import SpaceSetup
 
-from ..._db.local import db_cache_user, db_get_cached_users
+from ..._db import cache_user, get_cached_users
 
 
 def get_core_creds(setup: SpaceSetup) -> tuple[str, str]:
     org = setup.org
 
-    if creds_ := db_get_cached_users(
+    if creds_ := get_cached_users(
         email=setup.username,
         api_url=setup.api_url,
         host=setup.host.conn_url,
@@ -86,7 +86,7 @@ def get_core_creds(setup: SpaceSetup) -> tuple[str, str]:
             len(parts_) == 2 and parts_[0] == org
             or len(parts_) == 1 and org is None
         ):
-            db_cache_user(
+            cache_user(
                 email=setup.username,
                 api_url=setup.api_url,
                 host=setup.host.conn_url,
