@@ -1,5 +1,4 @@
 from malevich_space.schema import SpaceSetup
-import rich
 from typer import Context, Option, Typer
 
 from malevich.core_api import set_host_port, update_core_credentials
@@ -7,6 +6,7 @@ from malevich.core_api import set_host_port, update_core_credentials
 from ..._utility.space.get_core_creds import get_core_creds
 from ...constants import DEFAULT_CORE_HOST
 from ...manifest import manf
+from .assets import assets_app
 from .endpoints import endpoints_app
 
 core_app = Typer(name='core')
@@ -54,3 +54,4 @@ def whoami(
 
 
 core_app.add_typer(endpoints_app, name='endpoints')
+core_app.add_typer(assets_app, name='assets')

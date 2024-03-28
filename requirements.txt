@@ -19,3 +19,4 @@ datamodel-code-generator
 ruff
 duckdb
 duckdb-engine
+humanfriendly
