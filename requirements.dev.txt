@@ -30,3 +30,4 @@ deprecated
 datamodel-code-generator
 wget
 duckdb
+duckdb-engine
