@@ -14,6 +14,8 @@ from ..constants import DEFAULT_CORE_HOST
 from ..models.collection import Collection
 from ..models.nodes.asset import AssetNode
 
+from malevich_coretools import FilesDirs
+
 executor = ProcessPoolExecutor(max_workers=cpu_count())
 
 
@@ -251,13 +253,12 @@ def _assure_asset(
 ) -> None:
     try:
         if not asset.is_composite:
-            objs = [
-                core.get_collection_object(
-                    asset.core_path,
-                    auth=auth,
-                    conn_url=conn_url,
-                )
-            ]
+            core.get_collection_object(
+                asset.core_path,
+                auth=auth,
+                conn_url=conn_url,
+            )
+            objs = FilesDirs(files=[asset.core_path])
         else:
             objs = core.get_collection_objects(
                 asset.core_path,

@@ -1,5 +1,7 @@
-import duckdb
 import os
+
+import duckdb
+
 from ..path import Paths
 
 try:

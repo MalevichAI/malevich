@@ -4,10 +4,7 @@ using Malevich Core capabilities
 """
 
 import hashlib
-import json
 from typing import Optional
-
-import malevich_coretools as core
 
 from .._core.scan import scan_core
 from .._utility.stub import Stub

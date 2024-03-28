@@ -2,11 +2,14 @@ import ast
 import json
 import os
 import re
+import shutil
+import site
 import sys
 from pathlib import Path
 from subprocess import CalledProcessError, call
 from typing import Union
 
+import rich
 import typer
 from datamodel_code_generator import InputFileType, generate
 from typing_extensions import Annotated
@@ -16,8 +19,8 @@ dev = typer.Typer(help="Document operations")
 SECTIONS = ["heading", "input", "output", "config", "example"]
 
 
-def error_exit(msg: str = ""):  # noqa: ANN201
-    print(msg, file=sys.stderr)
+def error_exit(msg: str = "") -> None:
+    rich.print(f"[bold red]{msg}[/bold red]", file=sys.stderr)
     exit(1)
 
 
@@ -115,7 +118,7 @@ def parse_config(config: str = "") -> list:
 
 
 @dev.command("list-procs", help="List all processors and paths to their files")
-def list_procs(  # noqa: ANN201
+def list_procs(
     path=typer.Argument(
         ".", help="Directory to extract processors from", show_default=False
     ),
@@ -129,7 +132,7 @@ def list_procs(  # noqa: ANN201
             "--verbose", "-v", help="If enabled, will print result JSON to stdout"
         ),
     ] = False,
-):
+) -> str:
     data = []
 
     for root, _, files in os.walk(path):
@@ -163,12 +166,12 @@ def list_procs(  # noqa: ANN201
         with open(out, "w") as f:
             f.write(json.dumps(data))
     if verbose:
-        print(json.dumps(data))
+        rich.print(json.dumps(data))
     return json.dumps(data)
 
 
 @dev.command("get-doc", help="Get process docstring")
-def get_processor_docstring(  # noqa: ANN201
+def get_processor_docstring(
     name=typer.Argument(
         ...,
         help="Processor name",
@@ -187,7 +190,7 @@ def get_processor_docstring(  # noqa: ANN201
             "--verbose", "-v", help="If enabled, will print result docstring to stdout"
         ),
     ] = False,
-):
+) -> str:
     if not os.path.exists(path):
         error_exit(f"Can not open {path}. No such file exists")
 
@@ -202,10 +205,10 @@ def get_processor_docstring(  # noqa: ANN201
                 if out is not None:
                     open(out, "w").write(doc)
                 if verbose:
-                    print(doc)
+                    rich.print(doc)
                 return doc
 
-    print(
+    rich.print(
         "Could not find processor inside a file. "
         "Make sure you have provided correct arguments"
     )
@@ -213,7 +216,7 @@ def get_processor_docstring(  # noqa: ANN201
 
 
 @dev.command("parse-doc", help="Parse processor docstring")
-def parse_docstring(  # noqa: ANN201
+def parse_docstring(
     doc=typer.Argument(..., help="docstring"),
     file: Annotated[
         bool,
@@ -229,7 +232,7 @@ def parse_docstring(  # noqa: ANN201
             "--verbose", "-v", help="If enabled, will print result JSON to stdout"
         ),
     ] = False,
-):
+) -> str:
     idx = 0
     if file:
         doc = open(doc).read()
@@ -288,18 +291,18 @@ def parse_docstring(  # noqa: ANN201
     if out:
         open(out, "w").write(json.dumps(result))
     if verbose:
-        print(json.dumps(result))
+        rich.print(json.dumps(result))
     return json.dumps(result)
 
 
 @dev.command("install-lib-hook", help="Configure git hooks path")
-def intstall_hook(  # noqa: ANN201
+def intstall_hook(
     path=typer.Option(
         ".githooks/",
         help="Folder with hooks",
         show_default=False,
     ),
-):
+) -> None:
     if not os.path.exists(path):
         error_exit(
             f"Cannot find {path}. "
@@ -313,7 +316,7 @@ def intstall_hook(  # noqa: ANN201
 
 
 @dev.command("make-configs", help="Create Context configurations for processors")
-def make_config(  # noqa: ANN201
+def make_config(
     path=typer.Argument(..., help="Path to start directory"),
     verbose: Annotated[
         bool,
@@ -321,7 +324,7 @@ def make_config(  # noqa: ANN201
             "--verbose", "-v", help="If enabled, will print result JSON to stdout"
         ),
     ] = False,
-):
+) -> None:
     data = json.loads(list_procs(path))
     by_path = {}
     for d in data:
@@ -332,12 +335,11 @@ def make_config(  # noqa: ANN201
     for path_ in by_path.keys():
         modules = []
         models_path = None
-        print(f"Processing {path_}...")
+        rich.print(f"Processing {path_}...")
         for name_ in by_path[path_]:
             doc = get_processor_docstring(name_, path_)
             schema = json.loads(parse_docstring(doc))
-            if "configuration" in schema.keys() and len(schema['configuration']) > 0:
-                print(schema['configuration'])
+            if "configuration" in schema.keys() and len(schema["configuration"]) > 0:
                 schema_path = os.path.join(
                     os.path.dirname(path_), "models", f"{name_}_model.json"
                 )
@@ -373,10 +375,11 @@ def make_config(  # noqa: ANN201
                     output=Path(schema_model),
                     class_name=name_,
                     input_file_type=InputFileType.JsonSchema,
+                    disable_timestamp=True
                 )
                 model = open(schema_model).read()
                 model = re.sub(
-                    r"^class", "scheme()\nclass", model, flags=re.MULTILINE
+                    r"^class", "@scheme()\nclass", model, flags=re.MULTILINE
                 ).replace(
                     "from __future__ import annotations",
                     "from __future__ import annotations\n"
@@ -409,15 +412,18 @@ def make_config(  # noqa: ANN201
                 )
                 if search_import is None:
                     if verbose:
-                        print(f"Added {module['classname']} to __init__.py")
+                        rich.print(f"Added {module['classname']} to __init__.py")
                     file += f"from .{module['module']} import {module['classname']}\n"
-                if re.search(
-                    rf"^from .models import {module['classname']}$",
-                    procs,
-                    flags=re.MULTILINE
-                ) is None:
+                if (
+                    re.search(
+                        rf"^from .models import {module['classname']}$",
+                        procs,
+                        flags=re.MULTILINE,
+                    )
+                    is None
+                ):
                     if verbose:
-                        print(f"Added{module['classname']} to {path_}")
+                        rich.print(f"Added{module['classname']} to {path_}")
                     procs = f"from .models import {module['classname']}\n" + procs
 
                 search_proc = re.search(
@@ -434,9 +440,62 @@ def make_config(  # noqa: ANN201
                     r"\([\s\S]*? Context(\[\w+\])?)",
                     group,
                     procs,
-                    flags=re.MULTILINE
+                    flags=re.MULTILINE,
                 )
-            with open(init_file, 'w') as f:
+            with open(init_file, "w") as f:
                 f.write(file)
-            with open(path_, 'w') as f:
+            with open(path_, "w") as f:
                 f.write(procs)
+
+
+@dev.command("procs-info", help="Get processors info in JSON format")
+def procs_info(
+    path=typer.Argument("./", show_default=False),
+    out: Annotated[
+        Union[str, None],
+        typer.Option("--out", help="File to save results in", show_default=False),
+    ] = None,
+    verbose: Annotated[
+        bool,
+        typer.Option(
+            ...,
+            "--verbose",
+            "-v",
+            help="Verbose mode",
+        ),
+    ] = False,
+) -> str | None:
+    procs = json.loads(list_procs(path))
+    if len(procs) == 0:
+        rich.print("No procs found.")
+        return
+    info = []
+    for p in procs:
+        if verbose:
+            rich.print(
+                f"Processing [bold]{p['name']}[/bold] "
+                f"from [italic]{p['path']}[/italic]"
+            )
+        doc = get_processor_docstring(p["name"], p["path"])
+        info.append(json.loads(parse_docstring(doc)))
+
+    if verbose:
+        rich.print(info)
+    if out is not None:
+        with open(out, "w") as f:
+            f.write(json.dumps(info))
+    return json.dumps(info)
+
+
+@dev.command("in-app-install", help="Install malevich inside the app")
+def in_app_install() -> None:
+    if os.getcwd() == "/julius":
+        pkg_ = site.getsitepackages()[0]
+        shutil.rmtree(os.path.join(pkg_, "malevich", "square"))
+        shutil.copytree(
+            "/julius/malevich/square", os.path.join(pkg_, "malevich", "square")
+        )
+        shutil.rmtree("/julius/malevich")
+        shutil.move(os.path.join(pkg_, "malevich"), "/julius/malevich")
+    else:
+        error_exit("You are running command outside of the app")

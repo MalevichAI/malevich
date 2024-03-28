@@ -37,7 +37,7 @@ class FlowTestSuite:
     interpreter: Interpreter = None
 
     @staticmethod
-    def __offload_modules(stubs):
+    def __offload_modules(stubs) -> None:
         packages = ['malevich.' + x[0] for x in stubs]
         for package in packages:
             for module in [*sys.modules.keys()]:
