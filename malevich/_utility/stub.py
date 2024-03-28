@@ -3,11 +3,11 @@ import json
 import os
 import re
 import tempfile
+import typing
 from contextlib import chdir
 from hashlib import sha256
 from pathlib import Path
 from typing import Type
-import typing
 
 import pydantic_yaml as pydml
 from datamodel_code_generator import generate
