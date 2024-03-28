@@ -13,7 +13,7 @@ class Paths:
             os.makedirs(os.path.join(MALEVICH_HOME, *path[:-1]), exist_ok=True)
         if create_dir:
             os.makedirs(
-                os.path.dirname(os.path.join(MALEVICH_HOME, *path)),
+                os.path.join(MALEVICH_HOME, *path),
                 exist_ok=True
             )
         return os.path.join(MALEVICH_HOME, *path)
