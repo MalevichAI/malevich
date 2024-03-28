@@ -138,22 +138,17 @@ class TestSpaceFlow(FlowTestSuite):
             assert row['test1'] == row['test2']
 
 class TestEmptyDFResult(FlowTestSuite):
-    environment = FlowTestEnv(dependencies={
-        "empty": ImageDependency(
-            package_id="empty",
-            options=ImageOptions(
-                image_ref="ghcr.io/malevichai/test:empty",
-                image_auth_user="USERNAME",
-                image_auth_pass=os.getenv("TEST_GHCR_PACKAGE_PASSWORD")
-            )
-        )
-    })
+    environment = FlowTestEnv(
+        dependencies={
+            "utility": ImageDependency(package_id="utility"),
+        }
+    )
     interpreter = CoreInterpreter(core_auth=('leo', 'pak'))    
 
     @flow
     def test_empty_df():
         from malevich import collection
-        from malevich.empty import get_empty
+        from malevich.utility import filter
 
         data = collection(
             name="empty",
@@ -163,7 +158,17 @@ class TestEmptyDFResult(FlowTestSuite):
             )
         )
 
-        data1 = get_empty(data)
+        data1 = filter(
+            data,
+            conditions=[
+                {
+                    "column": 'empty',
+                    "operation": 'equal',
+                    "value": 'data',
+                    "type": 'str'
+                }
+            ]
+        )
 
         return data1 
     
