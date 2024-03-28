@@ -1,8 +1,6 @@
 from malevich_space.schema import SpaceSetup
 
-from ...manifest import ManifestManager
-
-manf = ManifestManager()
+from ...manifest import manf
 
 
 def resolve_setup(space: dict) -> SpaceSetup:

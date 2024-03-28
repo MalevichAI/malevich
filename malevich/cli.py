@@ -10,6 +10,7 @@ from ._cli.ci import app as ci_app
 from ._cli.core.app import core_app
 from ._cli.dev.dev import dev as dev_app
 from ._cli.flow import flow as flow_app
+from ._cli.init import init as init_
 from ._cli.install import auto_use
 from ._cli.list import list_packages
 from ._cli.manifest import app as manifest_app
@@ -69,12 +70,22 @@ app.registered_commands.append(
     )
 )
 
-# malevich list
+# malevich new
 app.registered_commands.append(
     typer.models.CommandInfo(
         name="new",
         help=help.list_["--help"],
         callback=new,
+        cls=typer.core.TyperCommand
+    )
+)
+
+# malevich init
+app.registered_commands.append(
+    typer.models.CommandInfo(
+        name="init",
+        help="Initializes new Malevich project",
+        callback=init_,
         cls=typer.core.TyperCommand
     )
 )

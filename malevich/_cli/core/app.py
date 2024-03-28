@@ -1,4 +1,5 @@
 from malevich_space.schema import SpaceSetup
+import rich
 from typer import Context, Option, Typer
 
 from malevich.core_api import set_host_port, update_core_credentials
@@ -18,9 +19,13 @@ def callback(
     host: str = Option(DEFAULT_CORE_HOST, '--host', '-h', help="Host of Malevich Core"),
 ) -> None:
     if user is None or password is None:
-        user, password = get_core_creds(
-            SpaceSetup(**manf.query('space', resolve_secrets=True))
-        )
+        try:
+            user, password = get_core_creds(
+                SpaceSetup(**manf.query('space', resolve_secrets=True))
+            )
+        except Exception:
+           raise Exception("You have not authorized. Run `malevich space login` first.")
+
     ctx.obj = {
         'auth': (user, password),
         'conn_url': host.strip('/') + '/'
@@ -35,9 +40,13 @@ def whoami(
     )
 ) -> None:
     """Prints the current user"""
-    user, password = get_core_creds(
-        SpaceSetup(**manf.query('space', resolve_secrets=True))
-    )
+    try:
+        user, password = get_core_creds(
+            SpaceSetup(**manf.query('space', resolve_secrets=True))
+        )
+    except Exception:
+        raise Exception("You have not authorized. Run `malevich space login` first.")
+
     print(f'User: {user}')
     if show_password:
         print(f'Password: {password}')
