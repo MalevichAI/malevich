@@ -257,6 +257,7 @@ class SpaceTask(BaseTask):
     async def __async_get_results(
         self,
         run_id: Optional[str] = None,
+        fetch_timeout: int = 150,
         *args,
         **kwargs
     ) -> Iterable[SpaceCollectionResult]:
@@ -297,7 +298,8 @@ class SpaceTask(BaseTask):
             }
             to_be_finished_ = set(infid_)
             async for update in self.state.space.subscribe_to_status(
-                run_id or self.state.aux.run_id
+                run_id or self.state.aux.run_id,
+                fetch_timeout
             ):
                 if isinstance(update, str):
                     if update == TaskStatus.COMPLETE.value:
@@ -333,6 +335,7 @@ class SpaceTask(BaseTask):
     def results(
         self,
         run_id: Optional[str] = None,
+        fetch_timeout: int = 150,
         *args,
         **kwargs
     ) -> list[SpaceCollectionResult]:
