@@ -325,7 +325,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
                     **state.cfg.collections,
                     f"{coll}": uploaded_core_id,
                 }
-                state.extra_colls[op.uuid][link.name] = coll
+                state.extra_colls[op.uuid][link.name].append(coll)
 
             if not op.alias:
                 op.alias = extra["processor_id"] + '-' + str(_name(extra["processor_id"]))  # noqa: E501
