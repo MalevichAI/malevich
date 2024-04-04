@@ -47,12 +47,22 @@ class SpaceFlowExporter:
             raise ValueError(f"{reverse_id} is not a flow")
         self.flow = component_.flow
 
-        self.alias_factory = defaultdict(lambda: 1)
+        self._alias_factory = defaultdict(lambda: 1)
+        self._alias_memory = set()
+        self.reverse_id = reverse_id
+
+    def _make_alias(self, component: LoadedInFlowComponentSchema):
+        x = f'{component.reverse_id}_{self._alias_factory[component.reverse_id]}'
+        while x in self._alias_memory:
+            self._alias_factory[component.reverse_id] += 1
+            x = f'{component.reverse_id}_{self._alias_factory[component.reverse_id]}'
+        self._alias_memory.add(x)
+        return x
 
     def _varname(self, component: LoadedInFlowComponentSchema)-> str:
         # TODO: Make with LLM
         return re.sub(
-            r'[\W]+',
+            r'[\W\s]+',
             '_',
             component.alias or component.reverse_id
         ).lower()
@@ -64,28 +74,32 @@ class SpaceFlowExporter:
         decl = f'{varname} = {fn}({args_})'
         return decl
 
-    def _alias(self, x: LoadedInFlowComponentSchema):
-        if x.alias is not None:
-            return x.alias
-        else:
-            id_ = self.alias_factory[x.reverse_id]
-            self.alias_factory[x.reverse_id] += 1
-            x.alias = x.reverse_id + '_' + str(id_)
-            return x.alias
-
-
     def get_meta_pipeline(
         self,
         include_def: bool = True,
         include_decorator: bool = True,
         reverse_id: str | None = None,
     ):
+        assert reverse_id or self.reverse_id, (
+            '`reverse_id` is required if not set in the constructor'
+        )
+        reverse_id = reverse_id or self.reverse_id
+
         body = []
-        print([x.reverse_id for x in self.flow.components if x.alias is None])
+        for component in self.flow.components:
+            if not component.alias:
+                component.alias = self._make_alias(component)
+            else:
+                self._alias_memory.add(component.alias)
+
         varnames = {
             x.alias: self._varname(x)
             for x in self.flow.components
         }
+        uid2alias = {}
+        for component in self.flow.components:
+            uid2alias[component.uid] = component.alias
+
         collections = [
             x
             for x in self.flow.components
@@ -93,30 +107,66 @@ class SpaceFlowExporter:
         ]
 
         body.extend([
-            self._decl(
+            (node.uid, self._decl(
                 varnames[node.alias],
                 'collection',
-                alias=self,
-            )
+                alias=node.alias,
+            ))
             for node in collections
         ])
-
-        # tree = ExecutionTree()
-        # for component in self.flow.components:
-        #     for index,  prev in enumerate(component.prev):
-        #         tree.put_edge((component, prev, index))
 
         operations = [
             (x, *x.prev)
             for x in self.flow.components
             if x.app is not None
         ]
+
+        config_repr = {
+            x.uid: x.active_cfg.cfg_json if x.active_cfg is not None else {}
+            for x in self.flow.components
+        }
+
         body.extend([
-            self._decl(
-                varnames.get(node.alias),
-                node.app.active_op[0].name,
-                *[varnames.get(x.alias) for x in y]
-            ) for node, *y in operations
+            (
+                node.uid,
+                self._decl(
+                    varnames.get(node.alias),
+                    node.app.active_op[0].name,
+                    *[varnames.get(uid2alias.get(x.uid)) for x in y],
+                    **config_repr.get(node.uid, {}),
+                )
+            )
+            for node, *y in operations
         ])
 
-        return body, ''
+        instructions = dict(body)
+        tree = ExecutionTree()
+
+        for node in self.flow.components:
+            for index, prev in enumerate(node.prev):
+                tree.put_edge(prev.uid, node.uid, index)
+
+        instruction_index = set()
+
+        ordered_instructions = []
+        for from_, to_, index in tree.traverse():
+            if from_ not in instruction_index:
+                instruction_index.add(from_)
+                ordered_instructions.append(instructions[from_])
+            if to_ not in instruction_index:
+                instruction_index.add(to_)
+                ordered_instructions.append(instructions[to_])
+
+
+        body_ = '\n\t'.join(ordered_instructions)
+        reverse_id_ = re.sub(r"[\W\s]+", "_", reverse_id).lower()
+        def_ = f'def {reverse_id_}():'
+        if include_decorator:
+            def_ = f'@flow\n{def_}'
+        if include_def:
+            return f'{def_}\n\t{body_}'
+
+        imports_ = (
+            'from malevich import flow, collection, table\n'
+        )
+        return body_, imports_
