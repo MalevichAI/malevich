@@ -33,6 +33,10 @@ class SpaceFlowExporter:
         assert reverse_id is not None or flow is not None, (
             'Requires `flow` or `reverse_id` to be not None'
         )
+        self.reverse_id = reverse_id
+        self._alias_factory = defaultdict(lambda: 1)
+        self._alias_memory = set()
+
         if flow is not None:
             self.flow = flow
             return
@@ -45,11 +49,8 @@ class SpaceFlowExporter:
 
         if component_.flow is None:
             raise ValueError(f"{reverse_id} is not a flow")
-        self.flow = component_.flow
 
-        self._alias_factory = defaultdict(lambda: 1)
-        self._alias_memory = set()
-        self.reverse_id = reverse_id
+        self.flow = component_.flow
 
     def _make_alias(self, component: LoadedInFlowComponentSchema):
         x = f'{component.reverse_id}_{self._alias_factory[component.reverse_id]}'
