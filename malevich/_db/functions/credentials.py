@@ -1,4 +1,4 @@
-from ..schema import Base, Credentials
+from ..schema import Base, CachedCredentials
 from .get_db import get_db
 
 def get_cached_users(
@@ -8,11 +8,11 @@ def get_cached_users(
     org_id: str | None
 ) -> tuple[str, str] | None:
     session = get_db()
-    creds: Credentials = session.query(Credentials).filter(
-        Credentials.email == email,
-        Credentials.host == host,
-        Credentials.org_id == org_id,
-        Credentials.api_url == api_url
+    creds: CachedCredentials = session.query(CachedCredentials).filter(
+        CachedCredentials.email == email,
+        CachedCredentials.host == host,
+        CachedCredentials.org_id == org_id,
+        CachedCredentials.api_url == api_url
     ).one_or_none()
     
     if creds is not None:
@@ -31,7 +31,7 @@ def cache_user(
 ) -> None:
     session = get_db()
     session.add(
-        Credentials(
+        CachedCredentials(
             email=email,
             api_url=api_url,
             host=host,

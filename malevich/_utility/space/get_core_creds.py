@@ -2,10 +2,11 @@ from gql import gql
 from malevich_space.ops import SpaceOps
 from malevich_space.schema import SpaceSetup
 
-from ..._db import cache_user, get_cached_users
+from ..._db import cache_user, get_cached_users, get_db
+from ..._db.schema.core_creds import CoreCredentials
 
 
-def get_core_creds(setup: SpaceSetup) -> tuple[str, str]:
+def get_core_creds_from_setup(setup: SpaceSetup) -> tuple[str, str]:
     org = setup.org
 
     if creds_ := get_cached_users(
@@ -97,3 +98,14 @@ def get_core_creds(setup: SpaceSetup) -> tuple[str, str]:
             return u, p
     else:
         raise Exception("SA not found")
+
+def get_core_creds_from_db(user: str, host: str):
+    creds_ = get_db().query(CoreCredentials).where(
+        CoreCredentials.user == user,
+        CoreCredentials.host == host
+    ).one_or_none()
+
+    if not creds_:
+        return None
+
+    return creds_.user, creds_.password

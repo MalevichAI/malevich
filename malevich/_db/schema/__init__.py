@@ -1,2 +1,2 @@
 from .base import Base
-from .creds import Credentials
+from .creds import CachedCredentials

@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, Sequence, String, create_engine
 from .base import Base
 
-class Credentials(Base):
+class CachedCredentials(Base):
     __tablename__ = 'tb_creds'
     
     """
