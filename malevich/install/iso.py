@@ -5,10 +5,11 @@ from malevich.core_api import AppFunctionsInfo
 from .._utility.stub import Stub
 from ..manifest import manf
 from ..path import Paths
+from .installer import Installer
 from .space import SpaceDependency, SpaceDependencyOptions, SpaceInstaller
 
 
-class IsolatedSpaceInstaller(SpaceInstaller):
+class IsolatedSpaceInstaller(Installer):
     def install(
         self,
         package_id: str,
