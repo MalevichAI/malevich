@@ -1,5 +1,5 @@
 import re
-from collections import Counter, defaultdict
+from collections import defaultdict
 from typing import overload
 
 from malevich_space.ops.space import SpaceOps
@@ -12,7 +12,6 @@ from malevich_space.schema import (
 from .._autoflow.tree import ExecutionTree
 from .._utility.space.space import resolve_setup
 from ..manifest import manf
-from ..models.nodes.operation import OperationNode
 
 
 class SpaceFlowExporter:

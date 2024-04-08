@@ -245,7 +245,7 @@ class PromisedTask(BaseTask[PromisedStage]):
             task_bytes_ = self.__task.dump()
         else:
             task_bytes_ = b""
-        tree_bytes_ = pickle.dumps(self.__tree)
+        tree_bytes_ = pickle.dumps(self.__tree.model_dump())
         results_bytes_ = pickle.dumps(self.__results)
         component_bytes_ = pickle.dumps(self._component)
         return pickle.dumps(
@@ -258,7 +258,7 @@ class PromisedTask(BaseTask[PromisedStage]):
         task_bytes_, tree_bytes_, results_bytes_, component_bytes_ = pickle.loads(object_bytes)  # noqa: E501
         task = PromisedTask(
             results=pickle.loads(results_bytes_),
-            tree=pickle.loads(tree_bytes_),
+            tree=TreeNode(**pickle.loads(tree_bytes_)),
             component=pickle.loads(component_bytes_)
         )
         if len(task_bytes_) > 0:

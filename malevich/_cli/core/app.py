@@ -2,10 +2,10 @@ from malevich_space.schema import SpaceSetup
 from typer import Context, Option, Typer
 
 from malevich.core_api import set_host_port, update_core_credentials
-from ..._cli.space.login import login
 
-from ..._utility.space.get_core_creds import get_core_creds_from_setup
+from ..._cli.space.login import login
 from ..._utility._try import try_cascade
+from ..._utility.space.get_core_creds import get_core_creds_from_setup
 from ...constants import DEFAULT_CORE_HOST
 from ...manifest import manf
 from .assets import assets_app

@@ -8,7 +8,7 @@ import pytest
 from malevich.constants import DEFAULT_CORE_HOST
 from malevich.interpreter.core import CoreInterpreter
 
-from ..models import NotAvailableError
+from models import NotAvailableError
 
 
 class CoreProvider:

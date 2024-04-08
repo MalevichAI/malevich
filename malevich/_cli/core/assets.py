@@ -23,7 +23,12 @@ assets_app = Typer(name='assets')
 
 @assets_app.command(name='list')
 @wrap_command(get_collection_objects)
-def list_assets(recursive: bool = True, sizes: bool = False, plain: bool = False, **kwargs,) -> None:
+def list_assets(
+    recursive: bool = True,
+    sizes: bool = False,
+    plain: bool = False,
+    **kwargs
+) -> None:
     file_dirs = get_collection_objects(recursive=recursive, **kwargs)
     if plain:
         if sizes:

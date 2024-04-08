@@ -112,7 +112,6 @@ space_app.registered_commands.append(
         cls=typer.core.TyperCommand
     )
 )
-
 # __________________________________________________
 
 

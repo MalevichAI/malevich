@@ -9,12 +9,11 @@ from multiprocessing import cpu_count
 from typing import Optional
 
 import malevich_coretools as core
+from malevich_coretools import FilesDirs
 
 from ..constants import DEFAULT_CORE_HOST
 from ..models.collection import Collection
 from ..models.nodes.asset import AssetNode
-
-from malevich_coretools import FilesDirs
 
 executor = ProcessPoolExecutor(max_workers=cpu_count())
 

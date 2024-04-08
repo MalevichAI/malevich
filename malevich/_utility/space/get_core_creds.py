@@ -19,7 +19,7 @@ def get_core_creds_from_setup(setup: SpaceSetup) -> tuple[str, str]:
     ):
         try:
             check_auth(auth=creds_, conn_url=setup.host.conn_url)
-        except Exception as e:
+        except Exception:
             pass
         else:
             return creds_

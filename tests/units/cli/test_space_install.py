@@ -2,11 +2,11 @@ from typer.testing import CliRunner
 from malevich.cli import app
 from malevich.manifest import manf
 # Importing fixtures
-from ..fixtures.package import package
-from ..fixtures.space_provider import SpaceProvider, space_provider
-from ..fixtures.runner import runner
+from fixtures.package import package
+from fixtures.space_provider import SpaceProvider, space_provider
+from fixtures.runner import runner
 
-from ..utils import assert_installed_package, wipe_installed_package
+from utils import assert_installed_package, wipe_installed_package
 
 
 def _test_install(package) -> None:

@@ -8,7 +8,7 @@ from malevich.interpreter.space import SpaceInterpreter
 
 from malevich.manifest import manf
 
-from ..models import NotAvailableError
+from models import NotAvailableError
 
 
 class SpaceProvider:
