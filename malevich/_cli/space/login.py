@@ -38,7 +38,7 @@ def login(
     if no_input and (username is None or password is None):
         rich.print("[red]You have to set --username and --password parameters, "
                    "if --no-input is used[/red]")
-        exit(-1)
+        return False
 
     manf = ManifestManager()
     rich.print(
@@ -81,10 +81,12 @@ def login(
             f"\n\n[red]Failed to connect to {space_url}. "
             "Please check your credentials and try again.[/red]"
         )
-        exit(-1)
+        return False
 
     space_password = manf.put_secret("space_password", setup.password)
     setup.password = space_password
     manf.put("space", value=setup)
     rich.print("\nMalevich Space configuration [green]successfully[/green]"
                " added to the manifest\n")
+
+    return True

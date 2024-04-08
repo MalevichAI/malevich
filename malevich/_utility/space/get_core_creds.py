@@ -2,10 +2,13 @@ from gql import gql
 from malevich_space.ops import SpaceOps
 from malevich_space.schema import SpaceSetup
 
-from ..._db import cache_user, get_cached_users
+from malevich.core_api import check_auth
+
+from ..._db import cache_user, get_cached_users, get_db
+from ..._db.schema.core_creds import CoreCredentials
 
 
-def get_core_creds(setup: SpaceSetup) -> tuple[str, str]:
+def get_core_creds_from_setup(setup: SpaceSetup) -> tuple[str, str]:
     org = setup.org
 
     if creds_ := get_cached_users(
@@ -14,7 +17,12 @@ def get_core_creds(setup: SpaceSetup) -> tuple[str, str]:
         host=setup.host.conn_url,
         org_id=org
     ):
-        return creds_
+        try:
+            check_auth(auth=creds_, conn_url=setup.host.conn_url)
+        except Exception as e:
+            pass
+        else:
+            return creds_
 
     ops = SpaceOps(setup)
 
@@ -86,6 +94,10 @@ def get_core_creds(setup: SpaceSetup) -> tuple[str, str]:
             len(parts_) == 2 and parts_[0] == org
             or len(parts_) == 1 and org is None
         ):
+            try:
+                check_auth(auth=(u, p,), conn_url=setup.host.conn_url)
+            except Exception:
+                pass
             cache_user(
                 email=setup.username,
                 api_url=setup.api_url,
@@ -97,3 +109,14 @@ def get_core_creds(setup: SpaceSetup) -> tuple[str, str]:
             return u, p
     else:
         raise Exception("SA not found")
+
+def get_core_creds_from_db(user: str, host: str):
+    creds_ = get_db().query(CoreCredentials).where(
+        CoreCredentials.user == user,
+        CoreCredentials.host == host
+    ).one_or_none()
+
+    if not creds_:
+        return None
+
+    return creds_.user, creds_.password

@@ -9,6 +9,9 @@ def get_db() -> Session:
     db_ref = globals().get('__Malevich_db__', None)
     
     if not db_ref:
+        import duckdb
+        # HACK: Create empty duckdb db
+        duckdb.connect(Paths.db()).commit().close()
         engine = create_engine("duckdb:///" + Paths.db())
         Base.metadata.create_all(engine)
         db_ref = engine

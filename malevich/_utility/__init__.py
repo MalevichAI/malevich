@@ -2,7 +2,6 @@ from .singleton import SingletonMeta
 from .args import parse_kv_args
 from .dicts import flatdict
 from .host import fix_host
-from .letterhash import lhash_json
 from .package import PackageManager
 from .registry import Registry
 
@@ -14,5 +13,6 @@ from .cache import *
 from .ci import *
 from .space import *
 # from .summary import *
+from ._try import try_cascade
 
 # not importing .git as the system might not have git executable installed
