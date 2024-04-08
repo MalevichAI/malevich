@@ -4,10 +4,6 @@ from typing import Any, Callable, Optional, ParamSpec, TypeVar, overload
 
 import pandas as pd
 
-from ..models.task.promised_with_tests import PromisedTaskWithTests
-
-# from malevich.testing.testcase import PromisedTaskWithTests
-
 from .._autoflow.flow import Flow
 from .._autoflow.tracer import traced
 from .._utility.registry import Registry
@@ -187,7 +183,7 @@ def flow(
                 assert all([o.owner.results is not None for o in outputs])
                 return outputs[0] if len(outputs) == 1 else outputs
             else:
-                return PromisedTaskWithTests(
+                return PromisedTask(
                     results=__results, tree=t_node, component=__component
                 )
 

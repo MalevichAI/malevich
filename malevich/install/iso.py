@@ -7,7 +7,7 @@ from .._utility.stub import Stub
 from ..manifest import manf
 from ..path import Paths
 from .installer import Installer
-from .space import SpaceDependency, SpaceDependencyOptions, SpaceInstaller
+from .space import SpaceDependency, SpaceDependencyOptions
 
 
 class IsolatedSpaceInstaller(Installer):

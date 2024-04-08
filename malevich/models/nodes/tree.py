@@ -1,5 +1,4 @@
 import json
-import pickle
 from typing import Iterable, Optional
 
 from pydantic import ConfigDict
@@ -69,12 +68,3 @@ class TreeNode(BaseNode):
         if self.underlying_node or __value.underlying_node:
             eq_ &= self.underlying_node == __value.underlying_node
         return eq_
-
-    def dumps(self) -> bytes:
-        return pickle.dumps((self.model_dump(exclude=['tree']), pickle.dumps(self.tree)))
-
-    @staticmethod
-    def loads(data: bytes) -> 'TreeNode':
-        model, tree = pickle.loads(data)
-        model['tree'] = pickle.loads(tree)
-        return TreeNode(**model)
