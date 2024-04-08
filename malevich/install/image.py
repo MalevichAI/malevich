@@ -139,7 +139,7 @@ class ImageInstaller(Installer):
 
         Stub.from_app_info(
             app_info=app_info,
-            path=Paths.module(),
+            path=Paths.module(package_name),
             package_name=package_name,
             dependency=dependency,
             operation_ids=operation_ids,
