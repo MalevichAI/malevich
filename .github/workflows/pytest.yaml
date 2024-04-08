@@ -49,6 +49,7 @@ jobs:
       run: |
         pip install -r ./malevich/requirements.dev.txt
         pip install ./malevich
+        malevich init
         malevich space login --username=${{secrets.TESTS_SPACE_USER}} --password=${{secrets.TESTS_SPACE_PASSWORD}} --api-url=${{secrets.TESTS_API_URL}} --no-input
         mkdir -p ~/.malevich/testing
         cp malevich.yaml ~/.malevich/testing
