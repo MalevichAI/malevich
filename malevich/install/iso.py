@@ -1,6 +1,7 @@
 from malevich_space.schema import LoadedComponentSchema
 
 from malevich.core_api import AppFunctionsInfo
+from malevich.models.dependency import Dependency
 
 from .._utility.stub import Stub
 from ..manifest import manf
@@ -64,3 +65,9 @@ class IsolatedSpaceInstaller(Installer):
             },
             description=component.description
         )
+
+    def restore(self, dependency: Dependency) -> Dependency:
+        return None
+
+    def construct_dependency(self, object: dict) -> Dependency:
+        return None
