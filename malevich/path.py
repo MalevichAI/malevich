@@ -34,5 +34,5 @@ class Paths:
 
     @staticmethod
     def db() -> str:
-        return Paths.home(DB_PATH, create=True)
+        return Paths.home(DB_PATH)
 

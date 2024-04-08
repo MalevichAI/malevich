@@ -193,6 +193,9 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
             try:
                 setup = resolve_setup(manf.query("space", resolve_secrets=True))
             except Exception as e:
+                from malevich._cli.space.login import login
+                if login():
+                    setup = resolve_setup(manf.query("space", resolve_secrets=True))
                 raise InterpretationError(
                     "Failed to resolve space setup. "
                     "Please check your manifest file.",

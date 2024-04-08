@@ -47,8 +47,8 @@ class SpaceFlowExporter:
 
         component_ = ops.get_parsed_component_by_reverse_id(reverse_id=reverse_id)
 
-        if component_.flow is None:
-            raise ValueError(f"{reverse_id} is not a flow")
+        if component_ is None or component_.flow is None:
+            raise ValueError(f"{reverse_id} does not exists or not a flow")
 
         self.flow = component_.flow
 
@@ -85,6 +85,7 @@ class SpaceFlowExporter:
             '`reverse_id` is required if not set in the constructor'
         )
         reverse_id = reverse_id or self.reverse_id
+        apps = set([x.reverse_id for x in self.flow.components if x.app is not None])
 
         body = []
         for component in self.flow.components:
@@ -159,15 +160,20 @@ class SpaceFlowExporter:
                 ordered_instructions.append(instructions[to_])
 
 
+
+        imports_ = (
+            'from malevich import flow, collection, table\n'
+            + '\n'.join(
+                f'from malevich.{x} import *'
+                for x in apps
+            )
+        )
+
         body_ = '\n\t'.join(ordered_instructions)
         reverse_id_ = re.sub(r"[\W\s]+", "_", reverse_id).lower()
         def_ = f'def {reverse_id_}():'
         if include_decorator:
             def_ = f'@flow\n{def_}'
         if include_def:
-            return f'{def_}\n\t{body_}'
-
-        imports_ = (
-            'from malevich import flow, collection, table\n'
-        )
+            return f'{def_}\n\t{body_}', imports_
         return body_, imports_

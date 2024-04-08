@@ -68,8 +68,13 @@ class SpaceInstaller(Installer):
                 manf.query('space', resolve_secrets=True)
             ))
         except Exception as e:
-            raise Exception(
-                "Setup is invalid. Run `malevich space login`") from e
+            from malevich._cli.space.login import login
+            if not login():
+                raise Exception(
+                    "Login failed. Run `malevich space login` to try again"
+                ) from e
+            SpaceInstaller.__init__(self)
+
 
     def install(
         self,

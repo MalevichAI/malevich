@@ -53,6 +53,9 @@ class ManifestManager(metaclass=SingletonMeta):
         pydml.to_yaml_file(Paths.pwd('malevich.yaml'), Manifest())
         pydml.to_yaml_file(Paths.pwd('malevich.secrets.yaml'), Secrets())
 
+    @property
+    def path(self) -> str:
+        return '' + self.__path
 
     def __init__(self, workdir: str | None = None) -> None:
         if os.path.exists(Paths.pwd('malevich.yaml')):

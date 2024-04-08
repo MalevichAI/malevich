@@ -30,15 +30,25 @@ def cache_user(
     core_password: str
 ) -> None:
     session = get_db()
-    session.add(
-        CachedCredentials(
-            email=email,
-            api_url=api_url,
-            host=host,
-            org_id=org_id,
-            core_username=core_username,
-            core_password=core_password
+    creds: CachedCredentials = session.query(CachedCredentials).filter(
+        CachedCredentials.email == email,
+        CachedCredentials.host == host,
+        CachedCredentials.org_id == org_id,
+        CachedCredentials.api_url == api_url
+    ).one_or_none()
+    if not creds:
+        session.add(
+            CachedCredentials(
+                email=email,
+                api_url=api_url,
+                host=host,
+                org_id=org_id,
+                core_username=core_username,
+                core_password=core_password
+            )
         )
-    )
+    else:
+        creds.core_username = core_username
+        creds.core_password = core_password
     session.commit()
 
