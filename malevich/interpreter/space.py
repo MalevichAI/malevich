@@ -391,7 +391,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
                     state=state, node=node.owner, skip_create=False
                 )
 
-                if not node.owner.collection.collection_data:
+                if node.owner.collection.collection_data is None:
                     # NOTE: path is None is the only
                     # case for the exception. However,
                     # there may be some more, which should be
