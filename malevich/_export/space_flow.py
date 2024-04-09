@@ -147,19 +147,10 @@ class SpaceFlowExporter:
             for index, prev in enumerate(node.prev):
                 tree.put_edge(prev.uid, node.uid, index)
 
-        instruction_index = set()
-
         ordered_instructions = [
-            instructions[y] for y in set(
-                [x for _, (x, _, _) in tree.roots()]
-            )
+            instructions[x]
+            for x in tree.topsort()
         ]
-
-
-        for _, to_, index in tree.wander():
-            if to_ not in instruction_index:
-                instruction_index.add(to_)
-                ordered_instructions.append(instructions[to_])
 
         if include_return:
             ordered_instructions.append(
