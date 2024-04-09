@@ -365,14 +365,14 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
         if isinstance(node.owner, CollectionNode):  # If the node is a collection
             alias_base = node.owner.collection.collection_id
 
-            _, path = cache.space.probe_new_entry(
-                node.owner.collection.collection_id, entry_group="collections/temp"
-            )
+            # _, path = cache.space.probe_new_entry(
+            #     node.owner.collection.collection_id, entry_group="collections/temp"
+            # )
 
-            if not node.owner.collection.collection_data.empty:
-                node.owner.collection.collection_data.to_csv(path, index=False)
-            else:
-                path = None
+            # if not node.owner.collection.collection_data.empty:
+            #     node.owner.collection.collection_data.to_csv(path, index=False)
+            # else:
+            #     path = None
 
             state.node_type[node.owner.uuid] = NodeType.COLLECTION
             # Try to get the collection component from the space
@@ -391,7 +391,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
                     state=state, node=node.owner, skip_create=False
                 )
 
-                if not path:
+                if not node.owner.collection.collection_data:
                     # NOTE: path is None is the only
                     # case for the exception. However,
                     # there may be some more, which should be
@@ -412,7 +412,12 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
                     collection=CollectionAliasSchema(
                         core_alias=node.owner.collection.collection_id,
                         schema_core_id=schema_core_id,
-                        path=path,
+                        # NOTE: 0.4.18 patch: path -> docs
+                        # path=path,
+                        docs=[
+                            row.to_json() for _, row in
+                            node.owner.collection.collection_data.iterrows()
+                        ],
                     ),
                 )
             else:
