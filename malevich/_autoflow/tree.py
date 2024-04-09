@@ -133,48 +133,28 @@ class ExecutionTree(Generic[T, LinkType]):
                 )
             )
 
-    def wander(self) -> Iterator[tuple[T, T, LinkType]]:
+    def topsort(self) -> Iterator[tuple[T, T, LinkType]]:
+        sort_ = []
+        s = [r[0] for _, r in self.roots()]
+        edges = list(enumerate(self.tree))
+        mask = [False] * len(edges)
+        while s:
+            n = s.pop()
+            sort_.append(n)
+            for i, (_, to, _) in filter(
+                lambda x: x[1][0] == n and not mask[x[0]], edges
+            ):
+                mask[i] = True
+                in_ = list(filter(lambda x: x[1][1] == to and not mask[x[0]], edges))
+                add = True
+                for j, (m, _, _) in in_:
+                    if m != n and not mask[j]:
+                        add = False
+                if add:
+                    s = [to, *s]
 
-        # Mark visited nodes
-        yielded = [False] * len(self.tree)
-        visited = [False] * len(self.tree)
+        return sort_
 
-        # Find roots
-        roots = self.roots()
-
-        in_ = defaultdict(lambda: 0)
-        exhaused = defaultdict(lambda: False)
-
-        # Traverse
-        q = deque(maxlen=len(self.tree))
-        for i, r in roots:
-            # BFS
-            q.append((i, r,))
-            exhaused[r[0]] = True
-
-        for f, t, _ in self.tree:
-            in_[t] += 1
-
-        while q:
-            j, (f, t, x) = q.popleft()
-            if in_[t] == 0 and exhaused[f]:
-                # visited[j] = True
-                if not yielded[j]:
-                    yield (f, t, x,)
-                    yielded[j] = True
-                exhaused[t] = True
-            else:
-                q.append((j, (f, t, x,),))
-
-            if not visited[j]:
-                in_[t] -= 1
-                q.extend(
-                    filter(
-                        lambda x: x[1][0] == t and not visited[x[0]],
-                        enumerate(self.tree)
-                    )
-                )
-            visited[j] = True
 
     def leaves(self) -> Iterable[T]:
         """Returns all leaves of the execution tree"""
