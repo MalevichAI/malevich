@@ -78,6 +78,7 @@ class SpaceFlowExporter:
         self,
         include_def: bool = True,
         include_decorator: bool = True,
+        include_return: bool = True,
         reverse_id: str | None = None,
     ):
         assert reverse_id or self.reverse_id, (
@@ -142,22 +143,38 @@ class SpaceFlowExporter:
 
         instructions = dict(body)
         tree = ExecutionTree()
-
         for node in self.flow.components:
             for index, prev in enumerate(node.prev):
                 tree.put_edge(prev.uid, node.uid, index)
 
         instruction_index = set()
 
-        ordered_instructions = []
-        for from_, to_, index in tree.traverse():
-            if from_ not in instruction_index:
-                instruction_index.add(from_)
-                ordered_instructions.append(instructions[from_])
+        ordered_instructions = [
+            instructions[y] for y in set(
+                [x for _, (x, _, _) in tree.roots()]
+            )
+        ]
+
+
+        for _, to_, index in tree.wander():
             if to_ not in instruction_index:
                 instruction_index.add(to_)
                 ordered_instructions.append(instructions[to_])
 
+        if include_return:
+            ordered_instructions.append(
+                'return ' + ', '.join([
+                    varnames[uid2alias[x]] for x in tree.leaves()
+                ])
+            )
+
+        imports_ = (
+            'from malevich import flow, collection, table\n'
+            + '\n'.join(
+                f'from malevich.{x} import *'
+                for x in apps
+            )
+        )
 
 
         imports_ = (
