@@ -140,7 +140,8 @@ class ExecutionTree(Generic[T, LinkType]):
         mask = [False] * len(edges)
         while s:
             n = s.pop()
-            sort_.append(n)
+            if n not in sort_:
+                sort_.append(n)
             for i, (_, to, _) in filter(
                 lambda x: x[1][0] == n and not mask[x[0]], edges
             ):
