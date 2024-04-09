@@ -64,9 +64,11 @@ def sinktrace(func: Callable[C, R]) -> Callable[C, R]:
     def wrapper(*args, **kwargs):
         result = func(*args, **kwargs)
         result = gn.traced(result) if not isinstance(result, gn.traced) else result
+        varnames = func.__code__.co_varnames
         for i, arg in enumerate(args):
+            argument_name = varnames[min(i, len(varnames) - 1)]
             if isinstance(arg, gn.traced):
-                arg._autoflow.calledby(result, ArgumentLink(index=i, name=''))
+                arg._autoflow.calledby(result, ArgumentLink(index=i, name=argument_name))
             else:
                 warnings.warn(
                     "Ignoring non-traced argument in sinktrace function"
