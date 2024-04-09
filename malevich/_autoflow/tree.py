@@ -136,6 +136,7 @@ class ExecutionTree(Generic[T, LinkType]):
     def wander(self) -> Iterator[tuple[T, T, LinkType]]:
 
         # Mark visited nodes
+        yielded = [False] * len(self.tree)
         visited = [False] * len(self.tree)
 
         # Find roots
@@ -158,7 +159,9 @@ class ExecutionTree(Generic[T, LinkType]):
             j, (f, t, x) = q.popleft()
             if in_[t] == 0 and exhaused[f]:
                 # visited[j] = True
-                yield (f, t, x,)
+                if not yielded[j]:
+                    yield (f, t, x,)
+                    yielded[j] = True
                 exhaused[t] = True
             else:
                 q.append((j, (f, t, x,),))
