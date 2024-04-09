@@ -33,6 +33,11 @@ class SpaceFlowExporter:
         assert reverse_id is not None or flow is not None, (
             'Requires `flow` or `reverse_id` to be not None'
         )
+
+        self._alias_factory = defaultdict(lambda: 1)
+        self._alias_memory = set()
+        self.reverse_id = reverse_id
+
         if flow is not None:
             self.flow = flow
             return
@@ -45,11 +50,8 @@ class SpaceFlowExporter:
 
         if component_.flow is None:
             raise ValueError(f"{reverse_id} is not a flow")
-        self.flow = component_.flow
 
-        self._alias_factory = defaultdict(lambda: 1)
-        self._alias_memory = set()
-        self.reverse_id = reverse_id
+        self.flow = component_.flow
 
     def _make_alias(self, component: LoadedInFlowComponentSchema):
         x = f'{component.reverse_id}_{self._alias_factory[component.reverse_id]}'
@@ -78,12 +80,17 @@ class SpaceFlowExporter:
         self,
         include_def: bool = True,
         include_decorator: bool = True,
+        include_return: bool = True,
         reverse_id: str | None = None,
     ):
         assert reverse_id or self.reverse_id, (
             '`reverse_id` is required if not set in the constructor'
         )
         reverse_id = reverse_id or self.reverse_id
+        apps = {
+            x.reverse_id for x in self.flow.components
+            if x.app is not None
+        }
 
         body = []
         for component in self.flow.components:
@@ -141,22 +148,38 @@ class SpaceFlowExporter:
 
         instructions = dict(body)
         tree = ExecutionTree()
-
         for node in self.flow.components:
             for index, prev in enumerate(node.prev):
                 tree.put_edge(prev.uid, node.uid, index)
 
         instruction_index = set()
 
-        ordered_instructions = []
-        for from_, to_, index in tree.traverse():
-            if from_ not in instruction_index:
-                instruction_index.add(from_)
-                ordered_instructions.append(instructions[from_])
+        ordered_instructions = [
+            instructions[y] for y in set(
+                [x for _, (x, _, _) in tree.roots()]
+            )
+        ]
+
+
+        for _, to_, index in tree.wander():
             if to_ not in instruction_index:
                 instruction_index.add(to_)
                 ordered_instructions.append(instructions[to_])
 
+        if include_return:
+            ordered_instructions.append(
+                'return ' + ', '.join([
+                    varnames[uid2alias[x]] for x in tree.leaves()
+                ])
+            )
+
+        imports_ = (
+            'from malevich import flow, collection, table\n'
+            + '\n'.join(
+                f'from malevich.{x} import *'
+                for x in apps
+            )
+        )
 
         body_ = '\n\t'.join(ordered_instructions)
         reverse_id_ = re.sub(r"[\W\s]+", "_", reverse_id).lower()
@@ -164,9 +187,5 @@ class SpaceFlowExporter:
         if include_decorator:
             def_ = f'@flow\n{def_}'
         if include_def:
-            return f'{def_}\n\t{body_}'
-
-        imports_ = (
-            'from malevich import flow, collection, table\n'
-        )
+            return f'{def_}\n\t{body_}', imports_
         return body_, imports_

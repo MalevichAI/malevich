@@ -1,4 +1,4 @@
-from collections import deque
+from collections import defaultdict, deque
 from typing import Any, Generic, Iterable, Iterator, Optional, TypeVar
 
 T = TypeVar("T")
@@ -85,6 +85,12 @@ class ExecutionTree(Generic[T, LinkType]):
             if x not in outer_nodes
         ])
 
+    def roots(self) -> Iterable[tuple[int, T]]:
+        return [
+            (i, x) for i, x in enumerate(self.tree)
+            if not any(y[1] == x[0] for y in self.tree)
+        ]
+
     def edges_from(self, node: T) -> None:
         """Returns all edges starting from the specified node"""
         return [n for n in self.tree if n[0] == node]
@@ -98,19 +104,15 @@ class ExecutionTree(Generic[T, LinkType]):
         Returns:
             Generator[T]: Generator of nodes
         """
-        graph = self.tree
 
         # Mark visited nodes
-        visited = [False] * len(graph)
+        visited = [False] * len(self.tree)
 
         # Find roots
-        roots = [
-            (i, x) for i, x in enumerate(graph)
-            if not any(y[1] == x[0] for y in graph)
-        ]
+        roots = self.roots()
 
         # Traverse
-        q = deque(maxlen=len(graph))
+        q = deque(maxlen=len(self.tree))
         for i, r in roots:
             # BFS
             q.append((i, r,))
@@ -127,9 +129,49 @@ class ExecutionTree(Generic[T, LinkType]):
             q.extend(
                 filter(
                     lambda x: x[1][0] == edge[1] and not visited[x[0]],
-                    enumerate(graph)
+                    enumerate(self.tree)
                 )
             )
+
+    def wander(self) -> Iterator[tuple[T, T, LinkType]]:
+
+        # Mark visited nodes
+        visited = [False] * len(self.tree)
+
+        # Find roots
+        roots = self.roots()
+
+        in_ = defaultdict(lambda: 0)
+        exhaused = defaultdict(lambda: False)
+
+        # Traverse
+        q = deque(maxlen=len(self.tree))
+        for i, r in roots:
+            # BFS
+            q.append((i, r,))
+            exhaused[r[0]] = True
+
+        for f, t, _ in self.tree:
+            in_[t] += 1
+
+        while q:
+            j, (f, t, x) = q.popleft()
+            if in_[t] == 0 and exhaused[f]:
+                # visited[j] = True
+                yield (f, t, x,)
+                exhaused[t] = True
+            else:
+                q.append((j, (f, t, x,),))
+
+            if not visited[j]:
+                in_[t] -= 1
+                q.extend(
+                    filter(
+                        lambda x: x[1][0] == t and not visited[x[0]],
+                        enumerate(self.tree)
+                    )
+                )
+            visited[j] = True
 
     def leaves(self) -> Iterable[T]:
         """Returns all leaves of the execution tree"""
