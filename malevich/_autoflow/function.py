@@ -1,6 +1,7 @@
 import functools
 import inspect
 import warnings
+from itertools import islice
 from typing import Callable, ParamSpec, TypeVar
 
 from ..models.argument import ArgumentLink
@@ -30,27 +31,22 @@ def autotrace(func: Callable[C, R]) -> Callable[C, R]:
     def wrapper(*args, **kwargs):
         result = func(*args, **kwargs)
         result = gn.traced(result) if not isinstance(
-            result, gn.traced) else result
+            result, gn.traced
+        ) else result
+        parameters = list(inspect.signature(func).parameters.values())
+        varnames = [
+            p.name for p in parameters
+            if p.kind == inspect.Parameter.POSITIONAL_ONLY
 
-        varnames = func.__code__.co_varnames
-        for i, arg in enumerate(args):
-            argument_name = varnames[min(i, len(varnames) - 1)]
+        ]
+        for i, arg in enumerate(islice(args, 0, len(varnames))):
+            argument_name = varnames[i]
             if isinstance(arg, gn.traced):
                 arg._autoflow.calledby(
                     result,
                     ArgumentLink(index=i, name=argument_name)
                 )
-        for key in kwargs:
-            if isinstance(kwargs[key], gn.traced):
-                if key in varnames:
-                    kwargs[key]._autoflow.calledby(
-                        result, ArgumentLink(index=varnames.index(key), name=key)
-                    )
-                else:
-                    warnings.warn(
-                        "Passing a keyword argument to a traced function that is not"
-                        " a formal argument of the function is not supported."
-                    )
+
 
         return result
     return wrapper
@@ -70,7 +66,6 @@ def sinktrace(func: Callable[C, R]) -> Callable[C, R]:
             p.name for p in parameters
             if p.kind in (
                 inspect.Parameter.VAR_POSITIONAL,
-                inspect.Parameter.POSITIONAL_OR_KEYWORD,
                 inspect.Parameter.POSITIONAL_ONLY
             )
         ]
