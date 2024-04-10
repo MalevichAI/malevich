@@ -1,4 +1,5 @@
 import functools
+import inspect
 import warnings
 from typing import Callable, ParamSpec, TypeVar
 
@@ -64,9 +65,18 @@ def sinktrace(func: Callable[C, R]) -> Callable[C, R]:
     def wrapper(*args, **kwargs):
         result = func(*args, **kwargs)
         result = gn.traced(result) if not isinstance(result, gn.traced) else result
-        varnames = func.__code__.co_varnames
+        parameters = list(inspect.signature(func).parameters.values())
+        names = [
+            p.name for p in parameters
+            if p.kind in (
+                inspect.Parameter.VAR_POSITIONAL,
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                inspect.Parameter.POSITIONAL_ONLY
+            )
+        ]
+
         for i, arg in enumerate(args):
-            argument_name = varnames[min(i, len(varnames) - 1)]
+            argument_name = names[min(i, len(names) - 1)]
             if isinstance(arg, gn.traced):
                 arg._autoflow.calledby(result, ArgumentLink(index=i, name=argument_name))
             else:
