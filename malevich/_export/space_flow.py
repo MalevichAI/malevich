@@ -1,5 +1,5 @@
 import re
-from collections import Counter, defaultdict
+from collections import defaultdict
 from typing import overload
 
 from malevich_space.ops.space import SpaceOps
@@ -12,7 +12,6 @@ from malevich_space.schema import (
 from .._autoflow.tree import ExecutionTree
 from .._utility.space.space import resolve_setup
 from ..manifest import manf
-from ..models.nodes.operation import OperationNode
 
 
 class SpaceFlowExporter:
@@ -79,6 +78,7 @@ class SpaceFlowExporter:
         self,
         include_def: bool = True,
         include_decorator: bool = True,
+        include_return: bool = True,
         reverse_id: str | None = None,
     ):
         assert reverse_id or self.reverse_id, (
@@ -143,22 +143,29 @@ class SpaceFlowExporter:
 
         instructions = dict(body)
         tree = ExecutionTree()
-
         for node in self.flow.components:
             for index, prev in enumerate(node.prev):
                 tree.put_edge(prev.uid, node.uid, index)
 
-        instruction_index = set()
+        ordered_instructions = [
+            instructions[x]
+            for x in tree.topsort()
+        ]
 
-        ordered_instructions = []
-        for from_, to_, index in tree.traverse():
-            if from_ not in instruction_index:
-                instruction_index.add(from_)
-                ordered_instructions.append(instructions[from_])
-            if to_ not in instruction_index:
-                instruction_index.add(to_)
-                ordered_instructions.append(instructions[to_])
+        if include_return:
+            ordered_instructions.append(
+                'return ' + ', '.join([
+                    varnames[uid2alias[x]] for x in tree.leaves()
+                ])
+            )
 
+        imports_ = (
+            'from malevich import flow, collection, table\n'
+            + '\n'.join(
+                f'from malevich.{x} import *'
+                for x in apps
+            )
+        )
 
 
         imports_ = (

@@ -4,6 +4,7 @@ using Malevich Core capabilities
 """
 
 import hashlib
+import re
 from typing import Optional
 
 from .._core.scan import scan_core
@@ -95,6 +96,7 @@ class ImageInstaller(Installer):
         core_host: str = DEFAULT_CORE_HOST,
         core_auth: Optional[tuple[str, str]] = None,
     ) -> ImageDependency:
+        package_name = re.sub(r'[\W\s]+', '_', package_name)
         app_info = scan_core(
             core_auth=core_auth,
             core_host=core_host,
