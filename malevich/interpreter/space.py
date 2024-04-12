@@ -76,7 +76,7 @@ def _name(base: str) -> int:
 
 class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
     """
-    Interpret 16000flows to be added and uploaded to your Malevich Space workspace.
+    Interpret flows to be added and uploaded to your Malevich Space workspace.
 
     .. note::
 
@@ -705,20 +705,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
         )
 
         if self._version_mode != VersionMode.DEFAULT:
-            self.state.space.client.execute(
-                gql("""
-                query AutoLayout($flow: String!) {
-                    flow(uid: $flow) {
-                        autoLayout {
-                            pageInfo {
-                                totalLen
-                            }
-                        }
-                    }
-                }
-                """),
-                variable_values={"flow": component.flow.uid},
-            )
+            state.space.auto_layout(flow=component.flow.uid)
 
         return SpaceTask(state=self.state, component=component)
 
@@ -735,25 +722,9 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
         successful = False
         if deployment_id:
             try:
-                results = self._state.space.client.execute(
-                    gql("""
-                        query GetTaskCoreId($task_id: String!) {
-                            task(uid: $task_id) {
-                                details {
-                                    coreId
-                                }
-                                component {
-                                    details {
-                                        reverseId
-                                    }
-                                }
-                            }
-                        }
-                        """),
-                    variable_values={"task_id": deployment_id},
-                )
-                self._state.aux.core_task_id = results["task"]["details"]["coreId"]
-                reverse_id = results["task"]["component"]["details"]["reverseId"]
+                core_id, loaded_reverse_id = self._state.space.get_task_core_id(task_id=deployment_id)
+                self._state.aux.core_task_id = core_id
+                reverse_id = loaded_reverse_id
                 self._state.aux.task_id = deployment_id
                 successful |= True
             except Exception:
@@ -765,41 +736,13 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
                     )
 
         elif attach_to_last:
-            results = self._state.space.client.execute(
-                gql(
-                    """
-                    query GetDeploymentsForReverseId($reverse_id: String!) {
-                        tasks {
-                            component(componentId: [$reverse_id]) {
-                                edges {
-                                    node {
-                                        details {
-                                            uid
-                                            bootState
-                                            lastRunnedAt
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    """
-                ),
-                variable_values={"reverse_id": reverse_id}
-            )["tasks"]["component"]["edges"]
-
-            nodes = []
-            for result in results:
-                if result["node"]["details"]["bootState"] == "started":
-                    nodes.append(result["node"]["details"])
-
-            nodes.sort(key=lambda x: x["lastRunnedAt"], reverse=True)
-            if len(nodes) == 0:
+            deployments = self._state.space.get_deployments_by_reverse_id(reverse_id=reverse_id, status=["started"])
+            if len(deployments) == 0:
                 raise ValueError(
-                    "You didn't supplied deployment ID "
+                    "You have not supplied deployment ID "
                     "and no deployments are available at the moment"
                 )
-            self._state.aux.task_id = nodes[0]["uid"]
+            self._state.aux.task_id = deployments[0].uid
 
         component: LoadedComponentSchema | None = (
             self._state.space.get_parsed_component_by_reverse_id(reverse_id=reverse_id)
