@@ -411,7 +411,7 @@ class CoreTask(BaseTask):
         # For compatibility with other interpreters
         *args,
         **kwargs
-    ) -> Iterable[CoreResult | CoreLocalDFResult]:
+    ) -> list[CoreResult | CoreLocalDFResult]:
         cout(message="Task results are being fetched from Core",
              action=Action.Results)
         if self.state.params.operation_id is None:
