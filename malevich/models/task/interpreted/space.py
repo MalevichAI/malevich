@@ -1,6 +1,5 @@
 import pickle
 import uuid
-import warnings
 from enum import Enum
 from functools import cache
 from typing import Iterable, Optional
@@ -258,6 +257,7 @@ class SpaceTask(BaseTask):
     async def __async_get_results(
         self,
         run_id: Optional[str] = None,
+        fetch_timeout: int = 150,
         *args,
         **kwargs
     ) -> Iterable[SpaceCollectionResult]:
@@ -298,7 +298,8 @@ class SpaceTask(BaseTask):
             }
             to_be_finished_ = set(infid_)
             async for update in self.state.space.subscribe_to_status(
-                run_id or self.state.aux.run_id
+                run_id or self.state.aux.run_id,
+                fetch_timeout
             ):
                 if isinstance(update, str):
                     if update == TaskStatus.COMPLETE.value:
@@ -334,13 +335,14 @@ class SpaceTask(BaseTask):
     def results(
         self,
         run_id: Optional[str] = None,
+        fetch_timeout: int = 150,
         *args,
         **kwargs
     ) -> list[SpaceCollectionResult]:
         import asyncio
-        import warnings
 
         try:
+            import warnings
             with warnings.catch_warnings():
                 warnings.filterwarnings(
                     "ignore", message="There is no current event loop"
@@ -350,7 +352,7 @@ class SpaceTask(BaseTask):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
 
-        def raise_exc(e) -> None:
+        def raise_exc(e, *args) -> None:
             raise e
 
         loop.set_exception_handler(raise_exc)

@@ -64,7 +64,9 @@ class CoreInterpreterState:
         # App args
         self.app_args: dict[str, Any] = {}
         # Collections
-        self.extra_colls: dict[str, dict[str, str]] = defaultdict(dict)
+        self.extra_colls: dict[str, dict[str, list]] = defaultdict(
+            lambda: defaultdict(list)
+        )
         # Alias to task id
         self.task_aliases: dict[str, str] = {}
         # Component

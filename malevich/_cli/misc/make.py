@@ -36,7 +36,10 @@ def make_command(core_op, *args, callback=None, **kwargs) -> CommandInfo:
     return command
 
 
-def wrap_command(core_f):
+def wrap_command(core_f, exclude: list[str] | None = None):
+    if not exclude:
+        exclude = []
+
     fn = partial(core_f, auth=None, conn_url=None, batcher=None)
 
     def decorator(f):
@@ -59,12 +62,20 @@ def wrap_command(core_f):
         # merge annotations
         wrapped.__annotations__ = {**annotations, **f.__annotations__}
         wrapped.__annotations__.pop('kwargs', None)
+
+        params = [
+            *fn_sig.parameters.values(), *f_signature.parameters.values()
+        ]
+        names = {'kwargs', *exclude}
+        unique_params: list[Parameter] = []
+        for p in params:
+            if p.name not in names:
+                unique_params.append(p)
+            names.add(p.name)
+        unique_params.sort(key=lambda x: x.default != Parameter.empty)
         # merge signatures
         f_signature = f_signature.replace(
-            parameters=[
-                x for x in [*fn_sig.parameters.values(), *f_signature.parameters.values()]
-                if x.name != 'kwargs'
-            ]
+            parameters=unique_params
         )
 
         wrapped.__signature__ = f_signature

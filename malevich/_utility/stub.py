@@ -3,6 +3,7 @@ import json
 import os
 import re
 import tempfile
+import typing
 from contextlib import chdir
 from hashlib import sha256
 from pathlib import Path
@@ -40,9 +41,10 @@ from this module and calling it within @flow decorated function.
 
     imports = """
 import typing
-from typing import Any, Optional
+from typing import *
 
 import malevich.annotations
+from malevich.models.type_annotations import ConfigArgument
 from malevich._meta.decor import proc
 from malevich._utility.registry import Registry
 from malevich.models.nodes import OperationNode
@@ -144,9 +146,12 @@ class StubFunction(BaseModel):
         #    argX: typeX,
         #    *,
         if self.sink:
-            def_ += f'\n\t*{self.sink[0]}: Any,'
+            if len(self.args) > 0:
+                def_ += f'\n\t/,\n\t*{self.sink[0]}: Any, '
+            else:
+                def_ += f'\n\t*{self.sink[0]}: Any, '
         else:
-            def_ += "\n\t*, "
+            def_ += "\n\t/, "
         if self.config_schema is not None:
             config_fields = self.config_schema.model_fields
             for field in config_fields:
@@ -155,23 +160,25 @@ class StubFunction(BaseModel):
                         "Trying to generate a definition for "
                         "a function with a config field named 'config'"
                     )
-
-                if 'typing' in str(config_fields[field].annotation):
-                    # typing.Union, typing.Optional
-                    annotation = str(config_fields[field].annotation)
-                elif hasattr(config_fields[field].annotation, "__name__"):
+                is_required = config_fields[field].is_required()
+                annotation = config_fields[field].annotation
+                if (
+                    hasattr(annotation, "__name__")
+                    and annotation.__module__ != typing.__name__
+                ):
                     # class
                     annotation = config_fields[field].annotation.__name__
                 else:
                     # etc.
                     annotation = str(config_fields[field].annotation)
+                # if not config_fields[field].is_required() and 'Optional' not in str(annotation):  # noqa: E501
+                #     def_ += f'\n\t{field}: Optional["{annotation}"]' + " = None,"
+                # elif not config_fields[field].is_required():
+                #     def_ += f'\n\t{field}: "{annotation}"' + " = None,"
+                # else:
+                #     def_ += f'\n\t{field}: "{annotation}"' + ","
 
-                if not config_fields[field].is_required() and 'Optional' not in str(annotation):  # noqa: E501
-                    def_ += f'\n\t{field}: Optional["{annotation}"]' + " = None,"
-                elif not config_fields[field].is_required():
-                    def_ += f'\n\t{field}: "{annotation}"' + " = None,"
-                else:
-                    def_ += f'\n\t{field}: "{annotation}"' + ","
+                def_ += f'\n\t{field}: Annotated["{annotation}", ConfigArgument(required={is_required})] = None,'  # noqa: E501
 
         for rkey, rtype in reserved_config_fields:
             def_ += f'\n\t{rkey}: Optional["{rtype}"]' + " = None,"
@@ -180,7 +187,7 @@ class StubFunction(BaseModel):
             def_ += f'\n\tconfig: Optional["{config_model}"] = None, '
         else:
             def_ += '\n\tconfig: Optional[dict] = None, '
-        def_ += '\n\t**extra_config_fields: dict[str, str], '
+        def_ += '\n\t**extra_config_fields: dict[str, Any], '
         def_ = def_[:-2] + ") -> malevich.annotations.OpResult:"
         def_ += f'\n\t"""{self.docstrings}"""\n'
         return def_.replace('\t', ' ' * 4)

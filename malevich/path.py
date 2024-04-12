@@ -1,5 +1,6 @@
 import os
 import sys
+from pathlib import Path as _Path
 
 MALEVICH_HOME = os.getenv("MALEVICH_HOME", os.path.expanduser('~/.malevich/'))
 MALEVICH_CACHE =  os.path.expanduser(os.getenv("MALEVICH_CACHE", '~/.malevich/cache'))
@@ -11,9 +12,10 @@ class Paths:
         path = list(path)
         if create:
             os.makedirs(os.path.join(MALEVICH_HOME, *path[:-1]), exist_ok=True)
+            _Path(os.path.join(MALEVICH_HOME, *path)).touch()
         if create_dir:
             os.makedirs(
-                os.path.dirname(os.path.join(MALEVICH_HOME, *path)),
+                os.path.join(MALEVICH_HOME, *path),
                 exist_ok=True
             )
         return os.path.join(MALEVICH_HOME, *path)
@@ -32,5 +34,5 @@ class Paths:
 
     @staticmethod
     def db() -> str:
-        return Paths.home(DB_PATH, create=True)
+        return Paths.home(DB_PATH)
 

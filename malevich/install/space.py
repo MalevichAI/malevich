@@ -3,20 +3,14 @@ from typing import Optional
 
 from malevich_space.ops import SpaceOps
 
-from ..constants import DEFAULT_CORE_HOST
-
 from .._core.scan import scan_core
-
-from ..path import Paths
-
-from .._utility.stub import Stub
-
 from .._utility.space.space import resolve_setup
+from .._utility.stub import Stub
+from ..constants import DEFAULT_CORE_HOST
 from ..manifest import ManifestManager
 from ..models.installers.space import SpaceDependency, SpaceDependencyOptions
+from ..path import Paths
 from .installer import Installer
-from .stub import create_package_stub
-
 
 manf = ManifestManager()
 
@@ -75,8 +69,13 @@ class SpaceInstaller(Installer):
                 manf.query('space', resolve_secrets=True)
             ))
         except Exception as e:
-            raise Exception(
-                "Setup is invalid. Run `malevich space login`") from e
+            from malevich._cli.space.login import login
+            if not login():
+                raise Exception(
+                    "Login failed. Run `malevich space login` to try again"
+                ) from e
+            SpaceInstaller.__init__(self)
+
 
     def install(
         self,
@@ -85,6 +84,7 @@ class SpaceInstaller(Installer):
         branch: Optional[str] = None,
         version: Optional[str] = None,
     ) -> SpaceDependency:
+        package_name = re.sub(r'[\W\s]+', '_', package_name)
 
         component = self.__ops.get_parsed_component_by_reverse_id(
             reverse_id=reverse_id
@@ -107,55 +107,6 @@ class SpaceInstaller(Installer):
         else:
             iauth, itoken = None, None
 
-        # for op in component.app.ops:
-        #     if op.type != "processor":
-        #         continue
-        #     metascript += Templates.registry.format(
-        #         operation_id=op.uid,
-        #         reverse_id=reverse_id,
-        #         branch=str(component.branch.model_dump()),
-        #         version=str(component.version.model_dump()),
-        #         name=op.core_id,
-        #         image_ref=(
-        #             "dependencies",
-        #             package_name,
-        #             "options",
-        #             "image_ref"
-        #         ),
-        #         image_auth_user=(
-        #             "dependencies",
-        #             package_name,
-        #             "options",
-        #             "image_auth_user",
-        #         ),
-        #         image_auth_pass=(
-        #             "dependencies",
-        #             package_name,
-        #             "options",
-        #             "image_auth_pass",
-        #         ),
-        #     )
-        #     is_sink = any(
-        #         ['Sink' in arg_.arg_type
-        #          for arg_ in op.args if arg_.arg_type
-        #     ])
-        #     args_ = []
-
-        #     for arg_ in op.args:
-        #         if "return" in arg_.arg_name \
-        #                 or (arg_.arg_type and "Context" in arg_.arg_type):
-        #             continue
-        #         args_.append(arg_.arg_name)
-
-        #     metascript += Templates.processor.format(
-        #         name=op.core_id,
-        #         args=(", ".join(args_) + ", " if args_ else "") if not is_sink else '*args, ',  # noqa: E501
-        #         docs=op.doc,
-        #         operation_id=op.uid,
-        #         decor='autotrace' if not is_sink else 'sinktrace',
-        #         package_id=package_name
-        #     )
-
         dependency = SpaceDependency(
             package_id=package_name,
             version=component.version.readable_name,
@@ -173,7 +124,9 @@ class SpaceInstaller(Installer):
         Stub.from_app_info(
             app_info=scan_core(
                 image_ref=component.app.container_ref,
-                image_auth=(component.app.container_user, component.app.container_token),
+                image_auth=(
+                    component.app.container_user, component.app.container_token
+                ),
                 core_host=DEFAULT_CORE_HOST,
             ),
             path=Paths.module(package_name),

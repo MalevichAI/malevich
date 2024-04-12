@@ -5,9 +5,9 @@ import rich
 from malevich_coretools import logs_clickhouse
 from rich.table import Table
 
-from ..._utility.host import fix_host
-from ..._utility.summary.abstract import AbstractSummary
+from ..._utility import fix_host
 from ...interpreter.core import CoreInterpreterState
+from ..summary.abstract import AbstractSummary
 
 
 class CoreTimeSummary(AbstractSummary[CoreInterpreterState]):
