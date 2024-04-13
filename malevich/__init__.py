@@ -37,6 +37,9 @@ from .interpreter.space import SpaceInterpreter
 import malevich_coretools as core_api
 from malevich_space.schema import VersionMode
 
+# For simple deployment
+from ._deploy import Core, Space
+
 manf = ManifestManager()
 
 __logger = logging.getLogger("log")

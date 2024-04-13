@@ -1,8 +1,11 @@
 from malevich import CoreInterpreter, SpaceInterpreter,flow
 from malevich.models.flow_function import FlowFunction
 from malevich.models.results.base import BaseResult
-from malevich.testing import FlowTestEnv, FlowTestSuite, ImageDependency, SpaceDependency, SpaceDependencyOptions
+from malevich import VersionMode
+from malevich.testing import FlowTestEnv, FlowTestSuite, ImageDependency, SpaceDependency, SpaceDependencyOptions, ImageOptions
+from pydantic import BaseModel
 import os
+import pandas as pd
 
 class TestUtility(FlowTestSuite):
   environment = FlowTestEnv(dependencies={
@@ -54,13 +57,12 @@ class TestManyToOne(FlowTestSuite):
 class TestOneToMany(FlowTestSuite):
    environment = FlowTestEnv(dependencies={
       "utility": ImageDependency(package_id='utility'),
-      "scrape": ImageDependency(package_id="scrape")
    })
    interpreter = CoreInterpreter(core_auth=('leo', 'pak'))
 
    @flow
    def test():
-        from malevich import config, collection, table
+        from malevich import collection, table
         from malevich.utility import merge, add_column, rename
         
         col = collection(
@@ -71,8 +73,8 @@ class TestOneToMany(FlowTestSuite):
             )
         )
         
-        add = add_column(col, column='E', value=10)
-        renamed = rename(col, D='Q') 
+        add = add_column(col, config=add_column.config(column='E', value=10))
+        renamed = rename(col, config={'D':'Q'}) 
 
         result = merge(add, renamed)
 
@@ -92,13 +94,34 @@ class TestOneToMany(FlowTestSuite):
             assert row['E'] == 10
             assert row['Q'] == row['D']
 
+class TestSpaceCoreFlow(FlowTestSuite):
+    environment = FlowTestEnv(
+        dependencies={
+            "utility": SpaceDependency(package_id="utility", options=SpaceDependencyOptions(reverse_id='utility'))
+        }
+    )
+    interpreter = CoreInterpreter(core_auth=('leo', 'pak'))
+    
+    @flow
+    def my_flow():
+        from malevich import collection, table
+        from malevich.utility import add_column
+
+        x = collection('test_collection', df=table([1, 2, 3], columns=['x']))
+        return add_column(x)
+
+    @staticmethod
+    def on_result(flow, results):
+        assert 'new_column' in results[0].get_df()
+
+
 class TestSpaceFlow(FlowTestSuite):
     environment = FlowTestEnv(
         dependencies={
             "utility": SpaceDependency(package_id="utility", options=SpaceDependencyOptions(reverse_id='utility')),
         }
     )
-    interpreter = SpaceInterpreter(version_mode='default')
+    interpreter = SpaceInterpreter(version_mode=VersionMode.DEFAULT)
 
     @flow
     def space_flow():
@@ -114,4 +137,41 @@ class TestSpaceFlow(FlowTestSuite):
         for _, row in data.iterrows():
             assert row['test1'] == row['test2']
 
+class TestEmptyDFResult(FlowTestSuite):
+    environment = FlowTestEnv(
+        dependencies={
+            "utility": ImageDependency(package_id="utility"),
+        }
+    )
+    interpreter = CoreInterpreter(core_auth=('leo', 'pak'))    
+
+    @flow
+    def test_empty_df():
+        from malevich import collection
+        from malevich.utility import filter
+
+        data = collection(
+            name="empty",
+            df=pd.DataFrame(
+                ['hello'],
+                columns=['empty']
+            )
+        )
+
+        data1 = filter(
+            data,
+            conditions=[
+                {
+                    "column": 'empty',
+                    "operation": 'equal',
+                    "value": 'data',
+                    "type": 'str'
+                }
+            ]
+        )
+
+        return data1 
     
+    @staticmethod
+    def on_result(flow, results) -> None:
+        assert results[0].get_dfs()[0].size == 0

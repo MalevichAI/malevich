@@ -1,11 +1,12 @@
 from malevich_space.schema import SpaceSetup
 
-from ...manifest import ManifestManager
-
-manf = ManifestManager()
+from ...manifest import manf
 
 
 def resolve_setup(space: dict) -> SpaceSetup:
     space = SpaceSetup(**space)
-    space.password = manf.query_secret(space.password, only_value=True)
+
+    if manf.is_secret(space.password):
+        space.password = manf.query_secret(space.password, only_value=True)
+
     return space

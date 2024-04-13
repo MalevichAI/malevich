@@ -28,20 +28,7 @@ class SpaceAuxParams:
     flow_id: str | None
     tree: TreeNode | None
 
-    # operation_id: str
-    # task_id: str
-    # core_host: str
-    # core_auth: tuple[str, str]
-    # base_config: core.Cfg
-    # base_config_id: str
-
     def __init__(self, **kwargs) -> None:
-        # self.operation_id = kwargs.get('operation_id', None)
-        # self.task_id = kwargs.get('task_id', None)
-        # self.core_host = kwargs.get('core_host', None)
-        # self.core_auth = kwargs.get('core_auth', None)
-        # self.base_config = kwargs.get('base_config', None)
-        # self.base_config_id = kwargs.get('base_config_id', None)
         self.task_id = kwargs.get('task_id', None)
         self.run_id = kwargs.get('run_id', None)
         self.core_task_id = kwargs.get('core_task_id', None)

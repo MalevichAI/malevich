@@ -46,7 +46,7 @@ class PromisedTask(BaseTask[PromisedStage]):
         self.__tree = tree
         self.__task = None
         self.__conf_memory = []
-        self.__component = component
+        self._component = component
 
     @property
     def tree(self) -> TreeNode:
@@ -94,7 +94,7 @@ class PromisedTask(BaseTask[PromisedStage]):
         """
         __interpreter = interpreter or SpaceInterpreter()
         try:
-            task = __interpreter.interpret(self.__tree, self.__component)
+            task = __interpreter.interpret(self.__tree, self._component)
             if self.__results:
                 task.commit_returned(self.__results)
             self.__task = task
@@ -245,9 +245,9 @@ class PromisedTask(BaseTask[PromisedStage]):
             task_bytes_ = self.__task.dump()
         else:
             task_bytes_ = b""
-        tree_bytes_ = pickle.dumps(self.__tree)
+        tree_bytes_ = pickle.dumps(self.__tree.model_dump())
         results_bytes_ = pickle.dumps(self.__results)
-        component_bytes_ = pickle.dumps(self.__component)
+        component_bytes_ = pickle.dumps(self._component)
         return pickle.dumps(
             (task_bytes_, tree_bytes_, results_bytes_, component_bytes_)
         )
@@ -258,7 +258,7 @@ class PromisedTask(BaseTask[PromisedStage]):
         task_bytes_, tree_bytes_, results_bytes_, component_bytes_ = pickle.loads(object_bytes)  # noqa: E501
         task = PromisedTask(
             results=pickle.loads(results_bytes_),
-            tree=pickle.loads(tree_bytes_),
+            tree=TreeNode(**pickle.loads(tree_bytes_)),
             component=pickle.loads(component_bytes_)
         )
         if len(task_bytes_) > 0:

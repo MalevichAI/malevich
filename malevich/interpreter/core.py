@@ -6,8 +6,6 @@ from typing import Optional
 import malevich_coretools as core
 from malevich_space.schema import ComponentSchema
 
-from ..models.in_app_core_info import InjectedAppInfo
-
 from .._autoflow.tracer import traced
 from .._core.ops import (
     _assure_asset,
@@ -21,6 +19,7 @@ from ..interpreter.abstract import Interpreter
 from ..models.actions import Action
 from ..models.argument import ArgumentLink
 from ..models.exceptions import InterpretationError
+from ..models.in_app_core_info import InjectedAppInfo
 from ..models.nodes import BaseNode, CollectionNode, OperationNode
 from ..models.nodes.asset import AssetNode
 from ..models.nodes.tree import TreeNode
@@ -61,7 +60,7 @@ def _name(base: str) -> int:
 
 
 
-class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
+class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
     """Interpret flows to be run on Malevich Core
 
     Malevich Core is a computational cloud of Malevich. It provides
@@ -326,7 +325,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, tuple[str, str]]):
                     **state.cfg.collections,
                     f"{coll}": uploaded_core_id,
                 }
-                state.extra_colls[op.uuid][link.name] = coll
+                state.extra_colls[op.uuid][link.name].append(coll)
 
             if not op.alias:
                 op.alias = extra["processor_id"] + '-' + str(_name(extra["processor_id"]))  # noqa: E501

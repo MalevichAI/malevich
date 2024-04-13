@@ -10,3 +10,5 @@ malevich.yaml
 **/malevich.secrets.yaml
 .env
 build-docs/
+
+.DS_Store

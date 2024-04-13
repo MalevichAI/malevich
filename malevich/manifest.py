@@ -7,6 +7,7 @@ import pydantic_yaml as pydml
 
 from ._utility.singleton import SingletonMeta
 from .models.manifest import Manifest, Secret, Secrets
+from .path import Paths
 
 
 class OverrideManifest:
@@ -46,21 +47,43 @@ class ManifestManager(metaclass=SingletonMeta):
     def is_secret(value: str) -> bool:
         return re.match(ManifestManager.secret_pattern(), str(value)) is not None
 
+    @staticmethod
+    def create_manifest() -> None:
+        pydml.to_yaml_file(Paths.pwd('malevich.yaml'), Manifest())
+        pydml.to_yaml_file(Paths.pwd('malevich.secrets.yaml'), Secrets())
+
+    @property
+    def path(self) -> str:
+        return '' + self.__path
+
     def __init__(self, workdir: str | None = None) -> None:
+        if os.path.exists(Paths.pwd('malevich.yaml')):
+            self.__path = Paths.pwd('malevich.yaml')
+            self.__secrets_path = Paths.pwd('malevich.secrets.yaml')
+            self.local = True
+        else:
+            self.__path = Paths.home('malevich.yaml', create=True)
+            self.__secrets_path = Paths.home('malevich.secrets.yaml', create=True)
+            self.local = False
+
         if workdir is None:
             workdir = os.getcwd()
 
-        self.__path = os.path.join(workdir, "malevich.yaml")
-        self.__secrets_path = os.path.join(workdir, "malevich.secrets.yaml")
-        if not os.path.exists(self.__path):
-            pydml.to_yaml_file(self.__path, Manifest())
-        if not os.path.exists(self.__secrets_path):
-            pydml.to_yaml_file(self.__secrets_path, Secrets())
-        with open(self.__path) as _file:
+        with open(self.__path, 'r+') as _file:
+            if os.path.getsize(self.__path) == 0:
+                _file.write('{}')
+                _file.seek(0)
             self.__manifest = pydml.parse_yaml_file_as(Manifest, _file)
             self.__backup = self.__manifest.model_dump()
+
+        with open(self.__secrets_path, 'r+') as _file:
+            if os.path.getsize(self.__secrets_path) == 0:
+                _file.write('{}')
+                _file.seek(0)
+
             self.__secrets = pydml.parse_yaml_file_as(
-                Secrets, self.__secrets_path)
+                Secrets, _file
+            )
 
     def cleanup_secrets(self) -> list[Secret]:
         secrets = re.findall(
@@ -89,6 +112,19 @@ class ManifestManager(metaclass=SingletonMeta):
         # self.__secrets = self.cleanup_secrets()
         pydml.to_yaml_file(self.__secrets_path, self.__secrets)
         self.__secrets = pydml.parse_yaml_file_as(Secrets, self.__secrets_path)
+
+    @staticmethod
+    def __map(obj, f) -> dict | list | None:
+        """Deep key map"""
+        if isinstance(obj, list):
+            for i, x in enumerate(obj):
+                obj[i] = ManifestManager.__map(x, f)
+        if isinstance(obj, dict):
+            for x in obj:
+                obj[x] = ManifestManager.__map(obj[x], f)
+        else:
+            obj = f(obj)
+        return obj
 
     def __query_list(
             self, __list: list[str | dict[str, Any]], __key: str
@@ -145,14 +181,28 @@ class ManifestManager(metaclass=SingletonMeta):
                 cursor = cursor[key]
             else:
                 return None
-        if (
-            cursor is not None
-            and resolve_secrets
-            and isinstance(cursor, str)
-            and re.match(r"^secret#[0-9]{1,6}", cursor)
-        ):
-            return self.query_secret(cursor).secret_value
+
+        if resolve_secrets:
+            def __mapf(x) -> str:
+                if (
+                    x is not None
+                    and isinstance(x, str)
+                    and re.match(r"^secret#[0-9]{1,6}", x)
+                ):
+                    return self.query_secret(x, only_value=True)
+                else:
+                    return x
+
+            return ManifestManager.__map(cursor, __mapf)
         return cursor
+        # if (
+        #     cursor is not None
+        #     and resolve_secrets
+        #     and isinstance(cursor, str)
+        #     and re.match(r"^secret#[0-9]{1,6}", cursor)
+        # ):
+        #     return self.query_secret(cursor).secret_value
+        # return cursor
 
     def put(
         self, *path: Iterable[str], value: Any, append: bool = False  # noqa: ANN401
@@ -281,5 +331,7 @@ class ManifestManager(metaclass=SingletonMeta):
         self.save()
         return self.__manifest
 
-
-manf = ManifestManager()
+try:
+    manf = ManifestManager()
+except FileNotFoundError:
+    manf = None

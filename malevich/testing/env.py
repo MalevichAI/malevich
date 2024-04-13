@@ -11,7 +11,7 @@ from malevich.path import Paths
 from ..models.installers.compat import CompatabilityStrategy
 from ..models.preferences import Action, LogFormat, UserPreferences, VerbosityLevel
 
-test_manifest = OverrideManifest(Paths.home("testing", create=True))
+test_manifest = OverrideManifest(Paths.home("testing", create_dir=True))
 
 class EnvManager(metaclass=SingletonMeta):
     """Efficient environment manager

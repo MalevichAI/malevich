@@ -47,8 +47,7 @@ reg = Registry()
 cache = CacheManager()
 
 _levels = [LogLevel.Info, LogLevel.Warning, LogLevel.Error, LogLevel.Debug]
-_actions = [Action.Interpretation,
-            Action.Preparation, Action.Run, Action.Results]
+_actions = [Action.Interpretation, Action.Preparation, Action.Run, Action.Results]
 
 
 def _log(
@@ -75,7 +74,7 @@ def _name(base: str) -> int:
     return names_[base]
 
 
-class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
+class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
     """
     Interpret flows to be added and uploaded to your Malevich Space workspace.
 
@@ -119,52 +118,47 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
     :class:`malevich.results.space.SpaceCollectionResult`
     objects.
     """
+
     supports_subtrees = True
 
-    def prettify_collection_id(
-        self,
-        collection_id: str
-    ) -> str:
+    def prettify_collection_id(self, collection_id: str) -> str:
         # Replace spaces with dashes
-        _s = re.sub(r'\s+', '-', collection_id)
+        _s = re.sub(r"\s+", "-", collection_id)
         # Lowercase
         _s = _s.lower()
         # Replace underscores with dashes
         return _s
 
-    def prettify_collection_name(
-        self,
-        collection_name: str
-    ) -> str:
+    def prettify_collection_name(self, collection_name: str) -> str:
         # Replace multiple spaces with one
-        _s = re.sub(r'\s+', ' ', collection_name)
+        _s = re.sub(r"\s+", " ", collection_name)
         # Replace dashes and underscores with spaces
-        _s = re.sub(r'-', ' ', _s)
+        _s = re.sub(r"-", " ", _s)
         # Title case
         return _s.title()
 
     def prettify_schema_id(self, schema_name: str) -> str:
         # 'Schema Name - Some_Name' -> 'SchemaNameSome_Name"
-        _s = re.sub(r'[\s-]+', ' ', schema_name)
-        return _s.replace(' ', '').lower()
+        _s = re.sub(r"[\s-]+", " ", schema_name)
+        return _s.replace(" ", "").lower()
 
     def prettify_component_name(self, component_name: str) -> str:
-        _s = re.sub(r'[\s-]+', ' ', component_name)
+        _s = re.sub(r"[\s-]+", " ", component_name)
         return _s.title()
 
     def prettify_config_name(self, component_name: str) -> str:
-        _s = re.sub(r'[\s-]+', ' ', component_name)
-        return 'Meta Config for ' + _s.title()
+        _s = re.sub(r"[\s-]+", " ", component_name)
+        return "Meta Config for " + _s.title()
 
     def prettify_config_id(
         self,
         component_name: str,
-        rand: Optional[str] = None  # Random string
+        rand: Optional[str] = None,  # Random string
     ) -> str:
         rand = rand or uuid4().hex[:8]
-        __b = 'meta-config-for-' + re.sub(r'[\s|_|-]+', ' ', component_name)
+        __b = "meta-config-for-" + re.sub(r"[\s|_|-]+", " ", component_name)
         if rand:
-            __b += '-' + rand
+            __b += "-" + rand
         return __b
 
     def update_state(self, state: SpaceInterpreterState = None) -> None:
@@ -178,7 +172,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
 
     @property
     def state(self) -> SpaceInterpreterState:
-        return self._state.copy()
+        return self._state
 
     def __init__(
         self,
@@ -197,13 +191,16 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
         self._state = SpaceInterpreterState()
         if not setup and not ops:
             try:
-                setup = resolve_setup(manf.query(
-                    "space", resolve_secrets=True))
+                setup = resolve_setup(manf.query("space", resolve_secrets=True))
             except Exception as e:
+                from malevich._cli.space.login import login
+                if login():
+                    setup = resolve_setup(manf.query("space", resolve_secrets=True))
                 raise InterpretationError(
                     "Failed to resolve space setup. "
                     "Please check your manifest file.",
-                    self, self._state
+                    self,
+                    self._state,
                 ) from e
 
         space = ops or SpaceOps(setup)
@@ -216,18 +213,15 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
         if not host_:
             try:
                 host_ = space.create_host(
-                    alias=setup.host.alias or '',
-                    conn_url=setup.host.conn_url
+                    alias=setup.host.alias or "", conn_url=setup.host.conn_url
                 )
             except KeyError as ke:
-                if 'details' in ke.args[0]:
+                if "details" in ke.args[0]:
                     # Local patch for space
                     pass
 
         self._state.component_manager = ComponentManager(
-            host=host_,
-            space=space,
-            comp_dir='./'
+            host=host_, space=space, comp_dir="./"
         )
 
         self._state.host = host_
@@ -242,7 +236,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
         self,
         state: SpaceInterpreterState,
         node: CollectionNode,
-        skip_create: Literal[True]
+        skip_create: Literal[True],
     ) -> tuple[str | None, str]:
         pass
 
@@ -251,7 +245,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
         self,
         state: SpaceInterpreterState,
         node: CollectionNode,
-        skip_create: Literal[False]
+        skip_create: Literal[False],
     ) -> tuple[str, str]:
         pass
 
@@ -259,12 +253,13 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
         self,
         state: SpaceInterpreterState,
         node: CollectionNode,
-        skip_create: bool = False
+        skip_create: bool = False,
     ) -> tuple[str | None, str]:
         if not node.scheme:
             raise InterpretationError(
                 "To be able to use collection, it should have an attached schema",
-                self, state
+                self,
+                state,
             )
 
         # Understanding scheme
@@ -284,9 +279,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
         if isinstance(node.scheme, str):
             # If scheme is a string, then it should firstly
             # be uploaded
-            core_id = self.prettify_schema_id(
-                node.collection.collection_id
-            )
+            core_id = self.prettify_schema_id(node.collection.collection_id)
 
             if skip_create:
                 return None, core_id
@@ -295,9 +288,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                 # $core_id: String!, $raw: String!, $name: String
                 core_id=core_id,
                 raw=node.scheme,
-                name=self.prettify_schema_id(
-                    node.collection.collection_id
-                )
+                name=self.prettify_schema_id(node.collection.collection_id),
             )
             # RFC: Should I allow to upload collection without scheme?
             assert schema_uid, "Failed to upload the schema"
@@ -314,13 +305,9 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
         if not core_id:
             core_id = node.collection.collection_id
 
-        _, schema_core_id = self._upload_schema(
-            state, node
-        )
+        _, schema_core_id = self._upload_schema(state, node)
         # Uploading collection
-        alias = self.prettify_collection_name(
-            node.collection.collection_id
-        )
+        alias = self.prettify_collection_name(node.collection.collection_id)
 
         # RFC!: Is it correct way to upload collection?
         uid = state.space.create_collection(
@@ -329,9 +316,8 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
             core_alias=alias,
             schema_core_id=schema_core_id,
             docs=[
-                row.to_json()
-                for _, row in node.collection.collection_data.iterrows()
-            ]
+                row.to_json() for _, row in node.collection.collection_data.iterrows()
+            ],
         )
 
         return uid
@@ -343,10 +329,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                 reverse_id=component.reverse_id
             )
 
-            task = SpaceTask(
-                state=self.state,
-                component=loaded
-            )
+            task = SpaceTask(state=self.state, component=loaded)
             all = {i.uid for i in loaded.flow.components}
             non_leaves = set().union(
                 *[{i.uid for i in c.prev} for c in loaded.flow.components]
@@ -357,9 +340,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                 for c in loaded.flow.components
                 if c.uid in leaves
             ]
-            task.commit_returned(
-                returned
-            )
+            task.commit_returned(returned)
             return task
 
         return super().interpret(node, component)
@@ -381,22 +362,17 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
             SpaceInterpreterState: Interpreter state.
         """
 
-
         if isinstance(node.owner, CollectionNode):  # If the node is a collection
             alias_base = node.owner.collection.collection_id
 
-            _, path = cache.space.probe_new_entry(
-                node.owner.collection.collection_id,
-                entry_group='collections/temp'
-            )
+            # _, path = cache.space.probe_new_entry(
+            #     node.owner.collection.collection_id, entry_group="collections/temp"
+            # )
 
-            if not node.owner.collection.collection_data.empty:
-                node.owner.collection.collection_data.to_csv(
-                    path,
-                    index=False
-                )
-            else:
-                path = None
+            # if not node.owner.collection.collection_data.empty:
+            #     node.owner.collection.collection_data.to_csv(path, index=False)
+            # else:
+            #     path = None
 
             state.node_type[node.owner.uuid] = NodeType.COLLECTION
             # Try to get the collection component from the space
@@ -415,18 +391,18 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                     state=state, node=node.owner, skip_create=False
                 )
 
-                if not path:
+                if node.owner.collection.collection_data is None:
                     # NOTE: path is None is the only
                     # case for the exception. However,
                     # there may be some more, which should be
                     # checked as well
                     raise InterpretationError(
-                        'Cannot interpret collection '
+                        "Cannot interpret collection "
                         + node.owner.collection.collection_id
-                        + '. There is no such collection on Space and'
-                        + ' there is no data provided to upload. Either use'
-                        + ' existing collections, or provide `df` or `file` argument'
-                        + ' in collection(...) call'
+                        + ". There is no such collection on Space and"
+                        + " there is no data provided to upload. Either use"
+                        + " existing collections, or provide `df` or `file` argument"
+                        + " in collection(...) call"
                     )
 
                 comp = ComponentSchema(
@@ -436,8 +412,13 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                     collection=CollectionAliasSchema(
                         core_alias=node.owner.collection.collection_id,
                         schema_core_id=schema_core_id,
-                        path=path
-                    )
+                        # NOTE: 0.4.18 patch: path -> docs
+                        # path=path,
+                        docs=[
+                            row.to_json() for _, row in
+                            node.owner.collection.collection_data.iterrows()
+                        ],
+                    ),
                 )
             else:
                 if self._upload_collections:
@@ -445,8 +426,9 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                         node.owner.collection.collection_id
                     )
                     uid = self._upload_collection(
-                        state, node.owner,
-                        core_id=f'override-{coll_id}-{state.interpretation_id}'
+                        state,
+                        node.owner,
+                        core_id=f"override-{coll_id}-{state.interpretation_id}",
                     )
                     state.collection_overrides[component.collection.uid] = uid
 
@@ -454,7 +436,6 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                     reverse_id=component.reverse_id,
                     name=component.name,
                 )
-
 
         elif isinstance(node.owner, OperationNode):  # If the node is an operation
             state.node_type[node.owner.uuid] = NodeType.OPERATION
@@ -466,18 +447,22 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
             # If no extra information is found, it means
             # local information is too old
             # (but it is user fault, not mine)
-            if 'reverse_id' not in extra:
+            if "reverse_id" not in extra:
                 raise InterpretationError(
-                "Could not find reverse_id for the operation. Most probably, "
-                "you are trying to use an operation installed by another installer.",
-                    self, state
+                    "Could not find reverse_id for the operation. "
+                    "Most probably, you are trying to use an operation "
+                    "installed by another installer.",
+                    self,
+                    state,
                 )
 
-            alias_base = extra['reverse_id']
+            alias_base = extra["reverse_id"]
 
             # Get the component from the space (it should be there)
-            component = state.component_manager.space.get_parsed_component_by_reverse_id(  # noqa: E501
-                reverse_id=extra['reverse_id']
+            component = (
+                state.component_manager.space.get_parsed_component_by_reverse_id(
+                    reverse_id=extra["reverse_id"]
+                )
             )
 
             if not component:
@@ -487,14 +472,13 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                     "properly or extremely outdated. Try to reinstall "
                     "the operation with\n\t"
                     f"`malevich install {extra['reverse_id']} --using space`",
-                    self, state
+                    self,
+                    state,
                 )
 
             state.components_config[node.owner.uuid] = node.owner.config
             comp = ComponentSchema(
-                name=component.name,
-                reverse_id=component.reverse_id,
-                app=component.app
+                name=component.name, reverse_id=component.reverse_id, app=component.app
             )
             state.node_to_operation[node.owner.uuid] = node.owner.operation_id
 
@@ -502,8 +486,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
             alias_base = node.owner.reverse_id
             if not state.children_states.get(node.owner.uuid, None):
                 child_interpreter = SpaceInterpreter(
-                    name=node.owner.name,
-                    reverse_id=node.owner.reverse_id
+                    name=node.owner.name, reverse_id=node.owner.reverse_id
                 )
 
                 child_interpreter.interpret(node.owner)
@@ -530,7 +513,9 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
             )
 
         state.components[node.owner.uuid] = comp
-        state.components_alias[node.owner.uuid] = node.owner.alias or f'{alias_base} {_name(alias_base)}'  # noqa: E501
+        state.components_alias[node.owner.uuid] = (
+            node.owner.alias or f"{alias_base} {_name(alias_base)}"
+        )
         node.owner.alias = state.components_alias[node.owner.uuid]
         return state
 
@@ -539,13 +524,15 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
         state: SpaceInterpreterState,
         caller: TracedNode,
         callee: traced[OperationNode],
-        link: ArgumentLink
+        link: ArgumentLink,
     ) -> SpaceInterpreterState:
         """Creates a dependency between two nodes."""
 
         # Case Collection / App -> Flow
 
-        if isinstance(callee.owner, TreeNode) and not isinstance(caller.owner, TreeNode):  # noqa: E501
+        if isinstance(callee.owner, TreeNode) and not isinstance(
+            caller.owner, TreeNode
+        ):
             child = state.children_states[callee.owner.uuid]
             caller_alias = state.components_alias[caller.owner.uuid]
             inter_flow_map = {}
@@ -562,24 +549,22 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                     if isinstance(caller.owner, OperationNode)
                     else None
                 ),
-                to_op_id=callee.owner.underlying_node.operation_id if isinstance(
-                    callee.owner.underlying_node, OperationNode) else None,
+                to_op_id=callee.owner.underlying_node.operation_id
+                if isinstance(callee.owner.underlying_node, OperationNode)
+                else None,
                 alias=state.components_alias[caller.owner.uuid],
                 order=link.index,
                 terminals=[
-                    Terminal(
-                        src=x,
-                        target=y
-                    ) for x, y in inter_flow_map.items()
-                ]
+                    Terminal(src=x, target=y) for x, y in inter_flow_map.items()
+                ],
             )
-        elif isinstance(caller.owner, TreeNode) and not isinstance(callee.owner, TreeNode):  # noqa: E501
+        elif isinstance(caller.owner, TreeNode) and not isinstance(
+            callee.owner, TreeNode
+        ):
             child = state.children_states[caller.owner.uuid]
             callee_alias = state.components_alias[callee.owner.uuid]
             op: OperationNode = caller.owner.underlying_node
-            inter_flow_map = {
-                child.components_alias[op.uuid]: callee_alias
-            }
+            inter_flow_map = {child.components_alias[op.uuid]: callee_alias}
 
             dependency = InFlowDependency(
                 from_op_id=op.operation_id,
@@ -592,11 +577,8 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                 alias=state.components_alias[caller.owner.uuid],
                 order=link.index,
                 terminals=[
-                    Terminal(
-                        src=x,
-                        target=y
-                    ) for x, y in inter_flow_map.items()
-                ]
+                    Terminal(src=x, target=y) for x, y in inter_flow_map.items()
+                ],
             )
         elif isinstance(caller.owner, TreeNode) and isinstance(callee.owner, TreeNode):
             left_op = caller.owner.underlying_node
@@ -616,10 +598,16 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                         ),
                         alias=state.components_alias[caller.owner.uuid],
                         order=rel.index,
-                        terminals=[Terminal(
-                            src=state.children_states[caller.owner.uuid].components_alias[left_op.uuid],
-                            target=state.children_states[callee.owner.uuid].components_alias[right_node.owner.uuid]
-                        )]
+                        terminals=[
+                            Terminal(
+                                src=state.children_states[
+                                    caller.owner.uuid
+                                ].components_alias[left_op.uuid],
+                                target=state.children_states[
+                                    callee.owner.uuid
+                                ].components_alias[right_node.owner.uuid],
+                            )
+                        ],
                     )
                 )
             return state
@@ -647,14 +635,15 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                 # I don't know why, but sometimes
                 # it fails, so try/exc here
                 loaded_component = state.component_manager.component(
-                    component,
-                    VersionMode.DEFAULT
+                    component, VersionMode.DEFAULT
                 )
             except Exception as e:
                 # If it fails, try to get the component
                 # by reverse id
-                loaded_component = state.component_manager.space.get_component_by_reverse_id(  # noqa: E501
-                    component.reverse_id
+                loaded_component = (
+                    state.component_manager.space.get_component_by_reverse_id(
+                        component.reverse_id
+                    )
                 )
 
                 # No components?(
@@ -663,7 +652,8 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                     raise InterpretationError(
                         f"Failed to interpret the flow: component {component.name} "
                         "failed to load. ",
-                        self, state
+                        self,
+                        state,
                     ) from e
 
             # If the component is an operation
@@ -671,8 +661,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
             if uid in state.components_config:
                 # RFC: Is it correct way to update config?
                 space_config = CfgSchema(
-                    readable_name=self.prettify_config_name(
-                        component.reverse_id),
+                    readable_name=self.prettify_config_name(component.reverse_id),
                     cfg_json=state.components_config.get(uid),
                     core_name=self.prettify_config_id(component.reverse_id),
                 )
@@ -690,28 +679,21 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                 InFlowComponentSchema(
                     reverse_id=component.reverse_id,
                     alias=state.components_alias[uid],
-                    depends={
-                        dep.alias: dep
-                        for dep in state.dependencies[uid]
-                    },
+                    depends={dep.alias: dep for dep in state.dependencies[uid]},
                     app=InFlowAppSchema(
                         active_op=[
-                            OpSchema(
-                                core_id=extra['processor_name'],
-                                type='processor'
-                            )
+                            OpSchema(core_id=extra["processor_name"], type="processor")
                         ]
-                    ) if component.app is not None else None,
+                    )
+                    if component.app is not None
+                    else None,
                     active_cfg=space_config,
                 ),
             ]
 
         return state
 
-    def get_task(
-        self,
-        state: SpaceInterpreterState
-    ) -> BaseTask[SpaceInterpreterState]:
+    def get_task(self, state: SpaceInterpreterState) -> BaseTask[SpaceInterpreterState]:
         if self._component is None:
             raise Exception("Expected _component to be not None")
 
@@ -723,102 +705,71 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
         )
 
         if self._version_mode != VersionMode.DEFAULT:
-            self.state.space.client.execute(
-                gql("""
-                query AutoLayout($flow: String!) {
-                    flow(uid: $flow) {
-                        autoLayout {
-                            pageInfo {
-                                totalLen
-                            }
-                        }
-                    }
-                }
-                """),
-                variable_values={'flow': component.flow.uid}
-            )
+            state.space.auto_layout(flow=component.flow.uid)
 
-        return SpaceTask(
-            state=self.state,
-            component=component
-        )
+        return SpaceTask(state=self.state, component=component)
 
     def attach(
         self,
-        reverse_id: str,
-        deployment_id: str | None = None
+        reverse_id: str | None = None,
+        deployment_id: str | None = None,
+        attach_to_last: bool = False,
     ) -> SpaceTask:
-        assert reverse_id or deployment_id, (
-            'Either reverse_id or deployment_id should be set'
-        )
+        assert (
+            reverse_id or deployment_id
+        ), "Either reverse_id or deployment_id should be set"
 
-        leaf_ = None
         successful = False
         if deployment_id:
             try:
-                results = self.state.space.client.execute(
-                    gql("""
-                        query GetTaskCoreId($task_id: String!) {
-                            task(uid: $task_id)` {
-                                details {
-                                    coreId
-                                }
-                                component {
-                                    details {
-                                        reverseId
-                                    }
-                                }
-                            }
-                        }
-                        """
-                    ), variable_values={'task_id': deployment_id}
-                )
-                self.state.aux.core_task_id = results['task']['details']['coreId']
-                reverse_id = results['task']['component']['details']['reverseId']
-                self.state.aux.task_id = deployment_id
+                core_id, loaded_reverse_id = self._state.space.get_task_core_id(task_id=deployment_id)
+                self._state.aux.core_task_id = core_id
+                reverse_id = loaded_reverse_id
+                self._state.aux.task_id = deployment_id
                 successful |= True
             except Exception:
                 if reverse_id is None:
                     raise Exception(
-                        'Could not attach to the flow. '
-                        '`deployment_id` is not correct and '
-                        '`reverse_id` is either not correct or provided'
+                        "Could not attach to the flow. "
+                        "`deployment_id` is not correct and "
+                        "`reverse_id` is either not correct or provided"
                     )
 
-        component: LoadedComponentSchema | None = self.state.space.get_parsed_component_by_reverse_id(
-            reverse_id=reverse_id
+        elif attach_to_last:
+            deployments = self._state.space.get_deployments_by_reverse_id(reverse_id=reverse_id, status=["started"])
+            if len(deployments) == 0:
+                raise ValueError(
+                    "You have not supplied deployment ID "
+                    "and no deployments are available at the moment"
+                )
+            self._state.aux.task_id = deployments[0].uid
+
+        component: LoadedComponentSchema | None = (
+            self._state.space.get_parsed_component_by_reverse_id(reverse_id=reverse_id)
         )
 
         if component is not None and component.flow is not None:
-            self.state.flow = component.flow
-            self.state.aux.flow_id = component.flow.uid
-            self.state.components_alias = {
-                x.uid: x.alias
-                for x in component.flow.components
+            self._state.flow = component.flow
+            self._state.aux.flow_id = component.flow.uid
+            self._state.components_alias = {
+                x.uid: x.alias for x in component.flow.components
             }
             successful |= True
             all_components = {x.uid for x in component.flow.components}
             prev_components = set.union(
-                set(),
-                *[{x.uid for x in y.prev}
-                 for y in component.flow.components]
+                set(), *[{x.uid for x in y.prev} for y in component.flow.components]
             )
             leaves = all_components.difference(prev_components)
             # NOTE: there can be more leaves in future
             leave_aliasses = [
-                x.alias
-                for x in component.flow.components
-                if x.uid in (leaves)
+                x.alias for x in component.flow.components if x.uid in (leaves)
             ]
 
-            leaf_nodes = [
-                tracedLike(BaseNode(alias=x))
-                for x in leave_aliasses
-            ]
+            leaf_nodes = [tracedLike(BaseNode(alias=x)) for x in leave_aliasses]
 
         else:
             raise Exception(
-                'Could not attach to the flow. Component failed to be parsed.'
+                "Could not attach to the flow. Component failed to be parsed."
             )
 
         if not successful:
@@ -827,10 +778,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, FlowSchema]):
                 "could not find neither component nor deployment."
             )
 
-        task = SpaceTask(
-            state=self.state,
-            component=component
-        )
+        task = SpaceTask(state=self._state, component=component)
 
         task.commit_returned(leaf_nodes)
         return task

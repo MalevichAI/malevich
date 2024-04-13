@@ -1,6 +1,5 @@
 import pickle
 import uuid
-import warnings
 from enum import Enum
 from functools import cache
 from typing import Iterable, Optional
@@ -142,14 +141,6 @@ class SpaceTask(BaseTask):
                 continue
 
         for in_flow_id, df in override.items():
-            if id_to_ca[in_flow_id] not in coll_override:
-                warnings.warn(
-                    f"{in_flow_id} not a valid operation. Call "
-                    "`get_injectables()` to obtain a list of valid keys "
-                    "for override."
-                )
-                # continue
-
             uid = self.state.space.create_collection(
                 host_id=self.state.host.uid,
                 # core_id=f'override-{coll_id}-{state.interpretation_id}',
@@ -242,9 +233,10 @@ class SpaceTask(BaseTask):
         alias_to_in_flow_id = {
             x.alias: x.uid
             for x in self.component.flow.components
+            if x.collection is not None
         }
         aliases = set()
-        aliases.update(*alias_to_snapshot.keys())
+        # aliases.update(alias_to_snapshot.keys())
         aliases.update(alias_to_in_flow_id.keys())
 
         return [
@@ -265,6 +257,7 @@ class SpaceTask(BaseTask):
     async def __async_get_results(
         self,
         run_id: Optional[str] = None,
+        fetch_timeout: int = 150,
         *args,
         **kwargs
     ) -> Iterable[SpaceCollectionResult]:
@@ -299,13 +292,14 @@ class SpaceTask(BaseTask):
             )
 
         exc_message = None
-        if rs_ != AppStatus.COMPLETE:
+        if rs_ != AppStatus.COMPLETE.value:
             finished_ = {
                 x.in_flow_comp_id for x in cs_ if x.status == AppStatus.COMPLETE.value
             }
             to_be_finished_ = set(infid_)
             async for update in self.state.space.subscribe_to_status(
-                run_id or self.state.aux.run_id
+                run_id or self.state.aux.run_id,
+                fetch_timeout
             ):
                 if isinstance(update, str):
                     if update == TaskStatus.COMPLETE.value:
@@ -341,13 +335,14 @@ class SpaceTask(BaseTask):
     def results(
         self,
         run_id: Optional[str] = None,
+        fetch_timeout: int = 150,
         *args,
         **kwargs
     ) -> list[SpaceCollectionResult]:
         import asyncio
-        import warnings
 
         try:
+            import warnings
             with warnings.catch_warnings():
                 warnings.filterwarnings(
                     "ignore", message="There is no current event loop"
@@ -357,7 +352,7 @@ class SpaceTask(BaseTask):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
 
-        def raise_exc(e) -> None:
+        def raise_exc(e, *args) -> None:
             raise e
 
         loop.set_exception_handler(raise_exc)

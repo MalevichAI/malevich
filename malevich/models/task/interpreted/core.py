@@ -411,7 +411,7 @@ class CoreTask(BaseTask):
         # For compatibility with other interpreters
         *args,
         **kwargs
-    ) -> Iterable[CoreResult | CoreLocalDFResult]:
+    ) -> list[CoreResult | CoreLocalDFResult]:
         cout(message="Task results are being fetched from Core",
              action=Action.Results)
         if self.state.params.operation_id is None:
@@ -594,10 +594,11 @@ class CoreTask(BaseTask):
         self,
         capture_results: list[str] | Literal['all'] | Literal['last'] = 'last',
         enable_not_auth: bool = True,
+        hash: str | None = None,
         *args,
         **kwargs
     ) -> MetaEndpoint:
-        from malevich_coretools import create_endpoint
+        from malevich_coretools import create_endpoint, update_endpoint
         if self.get_stage() != CoreTaskStage.BUILT:
             self.prepare(stage=PrepareStages.BUILD)
 
@@ -640,23 +641,43 @@ class CoreTask(BaseTask):
         if 'prepare' not in kwargs:
             kwargs['prepare'] = True
 
-        _hash = create_endpoint(
-            task_id=self.state.params.task_id,
-            cfg_id=cfg_id,
-            auth=self.state.params.core_auth,
-            conn_url=self.state.params.core_host,
-            enable_not_auth=enable_not_auth,
-            expected_colls_with_schemes={
-                k.get_inject_data(): s
-                for k, s in zip(injectables, schemes)
-            },
-            description=(
-                self.component.description if self.component
-                else 'Auto-generated meta endpoint'
-            ),
-            *args,
-            **kwargs
-        )
+        if not hash:
+            _hash = create_endpoint(
+                task_id=self.state.params.task_id,
+                cfg_id=cfg_id,
+                auth=self.state.params.core_auth,
+                conn_url=self.state.params.core_host,
+                enable_not_auth=enable_not_auth,
+                expected_colls_with_schemes={
+                    k.get_inject_data(): s
+                    for k, s in zip(injectables, schemes)
+                },
+                description=(
+                    self.component.description if self.component
+                    else 'Auto-generated meta endpoint'
+                ),
+                *args,
+                **kwargs
+            )
+        else:
+            _hash = update_endpoint(
+                hash,
+                task_id=self.state.params.task_id,
+                cfg_id=cfg_id,
+                auth=self.state.params.core_auth,
+                conn_url=self.state.params.core_host,
+                enable_not_auth=enable_not_auth,
+                expected_colls_with_schemes={
+                    k.get_inject_data(): s
+                    for k, s in zip(injectables, schemes)
+                },
+                description=(
+                    self.component.description if self.component
+                    else 'Auto-generated meta endpoint'
+                ),
+                *args,
+                **kwargs
+            )
 
         _endpoint = core.get_endpoint(
             hash=_hash,

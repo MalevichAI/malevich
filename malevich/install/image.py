@@ -4,10 +4,8 @@ using Malevich Core capabilities
 """
 
 import hashlib
-import json
+import re
 from typing import Optional
-
-import malevich_coretools as core
 
 from .._core.scan import scan_core
 from .._utility.stub import Stub
@@ -98,6 +96,7 @@ class ImageInstaller(Installer):
         core_host: str = DEFAULT_CORE_HOST,
         core_auth: Optional[tuple[str, str]] = None,
     ) -> ImageDependency:
+        package_name = re.sub(r'[\W\s]+', '_', package_name)
         app_info = scan_core(
             core_auth=core_auth,
             core_host=core_host,
@@ -148,8 +147,8 @@ class ImageInstaller(Installer):
                 processor_id: {
                     "operation_id": operation_id,
                     "image_ref": image_ref,
-                    "image_auth_user": iauth_user,
-                    "image_auth_pass": iauth_pass,
+                    "image_auth_user": ('dependencies', package_name, 'options', 'image_auth_user'),  # noqa: E501
+                    "image_auth_pass": ('dependencies', package_name, 'options', 'image_auth_pass'),  # noqa: E501
                     "processor_id": operation_names[processor_id],
                 }
                 for processor_id, operation_id in operation_ids.items()
