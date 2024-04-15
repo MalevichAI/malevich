@@ -224,7 +224,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
     ) -> CoreInterpreterState:
         state.depends[caller.owner.uuid].append((callee.owner, link))
         _log(
-            f"Dependency: {caller.owner.short_info()} -> {callee.owner.short_info()}, "
+            f"Dependency: {callee.owner.short_info()} -> {caller.owner.short_info()}, "
             f"Link: {link.name}", -1, 0, True
         )
         return state

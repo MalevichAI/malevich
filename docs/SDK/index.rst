@@ -7,7 +7,7 @@ User Guide
 
     Structure <Project/Structure>
     Dependencies <Project/Dependencies>
-    CI <Project/CI/Github_Action>
+    Automation <Project/CI/Github_Action>
 
 .. toctree::
     :caption: Working with Data
@@ -36,4 +36,5 @@ User Guide
 .. toctree::
     :caption: Deployment
 
+    Deployment/WithCode
     Deployment/Endpoints 
