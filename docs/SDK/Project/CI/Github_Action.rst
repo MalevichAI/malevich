@@ -90,4 +90,4 @@ During the run, the command will install 2 files inside ``.github/workflows`` di
 References
 ----------
 
-- Action Repo: https://github.com/MalevichAI/auto-ci
+- Action source code: https://github.com/MalevichAI/auto-ci
