@@ -2,17 +2,17 @@
 CI/CD
 =====
 
-Malevich has its own `Github Actions Workflow <https://github.com/features/actions>`_ pipeline for building and delivering apps to space.
+Malevich has its own `Github Actions Workflow <https://github.com/features/actions>`_ pipeline for building and delivering apps to Space.
 
 ------------
 Requirements
 ------------
 
-In order to build your apps and upload them to Space:
+In order to automatically build your apps and upload them to Space:
 
 1. App folders should be inside the root directory.
 
-2. Every app should contain ``Dockerfile`` and ``space.yaml`` files.
+2. Each app should contain ``Dockerfile`` and ``space.yaml`` files.
 
 For example:
 
@@ -63,7 +63,7 @@ For example:
 Run
 ---
 
-When all requirements are satisfied, use `malevich ci github init` command to launch initialization.
+After all requirements were satisfied, use ``malevich ci github init`` command to start initialization.
 
 .. code-block:: console
 
@@ -81,7 +81,7 @@ When all requirements are satisfied, use `malevich ci github init` command to la
     Enter the username to access the Docker Container Registry: username
     Enter the password to access the Docker Container Registry: ****
 
-During the run, the command will install 2 files inside ``.github/workflows`` directory:
+This command will pass all arguments to your `github repository secrets <https://docs.github.com/ru/actions/security-guides/using-secrets-in-github-actions>`_ and create 2 files inside ``.github/workflows`` directory:
 
 1. ``malevich_ci__<branch>.yml``: Auto CI, which will build and push all apps that were changed in the commit which triggered the workflow.
 2. ``malevich_ci__manual.yml``: CI, which can be triggered manually. It will build all the apps in the repository.
