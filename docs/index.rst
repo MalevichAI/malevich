@@ -105,10 +105,8 @@ Once the apps are installed, you can begin integrating them into a flow. Create 
       # to generate text based on our prompt and extracted names.
       return text, prompt_completion(
          entities,
-         config={
-            'user_prompt': prompt,
-            'openai_api_key': os.getenv('OPENAI_API_KEY'),
-         }
+         openai_api_key=os.getenv('OPENAI_API_KEY'),
+         user_prompt=prompt
       )
 
    if __name__ == '__main__':
@@ -125,10 +123,14 @@ Once the apps are installed, you can begin integrating them into a flow. Create 
          )
       )
 
+      # Prepare task.
+      pipeline.prepare()
+    
       # Execute the task.
-      text, brief = pipeline()
+      pipeline.run()
 
       # Save results.
+      text, brief = pipeline.results()
       text.get_df().to_csv('text.csv')
       brief.get_df().to_csv('brief.csv')
 
