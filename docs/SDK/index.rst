@@ -3,6 +3,12 @@ User Guide
 
 
 .. toctree::
+    :caption: Projects and Environment
+
+    Structure <Project/Structure>
+    Dependencies <Project/Dependencies>
+
+.. toctree::
     :caption: Working with Data
 
     Introduction <Data/index>

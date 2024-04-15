@@ -88,6 +88,8 @@ In case you have a private registry, you have to provide your credentials, so th
 
     malevich use image example_app <your-docker-hub-username>/example_app <your-docker-hub-username> <your-docker-hub-password>
 
+Read more about :doc:`dependency management </SDK/Project/Dependencies>`
+
 
 Running a Flow
 --------------
