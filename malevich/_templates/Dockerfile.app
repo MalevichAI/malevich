@@ -6,7 +6,7 @@
 # Keep in mind, that source code containing
 # Malevich-specific code (declaration of processors, inits, etc.)
 # should be placed into ./apps directory
-FROM pogrebnoijak/julius_export_python:0.1
+FROM malevichai/app:python_v0.1
 
 # Copying requirements.txt and installing dependencies
 COPY requirements.txt requirements.txt

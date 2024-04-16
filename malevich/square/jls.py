@@ -23,7 +23,7 @@ def processor(id: Optional[str] = None, finish_msg: Optional[str] = None, drop_i
     """Denotes a processor of the app.
     
     Processors are core logical units of the app. To
-    understand processors more, see `What is Processor? <../Apps/What_is_Processor.html>`_
+    understand processors more, see :doc:`What is Processor? </SDK/Apps/Processors>`
     
     Args:
         id: The id of the processor. If not provided, the name of the function will be used.

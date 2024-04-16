@@ -599,7 +599,7 @@ class CoreTask(BaseTask):
         **kwargs
     ) -> MetaEndpoint:
         from malevich_coretools import create_endpoint, update_endpoint
-        if self.get_stage() != CoreTaskStage.BUILT:
+        if self.get_stage() not in [CoreTaskStage.BUILT, CoreTaskStage.ONLINE]:
             self.prepare(stage=PrepareStages.BUILD)
 
         cfg = deepcopy(self.state.cfg)

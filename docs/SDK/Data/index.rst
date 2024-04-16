@@ -26,7 +26,7 @@ Create a collection
 To create a collection to be used in the flow, you have to use :func:`collection <malevich._meta.collection>` function. The
 function allows you to upload tabular data using :class:`pandas.DataFrame` object or :code:`csv` file. The function returns
 a `traced` object - a special placeholder that dictates the flow execution engine which operations should be performed on
-the data. The data is uploaded (or updated) only on :doc:`interpretation </Flows/Lifecycle>` stage (or even later).
+the data. The data is uploaded (or updated) only on :doc:`interpretation </SDK/Flows/Lifecycle>` stage (or even later).
 
 .. warning::
 
@@ -48,15 +48,26 @@ Example:
 
 
     @flow
-    def my_flow():
-        users = collection('Users Collection', df=data)
-        # or
-        users = collection('Users Collection', file='users.csv')
+    def my_flow(input_data=None, file_name=None):
+        # Create a collection either
+        # using data frame, or file name
+        if input_data is not None:
+            users = collection('Users Collection', df=input_data)
+        elif file_name is not None:
+            users = collection('Users Collection', file=file_name)
+        
 
-        # Operation on users
+        # Operation on `users` collection
         ...
 
         return ...
+    
+    task_from_data = my_flow(input_data=df)
+    task_from_file = my_flow(file_name='users.csv')
+
+    # Operations with task
+
+    ...
 
 Assets
 ------
@@ -87,9 +98,3 @@ can be imported and used in the following way:
 
         return ...
 
-    
-.. toctree::
-    :hidden:
-    :maxdepth: 3
-
-    self

@@ -1,3 +1,16 @@
 .wy-nav-content {
     max-width: 1200px !important;
 }
+html[data-theme="light"] {
+    --pst-color-secondary: #A23373;
+    --pst-color-primary: #753A88;
+}
+
+html[data-theme="dark"] {
+    --pst-color-secondary: #d85d84;
+    --pst-color-primary: #AD70C2;
+}
+
+.navbar-brand .logo {
+    padding: 10px 15px;
+}
