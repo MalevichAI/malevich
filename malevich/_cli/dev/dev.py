@@ -584,7 +584,6 @@ def create_space(
             "Enter app visibility",
             choices=['public', 'private']
         )
-        print(visibility)
         space = {
             reverse_id: {
                 'name': name,
