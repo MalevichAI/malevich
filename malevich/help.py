@@ -88,3 +88,7 @@ list_ = {
 new = {
     '--help': """Create a new app from a template""",
 }
+
+core = {
+    '--help': """Manage your Core account"""
+}
