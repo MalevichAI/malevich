@@ -57,12 +57,16 @@ class ProcessorFunction(Generic[Config, ProcFunArgs, ProcFunReturn]):
         for reserved, _ in reserved_config_fields:
             extra_fields.pop(reserved, None)
 
-        kwargs = {
+        kwargs['config'] = {
             **kwargs['config'],
             **extra_fields,
         }
 
-        if (diff_ := set.difference(set(self.__required_fields), kwargs.keys())) != set():  # noqa: E501
+        kwargs = {
+            'config': kwargs['config']
+        }
+
+        if (diff_ := set.difference(set(self.__required_fields), kwargs['config'].keys())) != set():  # noqa: E501
             fields_ = ', '.join([f"`{x}`" for x in diff_])
             raise Exception(
                 f"Missing required fields {fields_}"
