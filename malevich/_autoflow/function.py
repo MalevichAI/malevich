@@ -73,7 +73,10 @@ def sinktrace(func: Callable[C, R]) -> Callable[C, R]:
         for i, arg in enumerate(args):
             argument_name = names[min(i, len(names) - 1)]
             if isinstance(arg, gn.traced):
-                arg._autoflow.calledby(result, ArgumentLink(index=i, name=argument_name))
+                arg._autoflow.calledby(
+                    result,
+                    ArgumentLink(index=i, name=argument_name)
+                )
             else:
                 warnings.warn(
                     "Ignoring non-traced argument in sinktrace function"

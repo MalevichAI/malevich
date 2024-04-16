@@ -1,8 +1,8 @@
 import warnings
 from typing import Any, ParamSpec
 
-from malevich_space.schema import SpaceSetup
 from malevich_space.ops import SpaceOps
+from malevich_space.schema import SpaceSetup
 from malevich_space.schema.version_mode import VersionMode
 from rich.prompt import Prompt
 
@@ -71,7 +71,7 @@ class Core:
 
 
 class Space:
-    
+
     def __new__(
         cls,
         task: PromisedTask | FlowFunction[..., Any] | Any = None,  # noqa: ANN401, for IDE hints
@@ -83,7 +83,7 @@ class Space:
         *task_args,
         **task_kwargs
     ) -> SpaceTask:
-        
+
         setup = None
         if not ops:
             try:
@@ -91,7 +91,8 @@ class Space:
             except Exception:
                 if not login():
                     raise Exception(
-                        "Could not login you. Please, run `malevich space login` manually "
+                        "Could not login you. "
+                        "Please, run `malevich space login` manually "
                         "and provide correct credentials."
                     )
                 setup = SpaceSetup(**manf.query('space', resolve_secrets=True))
