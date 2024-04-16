@@ -17,7 +17,7 @@ To successfully build and run your first app, ensure you have the following:
 Getting Started
 ---------------
 
-If you are not yet familiar with :doc:`apps <What_is_App>` or :doc:`processors <What_is_Processor>`, please review the corresponding pages first.
+If you are not yet familiar with :doc:`apps </SDK/Apps/Introduction>` or :doc:`processors </SDK/Apps/Processors>`, please review the corresponding pages first.
 Let's create an app by running the following command:
 
 .. code-block:: console
@@ -87,6 +87,8 @@ In case you have a private registry, you have to provide your credentials, so th
 .. code-block:: console
 
     malevich use image example_app <your-docker-hub-username>/example_app <your-docker-hub-username> <your-docker-hub-password>
+
+Read more about :doc:`dependency management </SDK/Project/Dependencies>`
 
 
 Running a Flow

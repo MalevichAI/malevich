@@ -11,7 +11,7 @@ that copies the signature of the processor. This enables two important things:
 
 1. The function stub gives the user a hint of what the processor expects as
    input and what it returns as output. It also copies docstrings. So function
-   is self-contained and her purpose is clear.
+   is self-contained and its purpose is clear.
 
 2. As stub does not have any implementation, you are not required to install any dependencies
    that are necessary to run the processor. Once you installed :code:`malevich` package you

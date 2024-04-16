@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 from .._autoflow.function import autotrace, sinktrace
 from ..constants import reserved_config_fields
+from ..models.type_annotations import ConfigArgument
 
 FnArgs = ParamSpec("FnArgs")
 FnReturn = TypeVar("FnReturn")
@@ -32,6 +33,7 @@ class ProcessorFunction(Generic[Config, ProcFunArgs, ProcFunReturn]):
             for key, value in self.__fn.__annotations__.items()
             if hasattr(value, '__metadata__')
             and (metadata := getattr(value, '__metadata__'))
+            and isinstance(metadata[0], ConfigArgument)
             and metadata[0].required
         ]
 
@@ -55,7 +57,7 @@ class ProcessorFunction(Generic[Config, ProcFunArgs, ProcFunReturn]):
         for reserved, _ in reserved_config_fields:
             extra_fields.pop(reserved, None)
 
-        kwargs['config'] = {
+        kwargs = {
             **kwargs['config'],
             **extra_fields,
         }

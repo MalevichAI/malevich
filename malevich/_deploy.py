@@ -71,11 +71,12 @@ class Core:
 
 
 class Space:
-    
+
     def __new__(
         cls,
         task: PromisedTask | FlowFunction[..., Any] | Any = None,  # noqa: ANN401, for IDE hints
         version_mode: VersionMode = VersionMode.MINOR,
+        reverse_id: str | None = None,
         force_attach: bool = False,
         deployment_id: str | None = None,
         attach_to_last: bool | None = None,
@@ -83,7 +84,7 @@ class Space:
         *task_args,
         **task_kwargs
     ) -> SpaceTask:
-        
+
         setup = None
         if not ops:
             try:
@@ -109,9 +110,10 @@ class Space:
         if isinstance(task, FlowFunction):
             task: PromisedTask = task(*task_args, **task_kwargs)
 
-        reverse_id = task._component.reverse_id
+        if isinstance(task, PromisedTask):
+            reverse_id = task._component.reverse_id
 
-        if force_attach:
+        if force_attach or task is None:
             return interpreter.attach(
                 reverse_id=reverse_id,
                 deployment_id=deployment_id,
