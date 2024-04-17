@@ -1,11 +1,10 @@
 ============
-What is App?
+Introduction
 ============
 
-.. _pogrebnoijak/julius_export_python: https://hub.docker.com/r/pogrebnoijak/julius_export_python
-.. _pogrebnoijak/julius_export_python11: https://hub.docker.com/r/pogrebnoijak/julius_export_python11
-.. _pogrebnoijak/julius_export_python_torch: https://hub.docker.com/r/pogrebnoijak/julius_export_python_torch
-.. _pogrebnoijak/julius_export_python_ubuntu: https://hub.docker.com/r/pogrebnoijak/julius_export_python_ubuntu
+Apps are the main building blocks of the system. They contain 
+the actual logic of your product. You either can intergrate with 
+existing apps or build your custom apps.
 
 Apps can be understood as an environment consisting of the following objects:
 
@@ -19,12 +18,13 @@ By interconnecting these objects, you can create a pipeline that solves particul
 Currently, apps resides within Docker images. To ensure seamless integration with Malevich, 
 an image app must meet the following criteria:
 
-1. The image must be based on one of the following **base images**:
+1. The image must be based on one of the following `base images <https://hub.docker.com/r/malevichai/app/tags>`_:
 
-    * `pogrebnoijak/julius_export_python`_ - Optimized for Python 3.9 projects.
-    * `pogrebnoijak/julius_export_python11`_ - Geared towards Python 3.11 projects.
-    * `pogrebnoijak/julius_export_python_torch`_ - Customized for Python 3.11 projects requiring PyTorch and CUDA.
-    * `pogrebnoijak/julius_export_python_ubuntu`_ - Perfect for projects based on Ubuntu 20.04.
+    * ``malevichai/app:python_v0.1`` - Optimized for Python 3.9 projects.
+    * ``malevichai/app:python11_v0.1`` - Geared towards Python 3.11 projects.
+    * ``malevichai/app:python-torch_v0.1`` - Customized for Python 3.11 projects requiring PyTorch and CUDA.
+    * ``malevichai/app:python-ubuntu_v0.1`` - Perfect for projects based on Ubuntu 20.04. Requires to install Python manually.
+    * ``malevichai/app:dask_v0.1`` - Python environment with `Dask <https://www.dask.org/>`_ dataframe backend (instead of Pandas).
 
 2. The app's **codebase must** reside within the `./apps` directory **inside the Docker image**. The inner structure of the `./apps` directory does not matter, all Python files will be parsed and all processor functions will be registered automatically regardless of their location.
 
@@ -33,7 +33,7 @@ Here is a Dockerfile template illustrating how to assemble the `Utility <https:/
 .. code-block:: docker
 
     # Starting from a Python 3.9 base image
-    FROM pogrebnoijak/julius_export_python:0.1
+    FROM malevichai/app:python_v0.1
 
     # Transfer the requirements.txt file
     COPY requirements.txt requirements.txt

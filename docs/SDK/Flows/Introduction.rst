@@ -1,5 +1,5 @@
-Flows
-======
+Introduction
+============
 
 Apps can be composed into complex flows that solve real-world problems. A flow dictates the data's path through the system and the order in which apps are executed.
 
@@ -63,10 +63,3 @@ To compose and execute this flow, you would write code as follows:
 
 
 Explore subsequent sections to learn how it all works and how you can manage flows in Malevich:
-
-.. toctree::
-    :maxdepth: 2
-
-    Autoflow
-    Lifecycle
-    Results

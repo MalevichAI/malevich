@@ -14,6 +14,8 @@ limits_app = Typer(name='limits')
 @limits_app.command(name='my')
 @wrap_command(get_user_limits)
 def list_endpoints(**kwargs) -> None:
+    from malevich.core_api import Config
+    print(Config.CORE_USERNAME, Config.CORE_PASSWORD)
     lims = get_user_limits(**kwargs)
     rich.print(lims.model_dump())
 

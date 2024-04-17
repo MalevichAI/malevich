@@ -7,9 +7,9 @@ Getting Started
 
 Welcome to `Malevich <https://malevich.ai>`_ — a platform for building ML-driven prototypes and iterating them to production. This page provides a brief overview of the platform's capabilities that can be utilized from Python code or the command-line interface.
 
-Explore more about :doc:`building apps <Apps/Building>` and :doc:`assembling flows </Flows/index>` to start developing on Malevich. Check out the :doc:`API reference <API/index>` for detailed insights into code functionalities.
+Explore more about :doc:`building apps </SDK/Apps/Building>` and :doc:`assembling flows </SDK/Flows/Introduction>` to start developing on Malevich. Check out the :doc:`API reference <API/index>` for detailed insights into code functionalities.
 
-If you wish to contribute to the Malevich package, please refer to the :doc:`Contributing </Contributing/index>` page.
+If you wish to contribute to the Malevich package, please refer to the :doc:`Contributing <Community/Contributing>` page.
 
 Installation
 ===============
@@ -105,10 +105,8 @@ Once the apps are installed, you can begin integrating them into a flow. Create 
       # to generate text based on our prompt and extracted names.
       return text, prompt_completion(
          entities,
-         config={
-            'user_prompt': prompt,
-            'openai_api_key': os.getenv('OPENAI_API_KEY'),
-         }
+         openai_api_key=os.getenv('OPENAI_API_KEY'),
+         user_prompt=prompt
       )
 
    if __name__ == '__main__':
@@ -125,10 +123,14 @@ Once the apps are installed, you can begin integrating them into a flow. Create 
          )
       )
 
+      # Prepare task.
+      pipeline.prepare()
+    
       # Execute the task.
-      text, brief = pipeline()
+      pipeline.run()
 
       # Save results.
+      text, brief = pipeline.results()
       text.get_df().to_csv('text.csv')
       brief.get_df().to_csv('brief.csv')
 
@@ -144,7 +146,7 @@ Make Your Own Apps
 ==================
 
 We are continually expanding our list of available apps. If you find something missing that you need, we provide
-all the tools to create your own apps and optionally share them with the community. See :doc:`Apps/Building` for more details.
+all the tools to create your own apps and optionally share them with the community. See :doc:`/SDK/Apps/Building` for more details.
 
 
 .. toctree::
@@ -153,8 +155,6 @@ all the tools to create your own apps and optionally share them with the communi
    :caption: Contents:
 
    Getting Started <self>
-   Data/index
-   Apps/index
-   Flows/index
+   SDK/index
    API/index
-   Contributing/index
+   Community/index

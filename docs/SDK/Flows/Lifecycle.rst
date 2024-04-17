@@ -100,6 +100,11 @@ It is important to release resources on the platform when you don't need them an
     task.run()
     task.stop()
 
+.. warning:: 
+
+    Tasks that are not stopped manually and not active for a certain period are subjects to be suspended 
+    automatically. 
+
 
 Results
 -------

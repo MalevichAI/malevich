@@ -74,7 +74,7 @@ app.registered_commands.append(
 app.registered_commands.append(
     typer.models.CommandInfo(
         name="new",
-        help=help.list_["--help"],
+        help=help.new["--help"],
         callback=new,
         cls=typer.core.TyperCommand
     )
@@ -141,7 +141,7 @@ app.add_typer(prefs, name="prefs")
 app.add_typer(dev_app, name='dev')
 
 #malevich core
-app.add_typer(core_app, name='core')
+app.add_typer(core_app, name='core', help=help.core['--help'])
 # _________________________________________________
 
 

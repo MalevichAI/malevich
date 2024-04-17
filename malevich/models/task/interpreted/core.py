@@ -411,7 +411,7 @@ class CoreTask(BaseTask):
         # For compatibility with other interpreters
         *args,
         **kwargs
-    ) -> Iterable[CoreResult | CoreLocalDFResult]:
+    ) -> list[CoreResult | CoreLocalDFResult]:
         cout(message="Task results are being fetched from Core",
              action=Action.Results)
         if self.state.params.operation_id is None:
@@ -599,7 +599,7 @@ class CoreTask(BaseTask):
         **kwargs
     ) -> MetaEndpoint:
         from malevich_coretools import create_endpoint, update_endpoint
-        if self.get_stage() != CoreTaskStage.BUILT:
+        if self.get_stage() not in [CoreTaskStage.BUILT, CoreTaskStage.ONLINE]:
             self.prepare(stage=PrepareStages.BUILD)
 
         cfg = deepcopy(self.state.cfg)

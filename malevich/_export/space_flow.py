@@ -69,7 +69,7 @@ class SpaceFlowExporter:
 
     def _decl(self, varname: str, fn: str, *args, **kwargs):
         kwargs_ = [f'{k}={v!r}' for k, v in kwargs.items()]
-        args_ = ', '.join([*args, *kwargs_])
+        args_ = ', '.join([*map(repr, args), *kwargs_])
 
         decl = f'{varname} = {fn}({args_})'
         return decl
@@ -112,6 +112,7 @@ class SpaceFlowExporter:
             (node.uid, self._decl(
                 varnames[node.alias],
                 'collection',
+                node.reverse_id,
                 alias=node.alias,
             ))
             for node in collections

@@ -2,6 +2,7 @@ import warnings
 from typing import Any, ParamSpec
 
 from malevich_space.schema import SpaceSetup
+from malevich_space.ops import SpaceOps
 from malevich_space.schema.version_mode import VersionMode
 from rich.prompt import Prompt
 
@@ -70,28 +71,35 @@ class Core:
 
 
 class Space:
+
     def __new__(
         cls,
         task: PromisedTask | FlowFunction[..., Any] | Any = None,  # noqa: ANN401, for IDE hints
         version_mode: VersionMode = VersionMode.MINOR,
+        reverse_id: str | None = None,
         force_attach: bool = False,
         deployment_id: str | None = None,
         attach_to_last: bool | None = None,
+        ops: SpaceOps | None = None,
         *task_args,
         **task_kwargs
     ) -> SpaceTask:
-        try:
-            setup = SpaceSetup(**manf.query('space', resolve_secrets=True))
-        except Exception:
-            if not login():
-                raise Exception(
-                    "Could not login you. Please, run `malevich space login` manually "
-                    "and provide correct credentials."
-                )
-            setup = SpaceSetup(**manf.query('space', resolve_secrets=True))
+
+        setup = None
+        if not ops:
+            try:
+                setup = SpaceSetup(**manf.query('space', resolve_secrets=True))
+            except Exception:
+                if not login():
+                    raise Exception(
+                        "Could not login you. Please, run `malevich space login` manually "
+                        "and provide correct credentials."
+                    )
+                setup = SpaceSetup(**manf.query('space', resolve_secrets=True))
 
         interpreter = SpaceInterpreter(
             setup=setup,
+            ops=ops,
             version_mode=version_mode
         )
         if attach_to_last is not None and not force_attach:
@@ -102,9 +110,10 @@ class Space:
         if isinstance(task, FlowFunction):
             task: PromisedTask = task(*task_args, **task_kwargs)
 
-        reverse_id = task._component.reverse_id
+        if isinstance(task, PromisedTask):
+            reverse_id = task._component.reverse_id
 
-        if force_attach:
+        if force_attach or task is None:
             return interpreter.attach(
                 reverse_id=reverse_id,
                 deployment_id=deployment_id,

@@ -12,12 +12,24 @@ Documentation
 
 If you were reading the documentation, and spotted a mistake, or something that could be improved,
 please fork the `docs <https://github.com/malevichAI/malevich/tree/docs>`_ branch of the repository 
-and create a pull request with your changes to the :code:`dev/unstable` branch. We will review your
+and create a pull request with your changes to the :code:`dev/docs` branch. We will review your
 changes and merge them into the documentation.
 
 As part of documentation is generated from docstrings, we also welcome improvements to the docstrings
 and interfaces that improve developer experience. 
 
+The documentation is built using `Sphinx <https://www.sphinx-doc.org/en/master/>`_. To build the
+documentation locally, you will need to install the dependencies from :code:`requirements.dev.txt`,
+and then run 
+
+.. code-block:: console
+
+    rm -rf build-docs && sphinx-build docs build-docs
+
+.. warning::
+
+   The branch :code:`dev/docs` is not meant to be merged to any of upstream
+   branches. It is used only for documentation purposes.
 
 Git Workflow
 ------------
@@ -98,8 +110,3 @@ When posting an issue, it is helpful to include:
 * A minimal working example that reproduces the bug or describes the feature request
 * The content of ``~/.malevich/logs`` folder (it will contain useful anonymous information about actions you have performed with Malevich)
 * The content of ``malevich.yaml`` file from the root of your project (if you have one)
-
-
-.. toctree:: 
-
-    self
