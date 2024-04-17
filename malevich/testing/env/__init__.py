@@ -5,6 +5,7 @@ from datetime import datetime
 from pydantic import BaseModel
 from malevich._utility.singleton import SingletonMeta
 from malevich._utility.package import package_manager
+from ...models.installers.compat import CompatabilityStrategy
 from ...install.installer import Installer
 from malevich.manifest import ManifestManager
 from malevich.models.dependency import Dependency
@@ -127,8 +128,10 @@ class EnvManager(metaclass=SingletonMeta):
             package_id = dependency.package_id
             to_offload_ = None
             for manifest_name, manifest_dependency in manifested.items():
-                if dependency.compatible_with(manifest_dependency):
-                    print(f"Compatible {package_id}")
+                if dependency.compatible_with(
+                    manifest_dependency,
+                    compatability_strategy=CompatabilityStrategy()
+                ):
                     break
                 if manifest_name == package_name:
                     # Found collision in manifest: should be offloaded
