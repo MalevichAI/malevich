@@ -88,7 +88,7 @@ class FlowTestSuite:
 
     @classmethod
     def test_flow(cls: Type['FlowTestSuite']) -> None:
-        old_stubs, _ = env_manager.get_current_env()
+        old_stubs, _ = env_manager.current_env()
         cls.__offload_modules(old_stubs)
         stubs, _ = env_manager.request_env([*cls.environment.dependencies.values()])
         for k, v in cls.environment.env_vars.items():
