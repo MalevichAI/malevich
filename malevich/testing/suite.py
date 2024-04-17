@@ -11,7 +11,8 @@ from ..models.installers.image import ImageDependency
 from ..models.installers.space import SpaceDependency
 from ..models.results.base import BaseResult
 from ..models.task.promised import PromisedTask
-from .env import EnvManager, test_manifest
+from .env import EnvManager
+from .env import env_manf as test_manifest
 
 env_manager = EnvManager()
 
