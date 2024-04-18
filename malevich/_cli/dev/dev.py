@@ -11,7 +11,9 @@ from typing import Union
 
 import rich
 import typer
+import yaml
 from datamodel_code_generator import InputFileType, generate
+from rich.prompt import Prompt
 from typing_extensions import Annotated
 
 dev = typer.Typer(help="Document operations")
@@ -499,3 +501,131 @@ def in_app_install() -> None:
         shutil.move(os.path.join(pkg_, "malevich"), "/julius/malevich")
     else:
         error_exit("You are running command outside of the app")
+
+
+@dev.command("create-space", help="Create space.yaml for your app")
+def create_space(
+    interactive: bool = typer.Option(
+        False,
+        '--interactive',
+        '-i',
+        help="Run the initialization wizard",
+        show_default=False,
+    ),
+    empty: bool = typer.Option(
+        False,
+        '--empty',
+        '-e',
+        help="Create empty space.yaml"
+    ),
+    name: str = typer.Option(
+        None,
+        help="App name",
+        show_default=False
+    ),
+    description: str = typer.Option(
+        '',
+        help="App description",
+        show_default=False
+    ),
+    image_ref: str = typer.Option(
+        None,
+        help="App's docker image tag",
+        show_default=False
+    ),
+    image_user: str = typer.Option(
+        None,
+        help="In case if image is private: username to access the image",
+        show_default=False
+    ),
+    image_password: str = typer.Option(
+        None,
+        help="In case if image is private: password to access the image",
+        show_default=False
+    ),
+    visibility: str = typer.Option(
+        'private',
+        help='App visibility on Space'
+    ),
+    reverse_id: str = typer.Argument(
+        help="App reverse id",
+        show_default=False
+    ),
+    path: str = typer.Argument(
+        './',
+        help="Path to app folder",
+        show_default=False
+    )
+) -> None:
+    if interactive:
+        rich.print("Welcome to space.yaml create wizard!")
+        if name is None:
+            name = Prompt.ask(
+                "Enter your app name: "
+            )
+        if image_ref is None:
+            image_ref = Prompt.ask(
+                "Enter app's docker image url "
+                "(example: ghcr.io/malevich/example:latest)",
+            )
+        if image_user is None:
+            image_user = Prompt.ask(
+                "Enter user login to access the image (leave empty if image is public)",
+                default=None
+            )
+        if image_password is None:
+            image_password = Prompt.ask(
+                "Enter user password to access the image "
+                "(leave empty if image is public)",
+                password=True,
+                default=None
+            )
+        visibility = Prompt.ask(
+            "Enter app visibility",
+            choices=['public', 'private']
+        )
+        space = {
+            reverse_id: {
+                'name': name,
+                'description': description,
+                'visibility': visibility,
+                'app': {
+                    'container_ref': image_ref,
+                    'container_user': image_user,
+                    'container_token': image_password
+                }
+            }
+        }
+    elif empty:
+        space = {
+            reverse_id: {
+                'name': '',
+                'description': '',
+                'visibility': '',
+                'app': {
+                    'container_ref': '',
+                    'container_user': '',
+                    'container_token': ''
+                }
+            }
+        }
+    else:
+        space = {
+            reverse_id: {
+                'name': name,
+                'description': description,
+                'visibility': visibility,
+                'app': {
+                    'container_ref': image_ref,
+                    'container_user': image_user,
+                    'container_token': image_password
+                }
+            }
+        }
+    space = yaml.dump(space)
+    if os.path.isdir(os.path.abspath(path)):
+        filename = os.path.join(os.path.abspath(path), 'space.yaml')
+    else:
+        filename = os.path.join(os.path.dirname(path), 'space.yaml')
+    with open(filename, 'w') as f:
+        f.write(space)
