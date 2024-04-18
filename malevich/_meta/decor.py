@@ -51,11 +51,13 @@ class ProcessorFunction(Generic[Config, ProcFunArgs, ProcFunReturn]):
             kwargs['config'] = kwargs['config'].model_dump()
         else:
             assert isinstance(kwargs, dict)
-
+        reserved_keys = {
+            x[0] for x in reserved_config_fields
+        }
         extra_fields = {**kwargs}
         extra_fields.pop('config')
-        for reserved, _ in reserved_config_fields:
-            extra_fields.pop(reserved, None)
+        for reserved_keys, _ in reserved_config_fields:
+            extra_fields.pop(reserved_keys, None)
 
         kwargs['config'] = {
             **kwargs['config'],
@@ -63,7 +65,11 @@ class ProcessorFunction(Generic[Config, ProcFunArgs, ProcFunReturn]):
         }
 
         kwargs = {
-            'config': kwargs['config']
+            'config': kwargs['config'],
+            **{
+                k: v for k, v in kwargs.items()
+                if k in reserved_keys
+            }
         }
 
         if (diff_ := set.difference(set(self.__required_fields), kwargs['config'].keys())) != set():  # noqa: E501
