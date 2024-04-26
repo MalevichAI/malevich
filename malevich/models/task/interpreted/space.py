@@ -19,6 +19,7 @@ from ...results.space.collection import SpaceCollectionResult
 from ...types import FlowOutput
 from ..base import BaseTask
 
+from malevich.core_api import BasePlatformSettings
 
 class SpaceTaskStage(Enum):
     INTERPRETED     = "interpreted"
@@ -172,9 +173,19 @@ class SpaceTask(BaseTask):
         )
         return self.state.aux.run_id
 
-    def configure(self, operation: str, **kwargs) -> None:
-        # NOTE: Nothing to tweak
-        return None
+    def configure(
+        self,
+        *operations: str,
+        # Configurable parameters
+        platform: str = 'base',
+        platform_settings: BasePlatformSettings | str = None,
+        # Rest of the parameters for compatibility
+        **kwargs
+    ) -> None:
+        for operation in operations:
+            for component in self.state.flow.components:
+                if component.alias == operation:
+                    component.limits = platform_settings
 
     def get_interpreted_task(self) -> BaseTask:
         return self

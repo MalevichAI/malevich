@@ -135,15 +135,36 @@ class CoreTask(BaseTask):
     def get_stage_class(self) -> Type[CoreTaskStage]:
         pass
 
+    def _configure(
+        self,
+        operation: str,
+        # Configurable parameters
+        platform: str = 'base',
+        platform_settings: Optional[dict[str, Any]] = None,
+        # Rest of the parameters for compatibility
+        **kwargs
+    ) -> None:
+        """internal"""
+        assert platform in ['base', 'vast'], f"Platform {platform} is not supported. "
+
+        uuid_ = {
+            k.alias: k.uuid
+            for k in self.state.ops.values()
+        }[operation]
+
+        self.state.app_args[uuid_]['platform'] = platform
+        if platform_settings:
+            self.state.app_args[uuid_]['platform_settings'] = platform_settings
+
     def configure(
-            self,
-            operation: str,
-            # Configurable parameters
-            platform: str = 'base',
-            platform_settings: Optional[dict[str, Any]] = None,
-            # Rest of the parameters for compatibility
-            **kwargs
-        ) -> None:
+        self,
+        *operations: str,
+        # Configurable parameters
+        platform: str = 'base',
+        platform_settings: Optional[dict[str, Any]] = None,
+        # Rest of the parameters for compatibility
+        **kwargs
+    ) -> None:
         """Configures the operation on Malevich Core
 
         Available configurations
@@ -161,17 +182,9 @@ class CoreTask(BaseTask):
         `base`. To use the `vast` platform, set the value to `vast` and configure
         it with `malevich.core_api.vast_settings`.
         """
-        assert platform in [
-            'base', 'vast'], f"Platform {platform} is not supported. "
+        for o in operations:
+            self._configure(o, platform=platform, platform_settings=platform_settings, **kwargs)
 
-        uuid_ = {
-            k.alias: k.uuid
-            for k in self.state.ops.values()
-        }[operation]
-
-        self.state.app_args[uuid_]['platform'] = platform
-        if platform_settings:
-            self.state.app_args[uuid_]['platform_settings'] = platform_settings
 
     def prepare(
         self,
@@ -242,11 +255,11 @@ class CoreTask(BaseTask):
                 ).operationId
             except (Exception, KeyboardInterrupt) as e:
                 # Cleanup
-                core.task_stop(
-                    self.state.params.task_id,
-                    auth=self.state.params.core_auth,
-                    conn_url=self.state.params.core_host,
-                )
+                # core.task_stop(
+                #     self.state.params.task_id,
+                #     auth=self.state.params.core_auth,
+                #     conn_url=self.state.params.core_host,
+                # )
                 raise e
 
         return self.state.params.task_id, self.state.params.operation_id
@@ -372,11 +385,11 @@ class CoreTask(BaseTask):
                 )
         except (Exception, KeyboardInterrupt) as e:
             # Cleanup
-            core.task_stop(
-                self.state.params.operation_id,
-                auth=self.state.params.core_auth,
-                conn_url=self.state.params.core_host,
-            )
+            # core.task_stop(
+            #     self.state.params.operation_id,
+            #     auth=self.state.params.core_auth,
+            #     conn_url=self.state.params.core_host,
+            # )
             raise e
         return self.run_id
 
