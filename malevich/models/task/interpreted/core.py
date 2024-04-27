@@ -146,7 +146,11 @@ class CoreTask(BaseTask):
     ) -> None:
         """internal"""
         assert platform in ['base', 'vast'], f"Platform {platform} is not supported. "
-
+        cout(
+            message=f"Configure {operation}: platform={platform}, platform_settings={platform_settings}",  # noqa: E501
+            action=Action.Interpretation,
+            verbosity=VerbosityLevel.OnlyStatus,
+        )
         uuid_ = {
             k.alias: k.uuid
             for k in self.state.ops.values()
@@ -183,7 +187,12 @@ class CoreTask(BaseTask):
         it with `malevich.core_api.vast_settings`.
         """
         for o in operations:
-            self._configure(o, platform=platform, platform_settings=platform_settings, **kwargs)
+            self._configure(
+                o,
+                platform=platform,
+                platform_settings=platform_settings,
+                **kwargs
+            )
 
 
     def prepare(
