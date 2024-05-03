@@ -4,6 +4,7 @@ import typer
 import typer.core
 from malevich_space.cli.cli import app as space_app
 
+from ._cli.space.whoami import get_user_on_space
 import malevich.help as help
 
 from ._cli.ci import app as ci_app
@@ -109,6 +110,15 @@ space_app.registered_commands.append(
     typer.models.CommandInfo(
         help=help.space["login --help"],
         callback=login,
+        cls=typer.core.TyperCommand
+    )
+)
+
+space_app.registered_commands.append(
+    typer.models.CommandInfo(
+        "whoami",
+        help=help.space["whoami --help"],
+        callback=get_user_on_space,
         cls=typer.core.TyperCommand
     )
 )
