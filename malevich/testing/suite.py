@@ -109,9 +109,9 @@ class FlowTestSuite:
                     )
                     try:
                         task.interpret(cls.interpreter)
-                        if isinstance(task, SpaceTask):
+                        if isinstance(t := task.get_interpreted_task(), SpaceTask):
                             # FIXME: local fix for upload, remove later
-                            task.upload()
+                            t.upload()
                         cls.on_interpretation(task)
                     except Exception as e:
                         if e_ := cls.on_interpretation_error(task, e):
