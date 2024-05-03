@@ -5,6 +5,7 @@ from typing import Any, Type
 from pydantic import BaseModel
 from pytest import fixture
 
+from malevich.constants import TEST_DIR
 from malevich.interpreter.abstract import Interpreter
 from malevich.manifest import OverrideManifest
 from malevich.models.flow_function import FlowFunction
@@ -12,8 +13,6 @@ from malevich.models.installers.image import ImageDependency
 from malevich.models.installers.space import SpaceDependency
 from malevich.models.results.base import BaseResult
 from malevich.models.task.promised import PromisedTask
-from malevich.path import Paths
-from malevich.testing import TEST_DIR
 
 from .env import EnvManager
 
