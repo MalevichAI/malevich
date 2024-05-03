@@ -103,7 +103,7 @@ class EnvManager(metaclass=SingletonMeta):
 
     def install(self, dependency: Dependency) -> None:
         installer = dependency.installer
-        self.installers[installer].restore(dependency)
+        dependency = self.installers[installer].restore(dependency)
         env_manf.put(
             'dependencies',
             dependency.package_id,

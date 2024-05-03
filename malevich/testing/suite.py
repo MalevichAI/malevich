@@ -12,6 +12,7 @@ from malevich.models.flow_function import FlowFunction
 from malevich.models.installers.image import ImageDependency
 from malevich.models.installers.space import SpaceDependency
 from malevich.models.results.base import BaseResult
+from malevich.models.task.interpreted.space import SpaceTask
 from malevich.models.task.promised import PromisedTask
 
 from .env import EnvManager
@@ -108,6 +109,9 @@ class FlowTestSuite:
                     )
                     try:
                         task.interpret(cls.interpreter)
+                        if isinstance(task, SpaceTask):
+                            # FIXME: local fix for upload, remove later
+                            task.upload()
                         cls.on_interpretation(task)
                     except Exception as e:
                         if e_ := cls.on_interpretation_error(task, e):
