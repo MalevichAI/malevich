@@ -211,6 +211,7 @@ class Stub:
     class Utils:
         @staticmethod
         def generate_context_schema(json_schema: str) -> tuple[str, str]:
+
             with (
                 tempfile.NamedTemporaryFile(mode='w+', suffix='.json') as f,
                 tempfile.NamedTemporaryFile(mode='w+', suffix='.py') as out
@@ -221,7 +222,8 @@ class Stub:
                     Path(f.name),
                     output=Path(out.name),
                     use_annotated=False,
-                    input_file_type='jsonschema'
+                    input_file_type='jsonschema',
+                    base_class='malevich.models._model._Model', # cool
                 )
                 out_script =  open(out.name).read().replace(
                     'from __future__ import annotations',
