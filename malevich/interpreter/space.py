@@ -699,15 +699,17 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
 
         self._component.flow = state.flow
 
-        component = state.component_manager.component(
-            self._component,
-            self._version_mode,
-        )
+        def get_component():
+            component = state.component_manager.component(
+                self._component,
+                self._version_mode,
+            )
+            if self._version_mode != VersionMode.DEFAULT:
+                state.space.auto_layout(flow=component.flow.uid)
 
-        if self._version_mode != VersionMode.DEFAULT:
-            state.space.auto_layout(flow=component.flow.uid)
+            return component
 
-        return SpaceTask(state=self.state, component=component)
+        return SpaceTask(state=self.state, get_component=get_component)
 
     def attach(
         self,

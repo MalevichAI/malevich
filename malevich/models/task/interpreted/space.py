@@ -2,7 +2,7 @@ import pickle
 import uuid
 from enum import Enum
 from functools import cache
-from typing import Iterable, Optional
+from typing import Callable, Iterable, Optional
 
 import pandas as pd
 from gql import gql
@@ -19,6 +19,7 @@ from ...results.space.collection import SpaceCollectionResult
 from ...types import FlowOutput
 from ..base import BaseTask
 
+from malevich.core_api import BasePlatformSettings
 
 class SpaceTaskStage(Enum):
     INTERPRETED     = "interpreted"
@@ -38,14 +39,27 @@ class SpaceTask(BaseTask):
     def tree(self) -> TreeNode:
         return self.state.aux.tree
 
+    @property
+    def component(self) -> LoadedComponentSchema:
+        self.upload()
+        return self._component
+
+    @property
+    def allow_configurations(self) -> bool:
+        return self._component is None
+
     def __init__(
         self,
         state: SpaceInterpreterState,
-        component: LoadedComponentSchema
+        component: LoadedComponentSchema | None = None,
+        get_component: Callable[..., LoadedComponentSchema] | None = None,
     ) -> None:
         super().__init__()
+        assert component is not None or get_component is not None
+
         self.state = state
-        self.component = component
+        self._component = component
+        self.__get_component = get_component
         self._returned = []
 
     def _deflate(
@@ -172,9 +186,26 @@ class SpaceTask(BaseTask):
         )
         return self.state.aux.run_id
 
-    def configure(self, operation: str, **kwargs) -> None:
-        # NOTE: Nothing to tweak
-        return None
+    def configure(
+        self,
+        *operations: str,
+        # Configurable parameters
+        platform: str = 'base',
+        platform_settings: BasePlatformSettings | str = None,
+        # Rest of the parameters for compatibility
+        **kwargs
+    ) -> None:
+        if not self.allow_configurations:
+            raise Exception(
+                "Intepreter already uploaded a new component to Malevich Space, so "
+                "configurations are not available. To configure the task, use "
+                "`Space(configurable=True)` and call `upload()` afterwards to apply "
+                "custom configurations"
+            )
+        for operation in operations:
+            for component in self.state.flow.components:
+                if component.alias == operation:
+                    component.limits = platform_settings
 
     def get_interpreted_task(self) -> BaseTask:
         return self
@@ -331,7 +362,6 @@ class SpaceTask(BaseTask):
             ) for i in infid_
         ]
 
-
     def results(
         self,
         run_id: Optional[str] = None,
@@ -362,4 +392,7 @@ class SpaceTask(BaseTask):
             **kwargs
         ))
 
+    def upload(self) -> None:
+        if not self._component:
+            self._component = self.__get_component()
 

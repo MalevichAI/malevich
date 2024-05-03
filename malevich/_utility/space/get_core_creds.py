@@ -25,6 +25,8 @@ def get_core_creds_from_setup(setup: SpaceSetup) -> tuple[str, str]:
             return creds_
 
     ops = SpaceOps(setup)
+    if org is not None:
+        org = ops.get_org(reverse_id=org).uid
 
     r = ops.client.execute(
         gql("""
