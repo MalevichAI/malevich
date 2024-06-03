@@ -29,16 +29,23 @@ def autotrace(func: Callable[C, R]) -> Callable[C, R]:
     """
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
+        # Call function to obtain resuts
         result = func(*args, **kwargs)
         result = gn.traced(result) if not isinstance(
-            result, gn.traced
+            result, gn.traced # If the results is not traced, trace it
         ) else result
+        # Obtain parameters from function signature.
         parameters = list(inspect.signature(func).parameters.values())
-        varnames = [
+        # !! The function only traces positional only arguments
+        # which are the ones that preceed \
+        # def func(arg1, arg2, /, arg3, *, ...) <-- only arg1 and arg2 are
+        # considered
+        varnames = [ # filter pos-only args
             p.name for p in parameters
             if p.kind == inspect.Parameter.POSITIONAL_ONLY
 
         ]
+        # tracing arguments, slicing up to known args
         for i, arg in enumerate(islice(args, 0, len(varnames))):
             argument_name = varnames[i]
             if isinstance(arg, gn.traced):
@@ -46,7 +53,6 @@ def autotrace(func: Callable[C, R]) -> Callable[C, R]:
                     result,
                     ArgumentLink(index=i, name=argument_name)
                 )
-
 
         return result
     return wrapper
@@ -58,7 +64,8 @@ def sinktrace(func: Callable[C, R]) -> Callable[C, R]:
     This decorator is applied to processors that contains
     """
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs) -> gn.traced:
+        # Call function to obtain resuts
         result = func(*args, **kwargs)
         result = gn.traced(result) if not isinstance(result, gn.traced) else result
         parameters = list(inspect.signature(func).parameters.values())

@@ -24,7 +24,7 @@ from .models.manifest import *
 from .constants import *
 
 # Make runners accessible from upper level
-from .runners import *
+# from .runners import *
 
 # # Summaries
 # from ._utility.summary import *
@@ -42,6 +42,6 @@ from ._deploy import Core, Space
 
 manf = ManifestManager()
 
-__logger = logging.getLogger("log")
-__logger.setLevel(logging.CRITICAL)
-core.set_logger(__logger)
+# __logger = logging.getLogger("log")
+# __logger.setLevel(logging.CRITICAL)
+# core.set_logger(__logger)
