@@ -269,7 +269,6 @@ class SpaceTask(BaseTask):
         aliases = set()
         # aliases.update(alias_to_snapshot.keys())
         aliases.update(alias_to_in_flow_id.keys())
-
         return [
             SpaceInjectable(
                 alias=a,
