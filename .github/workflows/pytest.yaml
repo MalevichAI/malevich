@@ -3,6 +3,9 @@ on:
   push:
     branches:
       - test
+    paths-ignore:
+      - .github/
+      - malevich/tests/
 jobs:
   build:
     if: ${{ github.ref_type == 'branch' }} && ${{ github.ref == 'refs/heads/test' }}
@@ -13,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Docker Login
         run: |
-          echo ${{ secrets.TEST_GHCR_PACKAGE_PASSWORD }} | docker login --username USERNAME --password-stdin ghcr.io
+          echo ${{ secrets.TEST_GHCR_PACKAGE_PASSWORD }} | docker login --username malevichai --password-stdin ghcr.io
       - name: Docker build/push
         run: |
           cd ./tests/apps
@@ -55,10 +58,22 @@ jobs:
         cp malevich.yaml ~/.malevich/testing
         cp malevich.secrets.yaml ~/.malevich/testing
 
+    - name: Testing
+      run: |
+        cp -rf ./malevich/tests ./tests && rm -rf ./malevich
+      env:
+        TESTS_SPACE_PASSWORD: ${{ secrets.TESTS_SPACE_PASSWORD }}
+        TESTS_SPACE_USER: ${{ secrets.TESTS_SPACE_USER }}
+        TEST_GHCR_PACKAGE_PASSWORD: ${{ secrets.TEST_GHCR_PACKAGE_PASSWORD }}
+        MALEVICH_TEST_DIR: ${{ secrets.MALEVICH_TEST_DIR }}
 
     - name: Test build app
       run: |
-        docker build -t ghcr.io/malevichai/simple_app:latest tests/app_build/simple_app
-        docker push ghcr.io/malevichai/simple_app:latest
-        malevich use image simple_app ramprin/simple_app:latest USERNAME ${{ secrets.TEST_GHCR_PACKAGE_PASSWORD }}
-        pytest -rP tests/app_build/
+        echo ${{ secrets.TEST_GHCR_PACKAGE_PASSWORD }} | docker login --username USERNAME --password-stdin ghcr.io
+        docker build -q -t ghcr.io/malevichai/test:simple_app tests/app_build/simple_app
+        docker push -q ghcr.io/malevichai/test:simple_app
+        malevich use image simple_app ghcr.io/malevichai/test:simple_app USERNAME ${{ secrets.TEST_GHCR_PACKAGE_PASSWORD }}
+        pytest -s tests/app_build/
+      env:
+        CORE_USER: ${{ secrets.CORE_USER }}
+        CORE_PASS: ${{ secrets.CORE_PASS }}
