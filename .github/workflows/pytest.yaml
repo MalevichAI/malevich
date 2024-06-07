@@ -55,12 +55,10 @@ jobs:
         cp malevich.yaml ~/.malevich/testing
         cp malevich.secrets.yaml ~/.malevich/testing
 
-    - name: Testing
+
+    - name: Test build app
       run: |
-        cp -rf ./malevich/tests ./tests && rm -rf ./malevich
-        pytest -s ./tests/
-      env:
-        TESTS_SPACE_PASSWORD: ${{ secrets.TESTS_SPACE_PASSWORD }}
-        TESTS_SPACE_USER: ${{ secrets.TESTS_SPACE_USER }}
-        TEST_GHCR_PACKAGE_PASSWORD: ${{ secrets.TEST_GHCR_PACKAGE_PASSWORD }}
-        MALEVICH_TEST_DIR: ${{ secrets.MALEVICH_TEST_DIR }}
+        docker build -t ghcr.io/malevichai/simple_app:latest tests/app_build/simple_app
+        docker push ghcr.io/malevichai/simple_app:latest
+        malevich use image simple_app ramprin/simple_app:latest USERNAME ${{ secrets.TEST_GHCR_PACKAGE_PASSWORD }}
+        pytest -rP tests/app_build/
