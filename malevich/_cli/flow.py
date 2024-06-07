@@ -1,8 +1,11 @@
 import importlib.util
 import pickle
+from string import punctuation
 
 import typer
 
+from .. import my_flows
+from .._deploy import Space
 from ..interpreter.space import SpaceInterpreter
 from ..manifest import ManifestManager
 from ..models.flow_function import FlowFunction
@@ -91,3 +94,48 @@ def upload_flow(
     interpreter.interpret(tree)
     typer.echo(f"Flow {tree.name} was uploaded")
 
+
+def underscored(entry: str):
+    punct = punctuation + " "
+    for p in punct:
+        entry = entry.replace(p, '_')
+    return entry
+
+@flow.command("install", help="Install flow to my flows")
+def install_flow(
+    reverse_id: str=typer.Argument(),
+    deployment_id: str=typer.Option(
+        None,
+        '--deployment-id',
+        '-d',
+        show_default=False
+    )
+):
+    attach_to_last = deployment_id is None
+    task = Space(
+        reverse_id=reverse_id,
+        force_attach=True,
+        attach_to_last=attach_to_last,
+        deployment_id=deployment_id
+    )
+    task_did = task.state.aux.task_id
+    mappings = {}
+    args_ = []
+    for col in task.get_injectables():
+        mappings[underscored(col.alias)] = col.alias
+        args_.append("\t" + underscored(col.alias) + "=None")
+
+    my_flows_path = my_flows.__file__
+    args_ = ',\n'.join(args_)
+    with open(my_flows_path, 'a') as f:
+        f.write(
+            "@installed_flow(\n"
+            f"\tmapping={mappings},\n"
+            f"\treverse_id='{reverse_id}',\n"
+            f"\tdeployment_id='{task_did}'\n)\n"
+            f"def {underscored(reverse_id)}(\n"
+            f"{args_},\n"
+            f"\tdeployment_id='{task_did}',\n"
+            "\tattach_to_last=False\n) -> list[SpaceCollectionResult]:\n"
+            "\t..."
+        )
