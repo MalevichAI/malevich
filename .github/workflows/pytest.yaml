@@ -4,8 +4,9 @@ on:
     branches:
       - test
     paths-ignore:
-      - .github/
-      - malevich/tests/
+      - .github/**
+      - malevich/tests/**
+  workflow_dispatch:
 jobs:
   build:
     if: ${{ github.ref_type == 'branch' }} && ${{ github.ref == 'refs/heads/test' }}
