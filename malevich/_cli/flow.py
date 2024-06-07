@@ -103,12 +103,13 @@ def underscored(entry: str):
 
 @flow.command("install", help="Install flow to my flows")
 def install_flow(
-    reverse_id: str=typer.Argument(),
+    reverse_id: str=typer.Argument(...,show_default=False, help="Space Flow Reverse ID"),
     deployment_id: str=typer.Option(
         None,
         '--deployment-id',
         '-d',
-        show_default=False
+        show_default=False,
+        help='Flow Deployment ID. If not set, will get the last run flow deployment'
     )
 ):
     attach_to_last = deployment_id is None
