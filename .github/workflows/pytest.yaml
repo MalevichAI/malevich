@@ -65,6 +65,7 @@ jobs:
     - name: Testing
       run: |
         cp -rf ./malevich/tests ./tests && rm -rf ./malevich
+        pytest -s tests/units/
       env:
         TESTS_SPACE_PASSWORD: ${{ secrets.TESTS_SPACE_PASSWORD }}
         TESTS_SPACE_USER: ${{ secrets.TESTS_SPACE_USER }}
