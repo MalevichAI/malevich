@@ -133,7 +133,7 @@ class CoreTask(BaseTask):
         return CoreTaskStage.NO_TASK
 
     def get_stage_class(self) -> Type[CoreTaskStage]:
-        pass
+        return CoreTaskStage
 
     def _configure(
         self,

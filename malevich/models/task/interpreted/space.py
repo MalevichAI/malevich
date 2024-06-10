@@ -2,7 +2,7 @@ import pickle
 import uuid
 from enum import Enum
 from functools import cache
-from typing import Callable, Iterable, Optional
+from typing import Callable, Iterable, Optional, Type
 
 import pandas as pd
 from gql import gql
@@ -240,7 +240,7 @@ class SpaceTask(BaseTask):
             )
             return SpaceTaskStage.INTERPRETED
 
-    def get_stage_class(self) -> type:
+    def get_stage_class(self) -> Type[SpaceTaskStage]:
         return SpaceTaskStage
 
     def interpret(self, interpreter=None) -> None:
