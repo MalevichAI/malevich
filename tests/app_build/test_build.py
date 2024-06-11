@@ -24,10 +24,10 @@ def in_progress_proc(): # TODO: Finish the test
 
 def test_endpoint():
     task = Core(build_simple_flow, user=os.environ.get('CORE_USER'), access_key=os.environ.get('CORE_PASS'))
+    
     endpoint = task.publish()
     first_hash = endpoint.hash
     first_tid = endpoint.taskId
-    first_cid = endpoint.cfgId
     results = endpoint.run(overrides={
         'buildTestCollection': pd.DataFrame(
             {
@@ -44,14 +44,12 @@ def test_endpoint():
     assert endpoint1.hash == first_hash, "Endpoint Update failed" 
     assert endpoint1.taskId != first_tid
     
-    results = endpoint1.run(overrides={'buildTestCollection': pd.DataFrame({'data': ['test', 'test2']})})
+    results = endpoint1.run(overrides={'test_second_proc': pd.DataFrame({'data': ['test', 'test2']})})
 
     for _, r in results.results.items():
         assert r == [[{'data': "test is simple!"}, {'data': "test2 is simple!"}]], "Incorrect proc execution"
     
-    task1.stop()
-    task.stop()
-    c.delete_endpoint(hash=endpoint1.hash)
+    c.delete_endpoint(hash=endpoint1.hash, auth=(os.environ.get('CORE_USER'), os.environ.get('CORE_PASS')), conn_url='https://core.malevich.ai/')
 
    # collections={'build.test.collection': 3caa8867-81d4-4039-b36f-c8c36d39a17e} different={} schemes_aliases={} msg_url=None init_apps_update={} app_settings=[AppSettings(taskId=02f497426c4e4950a24a7aee539aaa98-simple_proc-simple_proc-1, appId=02f497426c4e4950a24a7aee539aaa98-simple_proc-simple_proc-1, saveCollectionsName=['result-02f497426c4e4950a24a7aee539aaa98-simple_proc-1'])] app_cfg_extension={} email=None
    # collections={'build.test.collection1': 180be765-c4ec-471b-a175-3c8724d442e3} different={} schemes_aliases={} msg_url=None init_apps_update={} app_settings=[AppSettings(taskId=e1e38bf5d62341b79d2db9c71991ce74-simple_proc-simple_proc-2, appId=e1e38bf5d62341b79d2db9c71991ce74-simple_proc-simple_proc-2, saveCollectionsName=['result-e1e38bf5d62341b79d2db9c71991ce74-simple_proc-2'])] app_cfg_extension={} email=None

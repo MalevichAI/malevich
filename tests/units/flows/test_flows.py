@@ -11,7 +11,7 @@ class TestUtility(FlowTestSuite):
   environment = FlowTestEnv(dependencies={
     'utility': ImageDependency(package_id='utility')
   })
-  interpreter = CoreInterpreter(core_auth=('leo', 'pak'))
+  interpreter = CoreInterpreter(core_auth=(os.environ.get('CORE_USER'), os.environ.get('CORE_PASS')))
 
   @flow
   def my_flow():
@@ -33,7 +33,7 @@ class TestManyToOne(FlowTestSuite):
             "scrape": ImageDependency(package_id="scrape")
         }
     )
-    interpreter = CoreInterpreter(core_auth=('leo', 'pak'))
+    interpreter = CoreInterpreter(core_auth=(os.environ.get('CORE_USER'), os.environ.get('CORE_PASS')))
 
     @flow
     def many_to_one():
@@ -58,7 +58,7 @@ class TestOneToMany(FlowTestSuite):
    environment = FlowTestEnv(dependencies={
       "utility": ImageDependency(package_id='utility'),
    })
-   interpreter = CoreInterpreter(core_auth=('leo', 'pak'))
+   interpreter = CoreInterpreter(core_auth=(os.environ.get('CORE_USER'), os.environ.get('CORE_PASS')))
 
    @flow
    def test():
@@ -100,7 +100,7 @@ class TestSpaceCoreFlow(FlowTestSuite):
             "utility": SpaceDependency(package_id="utility", options=SpaceDependencyOptions(reverse_id='utility'))
         }
     )
-    interpreter = CoreInterpreter(core_auth=('leo', 'pak'))
+    interpreter = CoreInterpreter(core_auth=(os.environ.get('CORE_USER'), os.environ.get('CORE_PASS')))
     
     @flow
     def my_flow():
@@ -143,7 +143,7 @@ class TestEmptyDFResult(FlowTestSuite):
             "utility": ImageDependency(package_id="utility"),
         }
     )
-    interpreter = CoreInterpreter(core_auth=('leo', 'pak'))    
+    interpreter = CoreInterpreter(core_auth=(os.environ.get('CORE_USER'), os.environ.get('CORE_PASS')))    
 
     @flow
     def test_empty_df():

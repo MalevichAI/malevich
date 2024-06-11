@@ -65,7 +65,9 @@ jobs:
     - name: Testing
       run: |
         cp -rf ./malevich/tests ./tests && rm -rf ./malevich
+        echo "Dummy" > dummy.txt
         pytest -s tests/units/
+        rm dummy.txt
       env:
         TESTS_SPACE_PASSWORD: ${{ secrets.TESTS_SPACE_PASSWORD }}
         TESTS_SPACE_USER: ${{ secrets.TESTS_SPACE_USER }}

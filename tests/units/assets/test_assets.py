@@ -2,6 +2,7 @@ from malevich import CoreInterpreter, flow
 from malevich.models.flow_function import FlowFunction
 from malevich.models.results.base import BaseResult
 from malevich.testing import FlowTestEnv, FlowTestSuite, ImageDependency
+import os
 
 class TestAsset(FlowTestSuite):
     environment = FlowTestEnv(
@@ -9,7 +10,7 @@ class TestAsset(FlowTestSuite):
             "utility": ImageDependency(package_id="utility")
         }
     )
-    interpreter = CoreInterpreter(core_auth=('leo', 'pak'))
+    interpreter = CoreInterpreter(core_auth=(os.environ.get('CORE_USER'), os.environ.get('CORE_PASS')))
 
     @flow
     def assets_one_file():
@@ -40,7 +41,7 @@ class TestMultipleAssets(FlowTestSuite):
             "utility": ImageDependency(package_id="utility")
         }
     )
-    interpreter = CoreInterpreter(core_auth=('leo', 'pak'))
+    interpreter = CoreInterpreter(core_auth=(os.environ.get('CORE_USER'), os.environ.get('CORE_PASS')))
 
     @flow
     def test_multiasset():
