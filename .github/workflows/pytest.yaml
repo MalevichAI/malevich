@@ -73,6 +73,8 @@ jobs:
         TESTS_SPACE_USER: ${{ secrets.TESTS_SPACE_USER }}
         TEST_GHCR_PACKAGE_PASSWORD: ${{ secrets.TEST_GHCR_PACKAGE_PASSWORD }}
         MALEVICH_TEST_DIR: ${{ secrets.MALEVICH_TEST_DIR }}
+        CORE_USER: ${{ secrets.CORE_USER }}
+        CORE_PASS: ${{ secrets.CORE_PASS }}
 
     - name: Test build app, endpoints and platforms
       run: |
