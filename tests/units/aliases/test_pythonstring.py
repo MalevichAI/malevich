@@ -7,7 +7,8 @@ import pytest
 
 def test_asset():
     with pytest.raises(ValueError):
-        with notrace():
+        @flow()
+        def check_asset():
             file = asset.from_file(name='invalid. asset', path='tests/units/assets/file.txt')
 
 
