@@ -486,17 +486,17 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
             alias_base = node.owner.reverse_id
             if not state.children_states.get(node.owner.uuid, None):
                 child_interpreter = SpaceInterpreter(
-                    name=node.owner.name, reverse_id=node.owner.reverse_id
+                    setup=self.state.space.space_setup,
                 )
-
-                child_interpreter.interpret(node.owner)
-                child_state: SpaceInterpreterState = child_interpreter.state
 
                 comp = ComponentSchema(
                     name=node.owner.name,
                     reverse_id=node.owner.reverse_id,
-                    flow=child_state.flow,
                 )
+
+                child_interpreter.interpret(node.owner, comp)
+                child_state: SpaceInterpreterState = child_interpreter.state
+                comp.flow= child_state.flow
 
                 state.children_states[node.owner.uuid] = child_state
             else:
@@ -524,7 +524,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
         state: SpaceInterpreterState,
         caller: TracedNode,
         callee: traced[OperationNode],
-        link: ArgumentLink,
+        link: ArgumentLink[BaseNode],
     ) -> SpaceInterpreterState:
         """Creates a dependency between two nodes."""
 

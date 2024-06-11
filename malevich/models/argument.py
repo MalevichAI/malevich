@@ -1,13 +1,15 @@
+from typing import Generic, TypeVar
+
 from pydantic import BaseModel, ConfigDict
 
 from .._autoflow.tracer import traced
-from .nodes.base import BaseNode
 
+ArgumentLinkNodeType = TypeVar("ArgumentLinkNodeType")
 
-class ArgumentLink(BaseModel):
+class ArgumentLink(BaseModel, Generic[ArgumentLinkNodeType]):
     index: int
     name: str
-    compressed_edges: list[tuple['ArgumentLink', traced[BaseNode]]] = []
+    compressed_edges: list[tuple['ArgumentLink', traced[ArgumentLinkNodeType]]] = []
     is_compressed_edge: bool = False
     model_config = ConfigDict(
         arbitrary_types_allowed=True
@@ -17,6 +19,6 @@ class ArgumentLink(BaseModel):
     @property
     def compressed_nodes(
         self
-    ) -> list[tuple['ArgumentLink', traced[BaseNode]]]:
+    ) -> list[tuple['ArgumentLink', traced[ArgumentLinkNodeType]]]:
         # Compatability
         return self.compressed_edges

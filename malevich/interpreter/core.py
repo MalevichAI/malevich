@@ -220,7 +220,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
         state: CoreInterpreterState,
         callee: traced[BaseNode],
         caller: traced[BaseNode],
-        link: ArgumentLink,
+        link: ArgumentLink[BaseNode],
     ) -> CoreInterpreterState:
         state.depends[caller.owner.uuid].append((callee.owner, link))
         _log(
