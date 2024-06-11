@@ -59,11 +59,10 @@ class MetaEndpoint(Endpoint):
             for k, v in overrides.items()
             if k in override_keys
         }
-
-        if endpoint_override is not None:
+        if endpoint_override is None:
             endpoint_override = EndpointOverride(
                 cfg=UserConfig(rawMapCollections={
-                    k: v.to_dict(orient='records', index=False)
+                    k: v.to_dict(orient='records')
                     for k, v in overrides.items()
                 }),
                 withResult=True,
