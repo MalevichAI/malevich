@@ -17,7 +17,7 @@ class TestAsset(FlowTestSuite):
         from malevich import asset
         from malevich.utility import get_links_to_files
 
-        file = asset.file('tests/units/assets/file.txt')
+        file = asset.from_file(name='test_asset', path='tests/units/assets/file.txt')
 
         return get_links_to_files(file)
     
@@ -48,7 +48,7 @@ class TestMultipleAssets(FlowTestSuite):
         from malevich import asset
         from malevich.utility import  get_links_to_files
 
-        file = asset.multifile(name='malevich-test', files=['tests/units/assets/file.txt', 'tests/units/assets/file1.txt'])
+        file = asset.from_files(name='malevich_test_assets', files=['tests/units/assets/file.txt', 'tests/units/assets/file1.txt'])
 
         return get_links_to_files(file)
     

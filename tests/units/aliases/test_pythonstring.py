@@ -1,12 +1,15 @@
 from malevich import asset, collection, flow
 from malevich.square import Context
-from pydantic import ValidationError
+from malevich._autoflow.no_trace import notrace
+
 import pytest
 
 
 def test_asset():
-    with pytest.raises(ValidationError):
-        file = asset.file(name='invalid asset.', path='./dummy.txt')
+    with pytest.raises(ValueError):
+        with notrace():
+            file = asset.from_file(name='invalid. asset', path='tests/units/assets/file.txt')
+
 
 # def test_collection():
 #     with pytest.raises(ValidationError):
