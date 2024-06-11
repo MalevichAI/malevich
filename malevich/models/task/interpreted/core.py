@@ -133,7 +133,7 @@ class CoreTask(BaseTask):
         return CoreTaskStage.NO_TASK
 
     def get_stage_class(self) -> Type[CoreTaskStage]:
-        pass
+        return CoreTaskStage
 
     def _configure(
         self,
@@ -649,16 +649,17 @@ class CoreTask(BaseTask):
         injectables = self.get_injectables()
         schemes = []
         for inj in injectables:
+            extra_uuid = uuid.uuid4().hex[:4]
             try:
                 core.create_scheme(
                     inj.node.scheme,
-                    name=f'meta_scheme_{inj.node.collection.magic()}',
+                    name=f'meta_scheme_{inj.node.collection.magic()}_{extra_uuid}',
                     auth=self.state.params.core_auth,
                     conn_url=self.state.params.core_host,
                 )
             except Exception:
                 pass
-            schemes.append(f'meta_scheme_{inj.node.collection.magic()}')
+            schemes.append(f'meta_scheme_{inj.node.collection.magic()}_{extra_uuid}')
 
         if 'prepare' not in kwargs:
             kwargs['prepare'] = True
