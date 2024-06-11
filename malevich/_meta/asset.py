@@ -123,7 +123,7 @@ class AssetFactory:
             Asset object that is used within @flow function.
         """
         assert (file is not None) + (files is not None) + (folder_path is not None) < 2, \
-            "Exactly one of file, files, or folder must be provided."
+            "Exactly one of file, files, or folder must be provided."  # noqa: E501
 
         if folder_path is not None:
             folder_path = folder_path.rstrip('/')

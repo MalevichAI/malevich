@@ -4,7 +4,6 @@ import typer
 import typer.core
 from malevich_space.cli.cli import app as space_app
 
-from ._cli.space.whoami import get_user_on_space
 import malevich.help as help
 
 from ._cli.ci import app as ci_app
@@ -21,6 +20,7 @@ from ._cli.remove import remove
 from ._cli.restore import restore
 from ._cli.space.init import init
 from ._cli.space.login import login
+from ._cli.space.whoami import get_user_on_space
 from ._cli.use import use as use_app
 from .constants import APP_HELP
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import enum
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Generic, Optional, ParamSpec, TypeVar
+from typing import Any, Callable, Generic, ParamSpec, TypeVar
 
 from ..endpoint import MetaEndpoint
 

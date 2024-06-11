@@ -9,7 +9,7 @@ from ..path import Paths
 from .installer import Installer
 from .space import SpaceDependency, SpaceDependencyOptions
 
-from malevich_coretools import ba
+
 class IsolatedSpaceInstaller(Installer):
     def install(
         self,

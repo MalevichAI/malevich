@@ -1,12 +1,12 @@
-from pydantic import ValidationError
 import rich
 from malevich_space.ops import SpaceOps
 from malevich_space.schema import SpaceSetup
+from pydantic import ValidationError
 
 from malevich.manifest import ManifestManager
 
 
-def get_user_on_space():
+def get_user_on_space() -> None:
     manf = ManifestManager()
     if (setup := manf.query('space', resolve_secrets=True)) is None:
         rich.print("You are not connect to Malevich Space. Run `malevich space login`")
@@ -34,4 +34,6 @@ def get_user_on_space():
         return
     rich.print(f"You are [yellow]{setup.username}[/yellow] at "
                f"{setup.api_url.replace('api.', 'space.', 1)}")
-    rich.print(f"Active manifest is [i][bright_black] { manf.path } [/i][/bright_black]")
+    rich.print(
+        f"Active manifest is [i][bright_black] { manf.path } [/i][/bright_black]"
+    )
