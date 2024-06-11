@@ -3,6 +3,10 @@ on:
   push:
     branches:
       - test
+    paths-ignore:
+      - .github/**
+      - malevich/tests/**
+  workflow_dispatch:
 jobs:
   build:
     if: ${{ github.ref_type == 'branch' }} && ${{ github.ref == 'refs/heads/test' }}
@@ -13,7 +17,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Docker Login
         run: |
-          echo ${{ secrets.TEST_GHCR_PACKAGE_PASSWORD }} | docker login --username USERNAME --password-stdin ghcr.io
+          echo ${{ secrets.TEST_GHCR_PACKAGE_PASSWORD }} | docker login --username malevichai --password-stdin ghcr.io
       - name: Docker build/push
         run: |
           cd ./tests/apps
@@ -28,6 +32,9 @@ jobs:
               docker push $tag
             fi
           done
+          cd ../app_build/
+          docker build -q -t ghcr.io/malevichai/test:simple_app simple_app/
+          docker push -q ghcr.io/malevichai/test:simple_app
   pytest:
     if: ${{ github.ref_type == 'branch' }} && ${{ github.ref == 'refs/heads/test' }}
     needs: build
@@ -49,6 +56,7 @@ jobs:
       run: |
         pip install -r ./malevich/requirements.dev.txt
         pip install ./malevich
+        malevich init
         malevich space login --username=${{secrets.TESTS_SPACE_USER}} --password=${{secrets.TESTS_SPACE_PASSWORD}} --api-url=${{secrets.TESTS_API_URL}} --no-input
         mkdir -p ~/.malevich/testing
         cp malevich.yaml ~/.malevich/testing
@@ -57,8 +65,26 @@ jobs:
     - name: Testing
       run: |
         cp -rf ./malevich/tests ./tests && rm -rf ./malevich
-        pytest -s ./tests/
+        echo "Dummy" > dummy.txt
+        pytest -s tests/units/
+        rm dummy.txt
       env:
         TESTS_SPACE_PASSWORD: ${{ secrets.TESTS_SPACE_PASSWORD }}
         TESTS_SPACE_USER: ${{ secrets.TESTS_SPACE_USER }}
         TEST_GHCR_PACKAGE_PASSWORD: ${{ secrets.TEST_GHCR_PACKAGE_PASSWORD }}
+        MALEVICH_TEST_DIR: ${{ secrets.MALEVICH_TEST_DIR }}
+        CORE_USER: ${{ secrets.CORE_USER }}
+        CORE_PASS: ${{ secrets.CORE_PASS }}
+
+    - name: Test build app, endpoints and platforms
+      run: |
+        malevich use image simple_app ghcr.io/malevichai/test:simple_app malevichai ${{ secrets.TEST_GHCR_PACKAGE_PASSWORD }}
+        malevich install utility
+        pytest -s tests/app_build/
+      env:
+        CORE_USER: ${{ secrets.CORE_USER }}
+        CORE_PASS: ${{ secrets.CORE_PASS }}
+
+    - name: Clear core tasks
+      run: |
+        echo "Not Implemented Yet. Waiting for core test account."
