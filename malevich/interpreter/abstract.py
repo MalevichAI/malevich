@@ -213,7 +213,7 @@ class Interpreter(Generic[State, Return]):
         state: State,
         callee: traced[BaseNode],
         caller: traced[BaseNode],
-        link: ArgumentLink,
+        link: ArgumentLink[BaseNode],
     ) -> State:
         """Called when a new dependency is created
 
