@@ -69,7 +69,7 @@ jobs:
       run: |
         cp -rf ./malevich/tests ./tests && rm -rf ./malevich
         echo "Dummy" > dummy.txt
-        pytest -s tests/units/flows/test_flows.py -k "TestSpaceFlow or TestUtility"
+        pytest -s tests/units/flows/test_flows.py
         rm dummy.txt
       env:
         TESTS_SPACE_PASSWORD: ${{ secrets.TESTS_SPACE_PASSWORD }}
