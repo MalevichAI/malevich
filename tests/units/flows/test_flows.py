@@ -128,7 +128,7 @@ class TestSpaceFlow(FlowTestSuite):
         from malevich import collection, table, config, run
         from malevich.utility import rename, merge
 
-        data = collection(name='space_test_data', df=table([1, 2, 3, 4, 5], columns=['test1']))
+        data = collection(name='space_test_data', df=table([1, 2, 3, 4, 5], columns=['test1']), persistent=False)
         return merge(rename(data, alias='pass'), rename(data, test1='test2', alias='change'), alias="combine")
 
     @staticmethod
