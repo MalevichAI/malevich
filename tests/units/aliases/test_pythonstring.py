@@ -11,6 +11,7 @@ def test_asset():
         def check_asset():
             file = asset.from_file(name='invalid. asset', path='tests/units/assets/file.txt')
 
+        check_asset()
 
 # def test_collection():
 #     with pytest.raises(ValidationError):

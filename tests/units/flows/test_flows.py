@@ -66,7 +66,7 @@ class TestOneToMany(FlowTestSuite):
         from malevich.utility import merge, add_column, rename
         
         col = collection(
-            name='Test many to one',
+            name='test_many_to_one',
             df=table(
                 [[1, 2, 3, 4], [5, 6, 7, 8]],
                 columns=['A', 'B', 'C', 'D']
@@ -128,7 +128,7 @@ class TestSpaceFlow(FlowTestSuite):
         from malevich import collection, table, config, run
         from malevich.utility import rename, merge
 
-        data = collection(name='test_data', df=table([1, 2, 3, 4, 5], columns=['test1']))
+        data = collection(name='space_test_data', df=table([1, 2, 3, 4, 5], columns=['test1']))
         return merge(rename(data, alias='pass'), rename(data, test1='test2', alias='change'), alias="combine")
 
     @staticmethod
