@@ -121,7 +121,7 @@ class TestSpaceFlow(FlowTestSuite):
             "utility": SpaceDependency(package_id="utility", options=SpaceDependencyOptions(reverse_id='utility')),
         }
     )
-    interpreter = SpaceInterpreter(version_mode=VersionMode.DEFAULT)
+    interpreter = SpaceInterpreter(version_mode=VersionMode.PATCH)
 
     @flow
     def space_flow():
