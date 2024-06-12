@@ -125,7 +125,7 @@ class TestSpaceFlow(FlowTestSuite):
 
     @flow
     def space_flow():
-        from malevich import collection, table, config, run
+        from malevich import collection, table
         from malevich.utility import rename, merge
 
         data = collection(name='space_test_data', df=table([1, 2, 3, 4, 5], columns=['test1']), persistent=False)
