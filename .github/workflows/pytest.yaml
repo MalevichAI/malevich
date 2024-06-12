@@ -4,7 +4,7 @@ on:
     branches:
       - test
     paths-ignore:
-      - .github/**
+      # - .github/**
       - malevich/tests/**
   workflow_dispatch:
 jobs:
@@ -69,7 +69,7 @@ jobs:
       run: |
         cp -rf ./malevich/tests ./tests && rm -rf ./malevich
         echo "Dummy" > dummy.txt
-        pytest -s tests/units/flows/test_flows.py -k "TestSpaceFlow"
+        pytest -s tests/units/flows/test_flows.py -k "TestSpaceFlow or TestUtility"
         rm dummy.txt
       env:
         TESTS_SPACE_PASSWORD: ${{ secrets.TESTS_SPACE_PASSWORD }}
