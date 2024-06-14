@@ -11,7 +11,7 @@ class TestUtility(FlowTestSuite):
   environment = FlowTestEnv(dependencies={
     'utility': ImageDependency(package_id='utility')
   })
-  interpreter = CoreInterpreter(core_auth=('leo', 'pak'))
+  interpreter = CoreInterpreter(core_auth=(os.environ.get('CORE_USER'), os.environ.get('CORE_PASS')))
 
   @flow
   def my_flow():
@@ -33,7 +33,7 @@ class TestManyToOne(FlowTestSuite):
             "scrape": ImageDependency(package_id="scrape")
         }
     )
-    interpreter = CoreInterpreter(core_auth=('leo', 'pak'))
+    interpreter = CoreInterpreter(core_auth=(os.environ.get('CORE_USER'), os.environ.get('CORE_PASS')))
 
     @flow
     def many_to_one():
@@ -58,7 +58,7 @@ class TestOneToMany(FlowTestSuite):
    environment = FlowTestEnv(dependencies={
       "utility": ImageDependency(package_id='utility'),
    })
-   interpreter = CoreInterpreter(core_auth=('leo', 'pak'))
+   interpreter = CoreInterpreter(core_auth=(os.environ.get('CORE_USER'), os.environ.get('CORE_PASS')))
 
    @flow
    def test():
@@ -66,7 +66,7 @@ class TestOneToMany(FlowTestSuite):
         from malevich.utility import merge, add_column, rename
         
         col = collection(
-            name='Test many to one',
+            name='test_many_to_one',
             df=table(
                 [[1, 2, 3, 4], [5, 6, 7, 8]],
                 columns=['A', 'B', 'C', 'D']
@@ -100,7 +100,7 @@ class TestSpaceCoreFlow(FlowTestSuite):
             "utility": SpaceDependency(package_id="utility", options=SpaceDependencyOptions(reverse_id='utility'))
         }
     )
-    interpreter = CoreInterpreter(core_auth=('leo', 'pak'))
+    interpreter = CoreInterpreter(core_auth=(os.environ.get('CORE_USER'), os.environ.get('CORE_PASS')))
     
     @flow
     def my_flow():
@@ -121,14 +121,14 @@ class TestSpaceFlow(FlowTestSuite):
             "utility": SpaceDependency(package_id="utility", options=SpaceDependencyOptions(reverse_id='utility')),
         }
     )
-    interpreter = SpaceInterpreter(version_mode=VersionMode.DEFAULT)
+    interpreter = SpaceInterpreter(version_mode=VersionMode.MINOR)
 
     @flow
     def space_flow():
-        from malevich import collection, table, config, run
+        from malevich import collection, table
         from malevich.utility import rename, merge
 
-        data = collection(name='test_data', df=table([1, 2, 3, 4, 5], columns=['test1']))
+        data = collection(name='space_test_data', df=table([1, 2, 3, 4, 5], columns=['test1']), persistent=False)
         return merge(rename(data, alias='pass'), rename(data, test1='test2', alias='change'), alias="combine")
 
     @staticmethod
@@ -143,7 +143,7 @@ class TestEmptyDFResult(FlowTestSuite):
             "utility": ImageDependency(package_id="utility"),
         }
     )
-    interpreter = CoreInterpreter(core_auth=('leo', 'pak'))    
+    interpreter = CoreInterpreter(core_auth=(os.environ.get('CORE_USER'), os.environ.get('CORE_PASS')))    
 
     @flow
     def test_empty_df():

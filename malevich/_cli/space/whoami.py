@@ -35,5 +35,5 @@ def get_user_on_space() -> None:
     rich.print(f"You are [yellow]{setup.username}[/yellow] at "
                f"{setup.api_url.replace('api.', 'space.', 1)}")
     rich.print(
-        f"Active manifest is [i][bright_black] { manf.path }"" [/i][/bright_black]"
+        f"Active manifest is [i][bright_black] { manf.path } [/i][/bright_black]"
     )

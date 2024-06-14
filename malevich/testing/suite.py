@@ -149,10 +149,10 @@ class FlowTestSuite:
                         if e_ := cls.on_run_error(f, e):
                             raise e_
 
-                    try:
-                        task.stop()
-                    except Exception:
-                        pass
+                    # try:
+                    #     task
+                    # except Exception:
+                    #     pass
 
                     try:
                         results = task.results(

@@ -93,9 +93,11 @@ class Space:
                 if not login():
                     raise Exception(
                         "Could not login you. Please, run `malevich space login` "
-                        "manually or provide correct credentials."
+                        "manually and provide correct credentials."
                     )
                 setup = SpaceSetup(**manf.query('space', resolve_secrets=True))
+        else:
+            setup = ops.space_setup
 
         interpreter = SpaceInterpreter(
             setup=setup,
@@ -122,3 +124,4 @@ class Space:
 
         task.interpret(interpreter)
         return task.get_interpreted_task()
+

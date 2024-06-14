@@ -3,6 +3,7 @@ from malevich.models.flow_function import FlowFunction
 from malevich.models.results.base import BaseResult
 from malevich.testing import FlowTestEnv, FlowTestSuite, ImageDependency
 from malevich import CoreInterpreter, flow
+import os
 
 class TestAlias(FlowTestSuite):
     environment = FlowTestEnv(
@@ -10,7 +11,7 @@ class TestAlias(FlowTestSuite):
             "utility": ImageDependency(package_id="utility")
         }
     )
-    interpreter = CoreInterpreter(('leo', 'pak'))
+    interpreter = CoreInterpreter((os.environ.get('CORE_USER'), os.environ.get('CORE_PASS')))
 
     @flow
     def tweak_aliases():

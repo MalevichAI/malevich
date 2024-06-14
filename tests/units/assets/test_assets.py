@@ -2,6 +2,7 @@ from malevich import CoreInterpreter, flow
 from malevich.models.flow_function import FlowFunction
 from malevich.models.results.base import BaseResult
 from malevich.testing import FlowTestEnv, FlowTestSuite, ImageDependency
+import os
 
 class TestAsset(FlowTestSuite):
     environment = FlowTestEnv(
@@ -9,14 +10,14 @@ class TestAsset(FlowTestSuite):
             "utility": ImageDependency(package_id="utility")
         }
     )
-    interpreter = CoreInterpreter(core_auth=('leo', 'pak'))
+    interpreter = CoreInterpreter(core_auth=(os.environ.get('CORE_USER'), os.environ.get('CORE_PASS')))
 
     @flow
     def assets_one_file():
         from malevich import asset
         from malevich.utility import get_links_to_files
 
-        file = asset.file('tests/units/assets/file.txt')
+        file = asset.from_file(name='test_asset', path='tests/units/assets/file.txt')
 
         return get_links_to_files(file)
     
@@ -40,14 +41,14 @@ class TestMultipleAssets(FlowTestSuite):
             "utility": ImageDependency(package_id="utility")
         }
     )
-    interpreter = CoreInterpreter(core_auth=('leo', 'pak'))
+    interpreter = CoreInterpreter(core_auth=(os.environ.get('CORE_USER'), os.environ.get('CORE_PASS')))
 
     @flow
     def test_multiasset():
         from malevich import asset
         from malevich.utility import  get_links_to_files
 
-        file = asset.multifile(name='malevich-test', files=['tests/units/assets/file.txt', 'tests/units/assets/file1.txt'])
+        file = asset.from_files(name='malevich_test_assets', files=['tests/units/assets/file.txt', 'tests/units/assets/file1.txt'])
 
         return get_links_to_files(file)
     

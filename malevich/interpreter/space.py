@@ -743,7 +743,6 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
                 reverse_id=reverse_id,
                 status=["started"]
             )
-
             if len(deployments) == 0:
                 raise ValueError(
                     "You have not supplied deployment ID "
