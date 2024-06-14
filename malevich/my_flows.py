@@ -44,6 +44,8 @@ class FunctionStub(Generic[ProcFunArgs, ProcFunReturn]):
             if val is not None:
                 override[key] = val
 
+        print(attach_to_last, deployment_id, override)
+
         task = Space(
             reverse_id=self.reverse_id,
             deployment_id=deployment_id,
@@ -64,4 +66,3 @@ def installed_flow(
     def decorator(fn: Callable) -> FunctionStub[Callable[..., Any], Any]:
         return FunctionStub(fn, mapping, reverse_id, deployment_id)
     return decorator
-
