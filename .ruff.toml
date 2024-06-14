@@ -4,6 +4,7 @@ exclude=["tests/*.py", "examples/*.py", "malevich/square/*.py", "docs/*.py", "ma
 
 [lint.per-file-ignores]
 "__init__.py" = ["E402", "F", "I"]
+"malevich/my_flows.py" = ["F401"]
 "malevich/help.py" = ["E501"]
 "tests/**.py" = ["F401"]
 

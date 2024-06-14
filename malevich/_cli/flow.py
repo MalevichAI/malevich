@@ -116,24 +116,42 @@ def install_flow(
         '-d',
         show_default=False,
         help='Flow Deployment ID. If not set, will get the last run flow deployment'
+    ),
+    branch: str=typer.Option(
+        None,
+        '--branch',
+        '-b',
+        show_default=False,
+        help="Flow branch. If not specified, will take the active one."
+    ),
+    attach_any: bool=typer.Option(
+        False,
+        '--attach_any',
+        '-a',
+        show_default=False,
+        help="Attach to any flow deployment"
     )
 ):
     my_flows_path = my_flows.__file__
-    flows_ = open(my_flows_path).read()
-    if f"def {underscored(reverse_id)}(" in flows_:
-        rich.print(
-            f"The integration named [yellow]{underscored(reverse_id)}[/yellow] already "
-            "exists.\nYou can run it with passing another [green]deployment_id[/green] "
-        )
-        exit(1)
     attach_to_last = deployment_id is None
     task = Space(
         reverse_id=reverse_id,
-        force_attach=True,
+        attach_to_any=attach_any,
         attach_to_last=attach_to_last,
-        deployment_id=deployment_id
+        deployment_id=deployment_id,
+        branch=branch
     )
-    task_did = task.state.aux.task_id
+    if task.get_stage().value == 'interpreted':
+        task.prepare()
+    version_name = task.component.version.readable_name
+    flows = open(my_flows_path).read()
+    if f"def {underscored(reverse_id)}(\n\tversion: Literal['{version_name}']" in flows:
+        rich.print(
+            f"The integration named [yellow]{underscored(reverse_id)}[/yellow] with "
+            f"version [blue]{version_name}[/blue] already exists.\n"
+            "You can run it with passing another [green]deployment_id[/green] "
+        )
+        exit(1)
     mappings = {}
     args_ = []
     for col in task.get_injectables():
@@ -145,14 +163,22 @@ def install_flow(
         f.write(
             "\n@installed_flow(\n"
             f"\treverse_id='{reverse_id}',\n"
-            f"\tmapping={mappings},\n"
-            f"\tdeployment_id='{task_did}'\n)\n"
+            f"\tversion='{version_name}',\n"
+            f"\tmapping={mappings}\n)\n"
+            "@overload\n"
             f"def {underscored(reverse_id)}(\n"
+            f"\tversion: Literal['{version_name}'],\n"
             f"{args_},\n"
-            f"\tdeployment_id='{task_did}',\n"
-            "\tattach_to_last=False\n) -> list[SpaceCollectionResult]:\n"
+            "\t/,\n"
+            "\tdeployment_id=None,\n"
+            "\tattach_to_last=True,\n"
+            "\tattach_to_any=False\n) -> list[SpaceCollectionResult]:\n"
             "\t...\n"
         )
+    rich.print(
+        f"Successfully installed: [yellow]{reverse_id}[/yellow], "
+        f"version [blue]{version_name}[/blue]"
+    )
 
 @flow.command(
     name='delete',
@@ -163,24 +189,73 @@ def delete_flow(
         ...,
         show_default=False,
         help="Space Flow Reverse ID"
+    ),
+    version: str=typer.Option(
+        None,
+        '--version',
+        '-v',
+        show_default=False,
+        help="Version to delete."
+    ),
+    delete_all: bool=typer.Option(
+        False,
+        '--all-versions',
+        '-a',
+        show_default=False,
+        help="Delete all versions of the flow."
     )
 ):
-    my_flows_path = my_flows.__file__
-    flows_ = open(my_flows_path).read()
-    if underscored(reverse_id) not in flows_:
-        typer.echo(
-            f"Integration named {underscored(reverse_id)} was "
-            "not found."
+    if version is None and not delete_all:
+        rich.print(
+            "Either [violet]--version[/violet] or [violet]--all-versions[/violet] "
+            "should be provided."
         )
         exit(1)
-    else:
-        with open(my_flows_path, 'w') as f:
-            f.write(
-                re.sub(
-                    rf"\n@installed_flow\(\s+reverse_id='{reverse_id}'[\s\S]*?\)\n"
-                    rf"def {underscored(reverse_id)}\([\s\S]*?\.\.\.\n",
-                    '',
-                    flows_,
-                    flags=re.MULTILINE
-                )
+    my_flows_path = my_flows.__file__
+    flows_ = open(my_flows_path).read()
+    if delete_all:
+        if underscored(reverse_id) not in flows_:
+            rich.print(
+                f"Flow named [yellow]{underscored(reverse_id)}[/yellow] was not found."
             )
+            exit(1)
+    else:
+        version_reg = version
+        for c in "\\.+*?^$()[]{}|":
+            version_reg = version_reg.replace(c, f"\\{c}")
+        if re.search(
+            rf"def {underscored(reverse_id)}\(\s+?version: "
+            rf"Literal\['{version_reg}'\]",
+            flows_,
+            flags=re.MULTILINE
+        ) is None:
+            rich.print(
+                f"Flow [yellow]{underscored(reverse_id)}[/yellow] with version "
+                f"[blue]{version}[/blue] was not found."
+            )
+            exit(1)
+
+    if delete_all:
+        version_reg = r"[\S\s]*?"
+    else:
+        version_reg = version
+        for c in "\\.+*?^$()[]{}|":
+            version_reg = version_reg.replace(c, f"\\{c}")
+
+    with open(my_flows_path, 'w') as f:
+        f.write(
+            re.sub(
+                rf"\n@installed_flow\(\s+reverse_id='{reverse_id}',\n\s+version='{version_reg}'"
+                r"[\s\S]*?\)\n@overload\n"
+                rf"def {underscored(reverse_id)}\(\n\s+version: "
+                rf"Literal\['{version_reg}'\][\S\s]*?\.\.\.\n",
+                '',
+                flows_,
+                flags=re.MULTILINE
+            )
+        )
+        rich.print(
+            f"{'All versions' if delete_all else 'version ' + version} "
+            f"of [yellow]{reverse_id}[/yellow] was [green]successfully[/green] "
+            f"deleted."
+        )

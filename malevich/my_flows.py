@@ -1,6 +1,6 @@
 import inspect
 from itertools import islice
-from typing import Any, Callable, Generic, ParamSpec, TypeVar
+from typing import Any, Callable, Generic, Literal, ParamSpec, TypeVar, overload
 
 from ._deploy import Space
 from .models.results import SpaceCollectionResult
@@ -9,10 +9,10 @@ ProcFunArgs = ParamSpec("ProcFunArgs")
 ProcFunReturn = TypeVar("ProcFunReturn")
 
 class FunctionStub(Generic[ProcFunArgs, ProcFunReturn]):
-    def __init__(self, fn, mapping, reverse_id, deployment_id) -> None:
+    def __init__(self, fn, mapping, reverse_id, version) -> None:
         self.mapping: dict = mapping
         self.reverse_id = reverse_id
-        self.deployment_id = deployment_id
+        self.flow_version = version
         self._fn_ = fn
         self.__call__ = self._fn_call
 
@@ -29,14 +29,9 @@ class FunctionStub(Generic[ProcFunArgs, ProcFunReturn]):
         for arg, key in zip(islice(args, 0, len(varnames)), self.mapping.values()):
             mapped_kwargs[key] = arg
 
-        attach_to_last = kwargs.get('attach_to_last', False)
+        attach_to_last = kwargs.get('attach_to_last', True)
+        attach_to_any = kwargs.get('attach_to_any', False)
         deployment_id = kwargs.get('deployment_id', None)
-
-        if not deployment_id:
-            if attach_to_last:
-                deployment_id = None
-            else:
-                deployment_id = self.deployment_id
 
         override = {}
 
@@ -48,8 +43,11 @@ class FunctionStub(Generic[ProcFunArgs, ProcFunReturn]):
             reverse_id=self.reverse_id,
             deployment_id=deployment_id,
             attach_to_last=attach_to_last,
-            force_attach=True
+            attach_to_any=attach_to_any
         )
+        if task.get_stage().value == 'interpreted':
+            task.prepare()
+
         task.run(override=override, with_logs=True)
 
         return task.results()
@@ -58,9 +56,9 @@ class FunctionStub(Generic[ProcFunArgs, ProcFunReturn]):
 
 def installed_flow(
     mapping: dict,
-    reverse_id:str,
-    deployment_id: str
+    version: str,
+    reverse_id:str
 ) -> Callable:
     def decorator(fn: Callable) -> FunctionStub[Callable[..., Any], Any]:
-        return FunctionStub(fn, mapping, reverse_id, deployment_id)
+        return FunctionStub(fn, mapping, reverse_id, version)
     return decorator
