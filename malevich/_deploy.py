@@ -96,6 +96,8 @@ class Space:
                         "manually and provide correct credentials."
                     )
                 setup = SpaceSetup(**manf.query('space', resolve_secrets=True))
+        else:
+            setup = ops.space_setup
 
         interpreter = SpaceInterpreter(
             setup=setup,
@@ -122,3 +124,4 @@ class Space:
 
         task.interpret(interpreter)
         return task.get_interpreted_task()
+
