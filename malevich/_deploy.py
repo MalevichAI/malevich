@@ -1,8 +1,8 @@
 import warnings
 from typing import Any, ParamSpec
 
-from malevich_space.schema import SpaceSetup
 from malevich_space.ops import SpaceOps
+from malevich_space.schema import SpaceSetup
 from malevich_space.schema.version_mode import VersionMode
 from rich.prompt import Prompt
 
@@ -92,8 +92,8 @@ class Space:
             except Exception:
                 if not login():
                     raise Exception(
-                        "Could not login you. Please, run `malevich space login` manually "
-                        "and provide correct credentials."
+                        "Could not login you. Please, run `malevich space login` "
+                        "manually or provide correct credentials."
                     )
                 setup = SpaceSetup(**manf.query('space', resolve_secrets=True))
 

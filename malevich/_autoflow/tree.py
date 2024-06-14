@@ -1,4 +1,4 @@
-from collections import defaultdict, deque
+from collections import deque
 from typing import Any, Generic, Iterable, Iterator, Optional, TypeVar
 
 T = TypeVar("T")

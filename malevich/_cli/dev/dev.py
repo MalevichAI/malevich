@@ -511,7 +511,7 @@ def get_regexp() -> None:
     )
     rich.print(
         "Config columns:",
-        "^\\s+- (?P<FIELD_NAME>`?\\w+`?)\\:\\s(?P<FIELD_TYPE>`?[|\\w\\[\\{\\<\\]\\}\\>]+`?)"
+        "^\\s+- (?P<FIELD_NAME>`?\\w+`?)\\:\\s(?P<FIELD_TYPE>`?[|\\w\\[\\{\\<\\]\\}\\>]+`?)"  # noqa: E501
         "(?P<DEFAULT_CLAUSE>\\,\\sdefault (?P<DEFAULT_VALUE>.+))?\\.[\\s\\n\\t]+"
         "(?P<FIELD_DESCRIPTION>.+)\\.$"
     )

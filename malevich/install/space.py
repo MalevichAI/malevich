@@ -1,10 +1,8 @@
 import re
 from typing import Optional
 
-from malevich_space.ops import SpaceOps
-
 from .._core.scan import scan_core
-from .._utility.space.space import resolve_setup
+from .._utility.space.auto_space_ops import get_auto_ops
 from .._utility.stub import Stub
 from ..constants import DEFAULT_CORE_HOST
 from ..manifest import ManifestManager
@@ -65,9 +63,7 @@ class SpaceInstaller(Installer):
     def __init__(self) -> None:
         super().__init__()
         try:
-            self.__ops = SpaceOps(resolve_setup(
-                manf.query('space', resolve_secrets=True)
-            ))
+            self.__ops = get_auto_ops()
         except Exception as e:
             from malevich._cli.space.login import login
             if not login():

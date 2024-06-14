@@ -1,4 +1,6 @@
 import enum
+import importlib
+import json
 import pickle
 import uuid
 import warnings
@@ -8,7 +10,9 @@ from typing import Any, Iterable, Literal, Optional, Type
 import malevich_coretools as core
 import pandas as pd
 from malevich_space.schema import ComponentSchema
+from pydantic import BaseModel, ValidationError
 
+from malevich._meta import table
 from malevich.models.endpoint import MetaEndpoint
 from malevich.models.types import FlowOutput
 
@@ -18,7 +22,9 @@ from ...._core.ops import (
     batch_create_tasks,
     batch_upload_collections,
 )
+from ...._meta.decor import ProcessorFunction
 from ...._utility.logging import LogLevel, cout
+from ...._utility.package import package_manager
 from ....interpreter.abstract import Interpreter
 from ...actions import Action
 from ...collection import Collection
@@ -194,6 +200,42 @@ class CoreTask(BaseTask):
                 **kwargs
             )
 
+    def _validate_proc_cfg_ext(
+        self,
+        package_id: str,
+        processor_id: str,
+        config_extension,
+    ):
+        """internal"""
+        try:
+            package_manager.get_package(package_id)
+            module = importlib.import_module(f'malevich.{package_id}')
+        except Exception:
+            return None
+        if not hasattr(module, processor_id):
+            return None
+        proc_stub = getattr(module, processor_id)
+        if not isinstance(proc_stub, ProcessorFunction):
+            return None
+
+        if isinstance(proc_stub.config, BaseModel) and isinstance(config_extension, BaseModel):  # noqa: E501
+            return type(proc_stub.config) == type(config_extension)
+        else:
+            return True
+
+    def _get_config_model(self, package_id: str, processor_id: str) -> BaseModel | None:
+        try:
+            module = importlib.import_module(f'malevich.{package_id}')
+        except ImportError:
+            return None
+
+        proc_stub = getattr(module, processor_id)
+        if isinstance(proc_stub, ProcessorFunction):
+            if issubclass(proc_stub.config, BaseModel):
+                return proc_stub.config
+        return None
+
+
 
     def prepare(
         self,
@@ -275,7 +317,8 @@ class CoreTask(BaseTask):
 
     def run(
         self,
-        override: dict[str, pd.DataFrame] | None = None,
+        override: dict[str, table] | None = None,
+        config_extension: dict[str, dict[str, Any] | BaseModel] | None = None,
         run_id: Optional[str] = None,
         detached: bool = False,
         *args,
@@ -358,14 +401,77 @@ class CoreTask(BaseTask):
             ) for s in _cfg.app_settings
         ]
 
+        app_cfg_extensions = {}
+        if config_extension:
+            for alias, extension in config_extension.items():
+                for x in self.state.ops.values():
+                    if isinstance(x, OperationNode) and x.alias == alias:
+                        config_model: BaseModel | None = self._get_config_model(
+                            x.package_id,
+                            x.processor_id
+                        )
+                        if not isinstance(extension, BaseModel) and not isinstance(extension, dict):  # noqa: E501
+                            _expected = "dictionary"
+                            if config_model is not None and isinstance(config_model, BaseModel):  # noqa: E501
+                                _expected += f'or {type(config_model).__name__}'
+
+                            raise ValueError(
+                                "Invalid type for config extension. "
+                                f"Expected {_expected}, but found {type(extension).__name__} "  # noqa: E501
+                                f"for alias {x.alias}, processor {x.processor_id} and "
+                                f"package {x.package_id}."
+                            )
+
+                        if config_model is not None:
+                            try:
+                                config_model(**{
+                                    **self.state.app_args[x.uuid]['app_cfg'],
+                                    **(extension if isinstance(extension, dict)
+                                                 else extension.model_dump()
+                                      )
+                                })
+                            except ValidationError as e:
+                                raise ValueError(
+                                    "Failed to extend the configuration "
+                                    f"for processor {x.processor_id} with alias"
+                                    f" {x.alias}. New configuration do not comprise "
+                                    "to the schema of the processor of the config. "
+                                    "See validation errors above."
+                                ) from e
+                            if (
+                                config_model is not None
+                                and issubclass(config_model, BaseModel)
+                                and not issubclass(config_model,  type(extension))
+                            ):
+                                raise ValueError(
+                                    "Failed to extend the configuration "
+                                    f"for processor {x.processor_id} with alias"
+                                    f" {x.alias}. Expected {config_model.__name__}, "
+                                    f"but the configuration extenstion is {type(extension).__name__}"  # noqa: E501
+                                )
+
+                        if isinstance(extension, BaseModel):
+                            extension_json = extension.model_dump_json()
+                        elif isinstance(extension, dict):
+                            extension_json = json.dumps(extension)
+                        else:
+                            # ok, validates before
+                            pass
+
+                        app_cfg_extensions[
+                            self.state.core_ops[x.uuid] + '$'
+                            + self.state.core_ops[x.uuid]
+                        ] = extension_json
+
         try:
-            if real_overrides:
+            if real_overrides or app_cfg_extensions:
                 _cfg.collections = {
                     **_cfg.collections,
                     **real_overrides,
                 }
                 _cfg_id = self.config_kwargs['cfg_id'] + \
                     '-overridden' + uuid.uuid4().hex
+                _cfg.app_cfg_extension = app_cfg_extensions
                 self._create_cfg_safe(
                     cfg_id=_cfg_id,
                     cfg=_cfg,

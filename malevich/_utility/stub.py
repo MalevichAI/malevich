@@ -123,7 +123,6 @@ class StubFunction(BaseModel):
     definition: str | None = None
 
     def generate_definition(self, config_model: str | None = None) -> str:
-
         """def processor_name(
             arg1: type1,
             arg2: type2,
@@ -274,7 +273,6 @@ class Stub:
             schemes=[],
             schemes_index={},
         )
-
         config_stubs = {
             name: Stub.Utils.generate_context_schema(
                 json.dumps(processor.contextClass),

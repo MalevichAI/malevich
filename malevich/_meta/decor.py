@@ -1,4 +1,4 @@
-from typing import Callable, Generic, ParamSpec, Type, TypeVar
+from typing import Callable, Generic, ParamSpec, Self, Type, TypeVar
 
 from pydantic import BaseModel
 
@@ -13,6 +13,14 @@ ProcConfig = TypeVar("ProcConfig", bound=BaseModel)
 
 ProcFunArgs = ParamSpec("ProcFunArgs")
 ProcFunReturn = TypeVar("ProcFunReturn")
+
+class ConfigStruct(dict):
+    def __new__(cls, **kwargs) -> Self:
+        return dict(**kwargs)
+
+    def __init__(self, **kwargs) -> None:
+        """Creates a configuration from keyword arguments"""
+
 
 class ProcessorFunction(Generic[Config, ProcFunArgs, ProcFunReturn]):
     def __init__(
@@ -84,8 +92,8 @@ class ProcessorFunction(Generic[Config, ProcFunArgs, ProcFunReturn]):
     __call__: Callable[ProcFunArgs, ProcFunReturn] = _fn_call
 
     @property
-    def config(self) -> Type[Config]:
-        return self.__config_model
+    def config(self) -> Type[Config] | Type[ConfigStruct]:
+        return self.__config_model or ConfigStruct
 
 
 def proc(

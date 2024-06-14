@@ -9,6 +9,7 @@ from gql import gql
 from malevich_coretools.abstract.statuses import AppStatus, TaskStatus
 from malevich_space.schema import LoadedComponentSchema
 
+from malevich.core_api import BasePlatformSettings
 from malevich.models.injections import SpaceInjectable
 
 from ...._autoflow.tracer import traced
@@ -19,7 +20,6 @@ from ...results.space.collection import SpaceCollectionResult
 from ...types import FlowOutput
 from ..base import BaseTask
 
-from malevich.core_api import BasePlatformSettings
 
 class SpaceTaskStage(Enum):
     INTERPRETED     = "interpreted"

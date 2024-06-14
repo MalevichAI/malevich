@@ -3,7 +3,6 @@ from collections import defaultdict
 from typing import Literal, Optional, overload
 from uuid import uuid4
 
-from gql import gql
 from malevich_space.ops.component_manager import ComponentManager
 from malevich_space.ops.space import SpaceOps
 from malevich_space.schema import SpaceSetup, VersionMode
@@ -724,7 +723,9 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
         successful = False
         if deployment_id:
             try:
-                core_id, loaded_reverse_id = self._state.space.get_task_core_id(task_id=deployment_id)
+                core_id, loaded_reverse_id = self._state.space.get_task_core_id(
+                    task_id=deployment_id
+                )
                 self._state.aux.core_task_id = core_id
                 reverse_id = loaded_reverse_id
                 self._state.aux.task_id = deployment_id
@@ -738,7 +739,11 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
                     )
 
         elif attach_to_last:
-            deployments = self._state.space.get_deployments_by_reverse_id(reverse_id=reverse_id, status=["started"])
+            deployments = self._state.space.get_deployments_by_reverse_id(
+                reverse_id=reverse_id,
+                status=["started"]
+            )
+
             if len(deployments) == 0:
                 raise ValueError(
                     "You have not supplied deployment ID "

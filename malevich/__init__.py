@@ -40,6 +40,9 @@ from malevich_space.schema import VersionMode
 # For simple deployment
 from ._deploy import Core, Space
 
+# Handy ops
+from ._utility import get_auto_ops
+
 manf = ManifestManager()
 
 # __logger = logging.getLogger("log")

@@ -9,8 +9,6 @@ from ..models.nodes.asset import AssetNode
 class AssetFactory:
     """Creates binary collections (assets) from files or folders"""
 
-
-
     @staticmethod
     def on_core(
         name: str,
@@ -29,7 +27,6 @@ class AssetFactory:
             name=name,
             core_path=core_path,
         ))
-
 
     @overload
     @staticmethod
@@ -122,7 +119,7 @@ class AssetFactory:
         Returns:
             Asset object that is used within @flow function.
         """
-        assert (file is not None) + (files is not None) + (folder_path is not None) < 2, \
+        assert (file is not None) + (files is not None) + (folder_path is not None)<2, \
             "Exactly one of file, files, or folder must be provided."
 
         if folder_path is not None:
