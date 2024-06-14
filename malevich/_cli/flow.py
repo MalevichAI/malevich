@@ -120,7 +120,7 @@ def install_flow(
 ):
     my_flows_path = my_flows.__file__
     flows_ = open(my_flows_path).read()
-    if underscored(reverse_id) in flows_:
+    if f"def {underscored(reverse_id)}(" in flows_:
         rich.print(
             f"The integration named [yellow]{underscored(reverse_id)}[/yellow] already "
             "exists.\nYou can run it with passing another [green]deployment_id[/green] "
@@ -144,8 +144,8 @@ def install_flow(
     with open(my_flows_path, 'a') as f:
         f.write(
             "\n@installed_flow(\n"
-            f"\tmapping={mappings},\n"
             f"\treverse_id='{reverse_id}',\n"
+            f"\tmapping={mappings},\n"
             f"\tdeployment_id='{task_did}'\n)\n"
             f"def {underscored(reverse_id)}(\n"
             f"{args_},\n"
@@ -177,8 +177,8 @@ def delete_flow(
         with open(my_flows_path, 'w') as f:
             f.write(
                 re.sub(
-                    r'@installed_flow\([\s\S]*?\)\n'
-                    rf'def {underscored(reverse_id)}\([\s\S]*?\) ->.*\s*\.\.\.',
+                    rf"\n@installed_flow\(\s+reverse_id='{reverse_id}'[\s\S]*?\)\n"
+                    rf"def {underscored(reverse_id)}\([\s\S]*?\.\.\.\n",
                     '',
                     flows_,
                     flags=re.MULTILINE
