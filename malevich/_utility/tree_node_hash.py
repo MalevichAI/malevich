@@ -4,12 +4,14 @@ from ..models.nodes.asset import AssetNode
 from ..models.nodes.collection import CollectionNode
 from ..models.nodes.operation import OperationNode
 from ..models.nodes.tree import TreeNode
+from ..models.types import FlowTree
 from .tree import unwrap_tree
 
 
-def get_tree_node_hash(tree_node: TreeNode) -> str:
+def get_tree_node_hash(tree_node: TreeNode | FlowTree) -> str:
     all_edges = set()
-    for from_, to_, link_ in unwrap_tree(tree_node.tree).tree:
+    tree = tree_node.tree if isinstance(tree_node, TreeNode) else tree_node
+    for from_, to_, link_ in unwrap_tree(tree).tree:
         from_ = from_.owner
         to_ = to_.owner
         if isinstance(from_, OperationNode):
