@@ -44,8 +44,6 @@ class FunctionStub(Generic[ProcFunArgs, ProcFunReturn]):
             if val is not None:
                 override[key] = val
 
-        print(attach_to_last, deployment_id, override)
-
         task = Space(
             reverse_id=self.reverse_id,
             deployment_id=deployment_id,
