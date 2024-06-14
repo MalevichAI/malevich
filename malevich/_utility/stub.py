@@ -150,7 +150,11 @@ class StubFunction(BaseModel):
             else:
                 def_ += f'\n\t*{self.sink[0]}: Any, '
         else:
-            def_ += "\n\t/, "
+            # edge-case: no args for proccesor
+            if len(self.args) == 0:
+                def_ += "\n\t*, "
+            else:
+                def_ += "\n\t/, "
         if self.config_schema is not None:
             config_fields = self.config_schema.model_fields
             for field in config_fields:
