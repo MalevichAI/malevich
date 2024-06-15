@@ -3,9 +3,9 @@ on:
   push:
     branches:
       - test
-    paths-ignore:
-      - .github/**
-      - malevich/tests/**
+    # paths-ignore:
+      # - .github/**
+      # - malevich/tests/**
   workflow_dispatch:
 jobs:
   build:
@@ -66,7 +66,7 @@ jobs:
       run: |
         cp -rf ./malevich/tests ./tests && rm -rf ./malevich
         echo "Dummy" > dummy.txt
-        pytest -rP tests/units
+        
         rm dummy.txt
       env:
         TESTS_SPACE_PASSWORD: ${{ secrets.TESTS_SPACE_PASSWORD }}
@@ -76,15 +76,20 @@ jobs:
         CORE_USER: ${{ secrets.CORE_USER }}
         CORE_PASS: ${{ secrets.CORE_PASS }}
 
-    # - name: Test build app, endpoints and platforms
-    #   run: |
-    #     malevich use image simple_app ghcr.io/malevichai/test:simple_app malevichai ${{ secrets.TEST_GHCR_PACKAGE_PASSWORD }}
-    #     malevich install utility
-    #     pytest -s tests/app_build/
-    #   env:
-    #     CORE_USER: ${{ secrets.CORE_USER }}
-    #     CORE_PASS: ${{ secrets.CORE_PASS }}
+    - name: Test build app, endpoints and platforms
+      run: |
+        malevich remove utility || echo "Utiilty was already removed"
+        malevich use image simple_app ghcr.io/malevichai/test:simple_app malevichai ${{ secrets.TEST_GHCR_PACKAGE_PASSWORD }}
+        malevich install utility
+        if [[ "${{ runner.debug }}" == "1" ]];
+        then
+          malevich manifest show
+        fi
+        pytest -rP tests/app_build/
+      env:
+        CORE_USER: ${{ secrets.CORE_USER }}
+        CORE_PASS: ${{ secrets.CORE_PASS }}
 
-    # - name: Clear core tasks
-    #   run: |
-    #     echo "Not Implemented Yet. Waiting for core test account."
+    - name: Clear core tasks
+      run: |
+        echo "Not Implemented Yet. Waiting for core test account."
