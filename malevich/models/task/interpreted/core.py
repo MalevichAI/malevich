@@ -362,7 +362,7 @@ class CoreTask(BaseTask):
         if override:
             collections = [
                 Collection(
-                    collection_id=f'core-interpreter-override-{k}-{run_id}',
+                    collection_id=f'core_interpreter_override_{k}_{run_id}',
                     collection_data=v,
                     persistent=False
                 ) for k, v in override.items()
