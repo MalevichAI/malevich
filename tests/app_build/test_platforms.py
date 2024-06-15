@@ -38,7 +38,8 @@ def test_space_platform():
     assert len(res.columns) == 1 and res.columns[0] == 'result'
     task2 = Space(
         reverse_id='malevich_platform_test_space',
-        attach_to_any=True
+        force_attach=True,
+        attach_to_last=True
     )
     assert task.state.aux.task_id == task2.state.aux.task_id
     task2.run()
