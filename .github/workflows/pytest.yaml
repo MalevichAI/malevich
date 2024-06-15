@@ -81,7 +81,10 @@ jobs:
         malevich remove utility || echo "Utiilty was already removed"
         malevich use image simple_app ghcr.io/malevichai/test:simple_app malevichai ${{ secrets.TEST_GHCR_PACKAGE_PASSWORD }}
         malevich install utility
-        malevich manifest show
+        if [[ ${{ runner.debug }} = '1' ]];
+        then
+          malevich manifest show
+        fi
         pytest -rP tests/app_build/
       env:
         CORE_USER: ${{ secrets.CORE_USER }}

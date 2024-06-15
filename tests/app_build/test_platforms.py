@@ -49,7 +49,7 @@ def test_space_platform():
     task2.stop()
 
 def test_core_platform():
-    task = Core(platform_core_flow, os.environ.get('CORE_USER'), access_key=os.environ.get('CORE_PASS'))
+    task = Core(platform_core_flow, user=os.environ.get('CORE_USER'), access_key=os.environ.get('CORE_PASS'))
     task.prepare()
     task.run()
     res = task.results()[0].get_df()
