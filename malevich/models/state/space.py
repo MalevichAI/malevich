@@ -78,7 +78,7 @@ class SpaceInterpreterState:
         # A dictionary for storing auxiliary information
         # task_id, flow_id, etc.
         self.aux: SpaceAuxParams = SpaceAuxParams()
-        self.children_states: dict[str, 'SpaceInterpreterState'] = {}
+        self.children_states: dict[str, SpaceInterpreterState] = {}
 
     def copy(self) -> 'SpaceInterpreterState':
         state = SpaceInterpreterState()
