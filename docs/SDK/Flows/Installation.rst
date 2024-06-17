@@ -36,9 +36,9 @@ Result:
 .. code-block:: bash
     
     $ python draft.py
-          result
-    0     Hello!
-    1  Malevich!
+       result
+    0  Malevich!
+    1  Bye!
 
 Versioning
 ----------
