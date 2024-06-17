@@ -115,7 +115,7 @@ def install_flow(
         '--deployment-id',
         '-d',
         show_default=False,
-        help='Flow Deployment ID. If not set, will get the last run flow deployment'
+        help='Flow Deployment ID. If not set, will get active version flow.'
     ),
     branch: str=typer.Option(
         None,
@@ -169,7 +169,6 @@ def install_flow(
             f"def {underscored(reverse_id)}(\n"
             f"\tversion: Literal['{version_name}'],\n"
             f"{args_},\n"
-            "\t/,\n"
             "\tdeployment_id=None,\n"
             "\tattach_to_last=True,\n"
             "\tattach_to_any=False\n) -> list[SpaceCollectionResult]:\n"
