@@ -30,6 +30,7 @@ User Guide
     Flows/Autoflow
     Flows/Lifecycle
     Flows/Results
+    Flows/Installation
 
 
 
