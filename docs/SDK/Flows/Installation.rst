@@ -25,8 +25,8 @@ And import it from :code:`my_flows` module as a function and run it!
     from malevich.my_flows import integrations_demo
 
     res = integrations_demo(
-        '0.1.0',
-        table({'data': ['Malevich!', 'Bye!']})
+        version='0.1.0',
+        input_data=table({'data': ['Malevich!', 'Bye!']})
     )
     for r in res:
         print(r.get_df())
@@ -48,6 +48,8 @@ Versioning
 - If option :code:`branch` was provided, command will install the active version from branch provided.
 
 - Otherwise, command will install active version of active branch.
+
+- You can install different flow versions.
 
 Deinstallation
 --------------
