@@ -89,5 +89,9 @@ jobs:
         CORE_PASS: ${{ secrets.CORE_PASS }}
 
     - name: Clear core tasks
+      if: always()
       run: |
-        echo "Not Implemented Yet. Waiting for core test account."
+        python .github/workflows/clean.py
+      env:
+        CORE_USER: ${{ secrets.CORE_USER }}
+        CORE_PASS: ${{ secrets.CORE_PASS }}
