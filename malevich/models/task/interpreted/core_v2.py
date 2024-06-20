@@ -239,6 +239,7 @@ class CoreTaskV2(CoreTask):
                     json.dumps(self.state.model_dump(), sort_keys=True).encode()
                 ).hexdigest()
 
+            self.state.config_id = self.state.unique_task_hash
             try:
                 with IgnoreCoreLogs():
                     self.state.pipeline_id = core.get_pipeline(
