@@ -34,7 +34,6 @@ def compare_images(
     elif strategy.image == ImageCompatStrategy.ONLY_TAG:
         return image_ref.split(":")[1] == other_image_ref.split(":")[1]
     elif strategy.image == ImageCompatStrategy.ONLY_NAME:
-        print(image_ref.split(":")[0], other_image_ref.split(":")[0])
         return image_ref.split(":")[0] == other_image_ref.split(":")[0]
     else:
         raise ValueError("Invalid strategy")

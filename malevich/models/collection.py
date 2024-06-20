@@ -12,10 +12,14 @@ from .types import PythonString
 class Collection(BaseModel):
     collection_id: PythonString
     core_id: Optional[str] = None
-    collection_data: Optional[pd.DataFrame] = Field(None, repr=False)
+    collection_data: Optional[pd.DataFrame] = Field(
+        pd.DataFrame([]), repr=False, exclude=True
+    )
+
     model_config = ConfigDict(
         arbitrary_types_allowed=True
     )
+
     persistent: bool = False
 
     @staticmethod

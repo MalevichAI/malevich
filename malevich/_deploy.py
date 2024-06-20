@@ -1,5 +1,5 @@
 import warnings
-from typing import Any, ParamSpec
+from typing import Any, Literal, ParamSpec, overload
 
 from malevich_space.ops import SpaceOps
 from malevich_space.schema import SpaceSetup
@@ -15,25 +15,54 @@ from ._utility.space.get_core_creds import (
 )
 from .constants import DEFAULT_CORE_HOST
 from .interpreter.core import CoreInterpreter
+from .interpreter.core_v2 import CoreInterpreterV2
 from .interpreter.space import SpaceInterpreter
 from .manifest import manf
 from .models.flow_function import FlowFunction
 from .models.task.interpreted.core import CoreTask
+from .models.task.interpreted.core_v2 import CoreTaskV2
 from .models.task.interpreted.space import SpaceTask
 from .models.task.promised import PromisedTask
 
 FlowArgs = ParamSpec('FlowArgs')
 
 class Core:
+    @overload
     def __new__(
         cls,
-        task: PromisedTask | FlowFunction[..., Any] | Any,  # noqa: ANN401, for IDE hints
+        task: PromisedTask | FlowFunction[..., PromisedTask] | Any,  # noqa: ANN401, for IDE hints
         core_host: str | None = DEFAULT_CORE_HOST,
         user: str | None = None,
         access_key: str | None = None,
+        use_v2: Literal[True] = True,
+        *task_args,
+        **task_kwargs
+    ) -> CoreTaskV2:
+        pass
+
+    @overload
+    def __new__(
+        cls,
+        task: PromisedTask | FlowFunction[..., PromisedTask] | Any,  # noqa: ANN401, for IDE hints
+        core_host: str | None = DEFAULT_CORE_HOST,
+        user: str | None = None,
+        access_key: str | None = None,
+        use_v2: Literal[False] = False,
         *task_args,
         **task_kwargs
     ) -> CoreTask:
+        pass
+
+    def __new__(
+        cls,
+        task: PromisedTask | FlowFunction[..., PromisedTask] | Any,
+        core_host: str | None = DEFAULT_CORE_HOST,
+        user: str | None = None,
+        access_key: str | None = None,
+        use_v2: Literal[True] = False,
+        *task_args,
+        **task_kwargs
+    ) -> CoreTask | CoreTaskV2:
         if not user:
             try:
                 user, access_key = get_core_creds_from_setup(
@@ -63,7 +92,8 @@ class Core:
         if isinstance(task, FlowFunction):
             task: PromisedTask = task(*task_args, **task_kwargs)
 
-        intepreter = CoreInterpreter(
+        interpreter_class = (CoreInterpreter, CoreInterpreterV2)[use_v2]
+        intepreter = interpreter_class(
             core_auth=(user, access_key), core_host=core_host
         )
         task.interpret(intepreter)
