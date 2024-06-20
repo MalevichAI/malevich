@@ -226,7 +226,7 @@ class CoreTaskV2(CoreTask):
         if not self.state.config:
             config = core.Cfg(
                 collections={
-                    k: v.collection.core_id
+                    v.collection.collection_id: v.collection.core_id
                     for k, v in self.state.collection_nodes.items()
                 }
             )
@@ -445,7 +445,7 @@ class CoreTaskV2(CoreTask):
                     auth=self.state.params.core_auth,
                 )
                 core.task_run(
-                    self.state.params.operation_id ,
+                    self.state.params.operation_id,
                     cfg_id=new_config_id,
                     auth=self.state.params.core_auth,
                     conn_url=self.state.params.core_host,
@@ -602,7 +602,7 @@ class CoreTaskV2(CoreTask):
         for node in nodes:
             if isinstance(node, CollectionNode):
                 for cfg_coll_id, core_coll_id in self.state.config.collections.items():
-                    if cfg_coll_id == node.alias:
+                    if cfg_coll_id == node.collection.collection_id:
                         injectables.append(
                             CoreInjectable(
                                 node=node,
