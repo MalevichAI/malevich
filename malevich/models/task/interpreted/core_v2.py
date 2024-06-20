@@ -433,7 +433,7 @@ class CoreTaskV2(CoreTask):
             if real_overrides or app_cfg_extensions:
                 new_config = self.state.config.model_copy(deep=True)
                 new_config.collections = {
-                    **self.state.config.model_dump(),
+                    **self.state.config.collections,
                     **real_overrides,
                 }
                 new_config.app_cfg_extension = app_cfg_extensions
