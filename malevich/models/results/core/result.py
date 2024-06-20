@@ -1,3 +1,4 @@
+import json
 import warnings
 from functools import cache
 from typing import Optional
@@ -213,8 +214,8 @@ class CoreResult(BaseResult[CoreResultPayload]):
 
         """  # noqa: E501
         results_: list[pd.DataFrame] = []
-        collection_ids = [
-            x.id for x in core.get_collections_by_group_name(
+        collections = [
+            x for x in core.get_collections_by_group_name(
                 self.core_group_name,
                 operation_id=self.core_operation_id,
                 run_id=self.core_run_id,
@@ -224,12 +225,8 @@ class CoreResult(BaseResult[CoreResultPayload]):
         ]
 
         results_.extend([
-            core.get_collection_to_df(
-                i,
-                auth=self._auth,
-                conn_url=self._conn_url
-            )
-            for i in collection_ids
+            pd.DataFrame([json.loads(j.data) for j in i.docs])
+            for i in collections
         ])
 
         results = []
@@ -250,6 +247,7 @@ class CoreResult(BaseResult[CoreResultPayload]):
                         obj_path,
                         auth=self._auth,
                         conn_url=self._conn_url,
+                        # NOTE: Maybe allow getting with recursive
                         recursive=True
                     )
 # # if one file

@@ -69,9 +69,6 @@ def collection(
     # Retrieve JSON Schema
     # from pandas DataFrame
 
-    if df is None:
-        df = pd.DataFrame()
-
     pd_scheme = scheme or json.dumps(pd_to_json_schema(df))
     node = CollectionNode(
         collection=Collection(
@@ -81,7 +78,6 @@ def collection(
         ),
         scheme=pd_scheme,
     )
-
     if alias:
         node.alias = alias
     else:

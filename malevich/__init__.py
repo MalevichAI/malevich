@@ -45,6 +45,6 @@ from ._utility import get_auto_ops
 
 manf = ManifestManager()
 
-# __logger = logging.getLogger("log")
-# __logger.setLevel(logging.CRITICAL)
-# core.set_logger(__logger)
+__logger = logging.getLogger("log")
+__logger.setLevel(logging.CRITICAL)
+core.set_logger(__logger)
