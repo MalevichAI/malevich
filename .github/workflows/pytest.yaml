@@ -32,7 +32,7 @@ jobs:
               docker push $tag
             fi
           done
-          cd ../app_build/
+          cd ../non_suite/
           docker build -q -t ghcr.io/malevichai/test:simple_app simple_app/
           docker push -q ghcr.io/malevichai/test:simple_app
   pytest:
