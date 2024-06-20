@@ -439,7 +439,7 @@ class CoreTaskV2(CoreTask):
                 new_config.app_cfg_extension = app_cfg_extensions
                 new_config_id = self.state.config_id + '_' +  uuid.uuid4().hex[:6]
                 self._create_cfg_safe(
-                    cfg_id=self.state.config_id + '_' +  uuid.uuid4().hex[:6],
+                    cfg_id=new_config_id,
                     cfg=new_config,
                     conn_url=self.state.params.core_host,
                     auth=self.state.params.core_auth,
