@@ -1,4 +1,3 @@
-import warnings
 from typing import Any, Literal, ParamSpec, overload
 
 from malevich_space.ops import SpaceOps
@@ -107,9 +106,10 @@ class Space:
         task: PromisedTask | FlowFunction[..., Any] | Any = None,  # noqa: ANN401, for IDE hints
         version_mode: VersionMode = VersionMode.MINOR,
         reverse_id: str | None = None,
-        force_attach: bool = False,
+        attach_to_any: bool = False,
         deployment_id: str | None = None,
         attach_to_last: bool | None = None,
+        branch: str | None = None,
         ops: SpaceOps | None = None,
         *task_args,
         **task_kwargs
@@ -134,10 +134,6 @@ class Space:
             ops=ops,
             version_mode=version_mode
         )
-        if attach_to_last is not None and not force_attach:
-            warnings.warn(
-                "Ignoring `attach_to_last` as `force_attach` set to False"
-            )
 
         if isinstance(task, FlowFunction):
             task: PromisedTask = task(*task_args, **task_kwargs)
@@ -145,11 +141,13 @@ class Space:
         if isinstance(task, PromisedTask):
             reverse_id = task._component.reverse_id
 
-        if force_attach or task is None:
+        if attach_to_any or task is None:
             return interpreter.attach(
                 reverse_id=reverse_id,
                 deployment_id=deployment_id,
-                attach_to_last=attach_to_last is not None and attach_to_last
+                attach_to_last=attach_to_last,
+                branch=branch,
+                attach_to_any=attach_to_any
             )
 
         task.interpret(interpreter)
