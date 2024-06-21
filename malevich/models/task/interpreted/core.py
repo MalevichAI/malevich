@@ -562,8 +562,11 @@ class CoreTask(BaseTask):
             temp_returned = []
             for r in li:
                 if isinstance(r.owner, TreeNode):
+                    local_results = r.owner.results
+                    if not isinstance(local_results, list):
+                        local_results = [local_results]
                     temp_returned.extend(
-                        _deflat(r.owner.results)
+                        _deflat(local_results)
                     )
                 else:
                     temp_returned.append(r)
