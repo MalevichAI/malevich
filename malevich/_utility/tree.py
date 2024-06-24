@@ -47,16 +47,26 @@ def unwrap_tree(
     for edge in tree.traverse():
         u = edge[0].owner
         v = edge[1].owner
+        link = edge[2]
         if isinstance(v, TreeNode):
             if not unwraped.get(v.uuid, False):
-                edges.extend(unwrap_tree(v.tree).tree)
+                for inner_edge in unwrap_tree(v.tree).traverse():
+                    if inner_edge[0] == link.shadow_collection:
+                        continue
+                    edges.append(inner_edge)
                 unwraped[v.uuid] = True
+
             for bridge in deflat_edges(edge[2]):
-                f = tracedLike(u.underlying_node) \
-                    if isinstance(u, TreeNode) else edge[0]
+                f = (
+                    tracedLike(u.underlying_node)
+                    if isinstance(u, TreeNode)
+                    else edge[0]
+                )
+
                 edges.append(
                     (f, bridge[1], bridge[0])
                 )
+
         elif isinstance(u, TreeNode):
             edges.append(
                 (tracedLike(u.underlying_node), edge[1], edge[2]),)

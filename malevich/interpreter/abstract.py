@@ -220,8 +220,8 @@ class Interpreter(Generic[State, Return]):
     def create_dependency(
         self,
         state: State,
-        callee: traced[BaseNode],
-        caller: traced[BaseNode],
+        from_node: traced[BaseNode],
+        to_node: traced[BaseNode],
         link: ArgumentLink[BaseNode],
     ) -> State:
         """Called when a new dependency is created

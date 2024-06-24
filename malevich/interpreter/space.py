@@ -497,7 +497,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
 
                 child_interpreter.interpret(node.owner, comp)
                 child_state: SpaceInterpreterState = child_interpreter.state
-                comp.flow= child_state.flow
+                comp.flow = child_state.flow
 
                 state.children_states[node.owner.uuid] = child_state
             else:
@@ -523,69 +523,69 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
     def create_dependency(
         self,
         state: SpaceInterpreterState,
-        caller: TracedNode,
-        callee: traced[OperationNode],
+        from_node: TracedNode,
+        to_node: traced[OperationNode],
         link: ArgumentLink[BaseNode],
     ) -> SpaceInterpreterState:
         """Creates a dependency between two nodes."""
 
         # Case Collection / App -> Flow
 
-        if isinstance(callee.owner, TreeNode) and not isinstance(
-            caller.owner, TreeNode
+        if isinstance(to_node.owner, TreeNode) and not isinstance(
+            from_node.owner, TreeNode
         ):
-            child = state.children_states[callee.owner.uuid]
-            caller_alias = state.components_alias[caller.owner.uuid]
+            child = state.children_states[to_node.owner.uuid]
+            caller_alias = state.components_alias[from_node.owner.uuid]
             inter_flow_map = {}
 
             bridges = link.compressed_nodes
 
             for _, to in bridges:
-                inter_flow_map[caller_alias] = child.components_alias[to.owner.uuid]
+                inter_flow_map[caller_alias] = child.components_alias[link.shadow_collection.owner.uuid]
 
             dependency = InFlowDependency(
                 from_op_id=(
                     # provided by space installer
-                    caller.owner.operation_id
-                    if isinstance(caller.owner, OperationNode)
+                    from_node.owner.operation_id
+                    if isinstance(from_node.owner, OperationNode)
                     else None
                 ),
-                to_op_id=callee.owner.underlying_node.operation_id
-                if isinstance(callee.owner.underlying_node, OperationNode)
+                to_op_id=to_node.owner.underlying_node.operation_id
+                if isinstance(to_node.owner.underlying_node, OperationNode)
                 else None,
-                alias=state.components_alias[caller.owner.uuid],
+                alias=state.components_alias[from_node.owner.uuid],
                 order=link.index,
                 terminals=[
                     Terminal(src=x, target=y) for x, y in inter_flow_map.items()
                 ],
             )
-        elif isinstance(caller.owner, TreeNode) and not isinstance(
-            callee.owner, TreeNode
+        elif isinstance(from_node.owner, TreeNode) and not isinstance(
+            to_node.owner, TreeNode
         ):
-            child = state.children_states[caller.owner.uuid]
-            callee_alias = state.components_alias[callee.owner.uuid]
-            op: OperationNode = caller.owner.underlying_node
+            child = state.children_states[from_node.owner.uuid]
+            callee_alias = state.components_alias[to_node.owner.uuid]
+            op: OperationNode = from_node.owner.underlying_node
             inter_flow_map = {child.components_alias[op.uuid]: callee_alias}
 
             dependency = InFlowDependency(
                 from_op_id=op.operation_id,
                 to_op_id=(
                     # provided by space installer
-                    callee.owner.operation_id
-                    if isinstance(callee.owner, OperationNode)
+                    to_node.owner.operation_id
+                    if isinstance(to_node.owner, OperationNode)
                     else None
                 ),
-                alias=state.components_alias[caller.owner.uuid],
+                alias=state.components_alias[from_node.owner.uuid],
                 order=link.index,
                 terminals=[
                     Terminal(src=x, target=y) for x, y in inter_flow_map.items()
                 ],
             )
-        elif isinstance(caller.owner, TreeNode) and isinstance(callee.owner, TreeNode):
-            left_op = caller.owner.underlying_node
+        elif isinstance(from_node.owner, TreeNode) and isinstance(to_node.owner, TreeNode):
+            left_op = from_node.owner.underlying_node
             right_edges = link.compressed_nodes
             for rel, right_node in right_edges:
-                state.dependencies[callee.owner.uuid].append(
+                state.dependencies[to_node.owner.uuid].append(
                     InFlowDependency(
                         from_op_id=(
                             left_op.operation_id
@@ -597,15 +597,15 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
                             if isinstance(right_node.owner, OperationNode)
                             else None
                         ),
-                        alias=state.components_alias[caller.owner.uuid],
+                        alias=state.components_alias[from_node.owner.uuid],
                         order=rel.index,
                         terminals=[
                             Terminal(
                                 src=state.children_states[
-                                    caller.owner.uuid
+                                    from_node.owner.uuid
                                 ].components_alias[left_op.uuid],
                                 target=state.children_states[
-                                    callee.owner.uuid
+                                    to_node.owner.uuid
                                 ].components_alias[right_node.owner.uuid],
                             )
                         ],
@@ -616,16 +616,16 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
             dependency = InFlowDependency(
                 from_op_id=(
                     # provided by space installer
-                    caller.owner.operation_id
-                    if isinstance(caller.owner, OperationNode)
+                    from_node.owner.operation_id
+                    if isinstance(from_node.owner, OperationNode)
                     else None
                 ),
-                to_op_id=callee.owner.operation_id,
-                alias=state.components_alias[caller.owner.uuid],
+                to_op_id=to_node.owner.operation_id,
+                alias=state.components_alias[from_node.owner.uuid],
                 order=link.index,
             )
 
-        state.dependencies[callee.owner.uuid].append(dependency)
+        state.dependencies[to_node.owner.uuid].append(dependency)
 
         return state
 
