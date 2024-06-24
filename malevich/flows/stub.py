@@ -2,7 +2,11 @@ import inspect
 from itertools import islice
 from typing import Any, Callable, Generic, ParamSpec, TypeVar
 
+from malevich_space.schema.flow import InFlowComponentSchema, LoadedOpSchema
+
+from .._autoflow.flow import Flow
 from .._deploy import Space
+from ..models.nodes.operation import OperationNode
 from ..models.results import SpaceCollectionResult
 
 ProcFunArgs = ParamSpec("ProcFunArgs")
@@ -44,6 +48,19 @@ class FunctionStub(Generic[ProcFunArgs, ProcFunReturn]):
             deployment_id=deployment_id,
             attach_to_last=attach_to_last
         )
+
+        with Flow() as tree:
+            if Flow().isinflow():
+                comp: InFlowComponentSchema = task.state.flow.components[-1]
+                app: LoadedOpSchema = comp.app.active_op[-1]
+                return OperationNode(
+                    alias=comp.alias,
+                    operation_id=app.uid,
+                    processor_id=app.name,
+                    package_id=comp.reverse_id,
+                    config=comp.active_cfg.cfg_json
+                )
+
         if get_task:
             return task
 

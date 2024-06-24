@@ -8,7 +8,9 @@ class FlowTemplates:
     imports = """
 from typing import Literal, overload
 
+from ..models.nodes.operation import OperationNode
 from ..models.results import SpaceCollectionResult
+from ..models.task.interpreted.space import SpaceTask
 from .stub import integration
 """
 
@@ -24,7 +26,7 @@ def {reverse_id}(
     version: Literal['{version}'],
     {args},
     get_task=False
-) -> list[SpaceCollectionResult]:
+) -> list[SpaceCollectionResult] | SpaceTask | OperationNode:
     ...
 
 """
@@ -56,11 +58,12 @@ class FlowStub:
                     mapping=str(integration.mapping),
                     version=integration.version,
                     reverse_id=reverse_id,
-                    args='\n\t'.join(args)
+                    args=', '.join(args)
                 )
             )
-        with open(flows.__file__, 'a+') as f:
-            f.write(FlowTemplates.init_import.format(reverse_id=reverse_id))
+        if FlowTemplates.init_import.format(reverse_id=reverse_id) not in open(flows.__file__).read():  # noqa: E501
+            with open(flows.__file__, 'a+') as f:
+                f.write(FlowTemplates.init_import.format(reverse_id=reverse_id))
 
     @staticmethod
     def remove_flow(
@@ -87,7 +90,7 @@ class FlowStub:
                     mapping=str(integration.mapping),
                         version=integration.version,
                         reverse_id=reverse_id,
-                        args='\n\t'.join(args)
+                        args=', '.join(args)
                 ),
                 "",
                 1
@@ -111,6 +114,6 @@ class FlowStub:
             mapping=str(integration.mapping),
             version=integration.version,
             reverse_id=reverse_id,
-            args='\n\t'.join(args)
+            args=', '.join(args)
         )
         return integration_ in open(install_path_).read()
