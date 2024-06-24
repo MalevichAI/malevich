@@ -1,15 +1,15 @@
 import importlib.util
 import pickle
-import re
 from string import punctuation
 
 import rich
 import typer
 
-from .. import my_flows
 from .._deploy import Space
+from ..install.flow import FlowInstaller
 from ..interpreter.space import SpaceInterpreter
 from ..manifest import ManifestManager
+from ..models.dependency import Integration
 from ..models.flow_function import FlowFunction
 from ..models.task.promised import PromisedTask
 
@@ -132,7 +132,7 @@ def install_flow(
         help="Attach to any flow deployment"
     )
 ):
-    my_flows_path = my_flows.__file__
+    installer = FlowInstaller()
     attach_to_last = deployment_id is None
     task = Space(
         reverse_id=reverse_id,
@@ -144,36 +144,41 @@ def install_flow(
     if task.get_stage().value == 'interpreted':
         task.prepare()
     version_name = task.component.version.readable_name
-    flows = open(my_flows_path).read()
-    if f"def {underscored(reverse_id)}(\n\tversion: Literal['{version_name}']" in flows:
-        rich.print(
-            f"The integration named [yellow]{underscored(reverse_id)}[/yellow] with "
-            f"version [blue]{version_name}[/blue] already exists.\n"
-            "You can run it with passing another [green]deployment_id[/green] "
-        )
-        exit(1)
+    manf_flows = manf.query('flows')
+    if reverse_id in manf_flows:
+        for i in manf_flows[reverse_id]:
+            if i['version'] == version_name:
+                rich.print(
+                    f"Integration {reverse_id} with version "
+                    f"{version_name} already exists."
+                )
+                exit(1)
     mappings = {}
-    args_ = []
     for col in task.get_injectables():
         mappings[underscored(col.alias)] = col.alias
-        args_.append("\t" + underscored(col.alias) + "=None")
 
-    args_ = ',\n'.join(args_)
-    with open(my_flows_path, 'a') as f:
-        f.write(
-            "\n@installed_flow(\n"
-            f"\treverse_id='{reverse_id}',\n"
-            f"\tversion='{version_name}',\n"
-            f"\tmapping={mappings}\n)\n"
-            "@overload\n"
-            f"def {underscored(reverse_id)}(\n"
-            f"\tversion: Literal['{version_name}'],\n"
-            f"{args_},\n"
-            "\tdeployment_id=None,\n"
-            "\tattach_to_last=True,\n"
-            "\tattach_to_any=False\n) -> list[SpaceCollectionResult]:\n"
-            "\t...\n"
+    integration = Integration(
+        mapping=mappings,
+        version=version_name,
+        deployment=deployment_id
+    )
+    try:
+        installer.install(
+            reverse_id,
+            integration
         )
+    except Exception as e:
+        rich.print(f"Failed to install [yellow]{reverse_id}[/yellow]: [red]{e}[/red]")
+        exit(1)
+    if reverse_id in manf_flows:
+        manf_flows[reverse_id].append(integration.model_dump())
+    else:
+        manf_flows[reverse_id] = [integration.model_dump()]
+    manf.put(
+        'flows',
+        value=manf_flows
+    )
+    manf.save()
     rich.print(
         f"Successfully installed: [yellow]{reverse_id}[/yellow], "
         f"version [blue]{version_name}[/blue]"
@@ -210,51 +215,51 @@ def delete_flow(
             "should be provided."
         )
         exit(1)
-    my_flows_path = my_flows.__file__
-    flows_ = open(my_flows_path).read()
-    if delete_all:
-        if underscored(reverse_id) not in flows_:
-            rich.print(
-                f"Flow named [yellow]{underscored(reverse_id)}[/yellow] was not found."
-            )
-            exit(1)
-    else:
-        version_reg = version
-        for c in "\\.+*?^$()[]{}|":
-            version_reg = version_reg.replace(c, f"\\{c}")
-        if re.search(
-            rf"def {underscored(reverse_id)}\(\s+?version: "
-            rf"Literal\['{version_reg}'\]",
-            flows_,
-            flags=re.MULTILINE
-        ) is None:
-            rich.print(
-                f"Flow [yellow]{underscored(reverse_id)}[/yellow] with version "
-                f"[blue]{version}[/blue] was not found."
-            )
-            exit(1)
-
-    if delete_all:
-        version_reg = r"[\S\s]*?"
-    else:
-        version_reg = version
-        for c in "\\.+*?^$()[]{}|":
-            version_reg = version_reg.replace(c, f"\\{c}")
-
-    with open(my_flows_path, 'w') as f:
-        f.write(
-            re.sub(
-                rf"\n@installed_flow\(\s+reverse_id='{reverse_id}',\n\s+version='{version_reg}'"
-                r"[\s\S]*?\)\n@overload\n"
-                rf"def {underscored(reverse_id)}\(\n\s+version: "
-                rf"Literal\['{version_reg}'\][\S\s]*?\.\.\.\n",
-                '',
-                flows_,
-                flags=re.MULTILINE
-            )
-        )
+    manf_flows = manf.query('flows')
+    installer = FlowInstaller()
+    if reverse_id not in manf_flows:
         rich.print(
-            f"{'All versions' if delete_all else 'version ' + version} "
-            f"of [yellow]{reverse_id}[/yellow] was [green]successfully[/green] "
-            f"deleted."
+            f"Failed to remove [yellow]{reverse_id}[/yellow]: "
+            f"No such flows installed."
         )
+    if delete_all:
+        try:
+            manf_flows.pop(reverse_id)
+            installer.remove(reverse_id)
+        except Exception as e:
+            rich.print(f"[red]{e}[/red]")
+            exit(1)
+    else:
+        flows: list = manf_flows[reverse_id]
+        if len(flows) < 2:
+            manf_flows.pop(reverse_id)
+            installer.remove(reverse_id)
+        else:
+            idx = None
+            for i, v in enumerate(flows):
+                if v['version'] == version:
+                    installer.remove(
+                        reverse_id,
+                        Integration(
+                            version=version,
+                            mapping=v['mapping']
+                        )
+                    )
+                    idx = i
+                    break
+            else:
+                rich.print(
+                    f"Failed to remove [yellow]{reverse_id}[/yellow]: "
+                    f"version [blue]{version}[/blue] was not found in manifest."
+                )
+            if idx is not None:
+                flows.pop(idx)
+            manf_flows[reverse_id] = flows
+    manf.put('flows', value=manf_flows)
+    manf.save()
+
+    rich.print(
+        f"{'All versions' if delete_all else 'version ' + version} "
+        f"of [yellow]{reverse_id}[/yellow] was [green]successfully[/green] "
+        f"deleted."
+    )
