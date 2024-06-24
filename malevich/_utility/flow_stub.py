@@ -101,7 +101,7 @@ class FlowStub:
     @staticmethod
     def check_installed(
         reverse_id: str,
-        integration: Integration | None
+        integration: Integration | None=None
     ) -> bool:
         flows_path_ = os.path.dirname(flows.__file__)
         install_path_ = os.path.join(flows_path_, reverse_id + '.py')
