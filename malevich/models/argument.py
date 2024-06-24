@@ -7,13 +7,16 @@ from .._autoflow.tracer import traced
 ArgumentLinkNodeType = TypeVar("ArgumentLinkNodeType")
 
 class ArgumentLink(BaseModel, Generic[ArgumentLinkNodeType]):
-    index: int
-    name: str
-    compressed_edges: list[tuple['ArgumentLink', traced[ArgumentLinkNodeType]]] = []
-    is_compressed_edge: bool = False
     model_config = ConfigDict(
         arbitrary_types_allowed=True
     )
+
+    index: int
+    name: str
+    compressed_edges: list[tuple['ArgumentLink', traced[ArgumentLinkNodeType]]] = []
+    shadow_collection: traced | None = None
+    is_compressed_edge: bool = False
+
 
 
     @property

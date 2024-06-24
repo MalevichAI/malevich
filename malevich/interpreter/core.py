@@ -218,13 +218,13 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
     def create_dependency(
         self,
         state: CoreInterpreterState,
-        callee: traced[BaseNode],
-        caller: traced[BaseNode],
+        from_node: traced[BaseNode],
+        to_node: traced[BaseNode],
         link: ArgumentLink[BaseNode],
     ) -> CoreInterpreterState:
-        state.depends[caller.owner.uuid].append((callee.owner, link))
+        state.depends[to_node.owner.uuid].append((from_node.owner, link))
         _log(
-            f"Dependency: {callee.owner.short_info()} -> {caller.owner.short_info()}, "
+            f"Dependency: {from_node.owner.short_info()} -> {to_node.owner.short_info()}, "  # noqa: E501
             f"Link: {link.name}", -1, 0, True
         )
         return state

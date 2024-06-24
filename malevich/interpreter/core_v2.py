@@ -299,26 +299,26 @@ class CoreInterpreterV2(Interpreter[CoreInterpreterV2State, CoreTask]):
     def create_dependency(
         self,
         state: CoreInterpreterV2State,
-        callee: traced[BaseNode],
-        caller: traced[OperationNode],
+        from_node: traced[BaseNode],
+        to_node: traced[OperationNode],
         link: ArgumentLink[BaseNode],
     ) -> CoreInterpreterV2State:
-        if isinstance(callee.owner, CollectionNode):
-            state.processors[caller.owner.alias].arguments[link.name] = Argument(
-                collectionName=state.collection_nodes[callee.owner.alias].collection.collection_id
+        if isinstance(from_node.owner, CollectionNode):
+            state.processors[to_node.owner.alias].arguments[link.name] = Argument(
+                collectionName=state.collection_nodes[from_node.owner.alias].collection.collection_id
             )
-        elif isinstance(callee.owner, OperationNode):
-            state.processors[caller.owner.alias].arguments[link.name] = Argument(
-                id=callee.owner.alias,
-                indices=callee.owner.subindex
+        elif isinstance(from_node.owner, OperationNode):
+            state.processors[to_node.owner.alias].arguments[link.name] = Argument(
+                id=from_node.owner.alias,
+                indices=from_node.owner.subindex
             )
-        elif isinstance(callee.owner, AssetNode):
-            state.processors[caller.owner.alias].arguments[link.name] = Argument(
-                collectionName=state.asset_nodes[callee.owner.alias].get_core_path()
+        elif isinstance(from_node.owner, AssetNode):
+            state.processors[to_node.owner.alias].arguments[link.name] = Argument(
+                collectionName=state.asset_nodes[from_node.owner.alias].get_core_path()
             )
 
         _log(
-            f"Dependency: {callee.owner.short_info()} -> {caller.owner.short_info()}, "
+            f"Dependency: {from_node.owner.short_info()} -> {to_node.owner.short_info()}, "
             f"Link: {link.name}", -1, 0, True
         )
         return state
