@@ -188,7 +188,7 @@ def flow(
     reverse_id: Optional[str] = None,
     name: Optional[str] = None,
     description: Optional[str] = None,
-    disable_auto_collections: Literal[True] = True,
+    disable_auto_collections: Literal[True] = False,
     **kwargs: Any,
 ) -> Callable[[Callable[Args, T]], FlowFunction[Args, R]]:
     """Converts a function into a flow
