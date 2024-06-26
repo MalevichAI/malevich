@@ -31,6 +31,7 @@ User Guide
     Flows/Lifecycle
     Flows/Results
     Flows/Integration
+    .. Flows/Installation
 
 
 
