@@ -718,143 +718,33 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
     def attach(
         self,
         reverse_id: str | None = None,
+        flow_uid: str | None = None,
         deployment_id: str | None = None,
-        attach_to_last: bool = False,
-        branch: str | None = None,
-        attach_to_any: bool = False
     ) -> SpaceTask:
         assert (
-            reverse_id or deployment_id
-        ), "Either reverse_id or deployment_id should be set"
+            reverse_id or deployment_id or flow_uid
+        ), "Either reverse_id or deployment_id or uid should be set"
 
-        successful = False
-        component_uid = ""
-        if deployment_id:
-            try:
-                core_id, loaded_reverse_id = self._state.space.get_task_core_id(
-                    task_id=deployment_id
-                )
-                self._state.aux.core_task_id = core_id
-                reverse_id = loaded_reverse_id
-                self._state.aux.task_id = deployment_id
-                successful |= True
-                component = self._state.space.client.execute(
-                    gql(
-                        """
-                            query GetComponentUidByTask($task_id:String!){
-                                task(uid: $task_id) {
-                                    component {
-                                        details {
-                                            uid
-                                        }
-                                    }
-                                }
-                            }
-                        """
-                    ),
-                    variable_values={
-                        'task_id': deployment_id
-                    }
-                )['task']
-                if component is not None:
-                    component_uid = component['component']['details']['uid']
-
-            except Exception:
-                if reverse_id is None:
-                    raise Exception(
-                        "Could not attach to the flow. "
-                        "`deployment_id` is not correct and "
-                        "`reverse_id` is either not correct or provided"
-                    )
-
-        elif attach_to_any:
-                deployments = self._state.space.get_deployments_by_reverse_id(
-                    reverse_id=reverse_id,
-                    status=["started"]
-                )
-                if len(deployments) == 0:
-                    raise ValueError(
-                        "You have not supplied deployment ID "
-                        "and no deployments are available at the moment"
-                    )
-                self._state.aux.task_id = deployments[0].uid
-
-        if component_uid:
-            component: LoadedComponentSchema | None = (
-                self._state.space.get_parsed_versioned_component_by_task_id(
-                    reverse_id=reverse_id,
-                    task_id=deployment_id
-                )
+        component: LoadedComponentSchema | None = (
+            self._state.space.get_parsed_component_by_reverse_id(
+                reverse_id=reverse_id
             )
-        else:
-            component: LoadedComponentSchema | None = (
-                self._state.space.get_parsed_component_by_reverse_id(reverse_id=reverse_id)
-            )
-            # print(component.branch)
+        )
+        if flow_uid and component.flow is not None:
+            component.flow = self._state.space.get_flow(flow_uid)
 
         if component is not None and component.flow is not None:
-            if not (deployment_id or attach_to_any):
-                if attach_to_last:
-                    if branch:
-                        branch_schema = self._state.space.get_branch_by_name(
-                            component_id=component.uid,
-                            branch_name=branch
-                        )
-                        if not branch_schema:
-                            raise Exception(
-                                f"There is no branch named {branch} for "
-                                f"component named {reverse_id}"
-                            )
-                        flow = self._state.space.get_flow_by_version_id(
-                            version_id=branch_schema.active_version.uid
-                        )
-                        flow = self._state.space.get_flow(uid=flow)
-                    else:
-                        branch_schema = component.branch
-                        flow = component.flow
+            if deployment_id:
+                self.state.aux.task_id = deployment_id
 
-                    results: list = self._state.space.client.execute(
-                        gql(
-                            """
-                            query GetTaskByVersion($version_id:[String!]){
-                                tasks {
-                                    component(status: "started", versionId: $version_id) {
-                                        edges {
-                                            node {
-                                                details {
-                                                    createdAt
-                                                    uid
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            """  # noqa: E501
-                        ),
-                        variable_values={
-                            'version_id': [
-                                branch_schema.active_version.uid
-                                if branch else component.version.uid
-                                ]
-                        }
-                    )["tasks"]["component"]["edges"]
-                    if len(results) != 0:
-                        results.sort(
-                            key=lambda x: x['node']['details']['createdAt'],
-                            reverse=True
-                        )
-                        self._state.aux.task_id = results[0]['node']['details']['uid']
-
-            else:
-                flow: LoadedFlowSchema = component.flow
+            flow: LoadedFlowSchema = component.flow
 
             self._state.flow = flow
             self._state.aux.flow_id = flow.uid
             self._state.components_alias = {
                 x.uid: x.alias for x in flow.components
             }
-            successful |= True
+
             all_components = {x.uid for x in flow.components}
             prev_components = set.union(
                 set(), *[{x.uid for x in y.prev} for y in flow.components]
@@ -870,12 +760,6 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
         else:
             raise Exception(
                 "Could not attach to the flow. Component failed to be parsed."
-            )
-
-        if not successful:
-            raise Exception(
-                "Failed to attach to the task. Possible reasons are: "
-                "could not find neither component nor deployment."
             )
 
         task = SpaceTask(state=self._state, component=component)
