@@ -495,7 +495,8 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
                     reverse_id=node.owner.reverse_id,
                 )
 
-                child_interpreter.interpret(node.owner, comp)
+                task_ = child_interpreter.interpret(node.owner, comp)
+                task_.upload()
                 child_state: SpaceInterpreterState = child_interpreter.state
                 comp.flow = child_state.flow
 
@@ -701,6 +702,8 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
         self._component.flow = state.flow
 
         def get_component():
+            with open(self._component.reverse_id + '.json', 'w') as f:
+                f.write(self._component.model_dump_json(indent=2))
             component = state.component_manager.component(
                 self._component,
                 self._version_mode,

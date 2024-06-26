@@ -1,3 +1,4 @@
+import inspect
 import json
 from typing import Generic, Literal, Optional, Type, TypeVar
 from uuid import uuid4
@@ -14,15 +15,22 @@ from ..models.nodes import CollectionNode
 
 class CollectionNameMeta(type):
     def __getitem__(cls, name_model: tuple[str, Type[BaseModel]]) -> type:
+
         item, model = name_model
-        assert issubclass(model, BaseModel), (
-            "The second argument of collection[] annotation "
-            "should be a `pydantic` model"
-        )
+        if model and not inspect.isclass(model):
+            raise TypeError(
+                "The second argument of collection[] annotation "
+                "should be a `pydantic` model"
+            )
+        if model and not issubclass(model, BaseModel):
+            raise TypeError(
+                "The second argument of collection[] annotation "
+                "should be a `pydantic` model"
+            )
 
         class CollectionProto:
             __malevich_collection_name__: str = item
-            __malevich_collection_scheme__: dict = model.model_json_schema()
+            __malevich_collection_scheme__: dict = model.model_json_schema() if model else None  # noqa: E501
 
         return CollectionProto
 

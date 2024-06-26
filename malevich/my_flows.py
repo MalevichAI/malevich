@@ -8,7 +8,7 @@ from .models.results import SpaceCollectionResult
 ProcFunArgs = ParamSpec("ProcFunArgs")
 ProcFunReturn = TypeVar("ProcFunReturn")
 
-class FunctionStub(Generic[ProcFunArgs, ProcFunReturn]):
+class FlowFunctionStub(Generic[ProcFunArgs, ProcFunReturn]):
     def __init__(self, fn, mapping, reverse_id, version) -> None:
         self.mapping: dict = mapping
         self.reverse_id = reverse_id
@@ -59,6 +59,6 @@ def installed_flow(
     version: str,
     reverse_id:str
 ) -> Callable:
-    def decorator(fn: Callable) -> FunctionStub[Callable[..., Any], Any]:
-        return FunctionStub(fn, mapping, reverse_id, version)
+    def decorator(fn: Callable) -> FlowFunctionStub[Callable[..., Any], Any]:
+        return FlowFunctionStub(fn, mapping, reverse_id, version)
     return decorator

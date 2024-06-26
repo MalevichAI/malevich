@@ -1,6 +1,8 @@
 import re
 from typing import Optional
 
+from malevich_space.schema import LoadedComponentSchema
+
 from .._core.scan import scan_core
 from .._utility.space.auto_space_ops import get_auto_ops
 from .._utility.stub import Stub
@@ -79,7 +81,7 @@ class SpaceInstaller(Installer):
         reverse_id: str,
         branch: Optional[str] = None,
         version: Optional[str] = None,
-    ) -> SpaceDependency:
+    ) -> SpaceDependency | LoadedComponentSchema:
         package_name = re.sub(r'[\W\s]+', '_', package_name)
 
         component = self.__ops.get_parsed_component_by_reverse_id(
@@ -88,6 +90,9 @@ class SpaceInstaller(Installer):
 
         if component is None:
             raise Exception(f"Component {reverse_id} not found")
+
+        if component.flow is not None:
+            return component
 
         if component.app is None:
             raise Exception(f"Component {reverse_id} is not an app")
@@ -155,7 +160,7 @@ class SpaceInstaller(Installer):
 
         return dependency
 
-    def restore(self, dependency: SpaceDependency) -> SpaceDependency:
+    def restore(self, dependency: SpaceDependency) -> SpaceDependency | LoadedComponentSchema:
         return self.install(
             package_name=dependency.package_id,
             reverse_id=dependency.options.reverse_id,

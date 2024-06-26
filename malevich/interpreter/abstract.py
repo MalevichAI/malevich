@@ -111,7 +111,7 @@ class Interpreter(Generic[State, Return]):
         else:
             self._state = self.state
 
-    def interpret(self, node: TreeNode, component: ComponentSchema = None):  # noqa: ANN201
+    def interpret(self, node: TreeNode, component: ComponentSchema = None) -> Return:  # noqa: ANN201
         """Interprets the execution tree
 
         The interpretation process is divided into 5 steps:

@@ -36,3 +36,9 @@ class Paths:
     def db() -> str:
         return Paths.home(DB_PATH)
 
+    @staticmethod
+    def templates(*args: os.PathLike) -> str:
+        return Paths.module('_templates', *args)
+
+
+

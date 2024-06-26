@@ -298,7 +298,6 @@ def flow(
                     if hasattr(param.annotation, "__malevich_collection_name__"):
                         collection_name = param.annotation.__malevich_collection_name__
                         collection_scheme = param.annotation.__malevich_collection_scheme__
-
                     else:
                         raise TypeError(
                             f"Argument '{name}' has invalid annotation. "

@@ -116,6 +116,7 @@ class SpaceTask(BaseTask):
     def run(
         self,
         override: dict[str, pd.DataFrame] = {},
+        webhook_url: str | None = None,
         *args,
         **kwargs
     ) -> str:
@@ -182,7 +183,8 @@ class SpaceTask(BaseTask):
 
         self.state.aux.run_id = self.state.space.run_task(
             task_id=self.state.aux.task_id,
-            ca_override=overrides
+            ca_override=overrides,
+            webhook=webhook_url
         )
         return self.state.aux.run_id
 
@@ -258,14 +260,25 @@ class SpaceTask(BaseTask):
 
     @cache
     def get_injectables(self) -> list[SpaceInjectable]:
-        alias_to_snapshot = self.state.space.get_snapshot_components(
-            task_id=self.state.aux.task_id
-        )
+        if self.state.aux.task_id:
+            alias_to_snapshot = self.state.space.get_snapshot_components(
+                task_id=self.state.aux.task_id
+            )
+        else:
+            alias_to_snapshot = {}
+
         alias_to_in_flow_id = {
             x.alias: x.uid
             for x in self.component.flow.components
             if x.collection is not None
         }
+
+        alias_to_rev_id = {
+            x.alias: x.reverse_id
+            for x in self.component.flow.components
+            if x.collection is not None
+        }
+
         aliases = set()
         # aliases.update(alias_to_snapshot.keys())
         aliases.update(alias_to_in_flow_id.keys())
@@ -274,6 +287,7 @@ class SpaceTask(BaseTask):
                 alias=a,
                 in_flow_id=alias_to_in_flow_id.get(a, None),
                 snapshot_flow_id=alias_to_snapshot.get(a, None),
+                reverse_id=alias_to_rev_id.get(a, None)
             )
             for a in aliases
         ]

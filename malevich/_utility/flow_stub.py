@@ -1,119 +1,44 @@
 import os
 
-from .. import flows
+from jinja2 import Environment, FileSystemLoader
+
 from ..models.dependency import Integration
+from ..path import Paths
 
-
-class FlowTemplates:
-    imports = """
-from typing import Literal, overload
-
-from ..models.nodes.operation import OperationNode
-from ..models.results import SpaceCollectionResult
-from ..models.task.interpreted.space import SpaceTask
-from .stub import integration
-"""
-
-    integration = """
-
-@integration(
-    mapping={mapping},
-    version="{version}",
-    reverse_id="{reverse_id}"
-)
-@overload
-def {reverse_id}(
-    version: Literal['{version}'],
-    {args},
-    get_task=False
-) -> list[SpaceCollectionResult] | SpaceTask | OperationNode:
-    ...
-
-"""
-
-    init_import = """
-
-from .{reverse_id} import {reverse_id}
-
-"""
 
 class FlowStub:
     @staticmethod
-    def write_flow(
+    def sync_flows(
         reverse_id: str,
-        integration: Integration
+        integrations: list[Integration],
     )-> None:
-        from .. import flows
-        flows_path_ = os.path.dirname(flows.__file__)
-        install_path_ = os.path.join(flows_path_, reverse_id + '.py')
-        if not os.path.exists(install_path_):
-            with open(install_path_, 'w+') as f:
-                f.write(
-                    FlowTemplates.imports
-                )
-        args = [key + "=None" for key in integration.mapping.keys()]
-        with open(install_path_, 'a+') as f:
-            f.write(
-                FlowTemplates.integration.format(
-                    mapping=str(integration.mapping),
-                    version=integration.version,
-                    reverse_id=reverse_id,
-                    args=', '.join(args)
-                )
-            )
-        if FlowTemplates.init_import.format(reverse_id=reverse_id) not in open(flows.__file__).read():  # noqa: E501
-            with open(flows.__file__, 'a+') as f:
-                f.write(FlowTemplates.init_import.format(reverse_id=reverse_id))
-
-    @staticmethod
-    def remove_flow(
-        reverse_id: str,
-        integration: Integration=None,
-    )-> None:
-        flows_path_ = os.path.dirname(flows.__file__)
-        install_path_ = os.path.join(flows_path_, reverse_id + '.py')
-        if integration is None:
-            os.remove(install_path_)
-            data = open(flows.__file__).read()
-            data = data.replace(
-                FlowTemplates.init_import.format(reverse_id=reverse_id),
-                "",
-                1
-            )
-            with open(flows.__file__, 'w') as f:
-                f.write(data)
-        else:
-            args = [key + "=None" for key in integration.mapping.keys()]
-            data = open(install_path_).read()
-            data = data.replace(
-                FlowTemplates.integration.format(
-                    mapping=str(integration.mapping),
-                        version=integration.version,
-                        reverse_id=reverse_id,
-                        args=', '.join(args)
-                ),
-                "",
-                1
-            )
-            with open(install_path_, 'w') as f:
-                f.write(data)
-
-    @staticmethod
-    def check_installed(
-        reverse_id: str,
-        integration: Integration | None=None
-    ) -> bool:
-        flows_path_ = os.path.dirname(flows.__file__)
-        install_path_ = os.path.join(flows_path_, reverse_id + '.py')
-        if not os.path.exists(install_path_):
-            return False
-        if integration is None:
-            return True
-        args = [key + "=None" for key in integration.mapping.keys()]
-        integration_ = FlowTemplates.integration.format(
-            mapping=str(integration.mapping),
-            version=integration.version,
-            reverse_id=reverse_id,
-            args=', '.join(args)
+        install_path = Paths.module('flows', reverse_id + '.py')
+        environment = Environment(
+            loader=FileSystemLoader(Paths.templates('metascript', 'flow_stub'))
         )
-        return integration_ in open(install_path_).read()
+
+        with open(install_path, 'w+') as f:
+            f.write(
+                environment.get_template('body.jinja2').render(
+                   reverse_id=reverse_id,
+                   integrations=integrations,
+                )
+            )
+
+        init_path = Paths.module('flows', '__init__.py')
+        with open(init_path, 'a+') as f:
+            f.write(
+                f'from .{reverse_id} import {reverse_id}\n'
+            )
+
+    @staticmethod
+    def remove_stub(reverse_id: str) -> None:
+        os.remove(Paths.module('flows', reverse_id + '.py'))
+        with open(Paths.module('flows', '__init__.py')) as f:
+            lines = f.readlines()
+
+        with open(Paths.module('flows', '__init__.py'), 'w') as f:
+            for line in lines:
+                if f'from .{reverse_id} import {reverse_id}' in line:
+                    continue
+                f.write(line)

@@ -31,7 +31,7 @@ def auto_use(
     with_args: Annotated[str, typer.Option(help=__With_Args_Help)] = "",
 ) -> None:
     rich.print(
-        "\n\nAttempting automatic installation of packages [b blue]"
+        "\n\nAttempting automatic installation of components [b blue]"
         f"{'[white], [/white]'.join(package_names)}[/b blue]\n"
     )
     args = parse_kv_args(with_args)
@@ -171,13 +171,15 @@ def install_flow(
     )
     version_name = task.component.version.readable_name
     mappings = {}
-    for col in task.get_injectables():
+    injectables = task.get_injectables()
+    for col in injectables:
         mappings[underscored(col.alias)] = col.alias
 
     integration = Integration(
         mapping=mappings,
         version=version_name,
-        deployment=deployment_id
+        deployment=deployment_id,
+        injectables=injectables
     )
     try:
         installer.install(

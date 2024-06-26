@@ -16,7 +16,7 @@ from ._cli.list import list_packages
 from ._cli.manifest import app as manifest_app
 from ._cli.new import new
 from ._cli.prefs import prefs as prefs
-from ._cli.remove import remove, delete_flow
+from ._cli.remove import remove
 from ._cli.restore import restore
 from ._cli.space.init import init
 from ._cli.space.login import login
@@ -67,16 +67,6 @@ app.registered_commands.append(
     typer.models.CommandInfo(
         help=help.remove["--help"],
         callback=remove,
-        cls=typer.core.TyperCommand
-    )
-)
-
-# malevich remove-flow
-app.registered_commands.append(
-    typer.models.CommandInfo(
-        name='remove-flow',
-        help='Remove flow integration.',
-        callback=delete_flow,
         cls=typer.core.TyperCommand
     )
 )
