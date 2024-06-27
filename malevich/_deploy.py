@@ -111,7 +111,7 @@ class Space:
         branch: str | None = None,
         version: str | None = None,
         ops: SpaceOps | None = None,
-        policy: Literal['only_use', 'use_or_new']= 'use_or_new',
+        policy: Literal['no_use', 'only_use', 'use_or_new']= 'use_or_new',
         *task_args,
         **task_kwargs
     ) -> SpaceTask:
@@ -181,16 +181,21 @@ class Space:
                 flow_uid=uid,
                 deployment_id=deployment_id
             )
-            if task.get_stage().value != 'started':
+            if policy == 'no_use':
+                task.prepare()
+                return task
+            elif task.get_stage().value != 'started':
                 if policy == 'only_use':
                     if deployment_id is not None:
                         raise Exception(
                             f"The deployment with ID {deployment_id} is not active while "
-                            "policy was set to USE_ONLY."
+                            "policy was set to 'use_only'. Provide active deployment, "
+                            "or change policy to 'use_or_new' or 'no_use'"
                         )
                     else:
                         raise Exception(
-                            "No active tasks found for USE_ONLY_POLICY."
+                            "No active tasks found for 'use_only' policy. "
+                            "You can change policy 'use_or_new' or 'no_use'."
                         )
                 else:
                     task.prepare()

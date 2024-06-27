@@ -179,7 +179,6 @@ def _install_from_space(
                 branch_name = task.component.branch.name
                 mappings = {}
                 injectables = task.get_injectables()
-                print("In Use.py: ", injectables)
                 for col in injectables:
                     mappings[underscored(col.alias)] = col.alias
 

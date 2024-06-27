@@ -5,6 +5,8 @@
 {%- endfor %}
 
 {% with i = integrations | first %}
+
+@installed_flow(reverse_id='{{reverse_id}}')
 def {{reverse_id}}(
     version: Literal['{{i.version}}'],
     branch: Literal['{{i.branch}}'],
@@ -15,24 +17,5 @@ def {{reverse_id}}(
     wait_for_results: bool = True,
     **kwargs,
 ):
-    task = Space(
-        reverse_id='{{reverse_id}}',
-        branch=branch,
-        version=version,
-        deployment_id=run_deployment_id,
-        task_policy=run_task_policy
-    )
-    if get_task:
-        return task
-    
-    injectables = task.get_injectables()
-    overrides = {}
-    for col in injectables:
-        data = kwargs.get(col.alias, None)
-        if data is not None:
-            overrides[col.alias] = data
-    if not wait_for_results:
-        return task.run(overrides=overrides)
-    
-    return task.results()
+   pass
 {% endwith %}

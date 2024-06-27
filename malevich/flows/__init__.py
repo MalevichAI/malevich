@@ -1,3 +1,0 @@
-from .write_konik_sm import write_konik_sm
-from .xcardv2_scrape_wildberries import xcardv2_scrape_wildberries
-from .xcardv2_scrape_yamarket import xcardv2_scrape_yamarket
