@@ -12,7 +12,7 @@ def {{reverse_id}}(
     branch: Literal['{{i.branch}}'],
     *,
     run_deployment_id: str | None = None,
-    run_task_policy: Literal['only_use'] | Literal['use_or_new'] = 'use_or_new',
+    run_task_policy: Literal['only_use', 'use_or_new', 'no_use'] = 'use_or_new',
     get_task: bool = False,
     wait_for_results: bool = True,
     **kwargs,

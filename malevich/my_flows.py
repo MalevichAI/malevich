@@ -1,6 +1,4 @@
-import inspect
-from itertools import islice
-from typing import Any, Callable, Generic, Literal, ParamSpec, TypeVar, overload
+from typing import Any, Callable, Generic, Literal, ParamSpec, TypeVar
 
 from ._deploy import Space
 from .models.results import SpaceCollectionResult
@@ -14,33 +12,25 @@ class FlowFunctionStub(Generic[ProcFunArgs, ProcFunReturn]):
         self.__call__ = self._fn_call
         self.reverse_id = reverse_id
 
-    def _fn_call(self, *args, **kwargs) -> list[SpaceCollectionResult]:
-        parameters = list(inspect.signature(self._fn_).parameters.values())
-        mapped_kwargs = {
-            k: v
-            for k, v in kwargs.items()
-        }
-        varnames = [
-            p.name for p in parameters
-            if p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
-        ]
-        for arg, key in zip(islice(args, 0, len(varnames)), varnames):
-            mapped_kwargs[key] = arg
-        for p in parameters:
-            if (
-                p.kind != inspect.Parameter.POSITIONAL_OR_KEYWORD and
-                p.name not in mapped_kwargs
-            ):
-                mapped_kwargs[p.name] = p.default
-
+    def _fn_call(
+            self,
+            version,
+            branch,
+            *,
+            run_deployment_id: str | None = None,
+            run_task_policy: Literal['only_use', 'use_or_new', 'no_use']='use_or_new',
+            get_task: bool = False,
+            wait_for_results: bool = True,
+            **kwargs
+    ) -> list[SpaceCollectionResult]:
         task = Space(
             reverse_id=self.reverse_id,
-            branch=mapped_kwargs['branch'],
-            version=mapped_kwargs['version'],
-            deployment_id=mapped_kwargs['run_deployment_id'],
-            task_policy=mapped_kwargs['run_task_policy']
+            branch=branch,
+            version=version,
+            deployment_id=run_deployment_id,
+            task_policy=run_task_policy
         )
-        if mapped_kwargs['get_task']:
+        if get_task:
             return task
 
         injectables = task.get_injectables()
@@ -49,7 +39,7 @@ class FlowFunctionStub(Generic[ProcFunArgs, ProcFunReturn]):
             data = kwargs.get(col.alias, None)
             if data is not None:
                 overrides[col.alias] = data
-        if not mapped_kwargs['wait_for_results']:
+        if not wait_for_results:
             return task.run(overrides=overrides)
 
         return task.results()
