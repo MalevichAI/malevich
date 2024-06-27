@@ -1,0 +1,1191 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>malevich.models &#8212; Malevich 0.4.0</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/style.css?v=36acc060" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'API/models';</script>
+    <link rel="icon" href="../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Malevich Square" href="square/index.html" />
+    <link rel="prev" title="malevich.interpreter.space" href="interpreter/space.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo-light.svg" class="logo__image only-light" alt="Malevich 0.4.0 - Home"/>
+    <script>document.write(`<img src="../_static/logo-dark.svg" class="logo__image only-dark" alt="Malevich 0.4.0 - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../SDK/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../Community/index.html">
+    Community
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../SDK/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../Community/index.html">
+    Community
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="assistants.html">Assistants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="autoflow.html">malevich._autoflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="meta/index.html">malevich._meta</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="interpreter/index.html">malevich.interpreter</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="interpreter/core.html">malevich.interpeter.core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interpreter/space.html">malevich.interpeter.space</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">malevich.models</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="square/index.html">malevich.square</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="square/jls.html">malevich.square.jls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="square/utils.html">malevich.square.utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="square/df.html">malevich.square.df</a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">API</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">malevich.models</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-malevich.models">
+<span id="malevich-models"></span><h1>malevich.models<a class="headerlink" href="#module-malevich.models" title="Link to this heading">#</a></h1>
+<dl class="py class" id="module-malevich.models.flow_function">
+<dt class="sig sig-object py" id="malevich.models.flow_function.FlowFunction">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">malevich.models.flow_function.</span></span><span class="sig-name descname"><span class="pre">FlowFunction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Params</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">R</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reverse_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malevich.models.flow_function.FlowFunction" title="Link to this definition">#</a></dt>
+<dd><p>Class-decorator for a flow function</p>
+<p>Captures the function and holds its metadata.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.flow_function.FlowFunction.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Params</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">R</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reverse_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.models.flow_function.FlowFunction.__init__" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> (<em>Callable</em><em>[</em><em>Params</em><em>, </em><em>R</em><em>]</em>) – The function that defines the flow</p></li>
+<li><p><strong>reverse_id</strong> (<em>str</em>) – Reverse ID of the flow</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Name of the flow</p></li>
+<li><p><strong>description</strong> (<em>str</em>) – Description of the function</p></li>
+<li><p><strong>**kwargs</strong> (<em>Any</em>) – Additional arguments to be passed to the flow component.
+See <code class="xref py py-class docutils literal notranslate"><span class="pre">ComponentSchema</span></code> for details.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malevich_space.schema.ComponentSchema">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">malevich_space.schema.</span></span><span class="sig-name descname"><span class="pre">ComponentSchema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reverse_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visibility</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anticipated_python_deps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anticipated_default</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anticipated_api_call</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anticipated_api_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">example_code_before_juliusfication</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">designed_for</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">not_designed_for</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">designed_for_use_case</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">UseCaseSchema</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">not_designed_for_use_case</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">UseCaseSchema</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tags</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">AppSchema</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flow</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FlowSchema</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collection</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">CollectionAliasSchema</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">asset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Asset</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">icon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repo_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">docs_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">branch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">BranchSchema</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">VersionSchema</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">required_schema</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">SchemaMetadata</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malevich_space.schema.ComponentSchema" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py class" id="module-malevich.models.task.promised">
+<span id="module-malevich.models.task"></span><dt class="sig sig-object py" id="malevich.models.task.promised.PromisedStage">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">malevich.models.task.promised.</span></span><span class="sig-name descname"><span class="pre">PromisedStage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qualname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malevich.models.task.promised.PromisedStage" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malevich.models.task.promised.PromisedTask">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">malevich.models.task.promised.</span></span><span class="sig-name descname"><span class="pre">PromisedTask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="autoflow.html#malevich._autoflow.tracer.traced" title="malevich._autoflow.tracer.traced"><span class="pre">traced</span></a><span class="p"><span class="pre">[</span></span><span class="pre">BaseNode</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="autoflow.html#malevich._autoflow.tracer.traced" title="malevich._autoflow.tracer.traced"><span class="pre">traced</span></a><span class="p"><span class="pre">[</span></span><span class="pre">BaseNode</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tree</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TreeNode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#malevich_space.schema.ComponentSchema" title="malevich_space.schema.component.ComponentSchema"><span class="pre">ComponentSchema</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malevich.models.task.promised.PromisedTask" title="Link to this definition">#</a></dt>
+<dd><p>An intermediate representation of a task that can be interpreted</p>
+<p>Interpretation of a task means attaching it to a particular platform
+and preparing it for execution. This is done by calling <a class="reference internal" href="#malevich.models.task.promised.PromisedTask.interpret" title="malevich.models.task.promised.PromisedTask.interpret"><code class="xref py py-meth docutils literal notranslate"><span class="pre">interpret()</span></code></a>
+method.</p>
+<p>Once the task is interpreted, the following methods become available:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#malevich.models.task.promised.PromisedTask.prepare" title="malevich.models.task.promised.PromisedTask.prepare"><code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#malevich.models.task.promised.PromisedTask.run" title="malevich.models.task.promised.PromisedTask.run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">run()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#malevich.models.task.promised.PromisedTask.stop" title="malevich.models.task.promised.PromisedTask.stop"><code class="xref py py-meth docutils literal notranslate"><span class="pre">stop()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#malevich.models.task.promised.PromisedTask.results" title="malevich.models.task.promised.PromisedTask.results"><code class="xref py py-meth docutils literal notranslate"><span class="pre">results()</span></code></a></p></li>
+</ul>
+<dl class="py property">
+<dt class="sig sig-object py" id="malevich.models.task.promised.PromisedTask.tree">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">tree</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">TreeNode</span></em><a class="headerlink" href="#malevich.models.task.promised.PromisedTask.tree" title="Link to this definition">#</a></dt>
+<dd><p>Returns the execution tree, encapsulated into TreeNode class</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.task.promised.PromisedTask.get_stage">
+<span class="sig-name descname"><span class="pre">get_stage</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#malevich.models.task.promised.PromisedTask.get_stage" title="Link to this definition">#</a></dt>
+<dd><p>Retrieves the current stage of the task.</p>
+<p>If the task has not been interpreted, the stage is <cite>NOT_INTERPRETED</cite>.
+Otherwise, the stage is defined by the underlying interpreted task.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.task.promised.PromisedTask.get_stage_class">
+<span class="sig-name descname"><span class="pre">get_stage_class</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Type</span></span></span><a class="headerlink" href="#malevich.models.task.promised.PromisedTask.get_stage_class" title="Link to this definition">#</a></dt>
+<dd><p>Returns the enum class of the stage of the task</p>
+<p>If the task has not been interpreted, the class is <cite>PromisedStage</cite>.
+Otherwise, the class is defined by the underlying interpreted task.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.task.promised.PromisedTask.interpret">
+<span class="sig-name descname"><span class="pre">interpret</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interpreter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Interpreter</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.models.task.promised.PromisedTask.interpret" title="Link to this definition">#</a></dt>
+<dd><p>Interprets the task with a particular interpreter</p>
+<p>Attaching a task to a particular platform and preparing it for execution.
+This is done by calling <a class="reference internal" href="#malevich.models.task.promised.PromisedTask.interpret" title="malevich.models.task.promised.PromisedTask.interpret"><code class="xref py py-meth docutils literal notranslate"><span class="pre">interpret()</span></code></a>. Once the task is interpreted,
+it can be prepared, run, stopped and its results can be fetched.</p>
+<p>The task might be re-interpreted with a different interpreter. In this
+case, the previous interpreter is discarded and the new one is used.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>interpreter</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">malevich.interpreter.Interpreter</span></code>, optional) – Interpreter to use. <code class="xref py py-class docutils literal notranslate"><span class="pre">malevich.interprete.SpaceInterpreter</span></code>
+is used when not specified. Defaults to None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.task.promised.PromisedTask.prepare">
+<span class="sig-name descname"><span class="pre">prepare</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.models.task.promised.PromisedTask.prepare" title="Link to this definition">#</a></dt>
+<dd><p>Prepares necessary data for the task to be executed (run)</p>
+<p>Accepts any arguments and keyword arguments and passes them to the
+underlying callback created in the interpreter itself. For particular
+arguments and keyword arguments, see the documentation of the interpreter
+used before calling this method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.task.promised.PromisedTask.async_prepare">
+<span class="sig-name descname"><span class="pre">async_prepare</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.models.task.promised.PromisedTask.async_prepare" title="Link to this definition">#</a></dt>
+<dd><p>Asynchronously prepares necessary data for the task to be executed (run)</p>
+<p>The method is non-blocking</p>
+<p>Accepts any arguments and keyword arguments and passes them to the
+underlying callback created in the interpreter itself. For particular
+arguments and keyword arguments, see the documentation of the interpreter
+used before calling this method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.task.promised.PromisedTask.async_run">
+<span class="sig-name descname"><span class="pre">async_run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.models.task.promised.PromisedTask.async_run" title="Link to this definition">#</a></dt>
+<dd><p>Asynchronously runs the task with the given run_id</p>
+<p>The method is non-blocking. Beware that you need to call <a class="reference internal" href="#malevich.models.task.promised.PromisedTask.prepare" title="malevich.models.task.promised.PromisedTask.prepare"><code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare()</span></code></a>
+and ensure that the task is prepared before calling this method. In case,
+you have used <a class="reference internal" href="#malevich.models.task.promised.PromisedTask.async_prepare" title="malevich.models.task.promised.PromisedTask.async_prepare"><code class="xref py py-meth docutils literal notranslate"><span class="pre">async_prepare()</span></code></a>, you need to wait for the task to be
+prepared before calling this method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.task.promised.PromisedTask.async_stop">
+<span class="sig-name descname"><span class="pre">async_stop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.models.task.promised.PromisedTask.async_stop" title="Link to this definition">#</a></dt>
+<dd><p>Asynchronously stops the task preventing it from further execution</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.task.promised.PromisedTask.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">override</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.models.task.promised.PromisedTask.run" title="Link to this definition">#</a></dt>
+<dd><p>Runs the task</p>
+<p>Accepts any arguments and keyword arguments and passes them to the
+underlying callback created in the interpreter itself. For particular
+arguments and keyword arguments, see the documentation of the interpreter
+used before calling this method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.task.promised.PromisedTask.stop">
+<span class="sig-name descname"><span class="pre">stop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.models.task.promised.PromisedTask.stop" title="Link to this definition">#</a></dt>
+<dd><p>Stops the task</p>
+<p>Accepts any arguments and keyword arguments and passes them to the
+underlying callback created in the interpreter itself. For particular
+arguments and keyword arguments, see the documentation of the interpreter
+used before calling this method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.task.promised.PromisedTask.results">
+<span class="sig-name descname"><span class="pre">results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#malevich.models.results.BaseResult" title="malevich.models.results.base.BaseResult"><span class="pre">BaseResult</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#malevich.models.results.CoreLocalDFResult" title="malevich.models.results.core.result.CoreLocalDFResult"><span class="pre">CoreLocalDFResult</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#malevich.models.results.CoreResult" title="malevich.models.results.core.result.CoreResult"><span class="pre">CoreResult</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#malevich.models.results.SpaceCollectionResult" title="malevich.models.results.space.collection.SpaceCollectionResult"><span class="pre">SpaceCollectionResult</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich.models.task.promised.PromisedTask.results" title="Link to this definition">#</a></dt>
+<dd><p>Retrieve results of the task</p>
+<p>Accepts any arguments and keyword arguments and passes them to the
+underlying callback created in the interpreter itself. For particular
+arguments and keyword arguments, see the documentation of the interpreter
+used before calling this method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.task.promised.PromisedTask.commit_returned">
+<span class="sig-name descname"><span class="pre">commit_returned</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">returned</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="autoflow.html#malevich._autoflow.tracer.traced" title="malevich._autoflow.tracer.traced"><span class="pre">traced</span></a><span class="p"><span class="pre">[</span></span><span class="pre">BaseNode</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="autoflow.html#malevich._autoflow.tracer.traced" title="malevich._autoflow.tracer.traced"><span class="pre">traced</span></a><span class="p"><span class="pre">[</span></span><span class="pre">BaseNode</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.models.task.promised.PromisedTask.commit_returned" title="Link to this definition">#</a></dt>
+<dd><p>Saves objects to determine the results of the task</p>
+<p>Accepts any arguments and keyword arguments and passes them to the
+underlying callback created in the interpreter itself. For particular
+arguments and keyword arguments, see the documentation of the interpreter
+used before calling this method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.task.promised.PromisedTask.dump">
+<span class="sig-name descname"><span class="pre">dump</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="headerlink" href="#malevich.models.task.promised.PromisedTask.dump" title="Link to this definition">#</a></dt>
+<dd><p>Serialize the task to bytes, which can be saved and used to load it again</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.task.promised.PromisedTask.load">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">object_bytes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#malevich.models.task.promised.PromisedTask" title="malevich.models.task.promised.PromisedTask"><span class="pre">PromisedTask</span></a></span></span><a class="headerlink" href="#malevich.models.task.promised.PromisedTask.load" title="Link to this definition">#</a></dt>
+<dd><p>Static method. Deserialize bytes into task object</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.task.promised.PromisedTask.get_injectables">
+<span class="sig-name descname"><span class="pre">get_injectables</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">BaseInjectable</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich.models.task.promised.PromisedTask.get_injectables" title="Link to this definition">#</a></dt>
+<dd><p>Returns a list of possible injections into run</p>
+<p>See the documentation of the corresponding
+interpreter used before calling this method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.task.promised.PromisedTask.get_operations">
+<span class="sig-name descname"><span class="pre">get_operations</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich.models.task.promised.PromisedTask.get_operations" title="Link to this definition">#</a></dt>
+<dd><p>Returns a list of operations</p>
+<p>The term operations is defined by the interpreter used.
+See the documentation of the corresponding
+interpreter used before calling this method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.task.promised.PromisedTask.configure">
+<span class="sig-name descname"><span class="pre">configure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">operations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.models.task.promised.PromisedTask.configure" title="Link to this definition">#</a></dt>
+<dd><p>Configures the task for a particular operation</p>
+<p>What is configurable and how it is configurable is defined by the
+interpreter used. See the documentation of the corresponding
+interpreter used before calling this method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>operation</strong> (<em>str</em>) – Operation to configure (one from <a class="reference internal" href="#malevich.models.task.promised.PromisedTask.get_operations" title="malevich.models.task.promised.PromisedTask.get_operations"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_operations()</span></code></a>)</p></li>
+<li><p><strong>**kwargs</strong> (<em>Any</em>) – Arguments to configure the operation</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.task.promised.PromisedTask.get_interpreted_task">
+<span class="sig-name descname"><span class="pre">get_interpreted_task</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">BaseTask</span></span></span><a class="headerlink" href="#malevich.models.task.promised.PromisedTask.get_interpreted_task" title="Link to this definition">#</a></dt>
+<dd><p>Retrieves the interpreted task that is produced when calling <a class="reference internal" href="#malevich.models.task.promised.PromisedTask.interpret" title="malevich.models.task.promised.PromisedTask.interpret"><code class="xref py py-meth docutils literal notranslate"><span class="pre">interpret()</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The interpreted task</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseTask</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.task.promised.PromisedTask.publish">
+<span class="sig-name descname"><span class="pre">publish</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">MetaEndpoint</span></span></span><a class="headerlink" href="#malevich.models.task.promised.PromisedTask.publish" title="Link to this definition">#</a></dt>
+<dd><p>Creates a HTTP endpoint for the task</p>
+<p>Accepts any arguments and keyword arguments and passes them to the
+underlying callback created in the interpreter itself. For particular
+arguments and keyword arguments, see the documentation of the interpreter
+used before calling this method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An endpoint object</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">malevich.models.endpoint.MetaEndpoint</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-malevich.models.results">
+<dt class="sig sig-object py" id="malevich.models.results.BaseResult">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">malevich.models.results.</span></span><span class="sig-name descname"><span class="pre">BaseResult</span></span><a class="headerlink" href="#malevich.models.results.BaseResult" title="Link to this definition">#</a></dt>
+<dd><p>Result obtained running a flow.</p>
+<p>Encapsulates the result object obtained after running a flow.
+The object can be a DataFrame, a list of DataFrames, binary data, etc.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="malevich.models.results.BaseResult.num_elements">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">num_elements</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#malevich.models.results.BaseResult.num_elements" title="Link to this definition">#</a></dt>
+<dd><p>The number of elements (assets/collections) in the result</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.results.BaseResult.get">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">RealResultType</span></span></span><a class="headerlink" href="#malevich.models.results.BaseResult.get" title="Link to this definition">#</a></dt>
+<dd><p>Fetches a real result object (download, etc.)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The actual result</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>RealResultType</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.results.BaseResult.get_df">
+<span class="sig-name descname"><span class="pre">get_df</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#malevich.models.results.BaseResult.get_df" title="Link to this definition">#</a></dt>
+<dd><p>Returns a DataFrame from the result if possible</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The DataFrame</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.results.BaseResult.get_dfs">
+<span class="sig-name descname"><span class="pre">get_dfs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">DataFrame</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich.models.results.BaseResult.get_dfs" title="Link to this definition">#</a></dt>
+<dd><p>Returns a list of DataFrames from the result if possible</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The list of DataFrames</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list[pd.DataFrame]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.results.BaseResult.get_binary">
+<span class="sig-name descname"><span class="pre">get_binary</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="headerlink" href="#malevich.models.results.BaseResult.get_binary" title="Link to this definition">#</a></dt>
+<dd><p>Returns binary data from the result if possible</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The binary data</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bytes</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.results.BaseResult.get_binary_dir">
+<span class="sig-name descname"><span class="pre">get_binary_dir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich.models.results.BaseResult.get_binary_dir" title="Link to this definition">#</a></dt>
+<dd><p>Returns a dict of binary data from the result if possible</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The dict of binary data</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict[str, bytes]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malevich.models.results.CoreLocalDFResult">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">malevich.models.results.</span></span><span class="sig-name descname"><span class="pre">CoreLocalDFResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coll</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Collection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conn_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'https://core.malevich.ai/'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malevich.models.results.CoreLocalDFResult" title="Link to this definition">#</a></dt>
+<dd><p>A specification of <code class="xref py py-func docutils literal notranslate"><span class="pre">collection()</span></code> as a result</p>
+<p>This class is used to wrap a collection object as result.
+It simply stores collection object as a DataFrame and
+returns it when <a class="reference internal" href="#malevich.models.results.CoreLocalDFResult.get" title="malevich.models.results.CoreLocalDFResult.get"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get()</span></code></a> method is called.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.results.CoreLocalDFResult.num_elements">
+<span class="sig-name descname"><span class="pre">num_elements</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#malevich.models.results.CoreLocalDFResult.num_elements" title="Link to this definition">#</a></dt>
+<dd><p>The number of elements (assets/collections) in the result</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.results.CoreLocalDFResult.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.models.results.CoreLocalDFResult.get" title="Link to this definition">#</a></dt>
+<dd><p>Simply extracts saved data frame</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Saved data frame</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malevich.models.results.CoreResult">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">malevich.models.results.</span></span><span class="sig-name descname"><span class="pre">CoreResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">core_group_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_operation_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_run_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conn_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malevich.models.results.CoreResult" title="Link to this definition">#</a></dt>
+<dd><p>A representation of a result of execution of a flow on Malevich Core</p>
+<p>Represents a single returned result, which can contain a collection,
+a list of collections, a single asset or a list of assets.</p>
+<p>To be precise, for the function:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">malevich</span> <span class="kn">import</span> <span class="n">flow</span><span class="p">,</span> <span class="n">collection</span><span class="p">,</span> <span class="n">CoreInterpreter</span>
+<span class="kn">from</span> <span class="nn">malevich.etl</span> <span class="kn">import</span> <span class="n">process</span>
+<span class="kn">from</span> <span class="nn">malevich.utility</span> <span class="kn">import</span> <span class="n">merge</span>
+
+<span class="nd">@flow</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">data_process</span><span class="p">():</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">collection</span><span class="p">(</span><span class="s1">&#39;my_fancy_smth&#39;</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]}))</span>
+    <span class="n">processed</span> <span class="o">=</span> <span class="n">process</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">merge</span><span class="p">(</span>
+        <span class="n">processed</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">,</span>
+        <span class="n">config</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;how&#39;</span><span class="p">:</span> <span class="s1">&#39;inner&#39;</span><span class="p">,</span> <span class="s1">&#39;on&#39;</span><span class="p">:</span> <span class="s1">&#39;index&#39;</span><span class="p">}</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">output</span><span class="p">,</span> <span class="n">processed</span>
+
+<span class="n">task</span> <span class="o">=</span> <span class="n">data_process</span><span class="p">()</span>
+<span class="n">task</span><span class="o">.</span><span class="n">interpret</span><span class="p">(</span><span class="n">CoreInterpreter</span><span class="p">())</span>
+<span class="c1"># list of CoreResult objects</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">task</span><span class="p">()</span>
+<span class="c1"># single CoreResult object</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="c1"># list of CoreResultPayload objects</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>The <cite>output</cite> variable will be a single CoreResult object, which contains
+a single CoreResultPayload object, which contains a single data frame
+(the result of the merge operation). The <cite>processed</cite> variable will be
+a single CoreResult object, which contains a single CoreResultPayload
+object, which contains a single collection (the result of the process
+operation).</p>
+<p><strong>Note</strong>: The class is not intended to be constructed by user.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="malevich.models.results.CoreResult.num_elements">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">num_elements</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#malevich.models.results.CoreResult.num_elements" title="Link to this definition">#</a></dt>
+<dd><p>The number of elements (assets/collections) in the result</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.results.CoreResult.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#malevich.models.results.CoreResultPayload" title="malevich.models.results.core.result.CoreResultPayload"><span class="pre">CoreResultPayload</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich.models.results.CoreResult.get" title="Link to this definition">#</a></dt>
+<dd><p>Retrieves results from the Core</p>
+<p>Returns a list of CoreResultPayload objects, each of which
+contains an output from a single operation. The output might
+be a collection, a list of collection, a single file (asset)
+or a list of files (composite asset).</p>
+<p>If you wish to get more specific results, use the following methods:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#malevich.models.results.CoreResult.get_df" title="malevich.models.results.CoreResult.get_df"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_df()</span></code></a> to get a single data frame (if result is a collection)</p></li>
+<li><p><a class="reference internal" href="#malevich.models.results.CoreResult.get_dfs" title="malevich.models.results.CoreResult.get_dfs"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_dfs()</span></code></a> to get a list of data frames (if result is a collection)</p></li>
+<li><p><a class="reference internal" href="#malevich.models.results.CoreResult.get_binary" title="malevich.models.results.CoreResult.get_binary"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_binary()</span></code></a> to get a single binary (if result is an asset)</p></li>
+<li><p><a class="reference internal" href="#malevich.models.results.CoreResult.get_binary_dir" title="malevich.models.results.CoreResult.get_binary_dir"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_binary_dir()</span></code></a> to get a dict of binaries (if result is a composite asset)</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The list of results</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list[<a class="reference internal" href="#malevich.models.results.CoreResultPayload" title="malevich.models.results.CoreResultPayload">CoreResultPayload</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.results.CoreResult.get_df">
+<span class="sig-name descname"><span class="pre">get_df</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#malevich.models.results.CoreResult.get_df" title="Link to this definition">#</a></dt>
+<dd><p>Converts the result to a single data frame</p>
+<p>It only works if the result is a single collection,
+otherwise it raises an error. Check the number of
+elements using <a class="reference internal" href="#malevich.models.results.CoreResult.num_elements" title="malevich.models.results.CoreResult.num_elements"><code class="xref py py-attr docutils literal notranslate"><span class="pre">num_elements</span></code></a> property and use only if
+it is equal to 1</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The result as a data frame</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>DataFrame</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NotImplementedError</strong> – If the result is not a single collection</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.results.CoreResult.get_dfs">
+<span class="sig-name descname"><span class="pre">get_dfs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">DataFrame</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich.models.results.CoreResult.get_dfs" title="Link to this definition">#</a></dt>
+<dd><p>Converts the result to a list of data frames</p>
+<p>If some of the results are assets, they are ignored
+in the output.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The result as a list of data frames</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list[<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.results.CoreResult.get_binary">
+<span class="sig-name descname"><span class="pre">get_binary</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="headerlink" href="#malevich.models.results.CoreResult.get_binary" title="Link to this definition">#</a></dt>
+<dd><p>Retrieves asset binary data, if the result is file asset</p>
+<p>It only works if the result is a single file returned
+as asset. Otherwise it raises an error. Check the number of
+elements using <a class="reference internal" href="#malevich.models.results.CoreResult.num_elements" title="malevich.models.results.CoreResult.num_elements"><code class="xref py py-attr docutils literal notranslate"><span class="pre">num_elements</span></code></a> property and use only if
+it is equal to 1</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The binary data of the asset</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bytes</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NotImplementedError</strong> – If the result is not a single asset</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.results.CoreResult.get_binary_dir">
+<span class="sig-name descname"><span class="pre">get_binary_dir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich.models.results.CoreResult.get_binary_dir" title="Link to this definition">#</a></dt>
+<dd><p>Retrieves files from assets</p>
+<p>Non-assets are ignored in the output</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict of file names and their binary data</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict[str, bytes]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malevich.models.results.CoreResultPayload">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">malevich.models.results.</span></span><span class="sig-name descname"><span class="pre">CoreResultPayload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_asset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_composite_asset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_collection</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malevich.models.results.CoreResultPayload" title="Link to this definition">#</a></dt>
+<dd><p>An actual information that is saved as result</p>
+<p>A payload can be either asset or collection. If it is an asset,
+it can be a single file or a composite asset (a directory with
+multiple files). It represents one of results of a single operation.</p>
+<p>Payload follows the following convention:</p>
+<ul class="simple">
+<li><p>If <a class="reference internal" href="#malevich.models.results.CoreResultPayload.is_asset" title="malevich.models.results.CoreResultPayload.is_asset"><code class="xref py py-meth docutils literal notranslate"><span class="pre">is_asset()</span></code></a> is True, then <code class="xref py py-attr docutils literal notranslate"><span class="pre">data</span></code> is <code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code> object</p></li>
+<li><p>If <a class="reference internal" href="#malevich.models.results.CoreResultPayload.is_collection" title="malevich.models.results.CoreResultPayload.is_collection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">is_collection()</span></code></a> is True, then <code class="xref py py-attr docutils literal notranslate"><span class="pre">data</span></code> is <code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code> object</p></li>
+<li><p>If <a class="reference internal" href="#malevich.models.results.CoreResultPayload.is_composite_asset" title="malevich.models.results.CoreResultPayload.is_composite_asset"><code class="xref py py-meth docutils literal notranslate"><span class="pre">is_composite_asset()</span></code></a> is True, then <code class="xref py py-attr docutils literal notranslate"><span class="pre">data</span></code> is a dict of <code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code> objects</p></li>
+</ul>
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.results.CoreResultPayload.is_asset">
+<span class="sig-name descname"><span class="pre">is_asset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#malevich.models.results.CoreResultPayload.is_asset" title="Link to this definition">#</a></dt>
+<dd><p>Checks if the result is an asset</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if the result is an asset</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.results.CoreResultPayload.is_composite_asset">
+<span class="sig-name descname"><span class="pre">is_composite_asset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#malevich.models.results.CoreResultPayload.is_composite_asset" title="Link to this definition">#</a></dt>
+<dd><p>Checks if the result is a composite asset</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if the result is a composite asset</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.results.CoreResultPayload.is_collection">
+<span class="sig-name descname"><span class="pre">is_collection</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#malevich.models.results.CoreResultPayload.is_collection" title="Link to this definition">#</a></dt>
+<dd><p>Checks if the result is a collection</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if the result is a collection</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malevich.models.results.SpaceCollectionResult">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">malevich.models.results.</span></span><span class="sig-name descname"><span class="pre">SpaceCollectionResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_flow_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space_ops</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">SpaceOps</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malevich.models.results.SpaceCollectionResult" title="Link to this definition">#</a></dt>
+<dd><p>Result obtained running a flow with Space.</p>
+<p>Represents a set of collections obtained after running
+a flow with Space.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.results.SpaceCollectionResult.num_elements">
+<span class="sig-name descname"><span class="pre">num_elements</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#malevich.models.results.SpaceCollectionResult.num_elements" title="Link to this definition">#</a></dt>
+<dd><p>The number of elements (assets/collections) in the result</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.results.SpaceCollectionResult.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">DataFrame</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich.models.results.SpaceCollectionResult.get" title="Link to this definition">#</a></dt>
+<dd><p>Fetches a list of DataFrames with the actual result</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The actual result</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list[<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.results.SpaceCollectionResult.get_dfs">
+<span class="sig-name descname"><span class="pre">get_dfs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">DataFrame</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich.models.results.SpaceCollectionResult.get_dfs" title="Link to this definition">#</a></dt>
+<dd><p>Returns a list of DataFrames from the result.</p>
+<p>Simply calls <a class="reference internal" href="#malevich.models.results.SpaceCollectionResult.get" title="malevich.models.results.SpaceCollectionResult.get"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get()</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The list of DataFrames</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list[<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.models.results.SpaceCollectionResult.get_df">
+<span class="sig-name descname"><span class="pre">get_df</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#malevich.models.results.SpaceCollectionResult.get_df" title="Link to this definition">#</a></dt>
+<dd><p>Returns a DataFrame from the result if it is a single DataFrame.</p>
+<p>Simply calls <a class="reference internal" href="#malevich.models.results.SpaceCollectionResult.get" title="malevich.models.results.SpaceCollectionResult.get"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get()</span></code></a> and returns the first element
+if the list has only one element, otherwise raises an error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The result DataFrame</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-malevich.models.argument">
+<dt class="sig sig-object py" id="malevich.models.argument.ArgumentLink">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">malevich.models.argument.</span></span><span class="sig-name descname"><span class="pre">ArgumentLink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compressed_edges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#malevich.models.argument.ArgumentLink" title="malevich.models.argument.ArgumentLink"><span class="pre">ArgumentLink</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="autoflow.html#malevich._autoflow.tracer.traced" title="malevich._autoflow.tracer.traced"><span class="pre">traced</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ArgumentLinkNodeType</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shadow_collection</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="autoflow.html#malevich._autoflow.tracer.traced" title="malevich._autoflow.tracer.traced"><span class="pre">traced</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_compressed_edge</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malevich.models.argument.ArgumentLink" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="interpreter/space.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">malevich.interpreter.space</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="square/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Malevich Square</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.flow_function.FlowFunction"><code class="docutils literal notranslate"><span class="pre">FlowFunction</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.flow_function.FlowFunction.__init__"><code class="docutils literal notranslate"><span class="pre">FlowFunction.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich_space.schema.ComponentSchema"><code class="docutils literal notranslate"><span class="pre">ComponentSchema</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.task.promised.PromisedStage"><code class="docutils literal notranslate"><span class="pre">PromisedStage</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.task.promised.PromisedTask"><code class="docutils literal notranslate"><span class="pre">PromisedTask</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.task.promised.PromisedTask.tree"><code class="docutils literal notranslate"><span class="pre">PromisedTask.tree</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.task.promised.PromisedTask.get_stage"><code class="docutils literal notranslate"><span class="pre">PromisedTask.get_stage()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.task.promised.PromisedTask.get_stage_class"><code class="docutils literal notranslate"><span class="pre">PromisedTask.get_stage_class()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.task.promised.PromisedTask.interpret"><code class="docutils literal notranslate"><span class="pre">PromisedTask.interpret()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.task.promised.PromisedTask.prepare"><code class="docutils literal notranslate"><span class="pre">PromisedTask.prepare()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.task.promised.PromisedTask.async_prepare"><code class="docutils literal notranslate"><span class="pre">PromisedTask.async_prepare()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.task.promised.PromisedTask.async_run"><code class="docutils literal notranslate"><span class="pre">PromisedTask.async_run()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.task.promised.PromisedTask.async_stop"><code class="docutils literal notranslate"><span class="pre">PromisedTask.async_stop()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.task.promised.PromisedTask.run"><code class="docutils literal notranslate"><span class="pre">PromisedTask.run()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.task.promised.PromisedTask.stop"><code class="docutils literal notranslate"><span class="pre">PromisedTask.stop()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.task.promised.PromisedTask.results"><code class="docutils literal notranslate"><span class="pre">PromisedTask.results()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.task.promised.PromisedTask.commit_returned"><code class="docutils literal notranslate"><span class="pre">PromisedTask.commit_returned()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.task.promised.PromisedTask.dump"><code class="docutils literal notranslate"><span class="pre">PromisedTask.dump()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.task.promised.PromisedTask.load"><code class="docutils literal notranslate"><span class="pre">PromisedTask.load()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.task.promised.PromisedTask.get_injectables"><code class="docutils literal notranslate"><span class="pre">PromisedTask.get_injectables()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.task.promised.PromisedTask.get_operations"><code class="docutils literal notranslate"><span class="pre">PromisedTask.get_operations()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.task.promised.PromisedTask.configure"><code class="docutils literal notranslate"><span class="pre">PromisedTask.configure()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.task.promised.PromisedTask.get_interpreted_task"><code class="docutils literal notranslate"><span class="pre">PromisedTask.get_interpreted_task()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.task.promised.PromisedTask.publish"><code class="docutils literal notranslate"><span class="pre">PromisedTask.publish()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.results.BaseResult"><code class="docutils literal notranslate"><span class="pre">BaseResult</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.results.BaseResult.num_elements"><code class="docutils literal notranslate"><span class="pre">BaseResult.num_elements</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.results.BaseResult.get"><code class="docutils literal notranslate"><span class="pre">BaseResult.get()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.results.BaseResult.get_df"><code class="docutils literal notranslate"><span class="pre">BaseResult.get_df()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.results.BaseResult.get_dfs"><code class="docutils literal notranslate"><span class="pre">BaseResult.get_dfs()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.results.BaseResult.get_binary"><code class="docutils literal notranslate"><span class="pre">BaseResult.get_binary()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.results.BaseResult.get_binary_dir"><code class="docutils literal notranslate"><span class="pre">BaseResult.get_binary_dir()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.results.CoreLocalDFResult"><code class="docutils literal notranslate"><span class="pre">CoreLocalDFResult</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.results.CoreLocalDFResult.num_elements"><code class="docutils literal notranslate"><span class="pre">CoreLocalDFResult.num_elements()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.results.CoreLocalDFResult.get"><code class="docutils literal notranslate"><span class="pre">CoreLocalDFResult.get()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.results.CoreResult"><code class="docutils literal notranslate"><span class="pre">CoreResult</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.results.CoreResult.num_elements"><code class="docutils literal notranslate"><span class="pre">CoreResult.num_elements</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.results.CoreResult.get"><code class="docutils literal notranslate"><span class="pre">CoreResult.get()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.results.CoreResult.get_df"><code class="docutils literal notranslate"><span class="pre">CoreResult.get_df()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.results.CoreResult.get_dfs"><code class="docutils literal notranslate"><span class="pre">CoreResult.get_dfs()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.results.CoreResult.get_binary"><code class="docutils literal notranslate"><span class="pre">CoreResult.get_binary()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.results.CoreResult.get_binary_dir"><code class="docutils literal notranslate"><span class="pre">CoreResult.get_binary_dir()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.results.CoreResultPayload"><code class="docutils literal notranslate"><span class="pre">CoreResultPayload</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.results.CoreResultPayload.is_asset"><code class="docutils literal notranslate"><span class="pre">CoreResultPayload.is_asset()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.results.CoreResultPayload.is_composite_asset"><code class="docutils literal notranslate"><span class="pre">CoreResultPayload.is_composite_asset()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.results.CoreResultPayload.is_collection"><code class="docutils literal notranslate"><span class="pre">CoreResultPayload.is_collection()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.results.SpaceCollectionResult"><code class="docutils literal notranslate"><span class="pre">SpaceCollectionResult</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.results.SpaceCollectionResult.num_elements"><code class="docutils literal notranslate"><span class="pre">SpaceCollectionResult.num_elements()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.results.SpaceCollectionResult.get"><code class="docutils literal notranslate"><span class="pre">SpaceCollectionResult.get()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.results.SpaceCollectionResult.get_dfs"><code class="docutils literal notranslate"><span class="pre">SpaceCollectionResult.get_dfs()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.results.SpaceCollectionResult.get_df"><code class="docutils literal notranslate"><span class="pre">SpaceCollectionResult.get_df()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.models.argument.ArgumentLink"><code class="docutils literal notranslate"><span class="pre">ArgumentLink</span></code></a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/API/models.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024, Malevich AI, Co.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,632 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Lifecycle &#8212; Malevich 0.4.0</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/style.css?v=36acc060" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'SDK/Flows/Lifecycle';</script>
+    <link rel="icon" href="../../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Execution" href="Execution.html" />
+    <link rel="prev" title="Autoflow" href="Autoflow.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/logo-light.svg" class="logo__image only-light" alt="Malevich 0.4.0 - Home"/>
+    <script>document.write(`<img src="../../_static/logo-dark.svg" class="logo__image only-dark" alt="Malevich 0.4.0 - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../API/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../Community/index.html">
+    Community
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../API/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../Community/index.html">
+    Community
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Projects and Environment</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../Project/Structure.html">Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Project/Dependencies.html">Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Project/CI/Github_Action.html">Automation</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Working with Data</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../Data/index.html">Introduction</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Building Apps</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../Apps/Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Apps/Processors.html">Processors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Apps/Building.html">Building Apps</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Composing Flows</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Autoflow.html">Autoflow</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Lifecycle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Execution.html">Execution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Results.html">Working with Results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Integration.html">Integration</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Deployment</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../Deployment/WithCode.html">Python API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Deployment/Endpoints.html">User Endpoints</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">User Guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Lifecycle</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="lifecycle">
+<h1>Lifecycle<a class="headerlink" href="#lifecycle" title="Link to this heading">#</a></h1>
+<p>Once you define a flow, it can be in any of the following states:</p>
+<ol class="arabic simple">
+<li><p><strong>Defined</strong>: The initial state of a flow just after you defined a function decorated with <code class="code docutils literal notranslate"><span class="pre">&#64;flow</span></code>.</p></li>
+<li><p><strong>Interpreted</strong>: When flow is attached to any of the platform and ready to be converted to an actual task on it.</p></li>
+<li><p><strong>Deployed (Prepared)</strong>. When flow has successfully been converted to a task on the platform and ready to accept and proceed with the input data.</p></li>
+<li><p><strong>Stopped (Suspended)</strong>. When underlying task is stopped and cannot be executed anymore.</p></li>
+</ol>
+<p>Also, once task is deployed, it can be run multiple times with different input data.</p>
+<section id="definition">
+<h2>Definition<a class="headerlink" href="#definition" title="Link to this heading">#</a></h2>
+<p>To define a flow, you shold import a <a class="reference internal" href="../../API/meta/index.html#malevich._meta.flow" title="malevich._meta.flow"><code class="xref py py-func docutils literal notranslate"><span class="pre">meta</span></code></a> decorator and use it on an ordinary function:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">malevich</span> <span class="kn">import</span> <span class="n">flow</span>
+
+<span class="nd">@flow</span>
+<span class="k">def</span> <span class="nf">my_flow</span><span class="p">():</span>
+    <span class="k">pass</span>
+
+<span class="n">task</span> <span class="o">=</span> <span class="n">my_flow</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>After it, calling <code class="code docutils literal notranslate"><span class="pre">my_flow</span></code> will return a <code class="xref py py-class docutils literal notranslate"><span class="pre">malevich.models.PromisedTask</span></code> instance. You can
+attach the flow to any of the platforms and run it there.</p>
+</section>
+<section id="interpretation">
+<h2>Interpretation<a class="headerlink" href="#interpretation" title="Link to this heading">#</a></h2>
+<p>Interpretation is a process of attaching a flow to a specific platform you
+wish to run it on. The flow is automatically interpreted when passed to a
+deploy assistant such as <a class="reference internal" href="../../API/assistants.html#malevich._deploy.Core" title="malevich._deploy.Core"><code class="xref py py-class docutils literal notranslate"><span class="pre">Core</span></code></a> or <a class="reference internal" href="../../API/assistants.html#malevich._deploy.Space" title="malevich._deploy.Space"><code class="xref py py-class docutils literal notranslate"><span class="pre">Space</span></code></a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">malevich</span> <span class="kn">import</span> <span class="n">Core</span><span class="p">,</span> <span class="n">Space</span>
+
+<span class="nd">@flow</span>
+<span class="k">def</span> <span class="nf">my_flow</span><span class="p">():</span>
+    <span class="c1"># Your flow logic here...</span>
+
+<span class="n">interpreted_on_core</span> <span class="o">=</span> <span class="n">Core</span><span class="p">(</span><span class="n">my_flow</span><span class="p">)</span>
+<span class="c1"># or Core(my_flow(...)) if my_flow accepts args</span>
+
+<span class="n">interpreted_on_space</span> <span class="o">=</span> <span class="n">Space</span><span class="p">(</span><span class="n">my_flow</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Here, <code class="code docutils literal notranslate"><span class="pre">interpreted_on_core</span></code> and <code class="code docutils literal notranslate"><span class="pre">interpreted_on_space</span></code> are instances of interpreted tasks. They
+preserve the flow logic and inner state specific to the platform they are attached to. Running <code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare()</span></code> method
+will create an instance of a the task on a platform. A ready-to-run task can be invoked with <code class="xref py py-meth docutils literal notranslate"><span class="pre">run()</span></code> method and
+stopped with <code class="xref py py-meth docutils literal notranslate"><span class="pre">stop()</span></code> method. The full list of methods and their signatures is described in <code class="xref py py-class docutils literal notranslate"><span class="pre">CoreTask</span></code> and <code class="xref py py-class docutils literal notranslate"><span class="pre">SpaceTask</span></code> classes.</p>
+</section>
+<section id="deployment">
+<h2>Deployment<a class="headerlink" href="#deployment" title="Link to this heading">#</a></h2>
+<p>We refer to deployment as a process of acquiring resources on the platform and
+preparing the task to be run. To deploy a task, you should call <code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare()</span></code></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">interpreted_on_core</span> <span class="o">=</span> <span class="n">Core</span><span class="p">(</span><span class="n">my_flow</span><span class="p">)</span>
+<span class="n">interpreted_on_core</span><span class="o">.</span><span class="n">prepare</span><span class="p">()</span> <span class="c1"># Creates a task on the platform</span>
+</pre></div>
+</div>
+<p>Once the task is deployed, you may run <code class="xref py py-meth docutils literal notranslate"><span class="pre">run()</span></code>, <code class="xref py py-meth docutils literal notranslate"><span class="pre">stop()</span></code>.</p>
+</section>
+<section id="running">
+<h2>Running<a class="headerlink" href="#running" title="Link to this heading">#</a></h2>
+<p>Each task can be considered as a standalone function that can be run on the platform. To run a task, you should call
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">run()</span></code> method on it. The method can accept input data for <a class="reference internal" href="../Data/index.html"><span class="doc">collections</span></a>, <a class="reference internal" href="../Data/index.html"><span class="doc">assets</span></a> and configurations.
+.. TODO: write about configuration overrides</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">malevich</span> <span class="kn">import</span> <span class="n">table</span>
+
+<span class="n">interpreted_on_core</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>                                   <span class="c1"># Run with default input data defined in the flow</span>
+<span class="n">interpreted_on_core</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">overrides</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;my_data&#39;</span><span class="p">:</span> <span class="n">table</span><span class="p">(</span><span class="o">...</span><span class="p">)})</span>  <span class="c1"># Run with new data in `my_data` collection</span>
+<span class="n">interpreted_on_core</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">config_extensions</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;preprocess&#39;</span><span class="p">:</span> <span class="p">{</span><span class="o">...</span><span class="p">}})</span>  <span class="c1"># Run with configuration extensions</span>
+
+<span class="c1"># .run method returns run_id for future reference</span>
+<span class="n">run_id</span> <span class="o">=</span> <span class="n">interpreted_on_core</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+    <span class="n">overrides</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;my_data&#39;</span><span class="p">:</span> <span class="n">table</span><span class="p">(</span><span class="o">...</span><span class="p">)},</span>
+    <span class="n">config_extensions</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;preprocess&#39;</span><span class="p">:</span> <span class="p">{</span><span class="o">...</span><span class="p">}}</span>
+<span class="p">)</span>
+
+<span class="c1"># Also, you may run the task with a run_id</span>
+<span class="n">interpreted_on_core</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">run_id</span><span class="o">=</span><span class="n">run_id</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Signature and logic of <code class="xref py py-meth docutils literal notranslate"><span class="pre">run()</span></code> method is different for different interpreters. Check the documentation for
+specific interpreters for more information.</p>
+</section>
+<section id="stopping">
+<h2>Stopping<a class="headerlink" href="#stopping" title="Link to this heading">#</a></h2>
+<p>It is important to release resources on the platform when you don’t need them anymore. To stop a task, you should call
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">stop()</span></code> method on it.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">task</span><span class="o">.</span><span class="n">prepare</span><span class="p">()</span>  <span class="c1"># Prepare the task</span>
+<span class="n">task</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>      <span class="c1"># Do the job</span>
+<span class="n">task</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>     <span class="c1"># Release resources</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Tasks that are not stopped manually and not active for a certain period are subjects to be suspended
+automatically.</p>
+</div>
+</section>
+<section id="results">
+<h2>Results<a class="headerlink" href="#results" title="Link to this heading">#</a></h2>
+<p>After the task is run, you may want to get the results of its execution. To do so, you should call <code class="xref py py-meth docutils literal notranslate"><span class="pre">results()</span></code> method
+on it. The flow fetches results for objects you have returned in <code class="code docutils literal notranslate"><span class="pre">flow</span></code> decorated function. Results are a list
+of <a class="reference internal" href="../../API/models.html#malevich.models.results.BaseResult" title="malevich.models.results.base.BaseResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">malevich.models.results.base.BaseResult</span></code></a> instances. See <a class="reference internal" href="#results">Results</a> section to learn more about how to work
+with results.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">interpreted_on_core</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="c1"># list of CoreResult instances</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">interpreted_on_core</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
+
+<span class="n">interpreted_on_space</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="c1"># list of SpaceResult instances</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">interpreted_on_space</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="Autoflow.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Autoflow</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="Execution.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Execution</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#definition">Definition</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#interpretation">Interpretation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deployment">Deployment</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running">Running</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stopping">Stopping</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#results">Results</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../../_sources/SDK/Flows/Lifecycle.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024, Malevich AI, Co.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

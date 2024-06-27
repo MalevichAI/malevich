@@ -1,0 +1,1828 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>malevich.square.utils &#8212; Malevich 0.4.0</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/style.css?v=36acc060" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'API/square/utils';</script>
+    <link rel="icon" href="../../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="malevich.square.df" href="df.html" />
+    <link rel="prev" title="malevich.square.jls" href="jls.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/logo-light.svg" class="logo__image only-light" alt="Malevich 0.4.0 - Home"/>
+    <script>document.write(`<img src="../../_static/logo-dark.svg" class="logo__image only-dark" alt="Malevich 0.4.0 - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../SDK/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../Community/index.html">
+    Community
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../SDK/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../Community/index.html">
+    Community
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../assistants.html">Assistants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../autoflow.html">malevich._autoflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../meta/index.html">malevich._meta</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../interpreter/index.html">malevich.interpreter</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../interpreter/core.html">malevich.interpeter.core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../interpreter/space.html">malevich.interpeter.space</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../models.html">malevich.models</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">malevich.square</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="jls.html">malevich.square.jls</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">malevich.square.utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="df.html">malevich.square.df</a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">API</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Malevich Square</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">malevich.squ...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-malevich.square.utils">
+<span id="malevich-square-utils"></span><h1>malevich.square.utils<a class="headerlink" href="#module-malevich.square.utils" title="Link to this heading">#</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="malevich.square.utils.Context">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">malevich.square.utils.</span></span><span class="sig-name descname"><span class="pre">Context</span></span><a class="headerlink" href="#malevich.square.utils.Context" title="Link to this definition">#</a></dt>
+<dd><p>Context contains all the necessary information about the run
+and the environment in which it is executed. Also, context provides
+a number of auxiliary functions  for interacting with the environment, such as
+working with shared storage (<a class="reference internal" href="#malevich.square.utils.Context.share" title="malevich.square.utils.Context.share"><code class="xref py py-meth docutils literal notranslate"><span class="pre">share()</span></code></a>, <a class="reference internal" href="#malevich.square.utils.Context.get_share_path" title="malevich.square.utils.Context.get_share_path"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_share_path()</span></code></a>, <a class="reference internal" href="#malevich.square.utils.Context.delete_share" title="malevich.square.utils.Context.delete_share"><code class="xref py py-meth docutils literal notranslate"><span class="pre">delete_share()</span></code></a>),
+dealing with common objects (<a class="reference internal" href="#malevich.square.utils.Context.common" title="malevich.square.utils.Context.common"><code class="xref py py-attr docutils literal notranslate"><span class="pre">common</span></code></a>),
+access to the key-value storage (<a class="reference internal" href="#malevich.square.utils.Context.dag_key_value" title="malevich.square.utils.Context.dag_key_value"><code class="xref py py-attr docutils literal notranslate"><span class="pre">dag_key_value</span></code></a>),
+and object storage (<a class="reference internal" href="#malevich.square.utils.Context.object_storage" title="malevich.square.utils.Context.object_storage"><code class="xref py py-attr docutils literal notranslate"><span class="pre">object_storage</span></code></a>).</p>
+<p>Context contains all the necessary information about the run
+and the environment in which it is executed. Also, context provides
+a number of auxiliary functions  for interacting with the environment, such as
+working with shared storage (<a class="reference internal" href="#malevich.square.utils.Context.share" title="malevich.square.utils.Context.share"><code class="xref py py-meth docutils literal notranslate"><span class="pre">share()</span></code></a>, <a class="reference internal" href="#malevich.square.utils.Context.get_share_path" title="malevich.square.utils.Context.get_share_path"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_share_path()</span></code></a>, <a class="reference internal" href="#malevich.square.utils.Context.delete_share" title="malevich.square.utils.Context.delete_share"><code class="xref py py-meth docutils literal notranslate"><span class="pre">delete_share()</span></code></a>),
+dealing with common objects (<a class="reference internal" href="#malevich.square.utils.Context.common" title="malevich.square.utils.Context.common"><code class="xref py py-attr docutils literal notranslate"><span class="pre">common</span></code></a>),
+access to the key-value storage (<a class="reference internal" href="#malevich.square.utils.Context.dag_key_value" title="malevich.square.utils.Context.dag_key_value"><code class="xref py py-attr docutils literal notranslate"><span class="pre">dag_key_value</span></code></a>),
+and object storage (<a class="reference internal" href="#malevich.square.utils.Context.object_storage" title="malevich.square.utils.Context.object_storage"><code class="xref py py-attr docutils literal notranslate"><span class="pre">object_storage</span></code></a>).</p>
+<section id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading">#</a></h2>
+<p>Context object is used implicitly in apps. It may
+be requested by including an argument with explicit
+type annotation in the function signature:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">malevich.square</span> <span class="kn">import</span> <span class="n">Context</span><span class="p">,</span> <span class="n">processor</span>
+
+<span class="nd">@processor</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">my_app</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
+      <span class="k">pass</span>
+</pre></div>
+</div>
+<section id="example-usage">
+<h3>Example usage<a class="headerlink" href="#example-usage" title="Link to this heading">#</a></h3>
+<p>Here is some frequently used examples of context usage.</p>
+<section id="sharing-files">
+<h4>Sharing files<a class="headerlink" href="#sharing-files" title="Link to this heading">#</a></h4>
+<p>During the run, each of apps in the run has its own isolated file system.
+To share files between apps, you can use <a class="reference internal" href="#malevich.square.utils.Context.share" title="malevich.square.utils.Context.share"><code class="xref py py-meth docutils literal notranslate"><span class="pre">share()</span></code></a> and <a class="reference internal" href="#malevich.square.utils.Context.get_share_path" title="malevich.square.utils.Context.get_share_path"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_share_path()</span></code></a> methods.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">malevich.square</span> <span class="kn">import</span> <span class="n">Context</span><span class="p">,</span> <span class="n">processor</span><span class="p">,</span> <span class="n">DF</span><span class="p">,</span> <span class="n">APP_DIR</span>
+
+<span class="nd">@processor</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">download_from_google_drive</span><span class="p">(</span>
+      <span class="n">links</span><span class="p">:</span> <span class="n">DF</span><span class="p">[</span><span class="s1">&#39;GoogleDriveLink&#39;</span><span class="p">],</span>
+      <span class="n">context</span><span class="p">:</span> <span class="n">Context</span>
+<span class="p">):</span>
+      <span class="n">outputs</span> <span class="o">=</span> <span class="p">[]</span>
+      <span class="k">for</span> <span class="n">link</span> <span class="ow">in</span> <span class="n">links</span><span class="o">.</span><span class="n">link</span><span class="o">.</span><span class="n">to_list</span><span class="p">():</span>
+         <span class="c1"># Dowload file from google drive</span>
+         <span class="n">output_file</span> <span class="o">=</span> <span class="n">gdown</span><span class="o">.</span><span class="n">download</span><span class="p">(</span>
+            <span class="n">link</span><span class="p">,</span>
+            <span class="n">fuzzy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">quiet</span><span class="o">=</span><span class="kc">True</span>
+         <span class="p">)</span>
+
+         <span class="c1"># Get a file name</span>
+         <span class="c1"># (e.g. files/my_file.txt -&gt; my_file.txt)</span>
+         <span class="n">basename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span>
+
+         <span class="c1"># Copy file to shared directory</span>
+         <span class="c1"># (default is APP_DIR)</span>
+         <span class="n">shutil</span><span class="o">.</span><span class="n">copyfile</span><span class="p">(</span>
+            <span class="n">output_file</span><span class="p">,</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                  <span class="n">APP_DIR</span><span class="p">,</span>
+                  <span class="n">basename</span>
+            <span class="p">)</span>
+         <span class="p">)</span>
+
+         <span class="c1"># Save file name to</span>
+         <span class="c1"># pass it to the next app</span>
+         <span class="n">outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">basename</span>
+         <span class="p">)</span>
+
+         <span class="c1"># Ensure the file is shared</span>
+         <span class="c1"># and the next app can access it</span>
+         <span class="c1"># by the name, included into outputs</span>
+         <span class="n">context</span><span class="o">.</span><span class="n">share</span><span class="p">(</span><span class="n">basename</span><span class="p">)</span>
+
+      <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+         <span class="s1">&#39;filename&#39;</span><span class="p">:</span> <span class="n">outputs</span>
+      <span class="p">})</span>
+</pre></div>
+</div>
+<p>See the <a class="reference internal" href="#malevich.square.utils.Context.share" title="malevich.square.utils.Context.share"><code class="xref py py-meth docutils literal notranslate"><span class="pre">share()</span></code></a> method for more details. Explore the code
+at <a class="reference external" href="https://github.com/MalevichAI/malevich-library/tree/main/lib/src/drives/apps/download.py">GitHub</a>.</p>
+</section>
+<section id="accessing-shared-files">
+<h4>Accessing shared files<a class="headerlink" href="#accessing-shared-files" title="Link to this heading">#</a></h4>
+<p>To access shared files, you can use <a class="reference internal" href="#malevich.square.utils.Context.get_share_path" title="malevich.square.utils.Context.get_share_path"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_share_path()</span></code></a> method.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">malevich.square</span> <span class="kn">import</span> <span class="n">Context</span><span class="p">,</span> <span class="n">processor</span><span class="p">,</span> <span class="n">DF</span><span class="p">,</span> <span class="n">APP_DIR</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">rembg</span> <span class="kn">import</span> <span class="n">remove</span>
+
+<span class="k">def</span> <span class="nf">remove_background</span><span class="p">(</span>
+      <span class="n">images</span><span class="p">:</span> <span class="n">DF</span><span class="p">[</span><span class="s1">&#39;ImagePaths&#39;</span><span class="p">],</span>
+      <span class="n">context</span><span class="p">:</span> <span class="n">Context</span>
+<span class="p">):</span>
+      <span class="n">outputs</span> <span class="o">=</span> <span class="p">[]</span>
+      <span class="k">for</span> <span class="n">img</span> <span class="ow">in</span> <span class="n">images</span><span class="o">.</span><span class="n">path_to_image</span><span class="o">.</span><span class="n">to_list</span><span class="p">():</span>
+         <span class="c1"># A shared path (the one in data frame)</span>
+         <span class="c1"># is only a key to a real file. The real</span>
+         <span class="c1"># file is stored in a shared directory</span>
+         <span class="c1"># and can be accessed using `get_share_path`</span>
+         <span class="n">img_file</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">get_share_path</span><span class="p">(</span>
+            <span class="n">img</span><span class="p">,</span> <span class="n">not_exist_ok</span><span class="o">=</span><span class="kc">True</span>
+         <span class="p">)</span>
+
+         <span class="n">img_array</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">img_file</span><span class="p">)</span>
+         <span class="n">nobg</span> <span class="o">=</span> <span class="n">remove</span><span class="p">(</span>
+            <span class="n">img_array</span>
+         <span class="p">)</span>
+
+         <span class="c1"># add _nobg before extention</span>
+         <span class="n">base</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+         <span class="n">base</span> <span class="o">+=</span> <span class="s2">&quot;_nobg&quot;</span> <span class="o">+</span> <span class="s1">&#39;.png&#39;</span>
+         <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">APP_DIR</span><span class="p">,</span> <span class="n">_base</span><span class="p">)</span>
+         <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span>
+            <span class="n">path</span><span class="p">,</span>
+            <span class="n">nobg</span>
+         <span class="p">)</span>
+
+         <span class="c1"># Sharing the file to pass it to the next app</span>
+         <span class="n">context</span><span class="o">.</span><span class="n">share</span><span class="p">(</span><span class="n">_base</span><span class="p">)</span>
+         <span class="n">outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_base</span><span class="p">)</span>
+
+      <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;no_background_image&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>See the <a class="reference internal" href="#malevich.square.utils.Context.share" title="malevich.square.utils.Context.share"><code class="xref py py-meth docutils literal notranslate"><span class="pre">share()</span></code></a> method for more details. Explore the code
+at <a class="reference external" href="https://github.com/MalevichAI/malevich-library/tree/main/lib/src/media/apps/image/remove_background.py">GitHub</a>.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">app_cfg</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em></dt>
+<dd><p>App configuration. Given to the app at startup
+and contains arbitrary configuration data. The configuration
+is preserved between runs. This field is used to
+dictate the behaviour of the app.</p>
+<section id="example">
+<h5>Example:<a class="headerlink" href="#example" title="Link to this heading">#</a></h5>
+<p>Assume, you have a processor that adds a column to a dataframe.
+You can configure the name of the column and its value using
+the app configuration:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">malevich.square</span> <span class="kn">import</span> <span class="n">DF</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Context</span><span class="p">,</span> <span class="n">processor</span>
+
+
+<span class="nd">@processor</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">add_column</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DF</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">context</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
+      <span class="c1"># Using .get() method to have default values</span>
+      <span class="n">column_name</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">app_cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;column&#39;</span><span class="p">,</span> <span class="s1">&#39;new_column&#39;</span><span class="p">)</span>
+      <span class="n">value</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">app_cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="s1">&#39;new_value&#39;</span><span class="p">)</span>
+      <span class="n">position</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">app_cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;position&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+      <span class="c1"># After configuration is parsed, we can add a column</span>
+      <span class="c1"># to the dataframe according to it</span>
+
+      <span class="k">if</span> <span class="n">position</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+         <span class="n">position</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">+</span> <span class="n">position</span> <span class="o">+</span> <span class="mi">1</span>
+
+      <span class="n">df</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="n">column_name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+      <span class="k">return</span> <span class="n">df</span>
+</pre></div>
+</div>
+<p>Source: <a class="reference external" href="https://github.com/MalevichAI/malevich-library/tree/main/lib/src/utility/apps/add/processor.py">GitHub</a>.</p>
+</section>
+<section id="metascript">
+<h5>Metascript<a class="headerlink" href="#metascript" title="Link to this heading">#</a></h5>
+<p>When developing a flow in Metascript, you can pass the configuration
+using the <code class="code docutils literal notranslate"><span class="pre">config</span></code> parameter:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">malevich</span> <span class="kn">import</span> <span class="n">flow</span><span class="p">,</span> <span class="n">collection</span>
+<span class="kn">from</span> <span class="nn">malevich.utility</span> <span class="kn">import</span> <span class="n">add_column</span>
+
+<span class="nd">@flow</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">my_flow</span><span class="p">():</span>
+      <span class="n">data</span> <span class="o">=</span> <span class="n">collection</span><span class="p">(</span><span class="s1">&#39;data.csv&#39;</span><span class="p">)</span>
+      <span class="n">add_column</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="p">{</span>
+         <span class="s1">&#39;column&#39;</span><span class="p">:</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span>
+         <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;10&#39;</span><span class="p">,</span>
+         <span class="s1">&#39;position&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span>
+      <span class="p">})</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malevich.square.utils.Context.app_id">
+<span class="sig-name descname"><span class="pre">app_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#malevich.square.utils.Context.app_id" title="Link to this definition">#</a></dt>
+<dd><p>App ID (unique for each app).
+This ID given to an app at startup by interpreters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malevich.square.utils.Context.run_id">
+<span class="sig-name descname"><span class="pre">run_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#malevich.square.utils.Context.run_id" title="Link to this definition">#</a></dt>
+<dd><p>Run ID (unique for each run).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malevich.square.utils.Context.dag_key_value">
+<span class="sig-name descname"><span class="pre">dag_key_value</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#malevich.square.utils.Context._DagKeyValue" title="malevich.square.utils.Context._DagKeyValue"><span class="pre">_DagKeyValue</span></a></em><a class="headerlink" href="#malevich.square.utils.Context.dag_key_value" title="Link to this definition">#</a></dt>
+<dd><p>Key-value storage. Shared between all apps of one run.
+Values must be bytes, string, int or float; dictionary order is not guaranteed</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malevich.square.utils.Context.object_storage">
+<span class="sig-name descname"><span class="pre">object_storage</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#malevich.square.utils.Context._ObjectStorage" title="malevich.square.utils.Context._ObjectStorage"><span class="pre">_ObjectStorage</span></a></em><a class="headerlink" href="#malevich.square.utils.Context.object_storage" title="Link to this definition">#</a></dt>
+<dd><p>Object storage, shared between all apps of one run.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malevich.square.utils.Context.common">
+<span class="sig-name descname"><span class="pre">common</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Any</span></em><a class="headerlink" href="#malevich.square.utils.Context.common" title="Link to this definition">#</a></dt>
+<dd><p>An object shared between all runs of the app.
+It is not being explicitly serialized, so may be any object.
+In comparison, objects put into <code class="xref py py-attr docutils literal notranslate"><span class="pre">app_cfg</span></code> can be used
+in the same way, but they are serialized and deserialized limiting
+the types that can be used. That is not the case for <a class="reference internal" href="#malevich.square.utils.Context.common" title="malevich.square.utils.Context.common"><code class="xref py py-attr docutils literal notranslate"><span class="pre">common</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context.share">
+<span class="sig-name descname"><span class="pre">share</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_runs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/julius/apps'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">synchronize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.square.utils.Context.share" title="Link to this definition">#</a></dt>
+<dd><p>Shares a file or a directory between all apps for the current deployment.</p>
+<p>The file or directory is copied to a shared directory, which is
+accessible by all apps. The file should be accessible by the
+following path:</p>
+<blockquote>
+<div><p><code class="code docutils literal notranslate"><span class="pre">{path_prefix}/{path}</span></code></p>
+</div></blockquote>
+<p>where <code class="code docutils literal notranslate"><span class="pre">path_prefix</span></code> and <code class="code docutils literal notranslate"><span class="pre">path</span></code> are the corresponding arguments.</p>
+<hr class="docutils" />
+<p>Note, that:</p>
+<ul class="simple">
+<li><p>The <code class="code docutils literal notranslate"><span class="pre">path_prefix</span></code> is not included into shared key.</p></li>
+<li><p>If <code class="code docutils literal notranslate"><span class="pre">all_runs</span></code> is set to <code class="code docutils literal notranslate"><span class="pre">True</span></code>,
+the file or directory will be shared between all runs of the app.
+Otherwise, it will be shared only between the apps of the current run.</p></li>
+<li><p>If <code class="code docutils literal notranslate"><span class="pre">synchronize</span></code> is set to <code class="code docutils literal notranslate"><span class="pre">True</span></code>,
+the file or directory will be copied to all apps.
+Otherwise, it will be copied only to apps with a common mount.</p></li>
+<li><p>If the file or directory already exists in the shared directory,
+it will not be copied unless <code class="code docutils literal notranslate"><span class="pre">force</span></code> is set to <code class="code docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
+</ul>
+<hr class="docutils" />
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>See <a class="reference external" href="#sharing-files">Sharing files</a> for more details.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>) – Key of shared file or directory</p></li>
+<li><p><strong>all_runs</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to share the file or directory between all runs.
+Defaults to False.</p></li>
+<li><p><strong>path_prefix</strong> (<em>str</em><em>, </em><em>optional</em>) – Path prefix.
+Defaults to <cite>APP_DIR</cite>.</p></li>
+<li><p><strong>force</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to overwrite the file or directory if it already exists.
+Defaults to False.</p></li>
+<li><p><strong>synchronize</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to synchronize the file or directory between all apps.
+Defaults to True.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context.async_share">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">async_share</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_runs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/julius/apps'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">synchronize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.square.utils.Context.async_share" title="Link to this definition">#</a></dt>
+<dd><p>Shares a file or a directory between all apps for the current deployment.</p>
+<p>It is an asynchronous version of <a class="reference internal" href="#malevich.square.utils.Context.share" title="malevich.square.utils.Context.share"><code class="xref py py-meth docutils literal notranslate"><span class="pre">share()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>) – Key of shared file or directory</p></li>
+<li><p><strong>all_runs</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to share the file or directory between all runs.
+Defaults to False.</p></li>
+<li><p><strong>path_prefix</strong> (<em>str</em><em>, </em><em>optional</em>) – Path prefix.
+Defaults to <cite>APP_DIR</cite>.</p></li>
+<li><p><strong>force</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to overwrite the file or directory if it already exists.
+Defaults to False.</p></li>
+<li><p><strong>synchronize</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to synchronize the file or directory between all apps.
+Defaults to True.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context.share_many">
+<span class="sig-name descname"><span class="pre">share_many</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_runs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/julius/apps'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">synchronize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.square.utils.Context.share_many" title="Link to this definition">#</a></dt>
+<dd><p>Shares multiple files or directories.</p>
+<p>The same as <a class="reference internal" href="#malevich.square.utils.Context.share" title="malevich.square.utils.Context.share"><code class="xref py py-meth docutils literal notranslate"><span class="pre">share()</span></code></a>, but for multiple files or directories.
+Ignores paths that do not exist.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context.async_share_many">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">async_share_many</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_runs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/julius/apps'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">synchronize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.square.utils.Context.async_share_many" title="Link to this definition">#</a></dt>
+<dd><p>Shares multiple files or directories.
+The same as <a class="reference internal" href="#malevich.square.utils.Context.async_share" title="malevich.square.utils.Context.async_share"><code class="xref py py-meth docutils literal notranslate"><span class="pre">async_share()</span></code></a>, but for multiple files or directories.
+Ignores paths that do not exist.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context.get_share_path">
+<span class="sig-name descname"><span class="pre">get_share_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_runs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">not_exist_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.square.utils.Context.get_share_path" title="Link to this definition">#</a></dt>
+<dd><p>Retrieves a real file path by shared key.</p>
+<p>Once file is shared, it is copied to a shared directory, which is
+accessible by all apps. However, to actually access the file, you
+have to retrieve its real path using in the mounted file system.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>See <a class="reference external" href="#accessing-shared-files">Accessing shared files</a> for more details.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>) – Shared file key</p></li>
+<li><p><strong>all_runs</strong> (<em>bool</em><em>, </em><em>optional</em>) – To access files shared between all runs, set to <code class="code docutils literal notranslate"><span class="pre">True</span></code>.
+Defaults to False.</p></li>
+<li><p><strong>not_exist_ok</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to raise an exception if the file does not exist.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Readable file path or None (if <code class="code docutils literal notranslate"><span class="pre">not_exist_ok</span></code> is set to <code class="code docutils literal notranslate"><span class="pre">True</span></code>)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context.delete_share">
+<span class="sig-name descname"><span class="pre">delete_share</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_runs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">synchronize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.square.utils.Context.delete_share" title="Link to this definition">#</a></dt>
+<dd><p>Deletes previously shared file or directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>) – Shared file key</p></li>
+<li><p><strong>all_runs</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to delete files shared between all runs.
+Defaults to False.</p></li>
+<li><p><strong>synchronize</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to synchronize the deletion between all apps.
+Defaults to True.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context.async_delete_share">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">async_delete_share</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_runs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">synchronize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.square.utils.Context.async_delete_share" title="Link to this definition">#</a></dt>
+<dd><p>Deletes previously shared file or directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>) – Shared file key</p></li>
+<li><p><strong>all_runs</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to delete files shared between all runs.
+Defaults to False.</p></li>
+<li><p><strong>synchronize</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to synchronize the deletion between all apps.
+Defaults to True.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context.synchronize">
+<span class="sig-name descname"><span class="pre">synchronize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_runs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.square.utils.Context.synchronize" title="Link to this definition">#</a></dt>
+<dd><p>Forcefully synchronizes paths accross all apps.</p>
+<p>Setting <code class="code docutils literal notranslate"><span class="pre">paths</span></code> to <code class="code docutils literal notranslate"><span class="pre">None</span></code> or an empty list will synchronize
+all shared files and directories.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>paths</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>str</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Paths to synchronize.</p></li>
+<li><p><strong>all_runs</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to synchronize files shared between all runs.
+Should be set to the same value as <a class="reference internal" href="#malevich.square.utils.Context.share" title="malevich.square.utils.Context.share"><code class="xref py py-meth docutils literal notranslate"><span class="pre">share()</span></code></a> method was called with.
+Defaults to False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context.async_synchronize">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">async_synchronize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_runs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.square.utils.Context.async_synchronize" title="Link to this definition">#</a></dt>
+<dd><p>Forcefully synchronizes paths accross all apps.</p>
+<p>Setting <code class="code docutils literal notranslate"><span class="pre">paths</span></code> to <code class="code docutils literal notranslate"><span class="pre">None</span></code> or an empty list will synchronize
+all shared files and directories.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>paths</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>str</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Paths to synchronize.</p></li>
+<li><p><strong>all_runs</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to synchronize files shared between all runs.
+Should be set to the same value as <a class="reference internal" href="#malevich.square.utils.Context.share" title="malevich.square.utils.Context.share"><code class="xref py py-meth docutils literal notranslate"><span class="pre">share()</span></code></a> method was called with.
+Defaults to False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context.msg">
+<span class="sig-name descname"><span class="pre">msg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wait</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wrap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.square.utils.Context.msg" title="Link to this definition">#</a></dt>
+<dd><p>Sends http msg to system or any url</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>Dict</em><em>]</em>) – msg data</p></li>
+<li><p><strong>url</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – url to which the request is sent. If not specified, the default url is used (system url, but it can be overridden in the startup cfg, the parameter is msg_url). system url. Defaults to None.</p></li>
+<li><p><strong>headers</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>str</em><em>]</em><em>]</em>) – Just headers, with which the request is sent. Defaults to None.</p></li>
+<li><p><strong>wait</strong> (<em>bool</em>) – wait result. Defaults to False.</p></li>
+<li><p><strong>wrap</strong> (<em>bool</em>) – need system wrap with operationId. Defaults to True.</p></li>
+<li><p><strong>with_result</strong> (<em>bool</em>) – return result. Defaults to False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context.async_msg">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">async_msg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wait</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wrap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malevich.square.utils.Context.async_msg" title="Link to this definition">#</a></dt>
+<dd><p>Sens http msg to system or any url</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>Dict</em><em>]</em>) – msg data</p></li>
+<li><p><strong>url</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – url to which the request is sent. If not specified, the default url is used (system url, but it can be overridden in the startup cfg, the parameter is msg_url). system url. Defaults to None.</p></li>
+<li><p><strong>headers</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>str</em><em>]</em><em>]</em>) – Just headers, with which the request is sent. Defaults to None.</p></li>
+<li><p><strong>wait</strong> (<em>bool</em>) – wait result. Defaults to False.</p></li>
+<li><p><strong>wrap</strong> (<em>bool</em>) – need system wrap with operationId. Defaults to True.</p></li>
+<li><p><strong>with_result</strong> (<em>bool</em>) – return result. Defaults to False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context.email_send">
+<span class="sig-name descname"><span class="pre">email_send</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subject</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'gmail'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.square.utils.Context.email_send" title="Link to this definition">#</a></dt>
+<dd><p>Send an email</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> (<em>str</em>) – text message</p></li>
+<li><p><strong>subject</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – message subject, if subject is None used default. Defaults to None.</p></li>
+<li><p><strong>type</strong> (<em>str</em><em>, </em><em>optional</em>) – message type, only gmail work now. Defaults to “gmail”.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context.metadata">
+<span class="sig-name descname"><span class="pre">metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.square.utils.Context.metadata" title="Link to this definition">#</a></dt>
+<dd><p>Gets metadata by df_name (if it saved with collection)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>df_name</strong> (<em>str</em>) – df name</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>metadata if exists (list if many), None otherwise</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[Union[Dict[str, Any], List[Dict[str, Any]]]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malevich.square.utils.Context.scale_info">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">scale_info</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#malevich.square.utils.Context.scale_info" title="Link to this definition">#</a></dt>
+<dd><p><cite>index</cite> and <cite>index count</cite>. <cite>index count</cite> - how many <cite>apps</cite> run it, <cite>index</cite> in [0, <cite>index count</cite>)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><cite>index</cite> and <cite>index count</cite></p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple[int, int]</p>
+</dd>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Gets scale info</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context.get_scale_part">
+<span class="sig-name descname"><span class="pre">get_scale_part</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#malevich.square.utils.Context.get_scale_part" title="Link to this definition">#</a></dt>
+<dd><p>Gets scale part of df (<cite>index</cite> and <cite>index count</cite> used for that) - all apps app get different data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>df</strong> (<em>pd.DataFrame</em>) – df to scale</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>scale part of df</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malevich.square.utils.Context.operation_id">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">operation_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#malevich.square.utils.Context.operation_id" title="Link to this definition">#</a></dt>
+<dd><p>Operation identifier</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>operation_id</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context.has_object">
+<span class="sig-name descname"><span class="pre">has_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#malevich.square.utils.Context.has_object" title="Link to this definition">#</a></dt>
+<dd><p>Checks whether there is an asset (OBJ) at the path</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em>) – Path to object (asset)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>exist or not</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context.get_object">
+<span class="sig-name descname"><span class="pre">get_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="df.html#malevich.square.df.OBJ" title="malevich.square.df.OBJ"><span class="pre">OBJ</span></a></span></span><a class="headerlink" href="#malevich.square.utils.Context.get_object" title="Link to this definition">#</a></dt>
+<dd><p>Composes a path to an asset (OBJ) and returns it as <code class="xref py py-class docutils literal notranslate"><span class="pre">OBJ</span></code></p>
+<p>If the asset (object) does not exist, the function
+fails with an error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em>) – Path to object (asset)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An OBJ wrap around a path</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="df.html#malevich.square.df.OBJ" title="malevich.square.df.OBJ">OBJ</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context.as_object">
+<span class="sig-name descname"><span class="pre">as_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="df.html#malevich.square.df.OBJ" title="malevich.square.df.OBJ"><span class="pre">OBJ</span></a></span></span><a class="headerlink" href="#malevich.square.utils.Context.as_object" title="Link to this definition">#</a></dt>
+<dd><p>Creates an asset (OBJ) by copying paths to specific directory and creating <code class="xref py py-class docutils literal notranslate"><span class="pre">OBJ</span></code> by this dir.</p>
+<p>Assets (<code class="xref py py-class docutils literal notranslate"><span class="pre">OBJ</span></code>) are simply a path within a directory accessible from within container
+by a certain user. This function creates a new asset by copying specified files into separate directory
+and creating an asset pointing to whole folder.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>paths</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>str</em><em>]</em>) – Path to an actual object -&gt; subpath in asset directory</p></li>
+<li><p><strong>dir</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – target directory name. If not set, it is generated. Defaults to None</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>OBJ with created directory captured</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="df.html#malevich.square.df.OBJ" title="malevich.square.df.OBJ">OBJ</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+</section>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malevich.square.utils.Context._ObjectStorage">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Context.</span></span><span class="sig-name descname"><span class="pre">_ObjectStorage</span></span><a class="headerlink" href="#malevich.square.utils.Context._ObjectStorage" title="Link to this definition">#</a></dt>
+<dd><p>A storage for binary objects common to the user.</p>
+<p>Works with cloud S3 storage and app shared file system. Provides
+an access to the objects shared with <a class="reference internal" href="#malevich.square.utils.Context.share" title="malevich.square.utils.Context.share"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Context.share()</span></code></a> method.
+and accessible with <a class="reference internal" href="#malevich.square.utils.Context.get_share_path" title="malevich.square.utils.Context.get_share_path"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Context.get_share_path()</span></code></a> method.</p>
+<p>All methods of the object storage have <code class="code docutils literal notranslate"><span class="pre">local</span></code> parameter. If it is
+set to <code class="code docutils literal notranslate"><span class="pre">True</span></code>, the operation will be performed on the local file system.
+Otherwise, the operation will be performed on the remote object storage.</p>
+<p>The information might be unsynchronized between apps. To ensure that the
+information is synchronized, use <code class="code docutils literal notranslate"><span class="pre">all_apps</span></code> parameter. If it is set to
+<code class="code docutils literal notranslate"><span class="pre">True</span></code>, the operation will be performed on all apps. Otherwise, the
+operation will be performed only on apps the method is called from.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context._ObjectStorage.get_keys">
+<span class="sig-name descname"><span class="pre">get_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">local</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_apps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich.square.utils.Context._ObjectStorage.get_keys" title="Link to this definition">#</a></dt>
+<dd><p>Get keys from local mount or remote object storage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>local</strong> (<em>bool</em><em>, </em><em>optional</em>) – whether to use local mount or remote object storage.
+If set to <code class="code docutils literal notranslate"><span class="pre">True</span></code>, the operation will
+be performed on the local file system. Otherwise,
+the operation will be performed on the remote object storage. Defaults to False.</p></li>
+<li><p><strong>all_apps</strong> (<em>bool</em><em>, </em><em>optional</em>) – whether to synchronize the operation between all apps.
+If set to <code class="code docutils literal notranslate"><span class="pre">True</span></code>, the operation will be performed on all apps.
+Otherwise, the operation will be performed only on apps the method is called from.
+Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Keys from local mount or remote object storage.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context._ObjectStorage.async_get_keys">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">async_get_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">local</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_apps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich.square.utils.Context._ObjectStorage.async_get_keys" title="Link to this definition">#</a></dt>
+<dd><p>Get keys from local mount or remote object storage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>local</strong> (<em>bool</em><em>, </em><em>optional</em>) – whether to use local mount or remote object storage.
+If set to <code class="code docutils literal notranslate"><span class="pre">True</span></code>, the operation will
+be performed on the local file system. Otherwise,
+the operation will be performed on the remote object storage. Defaults to False.</p></li>
+<li><p><strong>all_apps</strong> (<em>bool</em><em>, </em><em>optional</em>) – whether to synchronize the operation between all apps.
+If set to <code class="code docutils literal notranslate"><span class="pre">True</span></code>, the operation will be performed on all apps.
+Otherwise, the operation will be performed only on apps the method is called from.
+Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Keys from local mount or remote object storage.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context._ObjectStorage.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_apps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich.square.utils.Context._ObjectStorage.get" title="Link to this definition">#</a></dt>
+<dd><p>Updates mount for this app (or all apps), return keys for which it was successful</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>keys</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – Keys by which values are obtained.
+If this is not possible, this key will not be returned in result)</p></li>
+<li><p><strong>force</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set, it will ignore what is locally and
+load data from the remote object storage.
+Otherwise it will only take what does not exist.
+Defaults to False.</p></li>
+<li><p><strong>all_apps</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set to true, the operation will be performed in all apps.
+Otherwise only for apps with associated mount.
+Defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Keys by which it was possible
+to obtain the value and load it into the mount</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context._ObjectStorage.async_get">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">async_get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_apps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich.square.utils.Context._ObjectStorage.async_get" title="Link to this definition">#</a></dt>
+<dd><p>Updates mount for this app (or all apps), return keys for which it was successful</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>keys</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – Keys by which values are obtained.
+If this is not possible, this key will not be returned in result)</p></li>
+<li><p><strong>force</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set, it will ignore what is locally and
+load data from the remote object storage.
+Otherwise it will only take what does not exist.
+Defaults to False.</p></li>
+<li><p><strong>all_apps</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set to true, the operation will be performed in all apps.
+Otherwise only for apps with associated mount.
+Defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Keys by which it was possible
+to obtain the value and load it into the mount</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context._ObjectStorage.get_all">
+<span class="sig-name descname"><span class="pre">get_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">local</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_apps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich.square.utils.Context._ObjectStorage.get_all" title="Link to this definition">#</a></dt>
+<dd><p>Updates mount and return all keys in it,
+if <cite>local</cite> - return result only for mount (or all apps mounts if <cite>all_apps</cite>),
+otherwise - load all by remote object storage</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>local</strong> (<em>bool</em><em>, </em><em>optional</em>) – whether to use local mount or remote object storage.
+If set to <code class="code docutils literal notranslate"><span class="pre">True</span></code>, the operation will
+be performed on the local file system. Otherwise,
+the operation will be performed on the remote object storage. Defaults to False.</p></li>
+<li><p><strong>force</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set, it will ignore what is locally and
+load data from the remote object storage.
+Otherwise it will only take what does not exist.
+Defaults to False.</p></li>
+<li><p><strong>all_apps</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set to true, the operation will be performed in all apps.
+Otherwise only for apps with associated mount.
+Defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>All keys in the mount or all apps mounts if <cite>all_apps</cite> is True,
+otherwise load all keys from remote object storage.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context._ObjectStorage.async_get_all">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">async_get_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">local</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_apps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich.square.utils.Context._ObjectStorage.async_get_all" title="Link to this definition">#</a></dt>
+<dd><p>Updates mount and return all keys in it,
+if <cite>local</cite> - return result only for mount (or all apps mounts if <cite>all_apps</cite>),
+otherwise - load all by remote object storage</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>local</strong> (<em>bool</em><em>, </em><em>optional</em>) – whether to use local mount or remote object storage.
+If set to <code class="code docutils literal notranslate"><span class="pre">True</span></code>, the operation will
+be performed on the local file system. Otherwise,
+the operation will be performed on the remote object storage. Defaults to False.</p></li>
+<li><p><strong>force</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set, it will ignore what is locally and
+load data from the remote object storage.
+Otherwise it will only take what does not exist.
+Defaults to False.</p></li>
+<li><p><strong>all_apps</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set to true, the operation will be performed in all apps.
+Otherwise only for apps with associated mount.
+Defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>All keys in the mount or all apps mounts if <cite>all_apps</cite> is True,
+otherwise load all keys from remote object storage.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context._ObjectStorage.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">presigned_expire</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich.square.utils.Context._ObjectStorage.update" title="Link to this definition">#</a></dt>
+<dd><p>Updates objects in remote storage</p>
+<p>Retrieves objects from local mount and updates remote object storage.
+If <code class="code docutils literal notranslate"><span class="pre">presigned_expire</span></code> is set to a positive value, creates
+and returns presigned urls for the objects.</p>
+<p>If <code class="code docutils literal notranslate"><span class="pre">presigned_expire</span></code> is None, set to default timeout.</p>
+<p>If <code class="code docutils literal notranslate"><span class="pre">presigned_expire</span></code> is negative, returns an empty dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>keys</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – Keys to update</p></li>
+<li><p><strong>presigned_expire</strong> (<em>int</em><em>, </em><em>optional</em>) – If positve, life span of presigned urls in seconds.
+If None, set to default timeout.
+Defaults to -1.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mapping of keys to presigned urls</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context._ObjectStorage.async_update">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">async_update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">presigned_expire</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich.square.utils.Context._ObjectStorage.async_update" title="Link to this definition">#</a></dt>
+<dd><p>Updates objects in remote storage</p>
+<p>Retrieves objects from local mount and updates remote object storage.
+If <code class="code docutils literal notranslate"><span class="pre">presigned_expire</span></code> is set to a positive value, creates
+and returns presigned urls for the objects.</p>
+<p>If <code class="code docutils literal notranslate"><span class="pre">presigned_expire</span></code> is None, set to default timeout.</p>
+<p>If <code class="code docutils literal notranslate"><span class="pre">presigned_expire</span></code> is negative, returns an empty dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>keys</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – Keys to update</p></li>
+<li><p><strong>presigned_expire</strong> (<em>int</em><em>, </em><em>optional</em>) – If positve, life span of presigned urls in seconds.
+If None, set to default timeout.
+Defaults to -1.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>key to presigned url</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context._ObjectStorage.presigned">
+<span class="sig-name descname"><span class="pre">presigned</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expire</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich.square.utils.Context._ObjectStorage.presigned" title="Link to this definition">#</a></dt>
+<dd><p>Creates presigned urls for specified keys</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>keys</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – Keys to create presigned urls for</p></li>
+<li><p><strong>expire</strong> (<em>int</em><em>, </em><em>optional</em>) – Life span of presigned urls in seconds (must be positive).
+If None, set to default timeout.
+Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mapping of keys to presigned urls</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context._ObjectStorage.async_presigned">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">async_presigned</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expire</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich.square.utils.Context._ObjectStorage.async_presigned" title="Link to this definition">#</a></dt>
+<dd><p>Creates presigned urls for specified keys</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>keys</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – Keys to create presigned urls for</p></li>
+<li><p><strong>expire</strong> (<em>int</em><em>, </em><em>optional</em>) – Life span of presigned urls in seconds (must be positive).
+If None, set to default timeout.
+Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mapping of keys to presigned urls</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context._ObjectStorage.delete">
+<span class="sig-name descname"><span class="pre">delete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.square.utils.Context._ObjectStorage.delete" title="Link to this definition">#</a></dt>
+<dd><p>Deletes values in mount and remote storage</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>keys</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – Keys to delete</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context._ObjectStorage.async_delete">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">async_delete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.square.utils.Context._ObjectStorage.async_delete" title="Link to this definition">#</a></dt>
+<dd><p>Deletes values in mount and remote storage</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>keys</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – Keys to delete</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malevich.square.utils.Context._DagKeyValue">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Context.</span></span><span class="sig-name descname"><span class="pre">_DagKeyValue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malevich.square.utils.Context._DagKeyValue" title="Link to this definition">#</a></dt>
+<dd><p>Simple key-value storage, shared for all apps of one run.
+Values must be bytes, string, int or float; dictionary order is not guaranteed</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context._DagKeyValue.get_bytes">
+<span class="sig-name descname"><span class="pre">get_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="headerlink" href="#malevich.square.utils.Context._DagKeyValue.get_bytes" title="Link to this definition">#</a></dt>
+<dd><p>Gets a binary value by key more optimally.</p>
+<p>Consider using this to retrieve binary data in
+more efficient way, but keep in mind that <a class="reference internal" href="#malevich.square.utils.Context._DagKeyValue.get" title="malevich.square.utils.Context._DagKeyValue.get"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get()</span></code></a>
+can also be used</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>key</strong> (<em>str</em>) – key in storage</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Value stored by key</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bytes</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context._DagKeyValue.async_get_bytes">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">async_get_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="headerlink" href="#malevich.square.utils.Context._DagKeyValue.async_get_bytes" title="Link to this definition">#</a></dt>
+<dd><p>Gets a binary value by key more optimally.</p>
+<p>Consider using this to retrieve binary data in
+more efficient way, but keep in mind that <a class="reference internal" href="#malevich.square.utils.Context._DagKeyValue.get" title="malevich.square.utils.Context._DagKeyValue.get"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get()</span></code></a>
+can also be used</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>key</strong> (<em>str</em>) – key in storage</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Value stored by key</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bytes</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context._DagKeyValue.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich.square.utils.Context._DagKeyValue.get" title="Link to this definition">#</a></dt>
+<dd><p>Gets values by keys</p>
+<p>Retrieves a slice of storage by keys. If a key is not found,
+the value will be set to None</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>keys</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – list of keys</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary of key-value pairs.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context._DagKeyValue.async_get">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">async_get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich.square.utils.Context._DagKeyValue.async_get" title="Link to this definition">#</a></dt>
+<dd><p>Gets values by keys</p>
+<p>Retrieves a slice of storage by keys. If a key is not found,
+the value will be set to None</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>keys</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – list of keys</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary of key-value pairs.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context._DagKeyValue.get_all">
+<span class="sig-name descname"><span class="pre">get_all</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich.square.utils.Context._DagKeyValue.get_all" title="Link to this definition">#</a></dt>
+<dd><p>Gets all values</p>
+<p>Retrieves the whole storage as a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary of key-value pairs.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context._DagKeyValue.async_get_all">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">async_get_all</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich.square.utils.Context._DagKeyValue.async_get_all" title="Link to this definition">#</a></dt>
+<dd><p>Gets all values</p>
+<p>Retrieves the whole storage as a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary of key-value pairs.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context._DagKeyValue.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys_values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.square.utils.Context._DagKeyValue.update" title="Link to this definition">#</a></dt>
+<dd><p>Sets values by keys</p>
+<p>Accepts a dictionary of key-value pairs and sets them in storage.
+If a key already exists, it will be overwritten.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>keys_values</strong> (<em>dict</em>) – A dictionary of key-value pairs.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context._DagKeyValue.async_update">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">async_update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys_values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.square.utils.Context._DagKeyValue.async_update" title="Link to this definition">#</a></dt>
+<dd><p>Sets values by keys</p>
+<p>Accepts a dictionary of key-value pairs and sets them in storage.
+If a key already exists, it will be overwritten.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>keys_values</strong> (<em>dict</em>) – A dictionary of key-value pairs.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context._DagKeyValue.clear">
+<span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.square.utils.Context._DagKeyValue.clear" title="Link to this definition">#</a></dt>
+<dd><p>Purges the storage</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.Context._DagKeyValue.async_clear">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">async_clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.square.utils.Context._DagKeyValue.async_clear" title="Link to this definition">#</a></dt>
+<dd><p>Purges the storage</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malevich.square.utils.S3Helper">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">malevich.square.utils.</span></span><span class="sig-name descname"><span class="pre">S3Helper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s3_bucket</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malevich.square.utils.S3Helper" title="Link to this definition">#</a></dt>
+<dd><p>Ready-made auxiliary wrapper for interacting with custom s3</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.S3Helper.create_by_cfg">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_by_cfg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#malevich.square.utils.S3Helper" title="malevich.square.utils.S3Helper"><span class="pre">S3Helper</span></a></span></span><a class="headerlink" href="#malevich.square.utils.S3Helper.create_by_cfg" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.S3Helper.get_object">
+<span class="sig-name descname"><span class="pre">get_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bucket</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">StreamingBody</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.square.utils.S3Helper.get_object" title="Link to this definition">#</a></dt>
+<dd><p>Uses <code class="code docutils literal notranslate"><span class="pre">get_object</span></code> from client by <cite>bucket</cite> and <cite>key</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>str</em>) – object storage key</p></li>
+<li><p><strong>bucket</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – object storage bucket, if set - override default. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>get_object response body</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[StreamingBody]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.S3Helper.get_df">
+<span class="sig-name descname"><span class="pre">get_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bucket</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#malevich.square.utils.S3Helper.get_df" title="Link to this definition">#</a></dt>
+<dd><p>Uses <code class="code docutils literal notranslate"><span class="pre">get_object</span></code> result and cast it to data frame</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>str</em>) – object storage key</p></li>
+<li><p><strong>bucket</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – object storage bucket, if set - override default. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>result in df view</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.S3Helper.save_object">
+<span class="sig-name descname"><span class="pre">save_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bucket</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.square.utils.S3Helper.save_object" title="Link to this definition">#</a></dt>
+<dd><p>Uses <code class="code docutils literal notranslate"><span class="pre">put_object</span></code> from client by <cite>bucket</cite>, <cite>key</cite> and <cite>body</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>body</strong> (<em>Any</em>) – saved data</p></li>
+<li><p><strong>key</strong> (<em>str</em>) – object storage key</p></li>
+<li><p><strong>bucket</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – object storage bucket, if set - override default. Defaults to None.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.S3Helper.save_df">
+<span class="sig-name descname"><span class="pre">save_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bucket</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.square.utils.S3Helper.save_df" title="Link to this definition">#</a></dt>
+<dd><p>Uses <code class="code docutils literal notranslate"><span class="pre">save_object</span></code> to save df by <cite>bucket</cite> and <cite>key</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – df to save</p></li>
+<li><p><strong>key</strong> (<em>str</em>) – object storage key</p></li>
+<li><p><strong>bucket</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – object storage bucket, if set - override default. Defaults to None.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.S3Helper.delete_object">
+<span class="sig-name descname"><span class="pre">delete_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bucket</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.square.utils.S3Helper.delete_object" title="Link to this definition">#</a></dt>
+<dd><p>Deletes object by <cite>bucket</cite> and <cite>key</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>str</em>) – object storage key</p></li>
+<li><p><strong>bucket</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – object storage bucket, if set - override default. Defaults to None.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malevich.square.utils.SmtpSender">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">malevich.square.utils.</span></span><span class="sig-name descname"><span class="pre">SmtpSender</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">login</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smtp_server</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'smtp.gmail.com'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smtp_port</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">465</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malevich.square.utils.SmtpSender" title="Link to this definition">#</a></dt>
+<dd><p>Ready-made auxiliary wrapper for interacting with SMTP
+:param login: login
+:type login: str
+:param password: password
+:type password: str
+:param smtp_server: smtp server. Defaults to “smtp.gmail.com”.
+:type smtp_server: str, optional
+:param smtp_port: smtp port. Defaults to 465.
+:type smtp_port: int, optional</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich.square.utils.SmtpSender.send">
+<span class="sig-name descname"><span class="pre">send</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">receivers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subject</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich.square.utils.SmtpSender.send" title="Link to this definition">#</a></dt>
+<dd><p>Sends an email</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>receivers</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – list of emails</p></li>
+<li><p><strong>subject</strong> (<em>str</em>) – message subject</p></li>
+<li><p><strong>message</strong> (<em>str</em>) – message text</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malevich.square.utils.to_df">
+<span class="sig-prename descclassname"><span class="pre">malevich.square.utils.</span></span><span class="sig-name descname"><span class="pre">to_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#malevich.square.utils.to_df" title="Link to this definition">#</a></dt>
+<dd><p>Creates a data frame from an arbitrary object
+- <cite>torch.Tensor</cite>: Tensor is serialized using torch.save and then encoded using base112. Autograd information is preserved.
+- <cite>numpy</cite>, <cite>list</cite>, <cite>tuple</cite>, <cite>range</cite>, <cite>bytearray</cite>: Data is serialized using pickle and stored as is in <cite>data</cite> column.
+- <cite>set</cite>, <cite>frozenset</cite>: Data is converted to list and stored as is in <cite>data</cite> column.
+- <cite>dict</cite>: Data is serialized using json and stored as is in <cite>data</cite> column.
+- <cite>int</cite>, float, complex, str, bytes, bool: Data is stored as is in <cite>data</cite> column.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>Any</em>) – Object to convert to data frame</p></li>
+<li><p><strong>force</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set, it will ignore the type of the object and serialize it using pickle.
+Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Data frame with a single column <code class="code docutils literal notranslate"><span class="pre">data</span></code></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malevich.square.utils.from_df">
+<span class="sig-prename descclassname"><span class="pre">malevich.square.utils.</span></span><span class="sig-name descname"><span class="pre">from_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#malevich.square.utils.from_df" title="Link to this definition">#</a></dt>
+<dd><p>Converts a data frame obtained by running <a class="reference internal" href="#malevich.square.utils.to_df" title="malevich.square.utils.to_df"><code class="xref py py-func docutils literal notranslate"><span class="pre">to_df()</span></code></a> back to an object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>pd.DataFrame</em>) – Data frame to convert</p></li>
+<li><p><strong>type_name</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Type of the object to convert to. If not specified, the type is inferred from the data frame.
+Defaults to None.</p></li>
+<li><p><strong>force</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set, it will ignore the type of the object and deserialize it using pickle.
+Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Object of type <code class="code docutils literal notranslate"><span class="pre">type_name</span></code> or inferred type</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Any</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malevich.square.utils.to_binary">
+<span class="sig-prename descclassname"><span class="pre">malevich.square.utils.</span></span><span class="sig-name descname"><span class="pre">to_binary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">smth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="headerlink" href="#malevich.square.utils.to_binary" title="Link to this definition">#</a></dt>
+<dd><p>Converts object to binary
+:param smth: object to convert
+:type smth: Any</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malevich.square.utils.from_binary">
+<span class="sig-prename descclassname"><span class="pre">malevich.square.utils.</span></span><span class="sig-name descname"><span class="pre">from_binary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">smth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#malevich.square.utils.from_binary" title="Link to this definition">#</a></dt>
+<dd><p>Converts binary to object
+:param smth: binary to convert
+:type smth: bytes</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malevich.square.utils.APP_DIR">
+<span class="sig-prename descclassname"><span class="pre">malevich.square.utils.</span></span><span class="sig-name descname"><span class="pre">APP_DIR</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'/julius/apps'</span></em><a class="headerlink" href="#malevich.square.utils.APP_DIR" title="Link to this definition">#</a></dt>
+<dd><p>Working directory from which the app is run.
+Equivalent to <code class="code docutils literal notranslate"><span class="pre">os.getcwd()</span></code> from within the app.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malevich.square.utils.WORKDIR">
+<span class="sig-prename descclassname"><span class="pre">malevich.square.utils.</span></span><span class="sig-name descname"><span class="pre">WORKDIR</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'/julius'</span></em><a class="headerlink" href="#malevich.square.utils.WORKDIR" title="Link to this definition">#</a></dt>
+<dd><p>Directory into which the user code is copied during app construction.</p>
+</dd></dl>
+
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="jls.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">malevich.square.jls</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="df.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">malevich.square.df</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context"><code class="docutils literal notranslate"><span class="pre">Context</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context.app_id"><code class="docutils literal notranslate"><span class="pre">Context.app_id</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context.run_id"><code class="docutils literal notranslate"><span class="pre">Context.run_id</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context.dag_key_value"><code class="docutils literal notranslate"><span class="pre">Context.dag_key_value</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context.object_storage"><code class="docutils literal notranslate"><span class="pre">Context.object_storage</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context.common"><code class="docutils literal notranslate"><span class="pre">Context.common</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context.share"><code class="docutils literal notranslate"><span class="pre">Context.share()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context.async_share"><code class="docutils literal notranslate"><span class="pre">Context.async_share()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context.share_many"><code class="docutils literal notranslate"><span class="pre">Context.share_many()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context.async_share_many"><code class="docutils literal notranslate"><span class="pre">Context.async_share_many()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context.get_share_path"><code class="docutils literal notranslate"><span class="pre">Context.get_share_path()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context.delete_share"><code class="docutils literal notranslate"><span class="pre">Context.delete_share()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context.async_delete_share"><code class="docutils literal notranslate"><span class="pre">Context.async_delete_share()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context.synchronize"><code class="docutils literal notranslate"><span class="pre">Context.synchronize()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context.async_synchronize"><code class="docutils literal notranslate"><span class="pre">Context.async_synchronize()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context.msg"><code class="docutils literal notranslate"><span class="pre">Context.msg()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context.async_msg"><code class="docutils literal notranslate"><span class="pre">Context.async_msg()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context.email_send"><code class="docutils literal notranslate"><span class="pre">Context.email_send()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context.metadata"><code class="docutils literal notranslate"><span class="pre">Context.metadata()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context.scale_info"><code class="docutils literal notranslate"><span class="pre">Context.scale_info</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context.get_scale_part"><code class="docutils literal notranslate"><span class="pre">Context.get_scale_part()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context.operation_id"><code class="docutils literal notranslate"><span class="pre">Context.operation_id</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context.has_object"><code class="docutils literal notranslate"><span class="pre">Context.has_object()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context.get_object"><code class="docutils literal notranslate"><span class="pre">Context.get_object()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context.as_object"><code class="docutils literal notranslate"><span class="pre">Context.as_object()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context._ObjectStorage"><code class="docutils literal notranslate"><span class="pre">Context._ObjectStorage</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context._ObjectStorage.get_keys"><code class="docutils literal notranslate"><span class="pre">Context._ObjectStorage.get_keys()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context._ObjectStorage.async_get_keys"><code class="docutils literal notranslate"><span class="pre">Context._ObjectStorage.async_get_keys()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context._ObjectStorage.get"><code class="docutils literal notranslate"><span class="pre">Context._ObjectStorage.get()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context._ObjectStorage.async_get"><code class="docutils literal notranslate"><span class="pre">Context._ObjectStorage.async_get()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context._ObjectStorage.get_all"><code class="docutils literal notranslate"><span class="pre">Context._ObjectStorage.get_all()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context._ObjectStorage.async_get_all"><code class="docutils literal notranslate"><span class="pre">Context._ObjectStorage.async_get_all()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context._ObjectStorage.update"><code class="docutils literal notranslate"><span class="pre">Context._ObjectStorage.update()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context._ObjectStorage.async_update"><code class="docutils literal notranslate"><span class="pre">Context._ObjectStorage.async_update()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context._ObjectStorage.presigned"><code class="docutils literal notranslate"><span class="pre">Context._ObjectStorage.presigned()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context._ObjectStorage.async_presigned"><code class="docutils literal notranslate"><span class="pre">Context._ObjectStorage.async_presigned()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context._ObjectStorage.delete"><code class="docutils literal notranslate"><span class="pre">Context._ObjectStorage.delete()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context._ObjectStorage.async_delete"><code class="docutils literal notranslate"><span class="pre">Context._ObjectStorage.async_delete()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context._DagKeyValue"><code class="docutils literal notranslate"><span class="pre">Context._DagKeyValue</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context._DagKeyValue.get_bytes"><code class="docutils literal notranslate"><span class="pre">Context._DagKeyValue.get_bytes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context._DagKeyValue.async_get_bytes"><code class="docutils literal notranslate"><span class="pre">Context._DagKeyValue.async_get_bytes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context._DagKeyValue.get"><code class="docutils literal notranslate"><span class="pre">Context._DagKeyValue.get()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context._DagKeyValue.async_get"><code class="docutils literal notranslate"><span class="pre">Context._DagKeyValue.async_get()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context._DagKeyValue.get_all"><code class="docutils literal notranslate"><span class="pre">Context._DagKeyValue.get_all()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context._DagKeyValue.async_get_all"><code class="docutils literal notranslate"><span class="pre">Context._DagKeyValue.async_get_all()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context._DagKeyValue.update"><code class="docutils literal notranslate"><span class="pre">Context._DagKeyValue.update()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context._DagKeyValue.async_update"><code class="docutils literal notranslate"><span class="pre">Context._DagKeyValue.async_update()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context._DagKeyValue.clear"><code class="docutils literal notranslate"><span class="pre">Context._DagKeyValue.clear()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.Context._DagKeyValue.async_clear"><code class="docutils literal notranslate"><span class="pre">Context._DagKeyValue.async_clear()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.S3Helper"><code class="docutils literal notranslate"><span class="pre">S3Helper</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.S3Helper.create_by_cfg"><code class="docutils literal notranslate"><span class="pre">S3Helper.create_by_cfg()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.S3Helper.get_object"><code class="docutils literal notranslate"><span class="pre">S3Helper.get_object()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.S3Helper.get_df"><code class="docutils literal notranslate"><span class="pre">S3Helper.get_df()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.S3Helper.save_object"><code class="docutils literal notranslate"><span class="pre">S3Helper.save_object()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.S3Helper.save_df"><code class="docutils literal notranslate"><span class="pre">S3Helper.save_df()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.S3Helper.delete_object"><code class="docutils literal notranslate"><span class="pre">S3Helper.delete_object()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.SmtpSender"><code class="docutils literal notranslate"><span class="pre">SmtpSender</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.SmtpSender.send"><code class="docutils literal notranslate"><span class="pre">SmtpSender.send()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.to_df"><code class="docutils literal notranslate"><span class="pre">to_df()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.from_df"><code class="docutils literal notranslate"><span class="pre">from_df()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.to_binary"><code class="docutils literal notranslate"><span class="pre">to_binary()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.from_binary"><code class="docutils literal notranslate"><span class="pre">from_binary()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.APP_DIR"><code class="docutils literal notranslate"><span class="pre">APP_DIR</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich.square.utils.WORKDIR"><code class="docutils literal notranslate"><span class="pre">WORKDIR</span></code></a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../../_sources/API/square/utils.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024, Malevich AI, Co.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

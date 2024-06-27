@@ -1,0 +1,779 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>malevich._autoflow &#8212; Malevich 0.4.0</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/style.css?v=36acc060" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="https://unpkg.com/mermaid@10.2.0/dist/mermaid.min.js"></script>
+    <script>mermaid.initialize({startOnLoad:true});</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'API/autoflow';</script>
+    <link rel="icon" href="../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="malevich._meta" href="meta/index.html" />
+    <link rel="prev" title="Assistants" href="assistants.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo-light.svg" class="logo__image only-light" alt="Malevich 0.4.0 - Home"/>
+    <script>document.write(`<img src="../_static/logo-dark.svg" class="logo__image only-dark" alt="Malevich 0.4.0 - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../SDK/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../Community/index.html">
+    Community
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../SDK/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../Community/index.html">
+    Community
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="assistants.html">Assistants</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">malevich._autoflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="meta/index.html">malevich._meta</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="interpreter/index.html">malevich.interpreter</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="interpreter/core.html">malevich.interpeter.core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interpreter/space.html">malevich.interpeter.space</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">malevich.models</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="square/index.html">malevich.square</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="square/jls.html">malevich.square.jls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="square/utils.html">malevich.square.utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="square/df.html">malevich.square.df</a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">API</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">malevich._autoflow</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="malevich-autoflow">
+<h1>malevich._autoflow<a class="headerlink" href="#malevich-autoflow" title="Link to this heading">#</a></h1>
+<p>Malevich Autoflow is a dependency tracking engine allowing us to automatically
+detect flows and build execution graphs from the order of function calls.</p>
+<p>Autoflow is built on following ideas:</p>
+<ol class="arabic simple">
+<li><p>The part of code that is graph is built for is called within <a class="reference internal" href="#malevich._autoflow.flow.Flow" title="malevich._autoflow.flow.Flow"><code class="xref py py-class docutils literal notranslate"><span class="pre">Flow</span></code></a> context manager.</p></li>
+<li><p>The functions that represent processor nodes are decorated with <a class="reference internal" href="#malevich._autoflow.function.autotrace" title="malevich._autoflow.function.autotrace"><code class="xref py py-func docutils literal notranslate"><span class="pre">autotrace</span></code></a> or <a class="reference internal" href="#malevich._autoflow.function.sinktrace" title="malevich._autoflow.function.sinktrace"><code class="xref py py-func docutils literal notranslate"><span class="pre">autotrace</span></code></a> decorators.</p></li>
+<li><p>Objects that are passed to the functions are wrapped with <code class="xref py py-class docutils literal notranslate"><span class="pre">traced</span></code> class.</p></li>
+</ol>
+<p>Usually, the engine is working under the hood and you don’t need to interact with it directly. For example,
+<code class="xref py py-func docutils literal notranslate"><span class="pre">flow()</span></code> function that is used to decorated flow definitions, is already doing all the magic using Autoflow engine.</p>
+<p>However, if you want to build your own flow definition, you can use Autoflow engine directly.</p>
+<dl class="py function" id="module-malevich._autoflow.function">
+<span id="module-malevich._autoflow"></span><dt class="sig sig-object py" id="malevich._autoflow.function.autotrace">
+<span class="sig-prename descclassname"><span class="pre">malevich._autoflow.function.</span></span><span class="sig-name descname"><span class="pre">autotrace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">C</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">R</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">C</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">R</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich._autoflow.function.autotrace" title="Link to this definition">#</a></dt>
+<dd><p>Function decorator that enables automatic dependency tracking</p>
+<p>The result is turned into <a class="reference internal" href="#malevich._autoflow.tracer.traced" title="malevich._autoflow.tracer.traced"><code class="xref py py-func docutils literal notranslate"><span class="pre">traced</span></code></a>
+object (if it is not already).</p>
+<p>Then, all arguments that are traced are linked to the result
+by calling <code class="xref py py-func docutils literal notranslate"><span class="pre">traced.calledby()</span></code>
+method with results being the ‘caller’.</p>
+<p>The link produced is <code class="xref py py-class docutils literal notranslate"><span class="pre">ArgumentLink</span> <span class="pre">&lt;malevich.models.argument.ArgumentLink</span></code>
+with <code class="docutils literal notranslate"><span class="pre">index</span></code> set to the argument position and <code class="docutils literal notranslate"><span class="pre">name</span></code> set to the argument name.
+If the argument is passed as a keyword argument,
+and the function accepts the argument as
+<a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs, raises a warning and does not link the argument.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="malevich._autoflow.function.sinktrace">
+<span class="sig-prename descclassname"><span class="pre">malevich._autoflow.function.</span></span><span class="sig-name descname"><span class="pre">sinktrace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">C</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">R</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">C</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">R</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich._autoflow.function.sinktrace" title="Link to this definition">#</a></dt>
+<dd><p>A special form of autotrace to trace functions with <a href="#id3"><span class="problematic" id="id4">*</span></a>args</p>
+<p>This decorator is applied to processors that contains</p>
+</dd></dl>
+
+<p id="module-malevich._autoflow.flow">AutoFlow</p>
+<p>The package provides a context manager for providing
+an access to an execution tree in function contexts.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="malevich._autoflow.flow.Flow">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">malevich._autoflow.flow.</span></span><span class="sig-name descname"><span class="pre">Flow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malevich._autoflow.flow.Flow" title="Link to this definition">#</a></dt>
+<dd><p>Context-manager that holds the execution tree</p>
+<p>The class is a singleton and can be used as a context-manager
+to create a new execution tree. It holds a stack of trees to
+maintain nested flows. The stack is thread-safe.</p>
+<p>Example:</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich._autoflow.flow.Flow.isinflow">
+<span class="sig-name descname"><span class="pre">isinflow</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#malevich._autoflow.flow.Flow.isinflow" title="Link to this definition">#</a></dt>
+<dd><p>Check if the current execution is inside a flow</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich._autoflow.flow.Flow.flow_ref">
+<span class="sig-name descname"><span class="pre">flow_ref</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#malevich._autoflow.tree.ExecutionTree" title="malevich._autoflow.tree.ExecutionTree"><span class="pre">ExecutionTree</span></a></span></span><a class="headerlink" href="#malevich._autoflow.flow.Flow.flow_ref" title="Link to this definition">#</a></dt>
+<dd><p>Returns the reference to the current flow in the context</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich._autoflow.flow.Flow.get_stack">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_stack</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#malevich._autoflow.tree.ExecutionTree" title="malevich._autoflow.tree.ExecutionTree"><span class="pre">ExecutionTree</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich._autoflow.flow.Flow.get_stack" title="Link to this definition">#</a></dt>
+<dd><p>Returns immutable stack of execution trees</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-malevich._autoflow.tracer">
+<dt class="sig sig-object py" id="malevich._autoflow.tracer.root">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">malevich._autoflow.tracer.</span></span><span class="sig-name descname"><span class="pre">root</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malevich._autoflow.tracer.root" title="Link to this definition">#</a></dt>
+<dd><p>A root element of the execution tree</p>
+<p>Used as a default value for the owner of the traced objects</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malevich._autoflow.tracer.root.model_computed_fields">
+<span class="sig-name descname"><span class="pre">model_computed_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ComputedFieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#malevich._autoflow.tracer.root.model_computed_fields" title="Link to this definition">#</a></dt>
+<dd><p>A dictionary of computed field names and their corresponding <cite>ComputedFieldInfo</cite> objects.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malevich._autoflow.tracer.root.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#malevich._autoflow.tracer.root.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malevich._autoflow.tracer.root.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'id':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=False,</span> <span class="pre">default_factory=&lt;lambda&gt;)}</span></em><a class="headerlink" href="#malevich._autoflow.tracer.root.model_fields" title="Link to this definition">#</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malevich._autoflow.tracer.autoflow">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">malevich._autoflow.tracer.</span></span><span class="sig-name descname"><span class="pre">autoflow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tree</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#malevich._autoflow.tree.ExecutionTree" title="malevich._autoflow.tree.ExecutionTree"><span class="pre">ExecutionTree</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malevich._autoflow.tracer.autoflow" title="Link to this definition">#</a></dt>
+<dd><p>Autoflow is a bridge between traced objects and the execution tree</p>
+<p>It holds both the reference to the execution tree and the reference
+to the traced object. Can be reattached to another traced object. Provides
+interfaces for reporting a new dependency in the execution tree.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich._autoflow.tracer.autoflow.attach">
+<span class="sig-name descname"><span class="pre">attach</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich._autoflow.tracer.autoflow.attach" title="Link to this definition">#</a></dt>
+<dd><p>Attach the autoflow to a traced object</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich._autoflow.tracer.autoflow.calledby">
+<span class="sig-name descname"><span class="pre">calledby</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">caller</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#malevich._autoflow.tracer.traced" title="malevich._autoflow.tracer.traced"><span class="pre">traced</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">argument</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich._autoflow.tracer.autoflow.calledby" title="Link to this definition">#</a></dt>
+<dd><p>Report a new dependency in the execution tree</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malevich._autoflow.tracer.traced">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">malevich._autoflow.tracer.</span></span><span class="sig-name descname"><span class="pre">traced</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">owner</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">root(id='7d6c40dce1fb4987817facfd4b895b33')</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malevich._autoflow.tracer.traced" title="Link to this definition">#</a></dt>
+<dd><p>Traced objects are wrappers around regular Python objects
+They hold a reference to the current execution tree and
+provides an access to <a class="reference internal" href="#malevich._autoflow.tracer.autoflow" title="malevich._autoflow.tracer.autoflow"><code class="xref py py-class docutils literal notranslate"><span class="pre">autoflow</span></code></a> to enable dependency tracking</p>
+<p>These objects CAN ONLY BE CREATED inside a flow.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich._autoflow.tracer.traced.claim">
+<span class="sig-name descname"><span class="pre">claim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">owner</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich._autoflow.tracer.traced.claim" title="Link to this definition">#</a></dt>
+<dd><p>Claim the ownership of the tracer</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malevich._autoflow.tracer.tracedLike">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">malevich._autoflow.tracer.</span></span><span class="sig-name descname"><span class="pre">tracedLike</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">owner</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">root(id='75ae416d42754bf89b339fd3a4ed4f86')</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malevich._autoflow.tracer.tracedLike" title="Link to this definition">#</a></dt>
+<dd><p>This class is used to immitate the traced object without actually tracing it</p>
+<p>It is used to provide homogeneous interface for tree nodes
+without attaching them to a particular tree.</p>
+<p>These objects CAN BE CREATED from outside of a flow.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich._autoflow.tracer.tracedLike.claim">
+<span class="sig-name descname"><span class="pre">claim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">owner</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich._autoflow.tracer.tracedLike.claim" title="Link to this definition">#</a></dt>
+<dd><p>Claim the ownership of the tracer</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception" id="module-malevich._autoflow.tree">
+<dt class="sig sig-object py" id="malevich._autoflow.tree.BadEdgeError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">malevich._autoflow.tree.</span></span><span class="sig-name descname"><span class="pre">BadEdgeError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">T</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">LinkType</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malevich._autoflow.tree.BadEdgeError" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malevich._autoflow.tree.ExecutionTree">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">malevich._autoflow.tree.</span></span><span class="sig-name descname"><span class="pre">ExecutionTree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tree</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">T</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">LinkType</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malevich._autoflow.tree.ExecutionTree" title="Link to this definition">#</a></dt>
+<dd><p>An utility class holding a low-level representation of the execution graph</p>
+<p>The class provides a set of basic operations on the graph, such as
+adding edges, pruning, and traversing.</p>
+<p>The tree is stored both as set of nodes and as a list of edges. The nodes
+can be any hashable and comparable class, while the edges are triples
+of the form <cite>(callee, caller, link)</cite> where <cite>caller</cite> and <cite>callee</cite> are
+nodes and <cite>link</cite> is an arbitrary object.</p>
+<p>The connection is directed from <cite>callee</cite> to <cite>caller</cite>. This is
+because <code class="code docutils literal notranslate"><span class="pre">caller(callee)</span></code> notation requires the callee to be
+evaluated first.</p>
+<div class="mermaid">
+            graph LR
+    Callee --&gt; Caller
+        </div><dl class="py method">
+<dt class="sig sig-object py" id="malevich._autoflow.tree.ExecutionTree.put_edge">
+<span class="sig-name descname"><span class="pre">put_edge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">callee</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">caller</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LinkType</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich._autoflow.tree.ExecutionTree.put_edge" title="Link to this definition">#</a></dt>
+<dd><p>Add an edge to the execution tree</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>callee</strong> (<em>T</em>) – The source node (a.k.a. Callee)</p></li>
+<li><p><strong>caller</strong> (<em>T</em>) – The target node (a.k.a. caller)</p></li>
+<li><p><strong>link</strong> (<em>LinkType</em><em>, </em><em>optional</em>) – An arbitrary object that represents the edge payload
+(e.g. argument name). Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malevich._autoflow.tree.BadEdgeError" title="malevich._autoflow.tree.BadEdgeError"><strong>BadEdgeError</strong></a> – If the edge already exists, or if the edge is a self-edge</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich._autoflow.tree.ExecutionTree.prune">
+<span class="sig-name descname"><span class="pre">prune</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outer_nodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich._autoflow.tree.ExecutionTree.prune" title="Link to this definition">#</a></dt>
+<dd><p>Removes specified nodes from the execution tree</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>outer_nodes</strong> (<em>list</em><em>[</em><em>T</em><em>]</em>) – List of nodes to remove</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich._autoflow.tree.ExecutionTree.edges_from">
+<span class="sig-name descname"><span class="pre">edges_from</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#malevich._autoflow.tree.ExecutionTree.edges_from" title="Link to this definition">#</a></dt>
+<dd><p>Returns all edges starting from the specified node</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich._autoflow.tree.ExecutionTree.traverse">
+<span class="sig-name descname"><span class="pre">traverse</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">T</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">LinkType</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich._autoflow.tree.ExecutionTree.traverse" title="Link to this definition">#</a></dt>
+<dd><p>Traverse the execution tree</p>
+<p>The traversal is performed in a multi-source
+breadth-first manner.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Generator of nodes</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Generator[T]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich._autoflow.tree.ExecutionTree.leaves">
+<span class="sig-name descname"><span class="pre">leaves</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich._autoflow.tree.ExecutionTree.leaves" title="Link to this definition">#</a></dt>
+<dd><p>Returns all leaves of the execution tree</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich._autoflow.tree.ExecutionTree.connected">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">connected</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#malevich._autoflow.tree.ExecutionTree" title="malevich._autoflow.tree.ExecutionTree"><span class="pre">ExecutionTree</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#malevich._autoflow.tree.ExecutionTree" title="malevich._autoflow.tree.ExecutionTree"><span class="pre">ExecutionTree</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#malevich._autoflow.tree.ExecutionTree.connected" title="Link to this definition">#</a></dt>
+<dd><p>Checks if two execution trees are connected</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malevich._autoflow.tree.ExecutionTree.nodes">
+<span class="sig-name descname"><span class="pre">nodes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#malevich._autoflow.tree.ExecutionTree.nodes" title="Link to this definition">#</a></dt>
+<dd><p>Returns all nodes of the execution tree</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="assistants.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Assistants</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="meta/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">malevich._meta</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich._autoflow.function.autotrace"><code class="docutils literal notranslate"><span class="pre">autotrace()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich._autoflow.function.sinktrace"><code class="docutils literal notranslate"><span class="pre">sinktrace()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich._autoflow.flow.Flow"><code class="docutils literal notranslate"><span class="pre">Flow</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich._autoflow.flow.Flow.isinflow"><code class="docutils literal notranslate"><span class="pre">Flow.isinflow()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich._autoflow.flow.Flow.flow_ref"><code class="docutils literal notranslate"><span class="pre">Flow.flow_ref()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich._autoflow.flow.Flow.get_stack"><code class="docutils literal notranslate"><span class="pre">Flow.get_stack()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich._autoflow.tracer.root"><code class="docutils literal notranslate"><span class="pre">root</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich._autoflow.tracer.root.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">root.model_computed_fields</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich._autoflow.tracer.root.model_config"><code class="docutils literal notranslate"><span class="pre">root.model_config</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich._autoflow.tracer.root.model_fields"><code class="docutils literal notranslate"><span class="pre">root.model_fields</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich._autoflow.tracer.autoflow"><code class="docutils literal notranslate"><span class="pre">autoflow</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich._autoflow.tracer.autoflow.attach"><code class="docutils literal notranslate"><span class="pre">autoflow.attach()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich._autoflow.tracer.autoflow.calledby"><code class="docutils literal notranslate"><span class="pre">autoflow.calledby()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich._autoflow.tracer.traced"><code class="docutils literal notranslate"><span class="pre">traced</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich._autoflow.tracer.traced.claim"><code class="docutils literal notranslate"><span class="pre">traced.claim()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich._autoflow.tracer.tracedLike"><code class="docutils literal notranslate"><span class="pre">tracedLike</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich._autoflow.tracer.tracedLike.claim"><code class="docutils literal notranslate"><span class="pre">tracedLike.claim()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich._autoflow.tree.BadEdgeError"><code class="docutils literal notranslate"><span class="pre">BadEdgeError</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich._autoflow.tree.ExecutionTree"><code class="docutils literal notranslate"><span class="pre">ExecutionTree</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich._autoflow.tree.ExecutionTree.put_edge"><code class="docutils literal notranslate"><span class="pre">ExecutionTree.put_edge()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich._autoflow.tree.ExecutionTree.prune"><code class="docutils literal notranslate"><span class="pre">ExecutionTree.prune()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich._autoflow.tree.ExecutionTree.edges_from"><code class="docutils literal notranslate"><span class="pre">ExecutionTree.edges_from()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich._autoflow.tree.ExecutionTree.traverse"><code class="docutils literal notranslate"><span class="pre">ExecutionTree.traverse()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich._autoflow.tree.ExecutionTree.leaves"><code class="docutils literal notranslate"><span class="pre">ExecutionTree.leaves()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich._autoflow.tree.ExecutionTree.connected"><code class="docutils literal notranslate"><span class="pre">ExecutionTree.connected()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#malevich._autoflow.tree.ExecutionTree.nodes"><code class="docutils literal notranslate"><span class="pre">ExecutionTree.nodes()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/API/autoflow.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024, Malevich AI, Co.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

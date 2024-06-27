@@ -1,0 +1,640 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Processors &#8212; Malevich 0.4.0</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/style.css?v=36acc060" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="https://unpkg.com/mermaid@10.2.0/dist/mermaid.min.js"></script>
+    <script>mermaid.initialize({startOnLoad:true});</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'SDK/Apps/Processors';</script>
+    <link rel="icon" href="../../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Building Apps" href="Building.html" />
+    <link rel="prev" title="Introduction" href="Introduction.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/logo-light.svg" class="logo__image only-light" alt="Malevich 0.4.0 - Home"/>
+    <script>document.write(`<img src="../../_static/logo-dark.svg" class="logo__image only-dark" alt="Malevich 0.4.0 - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../API/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../Community/index.html">
+    Community
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../API/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../Community/index.html">
+    Community
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Projects and Environment</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../Project/Structure.html">Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Project/Dependencies.html">Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Project/CI/Github_Action.html">Automation</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Working with Data</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../Data/index.html">Introduction</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Building Apps</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Processors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Building.html">Building Apps</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Composing Flows</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../Flows/Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Flows/Autoflow.html">Autoflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Flows/Lifecycle.html">Lifecycle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Flows/Execution.html">Execution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Flows/Results.html">Working with Results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Flows/Integration.html">Integration</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Deployment</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../Deployment/WithCode.html">Python API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Deployment/Endpoints.html">User Endpoints</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">User Guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Processors</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="processors">
+<h1>Processors<a class="headerlink" href="#processors" title="Link to this heading">#</a></h1>
+<p>Processors are the core logic units of apps. They are responsible for processing
+data and generating output.</p>
+<p>Processors receive input in the form of assets, collections and their combinations. Assets can be understood
+as files or folders, while the term collection refers to tabular data. Processor can have
+multiple inputs and can output multiple objects.</p>
+<section id="how-to-define-a-processor">
+<h2>How to define a processor?<a class="headerlink" href="#how-to-define-a-processor" title="Link to this heading">#</a></h2>
+<p>To define a processor, you have to decorate a function with the <cite>&#64;processor</cite> decorator.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">malevich.square</span> <span class="kn">import</span> <span class="n">processor</span><span class="p">,</span> <span class="n">Context</span>
+
+<span class="nd">@processor</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">my_processor</span><span class="p">(</span><span class="n">input1</span><span class="p">,</span> <span class="n">input2</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
+    <span class="c1"># do something with input1 and input2</span>
+    <span class="k">return</span> <span class="n">output1</span><span class="p">,</span> <span class="n">output2</span>
+</pre></div>
+</div>
+<p>The function have to follow the following conventions:</p>
+<p>1. Each of argument but the one annotated with <code class="code docutils literal notranslate"><span class="pre">context:</span> <span class="pre">Context</span></code> has to be a reference to a particular input. The input
+can be either an output of a previous processor, a collection, or an asset.
+2. The function has to return either a single dataframe or a tuple of dataframes.</p>
+<p>Each of the input references to the output of exactly one previous processor or
+collection. Assume, the following pipeline:</p>
+<div class="mermaid">
+            graph LR
+    A[train_model] --&gt; |&quot;| model, metrics |&quot;| B[predict]
+    C[prediction_data] --&gt; B[predict]
+        </div><p>and the following code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">malevich.square</span> <span class="kn">import</span> <span class="n">processor</span>
+
+
+<span class="nd">@processor</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">train_model</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">return</span> <span class="n">model</span><span class="p">,</span> <span class="n">metrics</span>
+
+
+<span class="nd">@processor</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="n">train_outcome</span><span class="p">,</span> <span class="n">data_for_prediction</span><span class="p">):</span>
+    <span class="n">model</span><span class="p">,</span> <span class="n">metrics</span> <span class="o">=</span> <span class="n">train_outcome</span>
+    <span class="o">...</span>
+    <span class="k">return</span> <span class="n">predictions</span>
+</pre></div>
+</div>
+<p>In this case, <code class="code docutils literal notranslate"><span class="pre">train_outcome</span></code> refers to the output of <code class="code docutils literal notranslate"><span class="pre">train_model</span></code> and <code class="code docutils literal notranslate"><span class="pre">data_for_prediction</span></code> refers to data in <code class="code docutils literal notranslate"><span class="pre">prediction_data</span></code> collection.
+To access model and metrics, you have to unpack the <code class="code docutils literal notranslate"><span class="pre">train_outcome</span></code> variable.</p>
+</section>
+<section id="df-dfs-sink-and-obj">
+<h2>DF, DFS, Sink and OBJ<a class="headerlink" href="#df-dfs-sink-and-obj" title="Link to this heading">#</a></h2>
+<p>Malevich makes use of specific data types when passing data between processors. Each
+of these types denote a specific entity that processor can receive as an input or return as an output.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="../../API/square/df.html#malevich.square.df.DF" title="malevich.square.df.DF"><code class="xref py py-class docutils literal notranslate"><span class="pre">DF</span></code></a> - a single instance of tabular data. The table can follow a specific schema.</p></li>
+<li><p><a class="reference internal" href="../../API/square/df.html#malevich.square.df.DFS" title="malevich.square.df.DFS"><code class="xref py py-class docutils literal notranslate"><span class="pre">DFS</span></code></a> - a collection of tabular data. The collection can be bound by a specific number of tables or be unlimited. Also, it can impose a schema on each table.</p></li>
+<li><p><a class="reference internal" href="../../API/square/df.html#malevich.square.df.Sink" title="malevich.square.df.Sink"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sink</span></code></a> - a collection of DFS that allows you to denote a processor capable of being link to unbounded number of processors.</p></li>
+<li><p><a class="reference internal" href="../../API/square/df.html#malevich.square.df.OBJ" title="malevich.square.df.OBJ"><code class="xref py py-class docutils literal notranslate"><span class="pre">OBJ</span></code></a> - a collection of files that can hold arbitrary binary data.</p></li>
+</ul>
+<p>See, how they are applied in the following example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">malevich.square</span> <span class="kn">import</span> <span class="n">processor</span><span class="p">,</span> <span class="n">DF</span><span class="p">,</span> <span class="n">Sink</span><span class="p">,</span> <span class="n">OBJ</span><span class="p">,</span> <span class="n">obj</span>
+
+
+    <span class="nd">@processor</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">train_model</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">DF</span><span class="p">[</span><span class="s1">&#39;TrainData&#39;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">OBJ</span><span class="p">,</span> <span class="n">DF</span><span class="p">[</span><span class="s1">&#39;Metrics&#39;</span><span class="p">]]:</span>
+        <span class="o">...</span>
+        <span class="k">return</span> <span class="n">model</span><span class="p">,</span> <span class="n">metrics</span>
+
+
+    <span class="nd">@processor</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span>
+        <span class="n">train_outcome</span><span class="p">:</span> <span class="n">DFS</span><span class="p">[</span><span class="s1">&#39;obj&#39;</span><span class="p">,</span> <span class="s1">&#39;Metrics&#39;</span><span class="p">],</span>
+        <span class="n">data_for_prediction</span><span class="p">:</span> <span class="n">DF</span><span class="p">[</span><span class="s2">&quot;ValidationData&quot;</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DF</span><span class="p">[</span><span class="s2">&quot;Predictions&quot;</span><span class="p">]:</span>
+        <span class="n">model</span><span class="p">,</span> <span class="n">metrics</span> <span class="o">=</span> <span class="n">train_outcome</span>
+        <span class="o">...</span>
+        <span class="k">return</span> <span class="n">predictions</span>
+</pre></div>
+</div>
+</section>
+<section id="context-schema">
+<h2>Context schema<a class="headerlink" href="#context-schema" title="Link to this heading">#</a></h2>
+<p>You may define a schema for the context object.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">malevich.square</span> <span class="kn">import</span> <span class="n">processor</span><span class="p">,</span> <span class="n">Context</span><span class="p">,</span> <span class="n">schema</span>
+
+<span class="nd">@schema</span><span class="p">()</span>   <span class="c1"># Makes the class pydantic</span>
+<span class="k">class</span> <span class="nc">MySchema</span><span class="p">:</span>
+    <span class="n">param1</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">param2</span><span class="p">:</span> <span class="nb">int</span>
+
+<span class="nd">@processor</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">my_processor</span><span class="p">(</span><span class="n">input1</span><span class="p">,</span> <span class="n">input2</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Context</span><span class="p">[</span><span class="n">MySchema</span><span class="p">]):</span>
+    <span class="n">context</span><span class="o">.</span><span class="n">app_cfg</span><span class="o">.</span><span class="n">param1</span> <span class="c1"># Access to the app configuration as a model</span>
+</pre></div>
+</div>
+</section>
+<section id="dataframe-schema">
+<h2>Dataframe schema<a class="headerlink" href="#dataframe-schema" title="Link to this heading">#</a></h2>
+<p>Also, you may define a schema for the dataframe. You may use primitive types
+to define columns you expect in the dataframe.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">malevich.square</span> <span class="kn">import</span> <span class="n">processor</span><span class="p">,</span> <span class="n">DF</span><span class="p">,</span> <span class="n">schema</span>
+
+<span class="nd">@schema</span><span class="p">()</span>
+<span class="k">class</span> <span class="nc">MySchema</span><span class="p">:</span>
+    <span class="n">total</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">title</span><span class="p">:</span> <span class="nb">int</span>
+
+<span class="nd">@processor</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">my_processor</span><span class="p">(</span><span class="n">input1</span><span class="p">:</span> <span class="n">DF</span><span class="p">[</span><span class="n">MySchema</span><span class="p">],</span> <span class="n">input2</span><span class="p">:</span> <span class="n">DF</span><span class="p">[</span><span class="n">MySchema</span><span class="p">]):</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<p>The inputs will be validated and remapped if possible. For example, the processor
+was called with a dataframe with columns <cite>num_elements</cite> of type <cite>int</cite>, and <cite>text</cite> of type <cite>str</cite>, the processor will
+remap the columns to <cite>title</cite> and <cite>total</cite> respectively.</p>
+<p>The rules of remapping are as follows:</p>
+<ol class="arabic simple">
+<li><p>If the number of columns are the same, and the order of column types is the same, the columns will be remapped.</p></li>
+<li><p>Columns with the same name will be mapped to each other, the rest will be mapped by the first rule.</p></li>
+</ol>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="Introduction.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Introduction</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="Building.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Building Apps</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-to-define-a-processor">How to define a processor?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#df-dfs-sink-and-obj">DF, DFS, Sink and OBJ</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#context-schema">Context schema</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dataframe-schema">Dataframe schema</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../../_sources/SDK/Apps/Processors.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024, Malevich AI, Co.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

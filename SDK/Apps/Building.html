@@ -1,0 +1,736 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Building Apps &#8212; Malevich 0.4.0</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/style.css?v=36acc060" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'SDK/Apps/Building';</script>
+    <link rel="icon" href="../../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Introduction" href="../Flows/Introduction.html" />
+    <link rel="prev" title="Processors" href="Processors.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/logo-light.svg" class="logo__image only-light" alt="Malevich 0.4.0 - Home"/>
+    <script>document.write(`<img src="../../_static/logo-dark.svg" class="logo__image only-dark" alt="Malevich 0.4.0 - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../API/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../Community/index.html">
+    Community
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../API/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../Community/index.html">
+    Community
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Projects and Environment</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../Project/Structure.html">Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Project/Dependencies.html">Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Project/CI/Github_Action.html">Automation</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Working with Data</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../Data/index.html">Introduction</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Building Apps</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Processors.html">Processors</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Building Apps</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Composing Flows</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../Flows/Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Flows/Autoflow.html">Autoflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Flows/Lifecycle.html">Lifecycle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Flows/Execution.html">Execution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Flows/Results.html">Working with Results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Flows/Integration.html">Integration</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Deployment</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../Deployment/WithCode.html">Python API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Deployment/Endpoints.html">User Endpoints</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">User Guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Building Apps</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="building-apps">
+<h1>Building Apps<a class="headerlink" href="#building-apps" title="Link to this heading">#</a></h1>
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">#</a></h2>
+<p>To successfully build and run your first app, ensure you have the following:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://www.docker.com/">Docker</a> installed and operational. You will use Docker to create an environment for your app.</p></li>
+<li><p>The <a class="reference external" href="https://github.com/MalevichAI/malevich">Malevich Package</a> installed. This is where all the magic happens. Install it using:</p></li>
+</ul>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">pip install malevich</span>
+</pre></div>
+</div>
+</section>
+<section id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading">#</a></h2>
+<p>If you are not yet familiar with <a class="reference internal" href="Introduction.html"><span class="doc">apps</span></a> or <a class="reference internal" href="Processors.html"><span class="doc">processors</span></a>, please review the corresponding pages first.
+Let’s create an app by running the following command:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">malevich new example_app</span>
+</pre></div>
+</div>
+<p>This command generates a new directory named <code class="docutils literal notranslate"><span class="pre">example_app</span></code> with the following structure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>example_app/
+├─ apps/
+│  ├─ processors.py
+├─ Dockerfile
+├─ flow.py
+├─ README.md
+├─ requirements.txt
+</pre></div>
+</div>
+<p>The <code class="code docutils literal notranslate"><span class="pre">processors.py</span></code> file includes processors that become available once you build and push your app. The <code class="code docutils literal notranslate"><span class="pre">flow.py</span></code> file showcases an example flow that can be executed using your apps. For more information, refer to the <code class="code docutils literal notranslate"><span class="pre">README.md</span></code> file generated alongside the app.</p>
+</section>
+<section id="building-an-app">
+<h2>Building an App<a class="headerlink" href="#building-an-app" title="Link to this heading">#</a></h2>
+<p>To make your app available for use, it must be built. Ensure you have <a class="reference external" href="https://www.docker.com/">Docker</a> installed and running. Build your app with this command:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">cd example_app</span>
+<span class="go">docker build -t example_app .</span>
+</pre></div>
+</div>
+</section>
+<section id="publishing-an-app">
+<h2>Publishing an App<a class="headerlink" href="#publishing-an-app" title="Link to this heading">#</a></h2>
+<p>After building your app, it needs to be pushed to a registry. When you run a flow including your app, Malevich’s cloud service will pull the image from this registry and execute it in a container.</p>
+<p>To prototype your app, create a public repository on <a class="reference external" href="https://hub.docker.com/">Docker Hub</a>. Pushing to Docker Hub is free and straightforward.</p>
+<p>Push your app to the registry by first logging in:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">docker login</span>
+</pre></div>
+</div>
+<p>Next, tag your image:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">docker tag example_app &lt;your-docker-hub-username&gt;/example_app</span>
+</pre></div>
+</div>
+<p>Finally, push it:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">docker push &lt;your-docker-hub-username&gt;/example_app</span>
+</pre></div>
+</div>
+</section>
+<section id="installing-an-app">
+<h2>Installing an App<a class="headerlink" href="#installing-an-app" title="Link to this heading">#</a></h2>
+<p>Your app is now ready for execution in Malevich’s cloud. Install it to provide the cloud with necessary information by running this command:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">malevich use image example_app &lt;your-docker-hub-username&gt;/example_app</span>
+</pre></div>
+</div>
+<p>In case you have a private registry, you have to provide your credentials, so that Malevich’s cloud can pull the image from the registry. To do so, run the following command:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">malevich use image example_app &lt;your-docker-hub-username&gt;/example_app &lt;your-docker-hub-username&gt; &lt;your-docker-hub-password&gt;</span>
+</pre></div>
+</div>
+<p>Read more about <a class="reference internal" href="../Project/Dependencies.html"><span class="doc">dependency management</span></a></p>
+</section>
+<section id="running-a-flow">
+<h2>Running a Flow<a class="headerlink" href="#running-a-flow" title="Link to this heading">#</a></h2>
+<p>Your app is now accessible within flows! To use the provided processors, import them and set up a flow as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="kn">from</span> <span class="nn">malevich</span> <span class="kn">import</span> <span class="n">CoreInterpreter</span><span class="p">,</span> <span class="n">collection</span><span class="p">,</span> <span class="n">flow</span>
+<span class="kn">from</span> <span class="nn">malevich.example_app</span> <span class="kn">import</span> <span class="n">find_pattern</span>
+
+
+<span class="nd">@flow</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">find_direct_speech</span><span class="p">():</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">collection</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Example Text&#39;</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="p">{</span><span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;This is a regular text&quot;</span><span class="p">,</span> <span class="s2">&quot;&#39;Hi!&#39;, said Alice&quot;</span><span class="p">]}</span>
+        <span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">find_pattern</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;pattern&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;&#39;.+&#39;&quot;</span><span class="p">})</span>
+
+
+<span class="n">task</span> <span class="o">=</span> <span class="n">find_direct_speech</span><span class="p">()</span>
+<span class="n">task</span><span class="o">.</span><span class="n">interpret</span><span class="p">(</span><span class="n">CoreInterpreter</span><span class="p">(</span><span class="n">core_auth</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;example&#39;</span><span class="p">,</span> <span class="s1">&#39;Welcome to Malevich!&#39;</span><span class="p">)))</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">task</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_df</span><span class="p">()</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>Executing this flow will run the <code class="code docutils literal notranslate"><span class="pre">check_malevich</span></code> processor and output the result. Visit the Flows section for more details on their usage and capabilities.</p>
+</section>
+<section id="inputs-and-outputs">
+<h2>Inputs and Outputs<a class="headerlink" href="#inputs-and-outputs" title="Link to this heading">#</a></h2>
+<p>Each processor specifies its expected inputs and outputs. Inputs are defined through function arguments, which can be annotated with types such as <a class="reference internal" href="../../API/square/df.html#malevich.square.df.DF" title="malevich.square.df.DF"><code class="xref py py-class docutils literal notranslate"><span class="pre">DF</span></code></a>, <a class="reference internal" href="../../API/square/df.html#malevich.square.df.DFS" title="malevich.square.df.DFS"><code class="xref py py-class docutils literal notranslate"><span class="pre">DFS</span></code></a>, <a class="reference internal" href="../../API/square/df.html#malevich.square.df.OBJ" title="malevich.square.df.OBJ"><code class="xref py py-class docutils literal notranslate"><span class="pre">OBJ</span></code></a>, and <a class="reference internal" href="../../API/square/df.html#malevich.square.df.Sink" title="malevich.square.df.Sink"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sink</span></code></a>. These types help define how data should be handled within flows.</p>
+<p>Processors are designed to be linked together in flows, where one’s outputs feed into another’s inputs. Each processor input corresponds to precisely one output of another processor. When a processor returns multiple outputs, they are bundled into a <a class="reference internal" href="../../API/square/df.html#malevich.square.df.DFS" title="malevich.square.df.DFS"><code class="xref py py-class docutils literal notranslate"><span class="pre">DFS</span></code></a> object associated with a single input. Processors may also connect to data sources such as collections or assets; each source must link to a distinct processor input.</p>
+<p>An exception occurs when a processor has only one input annotated as <a class="reference internal" href="../../API/square/df.html#malevich.square.df.Sink" title="malevich.square.df.Sink"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sink</span></code></a>. These processors cannot receive data directly from sources but can accept inputs from an unlimited number of other processors.</p>
+<p>Below are examples of processors with various configurations of inputs and outputs:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">malevich</span> <span class="kn">import</span> <span class="n">processor</span><span class="p">,</span> <span class="n">DF</span><span class="p">,</span> <span class="n">DFS</span><span class="p">,</span> <span class="n">Sink</span><span class="p">,</span> <span class="n">OBJ</span>
+
+<span class="nd">@processor</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">only_df</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DF</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This processor can be connected to processors that</span>
+<span class="sd">    produce only a single data frame, or to a data source.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">df</span>
+
+<span class="nd">@processor</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">only_dfs</span><span class="p">(</span><span class="n">dfs</span><span class="p">:</span> <span class="n">DFS</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This processor can be connected to processors that</span>
+<span class="sd">    return any number of data frames, and still can be</span>
+<span class="sd">    connected to a data source.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">dfs</span>
+
+<span class="nd">@processor</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">two_dfs</span><span class="p">(</span><span class="n">dfs1</span><span class="p">:</span> <span class="n">DFS</span><span class="p">,</span> <span class="n">dfs2</span><span class="p">:</span> <span class="n">DFS</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This processor can be connected to processors that</span>
+<span class="sd">    return any number of data frames. Each of the inputs</span>
+<span class="sd">    can be connected to a data source.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">dfs1</span><span class="p">,</span> <span class="n">dfs2</span>
+
+<span class="nd">@processor</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">df_and_dfs</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DF</span><span class="p">,</span> <span class="n">dfs</span><span class="p">:</span> <span class="n">DFS</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This processor can be connected to two processors.</span>
+<span class="sd">    The first one should return a single data frame, the</span>
+<span class="sd">    second one should return any number of data frames.</span>
+
+<span class="sd">    Still, each of the inputs can be connected to a data source.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">df</span><span class="p">,</span> <span class="n">dfs</span>
+
+<span class="nd">@processor</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">df_and_sink</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DF</span><span class="p">,</span> <span class="n">sink</span><span class="p">:</span> <span class="n">Sink</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This processor can be connected to any amount of processors.</span>
+<span class="sd">    The first processor connected to it should return a single</span>
+<span class="sd">    data frame, the rest of the processors can return any.</span>
+
+<span class="sd">    A data source can be only to `df` input.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">df</span><span class="p">,</span> <span class="n">sink</span>
+
+<span class="nd">@processor</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">sink_df</span><span class="p">(</span><span class="n">sink</span><span class="p">:</span> <span class="n">Sink</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">DF</span><span class="p">,</span> <span class="n">dfs</span><span class="p">:</span> <span class="n">DFS</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This processor can be connected to any amount of processors.</span>
+<span class="sd">    The last processor connected can return any number of data frames,</span>
+<span class="sd">    while the one before it should return a single data frame. The</span>
+<span class="sd">    rest of the processors can return any. The minimum amount of</span>
+<span class="sd">    processors connected to this one is 3.</span>
+
+<span class="sd">    A data source can be only to `df` and `dfs` inputs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">dfs</span><span class="p">,</span> <span class="n">sink</span>
+
+
+<span class="nd">@processor</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">asset_and_df</span><span class="p">(</span><span class="n">asset</span><span class="p">:</span> <span class="n">OBJ</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">DF</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This processor can be connected to two processors</span>
+<span class="sd">    or data sources. The first one should return an asset,</span>
+<span class="sd">    while the second one should return a single data frame (or asset, see below).</span>
+
+<span class="sd">    The first data source should be a file or a folder, while</span>
+<span class="sd">    the second one can be any.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">asset</span><span class="p">,</span> <span class="n">df</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>An argument of type <a class="reference internal" href="../../API/square/df.html#malevich.square.df.DF" title="malevich.square.df.DF"><code class="xref py py-class docutils literal notranslate"><span class="pre">DF</span></code></a> can also accept an asset (a <a class="reference internal" href="../../API/square/df.html#malevich.square.df.OBJ" title="malevich.square.df.OBJ"><code class="xref py py-class docutils literal notranslate"><span class="pre">OBJ</span></code></a> object), which will be converted into a dataframe with a single column named <a class="reference internal" href="../../API/square/df.html#malevich.square.df.OBJ.path" title="malevich.square.df.OBJ.path"><code class="xref py py-attr docutils literal notranslate"><span class="pre">path</span></code></a> containing file paths from the asset. The relevant schema is known as <code class="xref py py-class docutils literal notranslate"><span class="pre">obj</span></code>, which indicates the expected conversion.</p>
+</div>
+</section>
+<section id="app-configuration">
+<h2>App Configuration<a class="headerlink" href="#app-configuration" title="Link to this heading">#</a></h2>
+<p>Applications may accept user-defined configurations when running a flow by including an argument explicitly annotated with <a class="reference internal" href="../../API/square/utils.html#malevich.square.utils.Context" title="malevich.square.utils.Context"><code class="xref py py-class docutils literal notranslate"><span class="pre">Context</span></code></a>. This configuration resides within the context’s <code class="xref py py-attr docutils literal notranslate"><span class="pre">app_cfg</span></code> attribute.</p>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">malevich</span> <span class="kn">import</span> <span class="n">processor</span><span class="p">,</span> <span class="n">DF</span><span class="p">,</span> <span class="n">Context</span>
+
+<span class="nd">@processor</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">get_slice</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DF</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Context is a special argument that can be used to access</span>
+<span class="sd">    the configuration of the app. Also, it contains</span>
+<span class="sd">    useful information about the environment and utilities</span>
+<span class="sd">    to interact with it. See the API reference for more details.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">slice_start</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">app_cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;slice_start&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">slice_end</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">app_cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;slice_end&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">slice_start</span><span class="p">:</span><span class="n">slice_end</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Then configure your app when executing a flow like this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">malevich.example_app</span> <span class="kn">import</span> <span class="n">get_slice</span>
+<span class="kn">from</span> <span class="nn">malevich</span> <span class="kn">import</span> <span class="n">collection</span><span class="p">,</span> <span class="n">flow</span>
+
+<span class="nd">@flow</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">example_flow</span><span class="p">():</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">collection</span><span class="p">(</span><span class="s1">&#39;Example data&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="s1">&#39;data.csv&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">get_slice</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;slice_start&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s1">&#39;slice_end&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">})</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="Processors.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Processors</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../Flows/Introduction.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Introduction</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites">Prerequisites</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#getting-started">Getting Started</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#building-an-app">Building an App</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#publishing-an-app">Publishing an App</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installing-an-app">Installing an App</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running-a-flow">Running a Flow</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs-and-outputs">Inputs and Outputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#app-configuration">App Configuration</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../../_sources/SDK/Apps/Building.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024, Malevich AI, Co.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
