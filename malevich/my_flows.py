@@ -14,8 +14,8 @@ class FlowFunctionStub(Generic[ProcFunArgs, ProcFunReturn]):
 
     def _fn_call(
             self,
-            version,
-            branch,
+            version=None,
+            branch=None,
             *,
             run_deployment_id: str | None = None,
             run_task_policy: Literal['only_use', 'use_or_new', 'no_use']='use_or_new',

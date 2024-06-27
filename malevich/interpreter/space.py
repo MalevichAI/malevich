@@ -730,6 +730,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
                 reverse_id=reverse_id
             )
         )
+
         if flow_uid and component.flow is not None:
             component.flow = self._state.space.get_flow(flow_uid)
 
