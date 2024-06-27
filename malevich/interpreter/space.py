@@ -739,7 +739,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
 
             else:
                 tasks = self._state.space.get_deployments_by_flow(
-                    flow_id=component,
+                    flow_id=component.flow.uid,
                     status=["started"]
                 )
                 if len(tasks) > 0:
