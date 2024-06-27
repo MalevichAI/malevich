@@ -39,10 +39,11 @@ class FlowFunctionStub(Generic[ProcFunArgs, ProcFunReturn]):
             data = kwargs.get(col.alias, None)
             if data is not None:
                 overrides[col.alias] = data
-        if not wait_for_results:
-            return task.run(overrides=overrides)
+        if wait_for_results:
+            return task.results()
 
-        return task.results()
+        return task.run(overrides=overrides)
+
 
     __call__ = _fn_call
 
