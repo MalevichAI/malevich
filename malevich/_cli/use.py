@@ -6,8 +6,6 @@ import typer
 from malevich_space.schema import LoadedComponentSchema
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-from ..models.dependency import Integration
-
 from .._deploy import Space
 from ..constants import (
     DEFAULT_CORE_HOST,
@@ -18,6 +16,7 @@ from ..install.flow import FlowInstaller
 from ..install.image import ImageInstaller
 from ..install.space import SpaceInstaller
 from ..manifest import ManifestManager
+from ..models.dependency import Integration
 
 use = typer.Typer(help=help['--help'], rich_markup_mode="rich")
 
@@ -177,8 +176,10 @@ def _install_from_space(
                     branch=branch
                 )
                 version_name = task.component.version.readable_name
+                branch_name = task.component.branch.name
                 mappings = {}
                 injectables = task.get_injectables()
+                print("In Use.py: ", injectables)
                 for col in injectables:
                     mappings[underscored(col.alias)] = col.alias
 
@@ -186,7 +187,8 @@ def _install_from_space(
                     mapping=mappings,
                     version=version_name,
                     deployment=deployment_id,
-                    injectables=injectables
+                    injectables=injectables,
+                    branch = branch_name
                 )
 
                 manf_flows = manifest_manager.query('flows')

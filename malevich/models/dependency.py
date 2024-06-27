@@ -30,6 +30,7 @@ class Dependency(BaseModel):
 
 class Integration(BaseModel):
     version: Optional[str] = None
+    branch: Optional[str] = None
     mapping: dict[str, str] = {}
     deployment: Optional[str] = None
     injectables: list[SpaceInjectable] = []

@@ -17,6 +17,8 @@ class FlowStub:
             loader=FileSystemLoader(Paths.templates('metascript', 'flow_stub'))
         )
 
+        for i in integrations:
+            print(i.injectables)
         with open(install_path, 'w+') as f:
             f.write(
                 environment.get_template('body.jinja2').render(

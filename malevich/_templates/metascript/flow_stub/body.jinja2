@@ -4,14 +4,15 @@
     {%- include "stub.jinja2" -%}
 {%- endfor %}
 
+{% with i = integrations | first %}
 def {{reverse_id}}(
-    version: Literal['{{version}}'],
-    branch: Literal['{{branch}}'],
+    version: Literal['{{i.version}}'],
+    branch: Literal['{{i.branch}}'],
     *,
     run_deployment_id: str | None = None,
     run_task_policy: Literal['only_use'] | Literal['use_or_new'] = 'use_or_new',
-    get_task: bool = True
-    wait_for_results: bool = True
+    get_task: bool = True,
+    wait_for_results: bool = True,
     **kwargs,
 ):
     task = Space(
@@ -34,3 +35,4 @@ def {{reverse_id}}(
         return task.run(overrides=overrides)
     
     return task.results()
+{% endwith %}
