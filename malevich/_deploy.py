@@ -1,11 +1,14 @@
 from typing import Any, Literal, ParamSpec, overload
 
+from gql import gql
 from malevich_space.ops import SpaceOps
 from malevich_space.schema import SpaceSetup
 from malevich_space.schema.version_mode import VersionMode
+import rich
 from rich.prompt import Prompt
 
 from malevich.core_api import check_auth
+from malevich_coretools.abstract.statuses import AppStatus
 
 from ._cli.space.login import login
 from ._utility.space.get_core_creds import (
@@ -107,11 +110,10 @@ class Space:
         # version_mode: VersionMode = VersionMode.MINOR,
         reverse_id: str | None = None,
         deployment_id: str | None = None,
-        attach_to_last: bool | None = None,
         branch: str | None = None,
         version: str | None = None,
         ops: SpaceOps | None = None,
-        policy: Literal['only_use', 'use_or_new']= 'use_or_new',
+        policy: Literal['no_use', 'only_use', 'use_or_new'] = 'use_or_new',
         *task_args,
         **task_kwargs
     ) -> SpaceTask:
@@ -176,24 +178,72 @@ class Space:
             reverse_id = task._component.reverse_id
 
         if task is None:
+            if deployment_id is None and policy != 'no_use':
+                query = gql("""query GetTasksForFlow($flow_id: String!) {
+                    tasks {
+                        flow(uid: $flow_id) {
+                        edges {
+                            node {
+                            details {
+                                bootState
+                                uid
+                                lastRunnedAt
+                                lastBootedAt
+                            }
+                            }
+                        }
+                        }
+                    }
+                }""")
+                tasks = ops.client.execute(query, variable_values={'flow_id': uid})
+                tasks = tasks['tasks']['flow']['edges']
+                if not tasks:
+                    raise Exception("No active tasks found.")
+
+                tasks = [task['node']['details'] for task in tasks]
+                tasks = [task for task in tasks if task['bootState'] == 'started']
+                tasks.sort(key=lambda x: x['lastBootedAt'], reverse=True)
+
+                if not tasks and policy == 'only_use':
+                    raise Exception(
+                        "Policy was set to 'use_only' but no active tasks found. "
+                        "Consider setting policy to 'use_or_new' (to create a new task)"
+                        " or 'no_use' (to skip using existing tasks)."
+                    )
+                elif not tasks:
+                    deployment_id = None
+                else:
+                    deployment_id = tasks[0]['uid']
+                    deployment_link = (
+                        ops.space_setup.api_url.replace('api', 'space').rstrip('/')
+                        + f'/deployments?task={deployment_id}'
+                    )
+                    rich.print(
+                        f"Connected [yellow]{reverse_id}[/yellow] to deployment "
+                        f"[blue]{deployment_id}[/blue]. (Policy: {policy})"
+                        "\n"
+                        f"Visit on [bold magenta][link={deployment_link}]Malevich Space[/link][/bold magenta]. "  # noqa: E501
+                        "\n\n\n"
+                    )
+
+
             task = interpreter.attach(
                 reverse_id=reverse_id,
                 flow_uid=uid,
                 deployment_id=deployment_id
             )
+
             if task.get_stage().value != 'started':
                 if policy == 'only_use':
-                    if deployment_id is not None:
-                        raise Exception(
-                            f"The deployment with ID {deployment_id} is not active while "
-                            "policy was set to USE_ONLY."
-                        )
-                    else:
-                        raise Exception(
-                            "No active tasks found for USE_ONLY_POLICY."
-                        )
+                    raise Exception(
+                        "Policy was set to 'use_only' but task is not active. "
+                        "Consider setting policy to 'use_or_new' (to create a new task)"
+                        " or 'no_use' (to skip using existing tasks)."
+                    )
                 else:
+                    rich.print("No active task found. Creating a new task.")
                     task.prepare()
+                    rich.print(f"Created new task [blue]{task.state.aux.task_id}[/blue].")  # noqa: E501
             return task
 
         task.interpret(interpreter)
