@@ -1,4 +1,6 @@
 import enum
+import importlib
+import json
 import pickle
 import uuid
 import warnings
@@ -8,7 +10,10 @@ from typing import Any, Iterable, Literal, Optional, Type
 import malevich_coretools as core
 import pandas as pd
 from malevich_space.schema import ComponentSchema
+from pydantic import BaseModel, ValidationError
 
+from malevich._meta import table
+from ...._utility.core_logging import IgnoreCoreLogs
 from malevich.models.endpoint import MetaEndpoint
 from malevich.models.types import FlowOutput
 
@@ -18,7 +23,9 @@ from ...._core.ops import (
     batch_create_tasks,
     batch_upload_collections,
 )
+from ...._meta.decor import ProcessorFunction
 from ...._utility.logging import LogLevel, cout
+from ...._utility.package import package_manager
 from ....interpreter.abstract import Interpreter
 from ...actions import Action
 from ...collection import Collection
@@ -87,25 +94,26 @@ class CoreTask(BaseTask):
     ) -> None:
         auth = auth or self.state.params.core_auth
         conn_url = conn_url or self.state.params.core_host
-        try:
-            cfg_ = core.get_cfg(
-                kwargs['cfg_id'],
-                auth=auth,
-                conn_url=conn_url
-            ).id
-        except Exception:
-            core.create_cfg(
-                **kwargs,
-                auth=auth,
-                conn_url=conn_url
-            )
-        else:
-            core.update_cfg(
-                cfg_,
-                auth=auth,
-                conn_url=conn_url,
-                **kwargs
-            )
+        with IgnoreCoreLogs():
+            try:
+                cfg_ = core.get_cfg(
+                    kwargs['cfg_id'],
+                    auth=auth,
+                    conn_url=conn_url
+                ).id
+            except Exception:
+                core.create_cfg(
+                    **kwargs,
+                    auth=auth,
+                    conn_url=conn_url
+                )
+            else:
+                core.update_cfg(
+                    cfg_,
+                    auth=auth,
+                    conn_url=conn_url,
+                    **kwargs
+                )
 
     def get_stage(self) -> CoreTaskStage:
         if self.state.params.operation_id is not None:
@@ -133,17 +141,42 @@ class CoreTask(BaseTask):
         return CoreTaskStage.NO_TASK
 
     def get_stage_class(self) -> Type[CoreTaskStage]:
-        pass
+        return CoreTaskStage
+
+    def _configure(
+        self,
+        operation: str,
+        # Configurable parameters
+        platform: str = 'base',
+        platform_settings: Optional[dict[str, Any]] = None,
+        # Rest of the parameters for compatibility
+        **kwargs
+    ) -> None:
+        """internal"""
+        assert platform in ['base', 'vast'], f"Platform {platform} is not supported. "
+        cout(
+            message=f"Configure {operation}: platform={platform}, platform_settings={platform_settings}",  # noqa: E501
+            action=Action.Interpretation,
+            verbosity=VerbosityLevel.OnlyStatus,
+        )
+        uuid_ = {
+            k.alias: k.uuid
+            for k in self.state.ops.values()
+        }[operation]
+
+        self.state.app_args[uuid_]['platform'] = platform
+        if platform_settings:
+            self.state.app_args[uuid_]['platform_settings'] = platform_settings
 
     def configure(
-            self,
-            operation: str,
-            # Configurable parameters
-            platform: str = 'base',
-            platform_settings: Optional[dict[str, Any]] = None,
-            # Rest of the parameters for compatibility
-            **kwargs
-        ) -> None:
+        self,
+        *operations: str,
+        # Configurable parameters
+        platform: str = 'base',
+        platform_settings: Optional[dict[str, Any]] = None,
+        # Rest of the parameters for compatibility
+        **kwargs
+    ) -> None:
         """Configures the operation on Malevich Core
 
         Available configurations
@@ -161,17 +194,50 @@ class CoreTask(BaseTask):
         `base`. To use the `vast` platform, set the value to `vast` and configure
         it with `malevich.core_api.vast_settings`.
         """
-        assert platform in [
-            'base', 'vast'], f"Platform {platform} is not supported. "
+        for o in operations:
+            self._configure(
+                o,
+                platform=platform,
+                platform_settings=platform_settings,
+                **kwargs
+            )
 
-        uuid_ = {
-            k.alias: k.uuid
-            for k in self.state.ops.values()
-        }[operation]
+    def _validate_proc_cfg_ext(
+        self,
+        package_id: str,
+        processor_id: str,
+        config_extension,
+    ):
+        """internal"""
+        try:
+            package_manager.get_package(package_id)
+            module = importlib.import_module(f'malevich.{package_id}')
+        except Exception:
+            return None
+        if not hasattr(module, processor_id):
+            return None
+        proc_stub = getattr(module, processor_id)
+        if not isinstance(proc_stub, ProcessorFunction):
+            return None
 
-        self.state.app_args[uuid_]['platform'] = platform
-        if platform_settings:
-            self.state.app_args[uuid_]['platform_settings'] = platform_settings
+        if isinstance(proc_stub.config, BaseModel) and isinstance(config_extension, BaseModel):  # noqa: E501
+            return type(proc_stub.config) == type(config_extension)
+        else:
+            return True
+
+    def _get_config_model(self, package_id: str, processor_id: str) -> BaseModel | None:
+        try:
+            module = importlib.import_module(f'malevich.{package_id}')
+        except ImportError:
+            return None
+
+        proc_stub = getattr(module, processor_id)
+        if isinstance(proc_stub, ProcessorFunction):
+            if issubclass(proc_stub.config, BaseModel):
+                return proc_stub.config
+        return None
+
+
 
     def prepare(
         self,
@@ -242,18 +308,19 @@ class CoreTask(BaseTask):
                 ).operationId
             except (Exception, KeyboardInterrupt) as e:
                 # Cleanup
-                core.task_stop(
-                    self.state.params.task_id,
-                    auth=self.state.params.core_auth,
-                    conn_url=self.state.params.core_host,
-                )
+                # core.task_stop(
+                #     self.state.params.task_id,
+                #     auth=self.state.params.core_auth,
+                #     conn_url=self.state.params.core_host,
+                # )
                 raise e
 
         return self.state.params.task_id, self.state.params.operation_id
 
     def run(
         self,
-        override: dict[str, pd.DataFrame] | None = None,
+        override: dict[str, table] | None = None,
+        config_extension: dict[str, dict[str, Any] | BaseModel] | None = None,
         run_id: Optional[str] = None,
         detached: bool = False,
         *args,
@@ -297,7 +364,7 @@ class CoreTask(BaseTask):
         if override:
             collections = [
                 Collection(
-                    collection_id=f'core-interpreter-override-{k}-{run_id}',
+                    collection_id=f'core_interpreter_override_{k}_{run_id}',
                     collection_data=v,
                     persistent=False
                 ) for k, v in override.items()
@@ -336,14 +403,77 @@ class CoreTask(BaseTask):
             ) for s in _cfg.app_settings
         ]
 
+        app_cfg_extensions = {}
+        if config_extension:
+            for alias, extension in config_extension.items():
+                for x in self.state.ops.values():
+                    if isinstance(x, OperationNode) and x.alias == alias:
+                        config_model: BaseModel | None = self._get_config_model(
+                            x.package_id,
+                            x.processor_id
+                        )
+                        if not isinstance(extension, BaseModel) and not isinstance(extension, dict):  # noqa: E501
+                            _expected = "dictionary"
+                            if config_model is not None and isinstance(config_model, BaseModel):  # noqa: E501
+                                _expected += f'or {type(config_model).__name__}'
+
+                            raise ValueError(
+                                "Invalid type for config extension. "
+                                f"Expected {_expected}, but found {type(extension).__name__} "  # noqa: E501
+                                f"for alias {x.alias}, processor {x.processor_id} and "
+                                f"package {x.package_id}."
+                            )
+
+                        if config_model is not None:
+                            try:
+                                config_model(**{
+                                    **self.state.app_args[x.uuid]['app_cfg'],
+                                    **(extension if isinstance(extension, dict)
+                                                 else extension.model_dump()
+                                      )
+                                })
+                            except ValidationError as e:
+                                raise ValueError(
+                                    "Failed to extend the configuration "
+                                    f"for processor {x.processor_id} with alias"
+                                    f" {x.alias}. New configuration do not comprise "
+                                    "to the schema of the processor of the config. "
+                                    "See validation errors above."
+                                ) from e
+                            if (
+                                config_model is not None
+                                and issubclass(config_model, BaseModel)
+                                and not issubclass(config_model,  type(extension))
+                            ):
+                                raise ValueError(
+                                    "Failed to extend the configuration "
+                                    f"for processor {x.processor_id} with alias"
+                                    f" {x.alias}. Expected {config_model.__name__}, "
+                                    f"but the configuration extenstion is {type(extension).__name__}"  # noqa: E501
+                                )
+
+                        if isinstance(extension, BaseModel):
+                            extension_json = extension.model_dump_json()
+                        elif isinstance(extension, dict):
+                            extension_json = json.dumps(extension)
+                        else:
+                            # ok, validates before
+                            pass
+
+                        app_cfg_extensions[
+                            self.state.core_ops[x.uuid] + '$'
+                            + self.state.core_ops[x.uuid]
+                        ] = extension_json
+
         try:
-            if real_overrides:
+            if real_overrides or app_cfg_extensions:
                 _cfg.collections = {
                     **_cfg.collections,
                     **real_overrides,
                 }
                 _cfg_id = self.config_kwargs['cfg_id'] + \
                     '-overridden' + uuid.uuid4().hex
+                _cfg.app_cfg_extension = app_cfg_extensions
                 self._create_cfg_safe(
                     cfg_id=_cfg_id,
                     cfg=_cfg,
@@ -372,11 +502,11 @@ class CoreTask(BaseTask):
                 )
         except (Exception, KeyboardInterrupt) as e:
             # Cleanup
-            core.task_stop(
-                self.state.params.operation_id,
-                auth=self.state.params.core_auth,
-                conn_url=self.state.params.core_host,
-            )
+            # core.task_stop(
+            #     self.state.params.operation_id,
+            #     auth=self.state.params.core_auth,
+            #     conn_url=self.state.params.core_host,
+            # )
             raise e
         return self.run_id
 
@@ -432,8 +562,11 @@ class CoreTask(BaseTask):
             temp_returned = []
             for r in li:
                 if isinstance(r.owner, TreeNode):
+                    local_results = r.owner.results
+                    if not isinstance(local_results, list):
+                        local_results = [local_results]
                     temp_returned.extend(
-                        _deflat(r.owner.results)
+                        _deflat(local_results)
                     )
                 else:
                     temp_returned.append(r)
@@ -627,16 +760,17 @@ class CoreTask(BaseTask):
         injectables = self.get_injectables()
         schemes = []
         for inj in injectables:
+            extra_uuid = uuid.uuid4().hex[:4]
             try:
                 core.create_scheme(
                     inj.node.scheme,
-                    name=f'meta_scheme_{inj.node.collection.magic()}',
+                    name=f'meta_scheme_{inj.node.collection.magic()}_{extra_uuid}',
                     auth=self.state.params.core_auth,
                     conn_url=self.state.params.core_host,
                 )
             except Exception:
                 pass
-            schemes.append(f'meta_scheme_{inj.node.collection.magic()}')
+            schemes.append(f'meta_scheme_{inj.node.collection.magic()}_{extra_uuid}')
 
         if 'prepare' not in kwargs:
             kwargs['prepare'] = True

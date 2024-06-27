@@ -1,0 +1,14 @@
+@integration(
+    mapping={{integration.mapping}},
+    version="{{integration.version}}",
+    reverse_id="{{reverse_id}}"
+)
+@overload
+def {{reverse_id}}(
+    version: Literal['{{integration.version}}'],
+    {%- with injectables=integration.injectables -%}
+        {% include "args.jinja2" %}
+    {%- endwith %}
+    get_task=False
+) -> list[SpaceCollectionResult] | SpaceTask | OperationNode:
+    ...

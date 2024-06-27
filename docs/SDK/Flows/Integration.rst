@@ -1,51 +1,87 @@
-=================
-Flows Integration
-=================
+==================
+Integration
+==================
 
-A flow can be easily installed in Malevich project and then be used as a
-standalone function.
+A flow can be easily integrated into your application. To do this, you should install the flow using
+``malevich install <flow_reverse_id>`` command. The command will generate a stub for the flow in the
+``malevich.flows`` module. The stub can be imported and used as a regular function.
 
-To install the flow, run the installation command:
+Let's assume you developed a flow for inferencing a vision transformer model. The flow is defined as follows:
+
+.. code-block:: python
+
+    from malevich import collection, flow, table
+    from malevich.vit import prepare_images, run, last_hidden_states
+
+    @flow
+    def vision_transformer():
+        data = collection(
+            'images',
+            df=table(...),
+            alias='images'
+        )
+
+        # Converts image links to tensors
+        images = prepare_images(data)
+        # Run the inference obtaining the results
+        hidden_states = run(images)
+        # Extracts a tensor of the last hidden states
+        return last_hidden_states(hidden_states)
+
+
+To install the flow, you should upload it to the platform:
+
+.. code-block:: python
+
+    from malevich import Space
+
+    Space(vision_transformer).upload()
+
+
+And then install it:
 
 .. code-block:: bash
 
-    malevich install <reverse_id>
+    malevich install vision_transformer
 
-It will fetch all available versions of the flow and create flow stubs. The stub can be imported
-from ``flows`` subpackage. Assuming the flow has been installed with the reverse ID ``my-flow``,
 
-.. code-block:: python
+After the flow is installed, you can use it in your application:
 
-    from malevich.flows import my_flow
+.. code-block:: 
 
-The flow can be run as a standalone function:
+    from malevich.flows import vision_transformer
 
-.. code-block:: python
+    results = vision_transformer(images=table(...))
 
-    my_flow.run()
 
-The flow can also be run with arguments to supply the input data:
+If no data is supplied, the flow will run with the default data defined in the flow. You may
+run the flow asynchronously:
 
 .. code-block:: python
 
-    from malevich import table
+    run_id = vision_transformer(images=table(...), wait_for_results=False)
 
-    my_flow.run(input_data=table(...))
-
-The arguments reflects the names of collections in the flow. Arguments for each
-combination of branch and version can vary. The flow can be run with a specific
-branch and version:
+You can also specify the version and branch of the flow to run:
 
 .. code-block:: python
 
-    # A version on active branch
-    my_flow.run(version='1.0.0', data=table(...))
+    results = vision_transformer(images=table(...), version='1.0.0', branch='dev')
     
-    # An active version on a specific branch
-    my_flow.run(branch='dev', data=table(...))
+Also, you may run the particular deployment:
 
-    # A specific version on a specific branch
-    my_flow.run(branch='dev', version='1.0.0', data=table(...))
+.. code-block:: python
+
+    results = vision_transformer(images=table(...), deployment_id='...', wait_for_results=True)
+
+    # or asynchronously
+    run_id = vision_transformer(images=table(...), deployment_id='...', wait_for_results=False)
 
 
+If you want to have more control over the task, you can specify ``get_task=True`` and obtain 
+:class:`SpaceTask <malevich.models.task.interpreted.space.SpaceTask>` instance:
 
+.. code-block:: python
+
+    task = vision_transformer(images=table(...), get_task=True)
+    task.run(...) # Run the task with all available options
+    results = task.results() # Wait for the results

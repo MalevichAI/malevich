@@ -296,7 +296,7 @@ class PromisedTask(BaseTask[PromisedStage]):
             )
         return self.__task.get_operations()
 
-    def configure(self, operation: str, **kwargs) -> None:
+    def configure(self, *operations: str, **kwargs) -> None:
         """Configures the task for a particular operation
 
         What is configurable and how it is configurable is defined by the
@@ -308,11 +308,12 @@ class PromisedTask(BaseTask[PromisedStage]):
             **kwargs (Any): Arguments to configure the operation
         """
         if not self.__task:
+            for op in operations:
             # Remember the configuration to apply it later
-            self.__conf_memory.append((operation, kwargs))
+                self.__conf_memory.append((op, kwargs))
             return None
         # Otherwise proxy directly
-        return self.__task.configure(operation, **kwargs)
+        return self.__task.configure(*operations, **kwargs)
 
     def get_interpreted_task(self) -> BaseTask:
         """Retrieves the interpreted task that is produced when calling :meth:`interpret`

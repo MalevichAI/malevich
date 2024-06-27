@@ -1,7 +1,7 @@
 typer[all]>=0.9.0
 pydantic>=2.0.0
-malevich-coretools>=0.3.11
-malevich-space>=0.4.18
+malevich-coretools>=0.3.20
+malevich-space>=0.4.27
 pandas
 pydantic-yaml
 PyGithub

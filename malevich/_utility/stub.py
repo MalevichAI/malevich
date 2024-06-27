@@ -123,7 +123,6 @@ class StubFunction(BaseModel):
     definition: str | None = None
 
     def generate_definition(self, config_model: str | None = None) -> str:
-
         """def processor_name(
             arg1: type1,
             arg2: type2,
@@ -151,7 +150,11 @@ class StubFunction(BaseModel):
             else:
                 def_ += f'\n\t*{self.sink[0]}: Any, '
         else:
-            def_ += "\n\t/, "
+            # edge-case: no args for proccesor
+            if len(self.args) == 0:
+                def_ += "\n\t*, "
+            else:
+                def_ += "\n\t/, "
         if self.config_schema is not None:
             config_fields = self.config_schema.model_fields
             for field in config_fields:
@@ -211,6 +214,7 @@ class Stub:
     class Utils:
         @staticmethod
         def generate_context_schema(json_schema: str) -> tuple[str, str]:
+
             with (
                 tempfile.NamedTemporaryFile(mode='w+', suffix='.json') as f,
                 tempfile.NamedTemporaryFile(mode='w+', suffix='.py') as out
@@ -221,7 +225,8 @@ class Stub:
                     Path(f.name),
                     output=Path(out.name),
                     use_annotated=False,
-                    input_file_type='jsonschema'
+                    input_file_type='jsonschema',
+                    base_class='malevich.models._model._Model', # cool
                 )
                 out_script =  open(out.name).read().replace(
                     'from __future__ import annotations',
@@ -272,7 +277,6 @@ class Stub:
             schemes=[],
             schemes_index={},
         )
-
         config_stubs = {
             name: Stub.Utils.generate_context_schema(
                 json.dumps(processor.contextClass),

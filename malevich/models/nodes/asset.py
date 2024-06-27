@@ -2,12 +2,14 @@ import hashlib
 from functools import cache
 from typing import Optional
 
+from ..types import PythonString
 from .base import BaseNode
 
 
 class AssetNode(BaseNode):
+    name: PythonString
+    core_path: Optional[str] = None
     real_path: Optional[str | list[str]] = None
-    core_path: str
     is_composite: Optional[bool] = False
     persistent: Optional[bool] = False
 

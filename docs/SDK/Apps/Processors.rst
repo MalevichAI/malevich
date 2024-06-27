@@ -94,3 +94,50 @@ See, how they are applied in the following example:
             ...
             return predictions
 
+
+Context schema
+++++++++++++++
+
+You may define a schema for the context object. 
+
+.. code-block:: python
+
+    from malevich.square import processor, Context, schema
+
+    @schema()   # Makes the class pydantic
+    class MySchema:
+        param1: str
+        param2: int
+
+    @processor()
+    def my_processor(input1, input2, context: Context[MySchema]):
+        context.app_cfg.param1 # Access to the app configuration as a model
+
+
+Dataframe schema
+++++++++++++++++
+
+Also, you may define a schema for the dataframe. You may use primitive types
+to define columns you expect in the dataframe. 
+
+.. code-block:: python
+
+    from malevich.square import processor, DF, schema
+
+    @schema()
+    class MySchema:
+        total: str
+        title: int
+
+    @processor()
+    def my_processor(input1: DF[MySchema], input2: DF[MySchema]):
+        pass
+
+The inputs will be validated and remapped if possible. For example, the processor
+was called with a dataframe with columns `num_elements` of type `int`, and `text` of type `str`, the processor will
+remap the columns to `title` and `total` respectively. 
+
+The rules of remapping are as follows:
+
+1. If the number of columns are the same, and the order of column types is the same, the columns will be remapped.
+2. Columns with the same name will be mapped to each other, the rest will be mapped by the first rule.

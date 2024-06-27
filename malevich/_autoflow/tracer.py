@@ -99,7 +99,7 @@ class traced(Generic[T]):  # noqa: N801
 
     def __repr__(self) -> str:
         if not isinstance(self.owner, traced):
-            return f'{self.owner.__repr__()}ᵗ'
+            return f'traced({self.owner.__repr__()})'
         else:
             raise RuntimeError(
                 "Traced object is not supposed to be nested"

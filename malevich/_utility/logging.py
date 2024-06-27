@@ -9,7 +9,7 @@ from ..models.preferences import LogFormat, UserPreferences, VerbosityLevel
 
 prefs = manf.query('preferences')
 prefs = UserPreferences(**prefs) if prefs else UserPreferences()
-logger = logging.getLogger("malevich.logging")
+logger = logging.getLogger('malevich')
 
 if not any([x.name == 'META_H' for x in logger.handlers]):
     for h in logger.handlers:

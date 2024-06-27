@@ -151,7 +151,14 @@ class BaseTask(ABC, Generic[StageClass]):
         pass
 
     @abstractmethod
-    def configure(self, operation: str, **kwargs) -> None:
+    def configure(
+        self,
+        *operations: str,
+        # Configurable parameters
+        platform: str = 'base',
+        platform_settings: dict[str, Any] | None = None,
+        **kwargs
+    )-> None:
         """Configures a given operation within the task"""
         pass
 

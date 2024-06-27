@@ -6,13 +6,14 @@ from pydantic import ConfigDict
 from ..._autoflow.tracer import traced
 from ..._autoflow.tree import ExecutionTree
 from ..argument import ArgumentLink
+from ..types import PythonString
 from .base import BaseNode
 
 
 class TreeNode(BaseNode):
-    tree: ExecutionTree[traced[BaseNode], ArgumentLink]
+    tree: ExecutionTree[traced[BaseNode], ArgumentLink[BaseNode]]
     results: Iterable[traced[BaseNode]] | traced[BaseNode] | None = None
-    reverse_id: str
+    reverse_id: PythonString
     name: str
     description: str = "Wonderful Flow!"
     underlying_node: Optional['BaseNode'] = None

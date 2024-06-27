@@ -2,13 +2,14 @@ import pickle
 import uuid
 from enum import Enum
 from functools import cache
-from typing import Iterable, Optional
+from typing import Callable, Iterable, Optional, Type
 
 import pandas as pd
 from gql import gql
 from malevich_coretools.abstract.statuses import AppStatus, TaskStatus
 from malevich_space.schema import LoadedComponentSchema
 
+from malevich.core_api import BasePlatformSettings
 from malevich.models.injections import SpaceInjectable
 
 from ...._autoflow.tracer import traced
@@ -38,14 +39,27 @@ class SpaceTask(BaseTask):
     def tree(self) -> TreeNode:
         return self.state.aux.tree
 
+    @property
+    def component(self) -> LoadedComponentSchema:
+        self.upload()
+        return self._component
+
+    @property
+    def allow_configurations(self) -> bool:
+        return self._component is None
+
     def __init__(
         self,
         state: SpaceInterpreterState,
-        component: LoadedComponentSchema
+        component: LoadedComponentSchema | None = None,
+        get_component: Callable[..., LoadedComponentSchema] | None = None,
     ) -> None:
         super().__init__()
+        assert component is not None or get_component is not None
+
         self.state = state
-        self.component = component
+        self._component = component
+        self.__get_component = get_component
         self._returned = []
 
     def _deflate(
@@ -102,6 +116,7 @@ class SpaceTask(BaseTask):
     def run(
         self,
         override: dict[str, pd.DataFrame] = {},
+        webhook_url: str | None = None,
         *args,
         **kwargs
     ) -> str:
@@ -168,13 +183,31 @@ class SpaceTask(BaseTask):
 
         self.state.aux.run_id = self.state.space.run_task(
             task_id=self.state.aux.task_id,
-            ca_override=overrides
+            ca_override=overrides,
+            webhook=webhook_url
         )
         return self.state.aux.run_id
 
-    def configure(self, operation: str, **kwargs) -> None:
-        # NOTE: Nothing to tweak
-        return None
+    def configure(
+        self,
+        *operations: str,
+        # Configurable parameters
+        platform: str = 'base',
+        platform_settings: BasePlatformSettings | str = None,
+        # Rest of the parameters for compatibility
+        **kwargs
+    ) -> None:
+        if not self.allow_configurations:
+            raise Exception(
+                "Intepreter already uploaded a new component to Malevich Space, so "
+                "configurations are not available. To configure the task, use "
+                "`Space(configurable=True)` and call `upload()` afterwards to apply "
+                "custom configurations"
+            )
+        for operation in operations:
+            for component in self.state.flow.components:
+                if component.alias == operation:
+                    component.limits = platform_settings
 
     def get_interpreted_task(self) -> BaseTask:
         return self
@@ -209,7 +242,7 @@ class SpaceTask(BaseTask):
             )
             return SpaceTaskStage.INTERPRETED
 
-    def get_stage_class(self) -> type:
+    def get_stage_class(self) -> Type[SpaceTaskStage]:
         return SpaceTaskStage
 
     def interpret(self, interpreter=None) -> None:
@@ -227,23 +260,34 @@ class SpaceTask(BaseTask):
 
     @cache
     def get_injectables(self) -> list[SpaceInjectable]:
-        alias_to_snapshot = self.state.space.get_snapshot_components(
-            task_id=self.state.aux.task_id
-        )
+        if self.state.aux.task_id:
+            alias_to_snapshot = self.state.space.get_snapshot_components(
+                task_id=self.state.aux.task_id
+            )
+        else:
+            alias_to_snapshot = {}
+
         alias_to_in_flow_id = {
             x.alias: x.uid
             for x in self.component.flow.components
             if x.collection is not None
         }
+
+        alias_to_rev_id = {
+            x.alias: x.reverse_id
+            for x in self.component.flow.components
+            if x.collection is not None
+        }
+
         aliases = set()
         # aliases.update(alias_to_snapshot.keys())
         aliases.update(alias_to_in_flow_id.keys())
-
         return [
             SpaceInjectable(
                 alias=a,
                 in_flow_id=alias_to_in_flow_id.get(a, None),
                 snapshot_flow_id=alias_to_snapshot.get(a, None),
+                reverse_id=alias_to_rev_id.get(a, None)
             )
             for a in aliases
         ]
@@ -331,7 +375,6 @@ class SpaceTask(BaseTask):
             ) for i in infid_
         ]
 
-
     def results(
         self,
         run_id: Optional[str] = None,
@@ -362,4 +405,7 @@ class SpaceTask(BaseTask):
             **kwargs
         ))
 
+    def upload(self) -> None:
+        if not self._component:
+            self._component = self.__get_component()
 

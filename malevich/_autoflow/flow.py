@@ -1,3 +1,10 @@
+"""
+AutoFlow
+
+The package provides a context manager for providing
+an access to an execution tree in function contexts.
+"""
+
 from typing import Iterable
 
 from .._utility.singleton import SingletonMeta
@@ -10,6 +17,24 @@ class Flow(metaclass=SingletonMeta):
     The class is a singleton and can be used as a context-manager
     to create a new execution tree. It holds a stack of trees to
     maintain nested flows. The stack is thread-safe.
+
+    Example:
+
+    .. code-block: python
+
+        from malevich._autoflow.flow import Flow
+
+        with Flow() as tree:
+            # Work with tree
+            print("Called in flow: ",  Flow.isinflow())
+            print("Trees: ", len(Flow.get_stack()))
+            print("In flow", Flow.get_stack(), Flow.flow_ref())
+            with Flow() as inner:
+                print("Trees (with inner): ", len(Flow.get_stack()))
+                print("In inner", Flow.get_stack(), Flow.flow_ref())
+            print("After exit", Flow.get_stack(), Flow.flow_ref())
+
+        print("At the end", Flow.get_stack())
     """
 
     # Internal representation of the execution tree
@@ -30,6 +55,7 @@ class Flow(metaclass=SingletonMeta):
     def __exit__(self, *args: Iterable) -> None:
         Flow.__flow_stack.pop()
 
-    @property
-    def stack(self) -> list[ExecutionTree]:
-        return Flow.__flow_stack
+    @staticmethod
+    def get_stack() -> tuple[ExecutionTree]:
+        """Returns immutable stack of execution trees"""
+        return tuple(Flow.__flow_stack)

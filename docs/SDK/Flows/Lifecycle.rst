@@ -14,7 +14,7 @@ Also, once task is deployed, it can be run multiple times with different input d
 Definition
 ----------
 
-To define a flow, you shold import a :func:`malevich._meta.flow` decorator and use it on an ordinary function:
+To define a flow, you shold import a :func:`meta <malevich._meta.flow>` decorator and use it on an ordinary function:
 
 .. code-block:: python
 
@@ -34,27 +34,27 @@ Interpretation
 --------------
 
 Interpretation is a process of attaching a flow to a specific platform you
-wish to run it on. To interpret a flow, you should call :meth:`interpret` method
-on a :class:`malevich.models.PromisedTask` instance with a certain interpreter.
+wish to run it on. The flow is automatically interpreted when passed to a 
+deploy assistant such as :class:`Core <malevich._deploy.Core>` or :class:`Space <malevich._deploy.Space>`.
 
 .. code-block:: python
 
-    from malevich import CoreInterpreter, SpaceInterpreter, flow
+    from malevich import Core, Space
 
     @flow
     def my_flow():
-        pass
+        # Your flow logic here...
+    
+    interpreted_on_core = Core(my_flow) 
+    # or Core(my_flow(...)) if my_flow accepts args
 
-    task = my_flow()
-    task.interpret(CoreInterpreter(core_auth=('example', 'Welcome to Malevich!')))
+    interpreted_on_space = Space(my_flow)
 
-    space_task = my_flow()
-    space_task.interpret(SpaceInterpreter())
+Here, :code:`interpreted_on_core` and :code:`interpreted_on_space` are instances of interpreted tasks. They
+preserve the flow logic and inner state specific to the platform they are attached to. Running :meth:`prepare` method
+will create an instance of a the task on a platform. A ready-to-run task can be invoked with :meth:`run` method and
+stopped with :meth:`stop` method. The full list of methods and their signatures is described in :class:`CoreTask <malevich.models.task.interpreted.core.CoreTask>` and :class:`SpaceTask <malevich.models.task.interpreted.space.SpaceTask>` classes.
 
-
-Once the task is interpreted, you may run :meth:`prepare`, :meth:`run`, :meth:`stop` and :meth:`results` methods on it.
-The arguments and logic of these methods are different for different interpreters. Check the documentation for
-specific interpreters for more information.
 
 Deployment
 ----------
@@ -64,27 +64,39 @@ preparing the task to be run. To deploy a task, you should call :meth:`prepare`
 
 .. code-block:: python
 
-    task = my_flow()
-    task.interpret(CoreInterpreter(core_auth=('example', 'Welcome to Malevich!')))
-    task.prepare()
+    interpreted_on_core = Core(my_flow)
+    interpreted_on_core.prepare() # Creates a task on the platform
 
 Once the task is deployed, you may run :meth:`run`, :meth:`stop`.
 
 Running
 -------
 
-To run a task, you should call :meth:`run` method on it. 
+Each task can be considered as a standalone function that can be run on the platform. To run a task, you should call
+:meth:`run` method on it. The method can accept input data for :doc:`collections </SDK/Data/index>`, :doc:`assets </SDK/Data/index>` and configurations.
+.. TODO: write about configuration overrides
 
 .. code-block:: python
 
-    task = my_flow()
-    task.interpret(CoreInterpreter(core_auth=('example', 'Welcome to Malevich!')))
-    task.prepare()
-    task.run()
+    from malevich import table
+
+    interpreted_on_core.run()                                   # Run with default input data defined in the flow
+    interpreted_on_core.run(overrides={'my_data': table(...)})  # Run with new data in `my_data` collection
+    interpreted_on_core.run(config_extensions={'preprocess': {...}})  # Run with configuration extensions
+    
+    # .run method returns run_id for future reference
+    run_id = interpreted_on_core.run(
+        overrides={'my_data': table(...)},
+        config_extensions={'preprocess': {...}}
+    )  
+
+    # Also, you may run the task with a run_id
+    interpreted_on_core.run(run_id=run_id)
+
+
 
 Signature and logic of :meth:`run` method is different for different interpreters. Check the documentation for
 specific interpreters for more information.
-
 
 Stopping
 --------
@@ -94,11 +106,9 @@ It is important to release resources on the platform when you don't need them an
 
 .. code-block:: python
 
-    task = my_flow()
-    task.interpret(CoreInterpreter(core_auth=('example', 'Welcome to Malevich!')))
-    task.prepare()
-    task.run()
-    task.stop()
+    task.prepare()  # Prepare the task
+    task.run()      # Do the job
+    task.stop()     # Release resources
 
 .. warning:: 
 
@@ -116,10 +126,13 @@ with results.
 
 .. code-block:: python
 
-    task = my_flow()
-    task.interpret(CoreInterpreter(core_auth=('example', 'Welcome to Malevich!')))
-    task.prepare()
-    task.run()
-    results = task.results()
+    interpreted_on_core.run()
+    # list of CoreResult instances
+    results = interpreted_on_core.results()
+
+    interpreted_on_space.run()
+    # list of SpaceResult instances
+    results = interpreted_on_space.results()
+
 
 

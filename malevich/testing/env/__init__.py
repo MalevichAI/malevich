@@ -5,16 +5,16 @@ from datetime import datetime
 from pydantic import BaseModel
 from malevich._utility.singleton import SingletonMeta
 from malevich._utility.package import package_manager
-from ...install.installer import Installer
+from malevich.path import Paths
+from malevich.models.installers.compat import CompatabilityStrategy
+from malevich.install.installer import Installer
 from malevich.manifest import ManifestManager
 from malevich.models.dependency import Dependency
+from malevich.constants import TEST_DIR
 from malevich.install.image import ImageInstaller
 from malevich.install.space import SpaceInstaller
 from malevich._utility.cache.manager import CacheManager
 
-TEST_DIR = os.getenv("MALEVICH_TEST_DIR", '~/.malevich.test')
-TEST_DIR = os.path.expanduser(TEST_DIR)
-os.makedirs(TEST_DIR, exist_ok=True)
 env_manf = ManifestManager(TEST_DIR)
 cache = CacheManager()
 
@@ -103,7 +103,7 @@ class EnvManager(metaclass=SingletonMeta):
 
     def install(self, dependency: Dependency) -> None:
         installer = dependency.installer
-        self.installers[installer].restore(dependency)
+        dependency = self.installers[installer].restore(dependency)
         env_manf.put(
             'dependencies',
             dependency.package_id,
@@ -127,8 +127,10 @@ class EnvManager(metaclass=SingletonMeta):
             package_id = dependency.package_id
             to_offload_ = None
             for manifest_name, manifest_dependency in manifested.items():
-                if dependency.compatible_with(manifest_dependency):
-                    print(f"Compatible {package_id}")
+                if dependency.compatible_with(
+                    manifest_dependency,
+                    compatability_strategy=CompatabilityStrategy()
+                ):
                     break
                 if manifest_name == package_name:
                     # Found collision in manifest: should be offloaded

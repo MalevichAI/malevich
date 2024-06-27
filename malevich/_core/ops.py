@@ -257,7 +257,7 @@ def _assure_asset(
                 auth=auth,
                 conn_url=conn_url,
             )
-            objs = FilesDirs(files=[asset.core_path])
+            objs = FilesDirs(files={asset.core_path: 0}, directories=[])
         else:
             objs = core.get_collection_objects(
                 asset.core_path,
@@ -265,6 +265,7 @@ def _assure_asset(
                 conn_url=conn_url,
             )
     except Exception as e:
+        print(e)
         if asset.real_path is not None:
             _upload_asset(asset, auth, conn_url)
             return

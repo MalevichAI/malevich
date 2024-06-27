@@ -499,3 +499,20 @@ def in_app_install() -> None:
         shutil.move(os.path.join(pkg_, "malevich"), "/julius/malevich")
     else:
         error_exit("You are running command outside of the app")
+
+@dev.command("get-regex", help="Get regexps by which we check documentation.")
+def get_regexp() -> None:
+    rich.print(
+        "Input/Output columns:",
+        "^\\s+\\-\\s(?P<COLUMN_NAME>`?\\w+`?+)\\s+\\("
+        "(?P<COLUMN_TYPE>`?\\w+`?)(?P<OPTIONAL_FLAG>,\\soptional)?\\)"
+        "\\:[\\s\\n\\t]+(?P<COLUMN_DESCRIPTION>.+)",
+        "\n\n"
+    )
+    rich.print(
+        "Config columns:",
+        "^\\s+- (?P<FIELD_NAME>`?\\w+`?)\\:\\s"
+        "(?P<FIELD_TYPE>`?[|\\w\\[\\{\\<\\]\\}\\>]+`?)"
+        "(?P<DEFAULT_CLAUSE>\\,\\sdefault (?P<DEFAULT_VALUE>.+))?\\.[\\s\\n\\t]+"
+        "(?P<FIELD_DESCRIPTION>.+)\\.$"
+    )

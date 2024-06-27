@@ -5,6 +5,8 @@ from typing import Generic, TypeVar
 
 from malevich_space.schema import ComponentSchema
 
+from ..models.exceptions import InterpretationError
+
 from .._autoflow.tracer import traced
 from .._utility.tree import unwrap_tree
 from ..models.argument import ArgumentLink
@@ -109,7 +111,7 @@ class Interpreter(Generic[State, Return]):
         else:
             self._state = self.state
 
-    def interpret(self, node: TreeNode, component: ComponentSchema = None):  # noqa: ANN201
+    def interpret(self, node: TreeNode, component: ComponentSchema = None) -> Return:  # noqa: ANN201
         """Interprets the execution tree
 
         The interpretation process is divided into 5 steps:
@@ -140,11 +142,18 @@ class Interpreter(Generic[State, Return]):
         self.update_state(self.before_interpret(self.state))
 
         node_memory = {}
+        node_aliases = set()
+        for node_ in self._tree.nodes():
 
-        for node in self._tree.nodes():
-            if node.owner.uuid not in node_memory:
-                node_memory[node.owner.uuid] = node
-                self.update_state(self.create_node(self.state, node))
+            if node_.owner.alias is not None and node_.owner.alias in node_aliases:
+                raise InterpretationError(
+                    "Aliases should be unique, but found duplicate alias: "
+                    f"{node.alias}"
+                )
+
+            if node_.owner.uuid not in node_memory:
+                node_memory[node_.owner.uuid] = node_
+                self.update_state(self.create_node(self.state, node_))
 
 
         for from_, to, link in self._tree.traverse():
@@ -211,9 +220,9 @@ class Interpreter(Generic[State, Return]):
     def create_dependency(
         self,
         state: State,
-        callee: traced[BaseNode],
-        caller: traced[BaseNode],
-        link: ArgumentLink,
+        from_node: traced[BaseNode],
+        to_node: traced[BaseNode],
+        link: ArgumentLink[BaseNode],
     ) -> State:
         """Called when a new dependency is created
 

@@ -1,12 +1,14 @@
-import warnings
-from typing import Any, ParamSpec
+from typing import Any, Literal, ParamSpec, overload
 
-from malevich_space.schema import SpaceSetup
+from gql import gql
 from malevich_space.ops import SpaceOps
+from malevich_space.schema import SpaceSetup
 from malevich_space.schema.version_mode import VersionMode
+import rich
 from rich.prompt import Prompt
 
 from malevich.core_api import check_auth
+from malevich_coretools.abstract.statuses import AppStatus
 
 from ._cli.space.login import login
 from ._utility.space.get_core_creds import (
@@ -15,25 +17,54 @@ from ._utility.space.get_core_creds import (
 )
 from .constants import DEFAULT_CORE_HOST
 from .interpreter.core import CoreInterpreter
+from .interpreter.core_v2 import CoreInterpreterV2
 from .interpreter.space import SpaceInterpreter
 from .manifest import manf
 from .models.flow_function import FlowFunction
 from .models.task.interpreted.core import CoreTask
+from .models.task.interpreted.core_v2 import CoreTaskV2
 from .models.task.interpreted.space import SpaceTask
 from .models.task.promised import PromisedTask
 
 FlowArgs = ParamSpec('FlowArgs')
 
 class Core:
+    @overload
     def __new__(
         cls,
-        task: PromisedTask | FlowFunction[..., Any] | Any,  # noqa: ANN401, for IDE hints
+        task: PromisedTask | FlowFunction[..., PromisedTask] | Any,  # noqa: ANN401, for IDE hints
         core_host: str | None = DEFAULT_CORE_HOST,
         user: str | None = None,
         access_key: str | None = None,
+        use_v2: Literal[True] = True,
+        *task_args,
+        **task_kwargs
+    ) -> CoreTaskV2:
+        pass
+
+    @overload
+    def __new__(
+        cls,
+        task: PromisedTask | FlowFunction[..., PromisedTask] | Any,  # noqa: ANN401, for IDE hints
+        core_host: str | None = DEFAULT_CORE_HOST,
+        user: str | None = None,
+        access_key: str | None = None,
+        use_v2: Literal[False] = False,
         *task_args,
         **task_kwargs
     ) -> CoreTask:
+        pass
+
+    def __new__(
+        cls,
+        task: PromisedTask | FlowFunction[..., PromisedTask] | Any,
+        core_host: str | None = DEFAULT_CORE_HOST,
+        user: str | None = None,
+        access_key: str | None = None,
+        use_v2: Literal[True] = False,
+        *task_args,
+        **task_kwargs
+    ) -> CoreTask | CoreTaskV2:
         if not user:
             try:
                 user, access_key = get_core_creds_from_setup(
@@ -63,7 +94,8 @@ class Core:
         if isinstance(task, FlowFunction):
             task: PromisedTask = task(*task_args, **task_kwargs)
 
-        intepreter = CoreInterpreter(
+        interpreter_class = (CoreInterpreter, CoreInterpreterV2)[use_v2]
+        intepreter = interpreter_class(
             core_auth=(user, access_key), core_host=core_host
         )
         task.interpret(intepreter)
@@ -75,12 +107,13 @@ class Space:
     def __new__(
         cls,
         task: PromisedTask | FlowFunction[..., Any] | Any = None,  # noqa: ANN401, for IDE hints
-        version_mode: VersionMode = VersionMode.MINOR,
+        # version_mode: VersionMode = VersionMode.MINOR,
         reverse_id: str | None = None,
-        force_attach: bool = False,
         deployment_id: str | None = None,
-        attach_to_last: bool | None = None,
+        branch: str | None = None,
+        version: str | None = None,
         ops: SpaceOps | None = None,
+        policy: Literal['no_use', 'only_use', 'use_or_new'] = 'use_or_new',
         *task_args,
         **task_kwargs
     ) -> SpaceTask:
@@ -92,20 +125,51 @@ class Space:
             except Exception:
                 if not login():
                     raise Exception(
-                        "Could not login you. Please, run `malevich space login` manually "
-                        "and provide correct credentials."
+                        "Could not login you. Please, run `malevich space login` "
+                        "manually and provide correct credentials."
                     )
                 setup = SpaceSetup(**manf.query('space', resolve_secrets=True))
+        else:
+            setup = ops.space_setup
+        ops = SpaceOps(space_setup=setup)
+        info = ops.get_available_flows(reverse_id=reverse_id)
+
+        flow_branch_version = {}
+        active_branch = info['component']['activeBranch']['details']['name']
+        active_versions = {}
+        for branch_ in info['component']['branches']['edges']:
+            branch_name = branch_['node']['details']['name']
+            active_versions[branch_name] = branch_['node']['activeVersion']['flow']['details']['uid']
+            flow_branch_version[branch_name] = {}
+            for version_ in branch_['node']['versions']['edges']:
+                version_name = version_['node']['details']['readableName']
+                flow_branch_version[branch_name][version_name] = version_['node']['flow']['details']['uid']
+
+        if branch is not None:
+            if branch not in flow_branch_version:
+                raise ValueError(
+                    f"Branch {branch} not found. Available branches: "
+                    f" {list(flow_branch_version.keys())}")
+        else:
+            branch = active_branch
+
+        if version is not None:
+            if version not in flow_branch_version[branch]:
+                raise ValueError(
+                    f"Version {version} not found in branch {branch}. "
+                    f"Available versions for branch {branch}: "
+                    f" {list(flow_branch_version[branch].keys())}"
+                )
+            else:
+                uid = flow_branch_version[branch][version]
+        else:
+            uid = active_versions[branch]
 
         interpreter = SpaceInterpreter(
             setup=setup,
             ops=ops,
-            version_mode=version_mode
+            # version_mode=version_mode
         )
-        if attach_to_last is not None and not force_attach:
-            warnings.warn(
-                "Ignoring `attach_to_last` as `force_attach` set to False"
-            )
 
         if isinstance(task, FlowFunction):
             task: PromisedTask = task(*task_args, **task_kwargs)
@@ -113,12 +177,75 @@ class Space:
         if isinstance(task, PromisedTask):
             reverse_id = task._component.reverse_id
 
-        if force_attach or task is None:
-            return interpreter.attach(
+        if task is None:
+            if deployment_id is None and policy != 'no_use':
+                query = gql("""query GetTasksForFlow($flow_id: String!) {
+                    tasks {
+                        flow(uid: $flow_id) {
+                        edges {
+                            node {
+                            details {
+                                bootState
+                                uid
+                                lastRunnedAt
+                                lastBootedAt
+                            }
+                            }
+                        }
+                        }
+                    }
+                }""")
+                tasks = ops.client.execute(query, variable_values={'flow_id': uid})
+                tasks = tasks['tasks']['flow']['edges']
+                if not tasks:
+                    raise Exception("No active tasks found.")
+
+                tasks = [task['node']['details'] for task in tasks]
+                tasks = [task for task in tasks if task['bootState'] == 'started']
+                tasks.sort(key=lambda x: x['lastBootedAt'], reverse=True)
+
+                if not tasks and policy == 'only_use':
+                    raise Exception(
+                        "Policy was set to 'use_only' but no active tasks found. "
+                        "Consider setting policy to 'use_or_new' (to create a new task)"
+                        " or 'no_use' (to skip using existing tasks)."
+                    )
+                elif not tasks:
+                    deployment_id = None
+                else:
+                    deployment_id = tasks[0]['uid']
+                    deployment_link = (
+                        ops.space_setup.api_url.replace('api', 'space').rstrip('/')
+                        + f'/deployments?task={deployment_id}'
+                    )
+                    rich.print(
+                        f"Connected [yellow]{reverse_id}[/yellow] to deployment "
+                        f"[blue]{deployment_id}[/blue]. (Policy: {policy})"
+                        "\n"
+                        f"Visit on [bold magenta][link={deployment_link}]Malevich Space[/link][/bold magenta]. "  # noqa: E501
+                        "\n\n\n"
+                    )
+
+
+            task = interpreter.attach(
                 reverse_id=reverse_id,
-                deployment_id=deployment_id,
-                attach_to_last=attach_to_last is not None and attach_to_last
+                flow_uid=uid,
+                deployment_id=deployment_id
             )
+
+            if task.get_stage().value != 'started':
+                if policy == 'only_use':
+                    raise Exception(
+                        "Policy was set to 'use_only' but task is not active. "
+                        "Consider setting policy to 'use_or_new' (to create a new task)"
+                        " or 'no_use' (to skip using existing tasks)."
+                    )
+                else:
+                    rich.print("No active task found. Creating a new task.")
+                    task.prepare()
+                    rich.print(f"Created new task [blue]{task.state.aux.task_id}[/blue].")  # noqa: E501
+            return task
 
         task.interpret(interpreter)
         return task.get_interpreted_task()
+

@@ -7,27 +7,39 @@ import typer.core
 from malevich._utility.package import PackageManager
 
 from .._cli.prefs import prefs as prefs
+from .._utility.flow_stub import FlowStub
+from ..install.flow import FlowInstaller
 from ..manifest import ManifestManager
+from ..models.dependency import Integration
 
 
 def remove(
-    package_names: Annotated[list[str], typer.Argument(...)],
+    component_names: Annotated[list[str], typer.Argument(...)],
 ) -> None:
     try:
-        for package_name in package_names:
-            manf = ManifestManager()
+        manf = ManifestManager()
+        removed = []
+        for component in manf.query('flows'):
+           if component in component_names:
+                FlowStub.remove_stub(component)
+                manf.remove('flows', component)
+                removed.append(component)
+
+        for component in component_names:
+            if component in removed:
+                continue
             manf.remove(
                 'dependencies',
-                package_name,
+                component,
             )
-            PackageManager().remove_stub(package_name)
+            PackageManager().remove_stub(component)
 
         rich.print(
-            f"[green]Package(s) [b]{', '.join(package_names)}[/b] removed[/green]"
+            f"[green]Component(s) [b]{', '.join(component_names)}[/b] removed[/green]"
         )
-        rich.print(f"Bye, bye [b]{package_name}[/b]")
+        rich.print(f"Bye, bye [b]{component}[/b]")
     except Exception as e:
         rich.print(
-            f"[red]Failed to remove package [b]{package_name}[/b][/red]")
+            f"[red]Failed to remove component [b]{component}[/b][/red]")
         rich.print(e)
         return

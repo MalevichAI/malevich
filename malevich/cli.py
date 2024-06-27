@@ -11,7 +11,7 @@ from ._cli.core.app import core_app
 from ._cli.dev.dev import dev as dev_app
 from ._cli.flow import flow as flow_app
 from ._cli.init import init as init_
-from ._cli.install import auto_use
+from ._cli.install import auto_use, install_flow
 from ._cli.list import list_packages
 from ._cli.manifest import app as manifest_app
 from ._cli.new import new
@@ -20,6 +20,7 @@ from ._cli.remove import remove
 from ._cli.restore import restore
 from ._cli.space.init import init
 from ._cli.space.login import login
+from ._cli.space.whoami import get_user_on_space
 from ._cli.use import use as use_app
 from .constants import APP_HELP
 
@@ -39,6 +40,16 @@ app.registered_commands.append(
         help=help.install["--help"],
         callback=auto_use,
         cls=typer.core.TyperCommand,
+    )
+)
+
+# malevich install-flow
+app.registered_commands.append(
+    typer.models.CommandInfo(
+        name="install-flow",
+        help="Install flow to my flows",
+        callback=install_flow,
+        cls=typer.core.TyperCommand
     )
 )
 
@@ -109,6 +120,15 @@ space_app.registered_commands.append(
     typer.models.CommandInfo(
         help=help.space["login --help"],
         callback=login,
+        cls=typer.core.TyperCommand
+    )
+)
+
+space_app.registered_commands.append(
+    typer.models.CommandInfo(
+        "whoami",
+        help=help.space["whoami --help"],
+        callback=get_user_on_space,
         cls=typer.core.TyperCommand
     )
 )

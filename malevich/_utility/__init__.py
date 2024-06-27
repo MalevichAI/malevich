@@ -14,5 +14,6 @@ from .ci import *
 from .space import *
 # from .summary import *
 from ._try import try_cascade
+from .space import *
 
 # not importing .git as the system might not have git executable installed

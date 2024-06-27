@@ -1,17 +1,21 @@
 
 from malevich._utility.package import package_manager as pm
 from malevich._utility.singleton import SingletonMeta
+from malevich.constants import TEST_DIR
 from malevich.install.image import ImageInstaller
 from malevich.install.installer import Installer
 from malevich.install.space import SpaceInstaller
 from malevich.manifest import OverrideManifest, manf
 from malevich.models.dependency import Dependency
-from malevich.path import Paths
+from malevich.models.installers.compat import CompatabilityStrategy
+from malevich.models.preferences import (
+    Action,
+    LogFormat,
+    UserPreferences,
+    VerbosityLevel,
+)
 
-from ..models.installers.compat import CompatabilityStrategy
-from ..models.preferences import Action, LogFormat, UserPreferences, VerbosityLevel
-
-test_manifest = OverrideManifest(Paths.home("testing", create_dir=True))
+test_manifest = OverrideManifest(TEST_DIR)
 
 class EnvManager(metaclass=SingletonMeta):
     """Efficient environment manager
@@ -117,11 +121,8 @@ class EnvManager(metaclass=SingletonMeta):
 
                     manf.put(
                         'dependencies',
-                        value={
-                            dependency.package_id:
-                            restored
-                        },
-                        append=True
+                        dependency.package_id,
+                        value=restored,
                     )
 
         return self.get_current_env()

@@ -24,7 +24,7 @@ from .models.manifest import *
 from .constants import *
 
 # Make runners accessible from upper level
-from .runners import *
+# from .runners import *
 
 # # Summaries
 # from ._utility.summary import *
@@ -39,6 +39,9 @@ from malevich_space.schema import VersionMode
 
 # For simple deployment
 from ._deploy import Core, Space
+
+# Handy ops
+from ._utility import get_auto_ops
 
 manf = ManifestManager()
 

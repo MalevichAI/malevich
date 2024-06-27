@@ -15,6 +15,7 @@ from malevich_space.schema.flow import (
     InFlowAppSchema,
     InFlowComponentSchema,
     InFlowDependency,
+    LoadedFlowSchema,
     OpSchema,
     Terminal,
 )
@@ -486,17 +487,18 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
             alias_base = node.owner.reverse_id
             if not state.children_states.get(node.owner.uuid, None):
                 child_interpreter = SpaceInterpreter(
-                    name=node.owner.name, reverse_id=node.owner.reverse_id
+                    setup=self.state.space.space_setup,
                 )
-
-                child_interpreter.interpret(node.owner)
-                child_state: SpaceInterpreterState = child_interpreter.state
 
                 comp = ComponentSchema(
                     name=node.owner.name,
                     reverse_id=node.owner.reverse_id,
-                    flow=child_state.flow,
                 )
+
+                task_ = child_interpreter.interpret(node.owner, comp)
+                task_.upload()
+                child_state: SpaceInterpreterState = child_interpreter.state
+                comp.flow = child_state.flow
 
                 state.children_states[node.owner.uuid] = child_state
             else:
@@ -522,69 +524,69 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
     def create_dependency(
         self,
         state: SpaceInterpreterState,
-        caller: TracedNode,
-        callee: traced[OperationNode],
-        link: ArgumentLink,
+        from_node: TracedNode,
+        to_node: traced[OperationNode],
+        link: ArgumentLink[BaseNode],
     ) -> SpaceInterpreterState:
         """Creates a dependency between two nodes."""
 
         # Case Collection / App -> Flow
 
-        if isinstance(callee.owner, TreeNode) and not isinstance(
-            caller.owner, TreeNode
+        if isinstance(to_node.owner, TreeNode) and not isinstance(
+            from_node.owner, TreeNode
         ):
-            child = state.children_states[callee.owner.uuid]
-            caller_alias = state.components_alias[caller.owner.uuid]
+            child = state.children_states[to_node.owner.uuid]
+            caller_alias = state.components_alias[from_node.owner.uuid]
             inter_flow_map = {}
 
             bridges = link.compressed_nodes
 
             for _, to in bridges:
-                inter_flow_map[caller_alias] = child.components_alias[to.owner.uuid]
+                inter_flow_map[caller_alias] = child.components_alias[link.shadow_collection.owner.uuid]
 
             dependency = InFlowDependency(
                 from_op_id=(
                     # provided by space installer
-                    caller.owner.operation_id
-                    if isinstance(caller.owner, OperationNode)
+                    from_node.owner.operation_id
+                    if isinstance(from_node.owner, OperationNode)
                     else None
                 ),
-                to_op_id=callee.owner.underlying_node.operation_id
-                if isinstance(callee.owner.underlying_node, OperationNode)
+                to_op_id=to_node.owner.underlying_node.operation_id
+                if isinstance(to_node.owner.underlying_node, OperationNode)
                 else None,
-                alias=state.components_alias[caller.owner.uuid],
+                alias=state.components_alias[from_node.owner.uuid],
                 order=link.index,
                 terminals=[
                     Terminal(src=x, target=y) for x, y in inter_flow_map.items()
                 ],
             )
-        elif isinstance(caller.owner, TreeNode) and not isinstance(
-            callee.owner, TreeNode
+        elif isinstance(from_node.owner, TreeNode) and not isinstance(
+            to_node.owner, TreeNode
         ):
-            child = state.children_states[caller.owner.uuid]
-            callee_alias = state.components_alias[callee.owner.uuid]
-            op: OperationNode = caller.owner.underlying_node
+            child = state.children_states[from_node.owner.uuid]
+            callee_alias = state.components_alias[to_node.owner.uuid]
+            op: OperationNode = from_node.owner.underlying_node
             inter_flow_map = {child.components_alias[op.uuid]: callee_alias}
 
             dependency = InFlowDependency(
                 from_op_id=op.operation_id,
                 to_op_id=(
                     # provided by space installer
-                    callee.owner.operation_id
-                    if isinstance(callee.owner, OperationNode)
+                    to_node.owner.operation_id
+                    if isinstance(to_node.owner, OperationNode)
                     else None
                 ),
-                alias=state.components_alias[caller.owner.uuid],
+                alias=state.components_alias[from_node.owner.uuid],
                 order=link.index,
                 terminals=[
                     Terminal(src=x, target=y) for x, y in inter_flow_map.items()
                 ],
             )
-        elif isinstance(caller.owner, TreeNode) and isinstance(callee.owner, TreeNode):
-            left_op = caller.owner.underlying_node
+        elif isinstance(from_node.owner, TreeNode) and isinstance(to_node.owner, TreeNode):
+            left_op = from_node.owner.underlying_node
             right_edges = link.compressed_nodes
             for rel, right_node in right_edges:
-                state.dependencies[callee.owner.uuid].append(
+                state.dependencies[to_node.owner.uuid].append(
                     InFlowDependency(
                         from_op_id=(
                             left_op.operation_id
@@ -596,15 +598,15 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
                             if isinstance(right_node.owner, OperationNode)
                             else None
                         ),
-                        alias=state.components_alias[caller.owner.uuid],
+                        alias=state.components_alias[from_node.owner.uuid],
                         order=rel.index,
                         terminals=[
                             Terminal(
                                 src=state.children_states[
-                                    caller.owner.uuid
+                                    from_node.owner.uuid
                                 ].components_alias[left_op.uuid],
                                 target=state.children_states[
-                                    callee.owner.uuid
+                                    to_node.owner.uuid
                                 ].components_alias[right_node.owner.uuid],
                             )
                         ],
@@ -615,16 +617,16 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
             dependency = InFlowDependency(
                 from_op_id=(
                     # provided by space installer
-                    caller.owner.operation_id
-                    if isinstance(caller.owner, OperationNode)
+                    from_node.owner.operation_id
+                    if isinstance(from_node.owner, OperationNode)
                     else None
                 ),
-                to_op_id=callee.owner.operation_id,
-                alias=state.components_alias[caller.owner.uuid],
+                to_op_id=to_node.owner.operation_id,
+                alias=state.components_alias[from_node.owner.uuid],
                 order=link.index,
             )
 
-        state.dependencies[callee.owner.uuid].append(dependency)
+        state.dependencies[to_node.owner.uuid].append(dependency)
 
         return state
 
@@ -699,70 +701,68 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
 
         self._component.flow = state.flow
 
-        component = state.component_manager.component(
-            self._component,
-            self._version_mode,
-        )
+        def get_component():
+            with open(self._component.reverse_id + '.json', 'w') as f:
+                f.write(self._component.model_dump_json(indent=2))
+            component = state.component_manager.component(
+                self._component,
+                self._version_mode,
+            )
+            if self._version_mode != VersionMode.DEFAULT:
+                state.space.auto_layout(flow=component.flow.uid)
 
-        if self._version_mode != VersionMode.DEFAULT:
-            state.space.auto_layout(flow=component.flow.uid)
+            return component
 
-        return SpaceTask(state=self.state, component=component)
+        return SpaceTask(state=self.state, get_component=get_component)
 
     def attach(
         self,
         reverse_id: str | None = None,
+        flow_uid: str | None = None,
         deployment_id: str | None = None,
-        attach_to_last: bool = False,
     ) -> SpaceTask:
         assert (
-            reverse_id or deployment_id
-        ), "Either reverse_id or deployment_id should be set"
-
-        successful = False
-        if deployment_id:
-            try:
-                core_id, loaded_reverse_id = self._state.space.get_task_core_id(task_id=deployment_id)
-                self._state.aux.core_task_id = core_id
-                reverse_id = loaded_reverse_id
-                self._state.aux.task_id = deployment_id
-                successful |= True
-            except Exception:
-                if reverse_id is None:
-                    raise Exception(
-                        "Could not attach to the flow. "
-                        "`deployment_id` is not correct and "
-                        "`reverse_id` is either not correct or provided"
-                    )
-
-        elif attach_to_last:
-            deployments = self._state.space.get_deployments_by_reverse_id(reverse_id=reverse_id, status=["started"])
-            if len(deployments) == 0:
-                raise ValueError(
-                    "You have not supplied deployment ID "
-                    "and no deployments are available at the moment"
-                )
-            self._state.aux.task_id = deployments[0].uid
+            reverse_id or deployment_id or flow_uid
+        ), "Either reverse_id or deployment_id or uid should be set"
 
         component: LoadedComponentSchema | None = (
-            self._state.space.get_parsed_component_by_reverse_id(reverse_id=reverse_id)
+            self._state.space.get_parsed_component_by_reverse_id(
+                reverse_id=reverse_id
+            )
         )
+        if flow_uid and component.flow is not None:
+            component.flow = self._state.space.get_flow(flow_uid)
 
         if component is not None and component.flow is not None:
-            self._state.flow = component.flow
-            self._state.aux.flow_id = component.flow.uid
+            if deployment_id:
+                self.state.aux.task_id = deployment_id
+
+            else:
+                tasks = self._state.space.get_deployments_by_flow(
+                    flow_id=component,
+                    status=["started"]
+                )
+                if len(tasks) > 0:
+                    tasks = sorted(tasks, key=lambda x: x.last_runned_at, reverse=True)
+                    self.state.aux.task_id = tasks[0].uid
+
+
+            flow: LoadedFlowSchema = component.flow
+
+            self._state.flow = flow
+            self._state.aux.flow_id = flow.uid
             self._state.components_alias = {
-                x.uid: x.alias for x in component.flow.components
+                x.uid: x.alias for x in flow.components
             }
-            successful |= True
-            all_components = {x.uid for x in component.flow.components}
+
+            all_components = {x.uid for x in flow.components}
             prev_components = set.union(
-                set(), *[{x.uid for x in y.prev} for y in component.flow.components]
+                set(), *[{x.uid for x in y.prev} for y in flow.components]
             )
             leaves = all_components.difference(prev_components)
             # NOTE: there can be more leaves in future
             leave_aliasses = [
-                x.alias for x in component.flow.components if x.uid in (leaves)
+                x.alias for x in flow.components if x.uid in (leaves)
             ]
 
             leaf_nodes = [tracedLike(BaseNode(alias=x)) for x in leave_aliasses]
@@ -772,13 +772,6 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
                 "Could not attach to the flow. Component failed to be parsed."
             )
 
-        if not successful:
-            raise Exception(
-                "Failed to attach to the task. Possible reasons are: "
-                "could not find neither component nor deployment."
-            )
-
         task = SpaceTask(state=self._state, component=component)
-
         task.commit_returned(leaf_nodes)
         return task

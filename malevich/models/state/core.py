@@ -37,6 +37,9 @@ class CoreParams:
         return hasattr(self, str(key))
 
 
+def _ddlist():
+    return defaultdict(list)
+
 class CoreInterpreterState:
     """State of the CoreInterpreter"""
 
@@ -44,7 +47,7 @@ class CoreInterpreterState:
         # Involved operations
         self.ops: dict[str, BaseNode] = {}
         # Dependencies (same keys as in self.ops)
-        self.depends: dict[str, list[tuple[BaseNode, ArgumentLink]]] = defaultdict(list)
+        self.depends: dict[str, list[tuple[BaseNode, ArgumentLink[BaseNode]]]] = defaultdict(list)  # noqa: E501
         # Registry reference (just a shortcut)
         self.reg = Registry()
         # Manifest manager reference (just a shortcut)
@@ -64,9 +67,7 @@ class CoreInterpreterState:
         # App args
         self.app_args: dict[str, Any] = {}
         # Collections
-        self.extra_colls: dict[str, dict[str, list]] = defaultdict(
-            lambda: defaultdict(list)
-        )
+        self.extra_colls: dict[str, dict[str, list]] = defaultdict(_ddlist)
         # Alias to task id
         self.task_aliases: dict[str, str] = {}
         # Component
