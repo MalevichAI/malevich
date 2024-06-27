@@ -737,6 +737,16 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
             if deployment_id:
                 self.state.aux.task_id = deployment_id
 
+            else:
+                tasks = self._state.space.get_deployments_by_flow(
+                    flow_id=component,
+                    status=["started"]
+                )
+                if len(tasks) > 0:
+                    tasks = sorted(tasks, key=lambda x: x.last_runned_at, reverse=True)
+                    self.state.aux.task_id = tasks[0].uid
+
+
             flow: LoadedFlowSchema = component.flow
 
             self._state.flow = flow
