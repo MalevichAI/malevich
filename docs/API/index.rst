@@ -11,6 +11,8 @@ either imported into the main namespace or used internally by other modules.
 .. toctree::
    :maxdepth: 4
    
+   Assistants <assistants>
+
    malevich._autoflow <autoflow>
    malevich._meta <meta/index>
    malevich.interpreter <interpreter/index>

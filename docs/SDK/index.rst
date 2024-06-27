@@ -29,8 +29,9 @@ User Guide
     Flows/Introduction
     Flows/Autoflow
     Flows/Lifecycle
+    Flows/Execution
     Flows/Results
-
+    Flows/Integration
 
 
 .. toctree::
