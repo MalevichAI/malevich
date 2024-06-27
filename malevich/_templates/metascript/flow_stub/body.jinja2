@@ -3,3 +3,34 @@
 {% for integration in integrations -%}
     {%- include "stub.jinja2" -%}
 {%- endfor %}
+
+def {{reverse_id}}(
+    version: Literal['{{version}}'],
+    branch: Literal['{{branch}}'],
+    *,
+    run_deployment_id: str | None = None,
+    run_task_policy: Literal['only_use'] | Literal['use_or_new'] = 'use_or_new',
+    get_task: bool = True
+    wait_for_results: bool = True
+    **kwargs,
+):
+    task = Space(
+        reverse_id='{{reverse_id}}',
+        branch=branch,
+        version=version,
+        deployment_id=run_deployment_id,
+        task_policy=run_task_policy
+    )
+    if get_task:
+        return task
+    
+    injectables = task.get_injectables()
+    overrides = {}
+    for col in injectables:
+        data = kwargs.get(col.alias, None)
+        if data is not None:
+            overrides[col.alias] = data
+    if not wait_for_results:
+        return task.run(overrides=overrides)
+    
+    return task.results()
