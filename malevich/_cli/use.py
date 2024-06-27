@@ -187,9 +187,7 @@ def _install_from_space(
                     version=version_name,
                     deployment=deployment_id,
                     injectables=injectables,
-                    branch = branch_name,
-                    active_branch=task,
-                    active_version=
+                    branch = branch_name
                 )
 
                 manf_flows = manifest_manager.query('flows')

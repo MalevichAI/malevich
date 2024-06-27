@@ -33,5 +33,3 @@ class Integration(BaseModel):
     branch: Optional[str] = None
     deployment: Optional[str] = None
     injectables: list[SpaceInjectable] = []
-    active_branch: str = None
-    active_version: str = None

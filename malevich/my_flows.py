@@ -21,6 +21,7 @@ class FlowFunctionStub(Generic[ProcFunArgs, ProcFunReturn]):
             run_task_policy: Literal['only_use', 'use_or_new', 'no_use']='use_or_new',
             get_task: bool = False,
             wait_for_results: bool = True,
+            webhook_url: str | None = None,
             **kwargs
     ) -> list[SpaceCollectionResult]:
         task = Space(
@@ -39,10 +40,10 @@ class FlowFunctionStub(Generic[ProcFunArgs, ProcFunReturn]):
             data = kwargs.get(col.alias, None)
             if data is not None:
                 overrides[col.alias] = data
+        run_id = task.run(overrides=overrides, webhook_url=webhook_url)
         if wait_for_results:
             return task.results()
-
-        return task.run(overrides=overrides)
+        return run_id
 
 
     __call__ = _fn_call
