@@ -27,16 +27,15 @@ def login(
             left = domain.group(1) if domain.group(1) else ''
             right = '.' + domain.group(2) if domain.group(2) else ''
             space_url = f'https://{left}space{right}/'
-            base_space_url = f'{left}space{right}'.rstrip('/')
+            base_space_url = f'https://{left}space{right}'.rstrip('/')
         else:
             domain = re.search(r"\/\/(.*)space\.(.+)\/?", space_url)
             left = domain.group(1) if domain.group(1) else ''
             right = '.' + domain.group(2) if domain.group(2) else ''
             base_space_url = f'{left}space{right}'.rstrip('/')
-            api_url = f'https://{left}api{right}/'
+            api_url = f'https://{left}api{right.rstrip("/")}/'
     except Exception:
         base_space_url = api_url
-
     if no_input and (username is None or password is None):
         rich.print("[red]You have to set --username and --password parameters, "
                    "if --no-input is used[/red]")
