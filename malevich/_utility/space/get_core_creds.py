@@ -67,7 +67,7 @@ def get_core_creds_from_setup(setup: SpaceSetup) -> tuple[str, str]:
         gql("""
             query GetAllSAs($host_id: String!) {
                 host(uid: $host_id) {
-                    mySaOnHost {
+                    mySaOnHost (first: 10000000){
                         edges {
                             node {
                                 details {
