@@ -32,7 +32,7 @@ def get_core_creds_from_setup(setup: SpaceSetup) -> tuple[str, str]:
         gql("""
         query GetAllHosts {
             hosts {
-                all {
+                public {
                     edges {
                         node {
                             details {
@@ -52,7 +52,7 @@ def get_core_creds_from_setup(setup: SpaceSetup) -> tuple[str, str]:
             x['node']['details']['connUrl'],
             x['node']['details']['uid']
         )
-        for x in r['hosts']['all']['edges']
+        for x in r['hosts']['public']['edges']
     ]
 
     uid = None
@@ -81,7 +81,6 @@ def get_core_creds_from_setup(setup: SpaceSetup) -> tuple[str, str]:
             }
         """), variable_values={'host_id': uid}
     )
-
     sas = [
         (
             x['node']['details']['coreUsername'],
@@ -89,7 +88,6 @@ def get_core_creds_from_setup(setup: SpaceSetup) -> tuple[str, str]:
         )
         for x in r['host']['mySaOnHost']['edges']
     ]
-
     for u, p in sas:
         parts_ = u.split('__')
         if (

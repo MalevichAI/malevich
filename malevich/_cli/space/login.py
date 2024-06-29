@@ -67,7 +67,7 @@ def login(
         )
 
     setup = SpaceSetup(
-        api_url=api_url,
+        api_url=api_url.rstrip('/'),
         username=username,
         password=password,
         org=org_id,
