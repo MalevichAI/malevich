@@ -221,7 +221,7 @@ class CoreTask(BaseTask):
             return None
 
         if isinstance(proc_stub.config, BaseModel) and isinstance(config_extension, BaseModel):  # noqa: E501
-            return type(proc_stub.config) == type(config_extension)
+            return type(proc_stub.config) == type(config_extension)  # noqa: E721
         else:
             return True
 

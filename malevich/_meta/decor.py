@@ -53,7 +53,7 @@ class ProcessorFunction(Generic[Config, ProcFunArgs, ProcFunReturn]):
             kwargs['config'] = {}
 
         if isinstance(kwargs['config'], BaseModel):
-            assert type(kwargs['config']) == self.__config_model, (
+            assert type(kwargs['config']) == self.__config_model, (  # noqa: E721
                 f"You have set config={kwargs['config']}, "
                 f"but it should be of type {self.__config_model}."
             )
