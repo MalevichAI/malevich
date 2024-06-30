@@ -2,7 +2,6 @@ from typing import Any, Literal, ParamSpec, overload
 
 from malevich_space.ops import SpaceOps
 from malevich_space.schema import SpaceSetup
-from malevich_space.schema.version_mode import VersionMode
 from rich.prompt import Prompt
 
 from malevich.core_api import check_auth
@@ -137,11 +136,11 @@ class Space:
         active_versions = {}
         for branch_ in info['component']['branches']['edges']:
             branch_name = branch_['node']['details']['name']
-            active_versions[branch_name] = branch_['node']['activeVersion']['flow']['details']['uid']
+            active_versions[branch_name] = branch_['node']['activeVersion']['flow']['details']['uid']  # noqa: E501
             flow_branch_version[branch_name] = {}
             for version_ in branch_['node']['versions']['edges']:
                 version_name = version_['node']['details']['readableName']
-                flow_branch_version[branch_name][version_name] = version_['node']['flow']['details']['uid']
+                flow_branch_version[branch_name][version_name] = version_['node']['flow']['details']['uid']  # noqa: E501
 
         if branch is not None:
             if branch not in flow_branch_version:
@@ -188,8 +187,9 @@ class Space:
                 if policy == 'only_use':
                     if deployment_id is not None:
                         raise Exception(
-                            f"The deployment with ID {deployment_id} is not active while "
-                            "policy was set to 'use_only'. Provide active deployment, "
+                            f"The deployment with ID {deployment_id} is not active "
+                            "while policy was set to 'use_only'. "
+                            "Provide active deployment, "
                             "or change policy to 'use_or_new' or 'no_use'"
                         )
                     else:

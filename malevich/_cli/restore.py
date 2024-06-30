@@ -3,15 +3,13 @@ import concurrent.futures
 import rich
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-from ..models.dependency import Integration
-
-from .._utility.flow_stub import FlowStub
-
 from .._cli.prefs import prefs as prefs
+from .._utility.flow_stub import FlowStub
 from ..install.image import ImageInstaller
 from ..install.installer import Installer
 from ..install.space import SpaceInstaller
 from ..manifest import ManifestManager
+from ..models.dependency import Integration
 
 
 def _restore(installer: Installer, depedency: dict, progress: Progress, task) -> None:
@@ -78,4 +76,6 @@ def restore() -> None:
         FlowStub.sync_flows(flow, integrations=[
             Integration(**i) for i in integrations
         ])
-        rich.print(f"[green]✔[/green] [green]{flow}[/green] ({len(integrations)} integrations)")
+        rich.print(
+            f"[green]✔[/green] [green]{flow}[/green] ({len(integrations)} integrations)"
+        )

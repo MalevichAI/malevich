@@ -13,7 +13,6 @@ from malevich_space.schema import ComponentSchema
 from pydantic import BaseModel, ValidationError
 
 from malevich._meta import table
-from ...._utility.core_logging import IgnoreCoreLogs
 from malevich.models.endpoint import MetaEndpoint
 from malevich.models.types import FlowOutput
 
@@ -24,6 +23,7 @@ from ...._core.ops import (
     batch_upload_collections,
 )
 from ...._meta.decor import ProcessorFunction
+from ...._utility.core_logging import IgnoreCoreLogs
 from ...._utility.logging import LogLevel, cout
 from ...._utility.package import package_manager
 from ....interpreter.abstract import Interpreter

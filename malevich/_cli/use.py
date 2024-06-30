@@ -216,7 +216,8 @@ def _install_from_space(
             if entry := manifest_manager.query("dependencies", package_name):
                 if entry.get("installer") != "space":
                     raise Exception(
-                        f"Package {package_name} already exists with different installer."
+                        f"Package {package_name} already exists "
+                        "with different installer."
                         "\nPossible solutions:"
                         "\n\t- Remove package from manifest and try again. Use `malevich remove` command"  # noqa: E501
                         "\n\t- Use `malevich restore` command to restore package with its installer"  # noqa: E501

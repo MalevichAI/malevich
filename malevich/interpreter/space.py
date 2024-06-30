@@ -3,7 +3,6 @@ from collections import defaultdict
 from typing import Literal, Optional, overload
 from uuid import uuid4
 
-from gql import gql
 from malevich_space.ops.component_manager import ComponentManager
 from malevich_space.ops.space import SpaceOps
 from malevich_space.schema import SpaceSetup, VersionMode
@@ -542,7 +541,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
             bridges = link.compressed_nodes
 
             for _, to in bridges:
-                inter_flow_map[caller_alias] = child.components_alias[link.shadow_collection.owner.uuid]
+                inter_flow_map[caller_alias] = child.components_alias[link.shadow_collection.owner.uuid]  # noqa: E501
 
             dependency = InFlowDependency(
                 from_op_id=(
@@ -582,7 +581,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
                     Terminal(src=x, target=y) for x, y in inter_flow_map.items()
                 ],
             )
-        elif isinstance(from_node.owner, TreeNode) and isinstance(to_node.owner, TreeNode):
+        elif isinstance(from_node.owner, TreeNode) and isinstance(to_node.owner, TreeNode):  # noqa: E501
             left_op = from_node.owner.underlying_node
             right_edges = link.compressed_nodes
             for rel, right_node in right_edges:

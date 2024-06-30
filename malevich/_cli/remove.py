@@ -8,9 +8,7 @@ from malevich._utility.package import PackageManager
 
 from .._cli.prefs import prefs as prefs
 from .._utility.flow_stub import FlowStub
-from ..install.flow import FlowInstaller
 from ..manifest import ManifestManager
-from ..models.dependency import Integration
 
 
 def remove(
