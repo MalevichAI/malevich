@@ -286,10 +286,13 @@ class Stub:
 
         config_model_class = {}
         for processor_name, (class_names, _) in config_stubs.items():
-            for class_name in class_names:
-                if class_name == processors[processor_name].contextClass['title']:
-                    config_model_class[processor_name] = class_name
-                    break
+            if class_names:
+                for class_name in class_names:
+                    if class_name == processors[processor_name].contextClass['title']:
+                        config_model_class[processor_name] = class_name
+                        break
+                else:
+                    config_model_class[processor_name] = None
             else:
                 config_model_class[processor_name] = None
 
