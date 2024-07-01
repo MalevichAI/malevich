@@ -5,11 +5,10 @@ from typing import Generic, TypeVar
 
 from malevich_space.schema import ComponentSchema
 
-from ..models.exceptions import InterpretationError
-
 from .._autoflow.tracer import traced
 from .._utility.tree import unwrap_tree
 from ..models.argument import ArgumentLink
+from ..models.exceptions import InterpretationError
 from ..models.nodes.base import BaseNode
 from ..models.nodes.tree import TreeNode
 
@@ -111,7 +110,7 @@ class Interpreter(Generic[State, Return]):
         else:
             self._state = self.state
 
-    def interpret(self, node: TreeNode, component: ComponentSchema = None) -> Return:  # noqa: ANN201
+    def interpret(self, node: TreeNode, component: ComponentSchema = None) -> Return:
         """Interprets the execution tree
 
         The interpretation process is divided into 5 steps:

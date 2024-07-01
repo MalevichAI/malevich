@@ -14,7 +14,6 @@ from pydantic import BaseModel, ValidationError
 
 from malevich._meta import table
 from malevich.models.endpoint import MetaEndpoint
-from .core import CoreTask
 from malevich.models.types import FlowOutput
 
 from ...._autoflow.tracer import traced
@@ -36,6 +35,7 @@ from ...preferences import VerbosityLevel
 from ...results.core.result import CoreLocalDFResult, CoreResult
 from ...state.core_v2 import CoreInterpreterV2State
 from ..base import BaseTask
+from .core import CoreTask
 
 
 class BootError(Exception): ...

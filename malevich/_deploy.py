@@ -2,7 +2,6 @@ from typing import Any, Literal, ParamSpec, overload
 
 from malevich_space.ops import SpaceOps
 from malevich_space.schema import SpaceSetup
-from malevich_space.schema.version_mode import VersionMode
 from rich.prompt import Prompt
 
 from malevich.core_api import check_auth
@@ -106,12 +105,12 @@ class Space:
         task: PromisedTask | FlowFunction[..., Any] | Any = None,  # noqa: ANN401, for IDE hints
         # version_mode: VersionMode = VersionMode.MINOR,
         reverse_id: str | None = None,
-        attach_to_any: bool = False,
         deployment_id: str | None = None,
         attach_to_last: bool | None = None,
         branch: str | None = None,
         version: str | None = None,
         ops: SpaceOps | None = None,
+        policy: Literal['no_use', 'only_use', 'use_or_new']= 'use_or_new',
         *task_args,
         **task_kwargs
     ) -> SpaceTask:
@@ -133,15 +132,15 @@ class Space:
         info = ops.get_available_flows(reverse_id=reverse_id)
 
         flow_branch_version = {}
-        active_branch = info['component']['activeBranch']['details']['uid']
+        active_branch = info['component']['activeBranch']['details']['name']
         active_versions = {}
         for branch_ in info['component']['branches']['edges']:
             branch_name = branch_['node']['details']['name']
-            active_versions[branch_name] = branch_['node']['activeVersion']['flow']['details']['uid']
+            active_versions[branch_name] = branch_['node']['activeVersion']['flow']['details']['uid']  # noqa: E501
             flow_branch_version[branch_name] = {}
             for version_ in branch_['node']['versions']['edges']:
                 version_name = version_['node']['details']['readableName']
-                flow_branch_version[branch_name][version_name] = version_['node']['flow']['details']['uid']
+                flow_branch_version[branch_name][version_name] = version_['node']['flow']['details']['uid']  # noqa: E501
 
         if branch is not None:
             if branch not in flow_branch_version:
@@ -158,9 +157,10 @@ class Space:
                     f"Available versions for branch {branch}: "
                     f" {list(flow_branch_version[branch].keys())}"
                 )
+            else:
+                uid = flow_branch_version[branch][version]
         else:
-            version = active_versions[branch]
-        uid = flow_branch_version[branch][version]
+            uid = active_versions[branch]
 
         interpreter = SpaceInterpreter(
             setup=setup,
@@ -175,10 +175,31 @@ class Space:
             reverse_id = task._component.reverse_id
 
         if task is None:
-            return interpreter.attach(
+            task = interpreter.attach(
                 reverse_id=reverse_id,
-                flow_uid=uid
+                flow_uid=uid,
+                deployment_id=deployment_id
             )
+            if policy == 'no_use':
+                task.prepare()
+                return task
+            elif task.get_stage().value != 'started':
+                if policy == 'only_use':
+                    if deployment_id is not None:
+                        raise Exception(
+                            f"The deployment with ID {deployment_id} is not active "
+                            "while policy was set to 'use_only'. "
+                            "Provide active deployment, "
+                            "or change policy to 'use_or_new' or 'no_use'"
+                        )
+                    else:
+                        raise Exception(
+                            "No active tasks found for 'use_only' policy. "
+                            "You can change policy 'use_or_new' or 'no_use'."
+                        )
+                else:
+                    task.prepare()
+            return task
 
         task.interpret(interpreter)
         return task.get_interpreted_task()

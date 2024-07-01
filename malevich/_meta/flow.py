@@ -33,7 +33,7 @@ def __no_auto_flow(
     reverse_id: Optional[str] = None,
     name: Optional[str] = None,
     description: Optional[str] = None,
-    **kwargs: Any,
+    **kwargs: Any,  # noqa: ANN401
 ) -> Callable[[Callable[Args, T]], FlowFunction[Args, R]]:
     """Converts a function into a flow
 
@@ -263,7 +263,9 @@ def flow(
                     NoArgumentAnnotation,
                 )
 
-        pos_arg_names = [p.name for p in sign.parameters.values() if p.default is p.empty]
+        pos_arg_names = [
+            p.name for p in sign.parameters.values() if p.default is p.empty
+        ]
 
         @wraps(function)
         def fn(*args: Args.args, __component, **kwargs: Args.kwargs) -> R:
@@ -297,7 +299,7 @@ def flow(
                 ):
                     if hasattr(param.annotation, "__malevich_collection_name__"):
                         collection_name = param.annotation.__malevich_collection_name__
-                        collection_scheme = param.annotation.__malevich_collection_scheme__
+                        collection_scheme = param.annotation.__malevich_collection_scheme__  # noqa: E501
                     else:
                         raise TypeError(
                             f"Argument '{name}' has invalid annotation. "

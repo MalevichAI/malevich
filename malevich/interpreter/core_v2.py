@@ -1,5 +1,4 @@
 import json
-import uuid
 from collections import defaultdict
 from typing import Optional
 
@@ -11,8 +10,6 @@ from malevich._utility import unique
 
 from .._autoflow.tracer import traced, tracedLike
 from .._core.ops import (
-    _assure_asset,
-    batch_upload_collections,
     result_collection_name,
 )
 from .._utility.cache.manager import CacheManager
@@ -318,7 +315,8 @@ class CoreInterpreterV2(Interpreter[CoreInterpreterV2State, CoreTask]):
             )
 
         _log(
-            f"Dependency: {from_node.owner.short_info()} -> {to_node.owner.short_info()}, "
+            f"Dependency: {from_node.owner.short_info()} -> "
+            f"{to_node.owner.short_info()}, "
             f"Link: {link.name}", -1, 0, True
         )
         return state
