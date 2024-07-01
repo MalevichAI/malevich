@@ -366,7 +366,7 @@ class Stub:
                 config_schema=config_models[name],
             )
             functions[name].definition = functions[name].generate_definition(
-                config_model=config_stubs[name][0]
+                config_model=config_model_class[name]
             )
 
         with chdir(path):
@@ -385,7 +385,7 @@ class Stub:
                         operation_id=operation_ids[name],
                         use_sinktrace=bool(function.sink),
                         definition=function.definition,
-                        config_model=config_stubs[name][0],
+                        config_model=config_model_class[name]
                     ))
                     index.functions.append(function)
                     index.functions_index[name] = (i, i + j)
