@@ -1,4 +1,3 @@
-from malevich.models.manifest import Dependency
 
 from .._utility.flow_stub import FlowStub
 from ..install.installer import Installer

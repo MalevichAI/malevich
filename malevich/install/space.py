@@ -160,7 +160,10 @@ class SpaceInstaller(Installer):
 
         return dependency
 
-    def restore(self, dependency: SpaceDependency) -> SpaceDependency | LoadedComponentSchema:
+    def restore(
+            self,
+            dependency: SpaceDependency
+    ) -> SpaceDependency | LoadedComponentSchema:
         return self.install(
             package_name=dependency.package_id,
             reverse_id=dependency.options.reverse_id,

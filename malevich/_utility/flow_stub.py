@@ -16,7 +16,6 @@ class FlowStub:
         environment = Environment(
             loader=FileSystemLoader(Paths.templates('metascript', 'flow_stub'))
         )
-
         with open(install_path, 'w+') as f:
             f.write(
                 environment.get_template('body.jinja2').render(
