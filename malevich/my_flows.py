@@ -40,7 +40,7 @@ class FlowFunctionStub(Generic[ProcFunArgs, ProcFunReturn]):
             data = kwargs.get(col.alias, None)
             if data is not None:
                 overrides[col.alias] = data
-        run_id = task.run(overrides=overrides, webhook_url=webhook_url)
+        run_id = task.run(override=overrides, webhook_url=webhook_url)
         if wait_for_results:
             return task.results()
         return run_id
