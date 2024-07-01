@@ -233,10 +233,10 @@ class Stub:
                     '\n'
                 )
                 return (
-                    re.search(
+                    re.findall(
                         r'class (?P<ClassName>\w+)',
                         out_script
-                    ).group('ClassName'),   # 1
+                    ),   # 1
                     out_script              # 2
                 )
 
@@ -284,6 +284,15 @@ class Stub:
             for name, processor in processors.items()
         }
 
+        config_model_class = {}
+        for processor_name, (class_names, _) in config_stubs.items():
+            for class_name in class_names:
+                if class_name == processors[processor_name].contextClass['title']:
+                    config_model_class[processor_name] = class_name
+                    break
+            else:
+                config_model_class[processor_name] = None
+
         with chdir(path):
             with open('scheme.py', 'w+') as f_scheme:
                 i = 0
@@ -298,7 +307,7 @@ class Stub:
                         StubSchema(
                             name=name,
                             scheme=json.dumps(proc.contextClass),
-                            class_name=class_name,
+                            class_name=config_model_class[processor_name],
                         )
                     )
                     index.schemes_index[name] = (i, i + j)
@@ -311,15 +320,15 @@ class Stub:
                         StubSchema(
                             name=name,
                             scheme=schema,
-                            class_name=stub_[0]
+                            class_name=stub_[0][0]
                         )
                     )
                     index.schemes_index[name] = (i, i + j)
 
         importlib.import_module(f'malevich.{package_name}.scheme')
         config_models = {
-            name: eval(f'malevich.{package_name}.scheme.{config_stubs[name][0]}')
-            if config_stubs[name][0] else None
+            name: eval(f'malevich.{package_name}.scheme.{config_model_class[name]}')
+            if config_model_class[name] else None
             for name in processors
         }
 
