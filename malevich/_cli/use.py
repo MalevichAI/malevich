@@ -144,9 +144,6 @@ def _install_from_space(
     branch: Optional[str] = None,
     version: Optional[str] = None,
     progress: Progress = None,
-    # Flow installer
-    attach_any: bool = False,
-    deployment_id: str | None = None
 ) -> None:
     installer = SpaceInstaller()
     flow_installer = FlowInstaller()
@@ -167,39 +164,33 @@ def _install_from_space(
         manifest_manager = ManifestManager()
 
         if isinstance(manifest_entry, LoadedComponentSchema):
-                attach_to_last = deployment_id is None
-                task = Space(
+                flow_branch_version, active_branch, active_versions = Space.fetch(
                     reverse_id=reverse_id,
-                    attach_to_any=attach_any,
-                    attach_to_last=attach_to_last,
-                    deployment_id=deployment_id,
-                    branch=branch
                 )
-                version_name = task.component.version.readable_name
-                branch_name = task.component.branch.name
-                mappings = {}
-                injectables = task.get_injectables()
-                for col in injectables:
-                    mappings[underscored(col.alias)] = col.alias
+                integrations = []
+                for branch, versions in flow_branch_version.items():
+                    for version, uid in versions.items():
+                        task = Space(
+                            reverse_id=reverse_id,
+                            uid=uid,
+                            policy='no_use',
+                        )
 
-                integration = Integration(
-                    mapping=mappings,
-                    version=version_name,
-                    deployment=deployment_id,
-                    injectables=injectables,
-                    branch = branch_name
-                )
+                        injectables = task.get_injectables()
 
-                manf_flows = manifest_manager.query('flows')
-                if reverse_id in manf_flows:
-                    integrations = [Integration(**i) for i in manf_flows[reverse_id]]
-                    for ex_integ in integrations:
-                        if ex_integ.version == integration.version:
-                            break
-                    else:
-                        integrations = [integration, *integrations]
-                else:
-                    integrations = [integration]
+                        mappings = {}
+                        for col in injectables:
+                            mappings[underscored(col.alias)] = col.alias
+
+                        integrations.append(
+                            Integration(
+                                mapping=mappings,
+                                version=version,
+                                deployment=uid,
+                                injectables=injectables,
+                                branch=branch
+                            )
+                        )
 
                 flow_installer.install(reverse_id=reverse_id, integrations=integrations)
                 manifest_manager.put('flows', reverse_id, value=integrations)

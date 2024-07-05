@@ -295,7 +295,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
             image_auth_user = extra.image_auth_user
             image_auth_pass = extra.image_auth_pass
             image_ref = extra.image_ref
-
+            print(extra)
             if not image_ref:
                 verbose_ = ""
                 if op.processor_id is not None:

@@ -4,6 +4,7 @@ from malevich_space.ops import SpaceOps
 from malevich_space.schema import SpaceSetup
 from rich.prompt import Prompt
 
+from ._utility.space.auto_space_ops import get_auto_ops
 from malevich.core_api import check_auth
 
 from ._cli.space.login import login
@@ -100,13 +101,32 @@ class Core:
 
 class Space:
 
+    @staticmethod
+    def fetch(reverse_id: str, ops: SpaceOps | None = None) -> tuple[dict, str, dict[str, str]]:  # noqa: E501
+        if not ops:
+            ops = get_auto_ops()
+
+        info = ops.get_available_flows(reverse_id=reverse_id)
+        flow_branch_version = {}
+        active_branch = info['component']['activeBranch']['details']['name']
+        active_versions = {}
+        for branch_ in info['component']['branches']['edges']:
+            branch_name = branch_['node']['details']['name']
+            active_versions[branch_name] = branch_['node']['activeVersion']['flow']['details']['uid']  # noqa: E501
+            flow_branch_version[branch_name] = {}
+            for version_ in branch_['node']['versions']['edges']:
+                version_name = version_['node']['details']['readableName']
+                flow_branch_version[branch_name][version_name] = version_['node']['flow']['details']['uid']  # noqa: E501
+
+        return flow_branch_version, active_branch, active_versions
+
     def __new__(
         cls,
         task: PromisedTask | FlowFunction[..., Any] | Any = None,  # noqa: ANN401, for IDE hints
         # version_mode: VersionMode = VersionMode.MINOR,
         reverse_id: str | None = None,
+        uid: str | None = None,
         deployment_id: str | None = None,
-        attach_to_last: bool | None = None,
         branch: str | None = None,
         version: str | None = None,
         ops: SpaceOps | None = None,
@@ -128,39 +148,35 @@ class Space:
                 setup = SpaceSetup(**manf.query('space', resolve_secrets=True))
         else:
             setup = ops.space_setup
+
         ops = SpaceOps(space_setup=setup)
-        info = ops.get_available_flows(reverse_id=reverse_id)
 
-        flow_branch_version = {}
-        active_branch = info['component']['activeBranch']['details']['name']
-        active_versions = {}
-        for branch_ in info['component']['branches']['edges']:
-            branch_name = branch_['node']['details']['name']
-            active_versions[branch_name] = branch_['node']['activeVersion']['flow']['details']['uid']  # noqa: E501
-            flow_branch_version[branch_name] = {}
-            for version_ in branch_['node']['versions']['edges']:
-                version_name = version_['node']['details']['readableName']
-                flow_branch_version[branch_name][version_name] = version_['node']['flow']['details']['uid']  # noqa: E501
 
-        if branch is not None:
-            if branch not in flow_branch_version:
-                raise ValueError(
-                    f"Branch {branch} not found. Available branches: "
-                    f" {list(flow_branch_version.keys())}")
-        else:
-            branch = active_branch
+        if not uid:
+            flow_branch_version, active_branch, active_versions = cls.fetch(
+                reverse_id=reverse_id,
+                ops=ops
+            )
 
-        if version is not None:
-            if version not in flow_branch_version[branch]:
-                raise ValueError(
-                    f"Version {version} not found in branch {branch}. "
-                    f"Available versions for branch {branch}: "
-                    f" {list(flow_branch_version[branch].keys())}"
-                )
+            if branch is not None:
+                if branch not in flow_branch_version:
+                    raise ValueError(
+                        f"Branch {branch} not found. Available branches: "
+                        f" {list(flow_branch_version.keys())}")
             else:
-                uid = flow_branch_version[branch][version]
-        else:
-            uid = active_versions[branch]
+                branch = active_branch
+
+            if version is not None:
+                if version not in flow_branch_version[branch]:
+                    raise ValueError(
+                        f"Version {version} not found in branch {branch}. "
+                        f"Available versions for branch {branch}: "
+                        f" {list(flow_branch_version[branch].keys())}"
+                    )
+                else:
+                    uid = flow_branch_version[branch][version]
+            else:
+                uid = active_versions[branch]
 
         interpreter = SpaceInterpreter(
             setup=setup,
@@ -178,7 +194,8 @@ class Space:
             task = interpreter.attach(
                 reverse_id=reverse_id,
                 flow_uid=uid,
-                deployment_id=deployment_id
+                deployment_id=deployment_id,
+                search_deployments=(policy != 'no_use')
             )
             if policy == 'no_use':
                 task.prepare()

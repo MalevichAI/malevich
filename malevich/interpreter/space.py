@@ -719,6 +719,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
         reverse_id: str | None = None,
         flow_uid: str | None = None,
         deployment_id: str | None = None,
+        search_deployments: bool = True,
     ) -> SpaceTask:
         assert (
             reverse_id or deployment_id or flow_uid
@@ -737,14 +738,17 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
             if deployment_id:
                 self.state.aux.task_id = deployment_id
 
-            else:
-                tasks = self._state.space.get_deployments_by_flow(
-                    flow_id=component.flow.uid,
-                    status=["started"]
-                )
-                if len(tasks) > 0:
-                    tasks = sorted(tasks, key=lambda x: x.last_runned_at, reverse=True)
-                    self.state.aux.task_id = tasks[0].uid
+            elif search_deployments:
+                try:
+                    tasks = self._state.space.get_deployments_by_flow(
+                        flow_id=component.flow.uid,
+                        status=["started"]
+                    )
+                    if len(tasks) > 0:
+                        tasks = sorted(tasks, key=lambda x: x.last_runned_at, reverse=True)
+                        self.state.aux.task_id = tasks[0].uid
+                except:
+                    pass
 
 
             flow: LoadedFlowSchema = component.flow

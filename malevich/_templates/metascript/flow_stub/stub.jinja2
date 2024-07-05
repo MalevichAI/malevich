@@ -1,10 +1,14 @@
 @overload
 def {{reverse_id}}(
-    version: Literal['{{integration.version}}'],
-    branch: Literal['{{integration.branch}}'],
-    *,
+    version: Literal['{{integration.version}}'] = None,
+    branch: Literal['{{integration.branch}}'] = None,
+    *args,
     {%- with injectables=integration.injectables -%}
         {% include "args.jinja2" %}
     {%- endwith %}
+    **kwargs
 ):
     pass
+
+
+
