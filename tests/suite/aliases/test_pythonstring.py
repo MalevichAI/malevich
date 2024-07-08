@@ -1,6 +1,4 @@
 from malevich import asset, collection, flow, table
-from malevich.square import Context
-from malevich._autoflow.no_trace import notrace
 
 import pytest
 

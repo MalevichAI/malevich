@@ -3,9 +3,6 @@ on:
   push:
     branches:
       - test
-    paths-ignore:
-      - .github/**
-      - malevich/tests/**
   workflow_dispatch:
 jobs:
   build:
@@ -87,7 +84,7 @@ jobs:
       if: always()
       run: |
         echo "Not Implemented Yet. Waiting for core test account."
-        python .github/workflows/clean.py
+        python tests/post/clean.py
       env:
         CORE_USER: ${{ secrets.CORE_USER }}
         CORE_PASS: ${{ secrets.CORE_PASS }}
