@@ -79,6 +79,9 @@ jobs:
       env:
         CORE_USER: ${{ secrets.CORE_USER }}
         CORE_PASS: ${{ secrets.CORE_PASS }}
+        COREV2_HOST: ${{ secrets.COREV2_HOST }}
+        CORE_HOST: ${{ secrets.CORE_HOST }}
+
 
     - name: Clear core tasks
       if: always()
@@ -88,3 +91,5 @@ jobs:
       env:
         CORE_USER: ${{ secrets.CORE_USER }}
         CORE_PASS: ${{ secrets.CORE_PASS }}
+        COREV2_HOST: ${{ secrets.COREV2_HOST }}
+        CORE_HOST: ${{ secrets.CORE_HOST }}
