@@ -1,13 +1,13 @@
 from malevich_space.schema import SpaceSetup
 from typer import Context, Option, Typer
 
+from malevich._utility import get_core_creds_from_setup
+from malevich._utility._try import try_cascade
+from malevich.constants import DEFAULT_CORE_HOST
 from malevich.core_api import Config, set_host_port, update_core_credentials
+from malevich.manifest import manf
 
-from ..._cli.space.login import login
-from ..._utility._try import try_cascade
-from ..._utility.space.get_core_creds import get_core_creds_from_setup
-from ...constants import DEFAULT_CORE_HOST
-from ...manifest import manf
+from ..space.login import login
 from .assets import assets_app
 from .endpoints import endpoints_app
 from .limits import limits_app

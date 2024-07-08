@@ -3,10 +3,9 @@ import pickle
 
 import typer
 
-from ..interpreter.space import SpaceInterpreter
-from ..manifest import ManifestManager
-from ..models.flow_function import FlowFunction
-from ..models.task.promised import PromisedTask
+from malevich.interpreter import SpaceInterpreter
+from malevich.manifest import ManifestManager
+from malevich.models import FlowFunction, PromisedTask
 
 manf = ManifestManager()
 

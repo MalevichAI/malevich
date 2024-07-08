@@ -2,7 +2,8 @@ import hashlib
 from functools import cache
 from typing import Optional
 
-from ..types import PythonString
+from malevich.models.python_string import PythonString
+
 from .base import BaseNode
 
 

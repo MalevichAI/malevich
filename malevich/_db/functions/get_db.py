@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm.session import Session
 
-from ...path import Paths
+from malevich.path import Paths
 from ..schema import Base
 
 

@@ -1,7 +1,7 @@
 from typing import Optional, TypeVar
 
-from .._autoflow.tracer import traced
-from ..models.nodes.base import BaseNode
+from malevich._autoflow.tracer import traced
+from malevich.models import BaseNode
 
 T = TypeVar('T', bound=traced[BaseNode] | BaseNode)
 

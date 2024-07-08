@@ -3,10 +3,12 @@ from typing import Iterable, Optional
 
 from pydantic import ConfigDict
 
-from ..._autoflow.tracer import traced
-from ..._autoflow.tree import ExecutionTree
-from ..argument import ArgumentLink
-from ..types import PythonString
+from malevich._autoflow.tracer import ExecutionTree, traced
+from malevich.models import (
+    ArgumentLink,
+    PythonString,
+)
+
 from .base import BaseNode
 
 

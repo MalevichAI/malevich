@@ -6,17 +6,16 @@ import typer
 from malevich_space.schema import LoadedComponentSchema
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-from .._deploy import Space
-from ..constants import (
+from malevich._deploy import Space
+from malevich.constants import (
     DEFAULT_CORE_HOST,
     IMAGE_BASE,
 )
+from malevich.install import FlowInstaller, ImageInstaller, SpaceInstaller
+from malevich.manifest import ManifestManager
+from malevich.models.dependency import Integration
+
 from ..help import use as help
-from ..install.flow import FlowInstaller
-from ..install.image import ImageInstaller
-from ..install.space import SpaceInstaller
-from ..manifest import ManifestManager
-from ..models.dependency import Integration
 
 use = typer.Typer(help=help['--help'], rich_markup_mode="rich")
 

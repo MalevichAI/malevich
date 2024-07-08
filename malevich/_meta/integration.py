@@ -10,9 +10,8 @@ from typing import (
 
 from pydantic import BaseModel
 
-from .._deploy import Space
-from ..models.results.space.collection import SpaceCollectionResult
-from ..models.task.interpreted.space import SpaceTask
+from malevich._deploy import Space
+from malevich.models import SpaceCollectionResult, SpaceTask
 
 FnArgs = ParamSpec("FnArgs")
 FnReturn = TypeVar("FnReturn")

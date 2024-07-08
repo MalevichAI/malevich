@@ -4,11 +4,10 @@ import rich
 import typer
 import typer.core
 
-from malevich._utility.package import PackageManager
+from malevich._utility import FlowStub, PackageManager
+from malevich.manifest import ManifestManager
 
-from .._cli.prefs import prefs as prefs
-from .._utility.flow_stub import FlowStub
-from ..manifest import ManifestManager
+from .prefs import prefs as prefs
 
 
 def remove(

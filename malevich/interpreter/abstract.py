@@ -5,12 +5,9 @@ from typing import Generic, TypeVar
 
 from malevich_space.schema import ComponentSchema
 
-from .._autoflow.tracer import traced
-from .._utility.tree import unwrap_tree
-from ..models.argument import ArgumentLink
-from ..models.exceptions import InterpretationError
-from ..models.nodes.base import BaseNode
-from ..models.nodes.tree import TreeNode
+from malevich._autoflow.tracer import traced
+from malevich._utility import unwrap_tree
+from malevich.models import ArgumentLink, BaseNode, InterpretationError, TreeNode
 
 State = TypeVar("State")
 Return = TypeVar("Return")

@@ -13,11 +13,10 @@ from malevich.core_api import BasePlatformSettings
 from malevich.models.injections import SpaceInjectable
 
 from ...._autoflow.tracer import traced
-from ....interpreter.space import SpaceInterpreterState
+from ....types import FlowOutput
 from ...nodes.base import BaseNode
 from ...nodes.tree import TreeNode
 from ...results.space.collection import SpaceCollectionResult
-from ...types import FlowOutput
 from ..base import BaseTask
 
 
@@ -50,7 +49,7 @@ class SpaceTask(BaseTask):
 
     def __init__(
         self,
-        state: SpaceInterpreterState,
+        state: 'SpaceInterpreterState',
         component: LoadedComponentSchema | None = None,
         get_component: Callable[..., LoadedComponentSchema] | None = None,
     ) -> None:

@@ -9,9 +9,9 @@ from typing import (
 
 from pydantic import BaseModel
 
-from .._autoflow.function import autotrace, sinktrace
-from ..constants import reserved_config_fields
-from ..models.type_annotations import ConfigArgument
+from malevich._autoflow.function import autotrace, sinktrace
+from malevich.constants import reserved_config_fields
+from malevich.models import ConfigArgument
 
 FnArgs = ParamSpec("FnArgs")
 FnReturn = TypeVar("FnReturn")

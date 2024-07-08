@@ -20,27 +20,33 @@ from malevich_space.schema.flow import (
 )
 from malevich_space.schema.schema import SchemaMetadata
 
-from malevich.models.nodes.tree import TreeNode
+from malevich._autoflow import traced, tracedLike
+from malevich._utility import (
+    CacheManager,
+    LogLevel,
+    Registry,
+    cout,
+    resolve_setup,
+    unique,
+)
+from malevich.interpreter import Interpreter
+from malevich.models import (
+    Action,
+    ArgumentLink,
+    BaseNode,
+    BaseTask,
+    CollectionNode,
+    InterpretationError,
+    OperationNode,
+    SpaceInterpreterState,
+    SpaceTask,
+    TreeNode,
+    VerbosityLevel,
+)
 
 from .._autoflow import tracer as gn
-from .._autoflow.tracer import traced, tracedLike
-from .._utility.cache.manager import CacheManager
-from .._utility.logging import LogLevel, cout
-from .._utility.registry import Registry
-from .._utility.space.space import resolve_setup
-from ..interpreter.abstract import Interpreter
 from ..manifest import ManifestManager
-from ..models.actions import Action
-from ..models.argument import ArgumentLink
-from ..models.exceptions import InterpretationError
-from ..models.nodes.base import BaseNode
-from ..models.nodes.collection import CollectionNode
-from ..models.nodes.operation import OperationNode
-from ..models.preferences import VerbosityLevel
-from ..models.state.space import NodeType, SpaceInterpreterState
-from ..models.task.base import BaseTask
-from ..models.task.interpreted.space import SpaceTask
-from ..models.types import TracedNode
+from ..types import TracedNode
 
 manf = ManifestManager()
 reg = Registry()
@@ -115,7 +121,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
     -------
 
     Results is represented as a list of
-    :class:`malevich.results.space.SpaceCollectionResult`
+    :class:`malevich.results`
     objects.
     """
 
@@ -193,7 +199,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
             try:
                 setup = resolve_setup(manf.query("space", resolve_secrets=True))
             except Exception as e:
-                from malevich._cli.space.login import login
+                from malevich._cli import login
                 if login():
                     setup = resolve_setup(manf.query("space", resolve_secrets=True))
                 raise InterpretationError(
@@ -374,7 +380,6 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
             # else:
             #     path = None
 
-            state.node_type[node.owner.uuid] = NodeType.COLLECTION
             # Try to get the collection component from the space
             component = state.space.get_parsed_component_by_reverse_id(
                 # Using the collection id as the reverse id
@@ -438,7 +443,6 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
                 )
 
         elif isinstance(node.owner, OperationNode):  # If the node is an operation
-            state.node_type[node.owner.uuid] = NodeType.OPERATION
 
             # All the required information to interpret the node
             # should be in the registry
@@ -515,7 +519,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
 
         state.components[node.owner.uuid] = comp
         state.components_alias[node.owner.uuid] = (
-            node.owner.alias or f"{alias_base} {_name(alias_base)}"
+            node.owner.alias or unique.unique(alias_base)
         )
         node.owner.alias = state.components_alias[node.owner.uuid]
         return state

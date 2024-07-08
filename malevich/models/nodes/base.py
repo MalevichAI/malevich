@@ -3,7 +3,7 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
-from ..python_string import PythonString
+from malevich.models.python_string import PythonString
 
 
 class BaseNode(BaseModel):

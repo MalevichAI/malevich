@@ -14,10 +14,9 @@ from datamodel_code_generator import generate
 from pydantic import BaseModel, Field
 
 import malevich
+from malevich.constants import reserved_config_fields
 from malevich.core_api import AppFunctionsInfo
-
-from ..constants import reserved_config_fields
-from ..models.dependency import Dependency
+from malevich.models.dependency import Dependency
 
 
 class Templates:
@@ -46,7 +45,7 @@ from typing import *
 import malevich.annotations
 from malevich.models.type_annotations import ConfigArgument
 from malevich._meta.decor import proc
-from malevich._utility.registry import Registry
+from malevich._utility import Registry
 from malevich.models.nodes import OperationNode
 from .scheme import *
 """

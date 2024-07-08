@@ -7,9 +7,10 @@ from malevich_space.ops import SpaceOps
 from malevich_space.schema import HostSchema, SpaceSetup
 from rich.prompt import Prompt
 
-from ..._cli.prefs import prefs as prefs
-from ...constants import DEFAULT_CORE_HOST, PROD_SPACE_API_URL
-from ..manifest import ManifestManager
+from malevich.constants import DEFAULT_CORE_HOST, PROD_SPACE_API_URL
+from malevich.manifest import ManifestManager
+
+from ..prefs import prefs as prefs
 
 
 def login(

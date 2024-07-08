@@ -3,9 +3,9 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from malevich.models.installers.compat import CompatabilityStrategy, compare_images
+from malevich.models.dependency import Dependency
 
-from ..dependency import Dependency
+from .compat import CompatabilityStrategy, compare_images
 
 
 class SpaceDependencyOptions(BaseModel):

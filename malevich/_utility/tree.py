@@ -1,14 +1,12 @@
-from .._autoflow.tracer import traced, tracedLike
-from .._autoflow.tree import ExecutionTree
-from ..models.argument import ArgumentLink
-from ..models.nodes.base import BaseNode
-from ..models.nodes.tree import TreeNode
-from ..models.types import FlowTree
+from malevich._autoflow import ExecutionTree, traced, tracedLike
+from malevich.models import ArgumentLink, BaseNode
+from malevich.types import FlowTree
 
 MAX_DEFLAT_DEPTH = 1024
 def deflat_edges(
     link: ArgumentLink,
 ) -> list[tuple[ArgumentLink, traced[BaseNode]]]:
+    from malevich.models import TreeNode
     edges_ = link.compressed_edges
     def _done(nodes_: tuple[ArgumentLink, traced[BaseNode]]) -> bool:
         return all([not isinstance(n.owner, TreeNode) for _, n in nodes_])
@@ -42,6 +40,8 @@ def unwrap_tree(
     Returns:
         FlowTree: Unwrapped tree
     """
+    from malevich.models import TreeNode
+
     edges = []
     unwraped = {}
     for edge in tree.traverse():

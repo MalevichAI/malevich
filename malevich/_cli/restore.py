@@ -3,13 +3,16 @@ import concurrent.futures
 import rich
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-from .._cli.prefs import prefs as prefs
-from .._utility.flow_stub import FlowStub
-from ..install.image import ImageInstaller
-from ..install.installer import Installer
-from ..install.space import SpaceInstaller
-from ..manifest import ManifestManager
-from ..models.dependency import Integration
+from malevich._utility import FlowStub
+from malevich.install import (
+    ImageInstaller,
+    Installer,
+    SpaceInstaller,
+)
+from malevich.manifest import ManifestManager
+from malevich.models.dependency import Integration
+
+from .prefs import prefs as prefs
 
 
 def _restore(installer: Installer, depedency: dict, progress: Progress, task) -> None:

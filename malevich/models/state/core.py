@@ -1,31 +1,22 @@
-import uuid
-from collections import defaultdict
 from typing import Any
 
 import malevich_coretools as core
-from malevich_space.schema import ComponentSchema
+from malevich_coretools import Condition, Processor, Result
+from pydantic import BaseModel
 
-from ..._utility.registry import Registry
-from ...manifest import ManifestManager
-from ..argument import ArgumentLink
-from ..nodes.base import BaseNode
+from ..collection import Collection
+from ..nodes.asset import AssetNode
+from ..nodes.collection import CollectionNode
+from ..nodes.operation import OperationNode
 
 
-class CoreParams:
-    operation_id: str
-    task_id: str
-    core_host: str
-    core_auth: tuple[str, str]
-    base_config: core.Cfg
-    base_config_id: str
-
-    def __init__(self, **kwargs) -> None:
-        self.operation_id = kwargs.get('operation_id', None)
-        self.task_id = kwargs.get('task_id', None)
-        self.core_host = kwargs.get('core_host', None)
-        self.core_auth = kwargs.get('core_auth', None)
-        self.base_config = kwargs.get('base_config', None)
-        self.base_config_id = kwargs.get('base_config_id', None)
+class CoreParams(BaseModel):
+    operation_id: str | None = None
+    task_id: str | None = None
+    core_host: str | None = None
+    core_auth: tuple[str, str] | None = None
+    base_config: core.Cfg | None = None
+    base_config_id: str | None = None
 
     def __getitem__(self, key: str) -> Any:  # noqa: ANN401
         return getattr(self, key)
@@ -37,38 +28,28 @@ class CoreParams:
         return hasattr(self, str(key))
 
 
-def _ddlist():
-    return defaultdict(list)
+class CoreInterpreterState(BaseModel):
+    """State of the CoreInterpreterV2"""
 
-class CoreInterpreterState:
-    """State of the CoreInterpreter"""
+    processors: dict[str, Processor] = {}
+    """Mapping of operation aliases to processors"""
 
-    def __init__(self) -> None:
-        # Involved operations
-        self.ops: dict[str, BaseNode] = {}
-        # Dependencies (same keys as in self.ops)
-        self.depends: dict[str, list[tuple[BaseNode, ArgumentLink[BaseNode]]]] = defaultdict(list)  # noqa: E501
-        # Registry reference (just a shortcut)
-        self.reg = Registry()
-        # Manifest manager reference (just a shortcut)
-        self.manf = ManifestManager()
-        # Task configuration
-        self.cfg = core.Cfg()
-        # Collections (and assets) (key: operation_id, value: (local_id, core_id,))
-        self.collections: dict[str, tuple[str, str]] = {}
-        # Uploaded operations (key: operation_id, value: core_op_id)
-        self.core_ops: dict[str, BaseNode] = {}
-        # Interpreter parameters
-        self.params: CoreParams = CoreParams()
-        # Results
-        self.results: dict[str, str] = {}
-        # Interpretation ID
-        self.interpretation_id: str = uuid.uuid4().hex
-        # App args
-        self.app_args: dict[str, Any] = {}
-        # Collections
-        self.extra_colls: dict[str, dict[str, list]] = defaultdict(_ddlist)
-        # Alias to task id
-        self.task_aliases: dict[str, str] = {}
-        # Component
-        self.component: ComponentSchema | None = None
+    conditions: dict[str, Condition] = {}
+    """Mapping of condition aliases to processors"""
+
+    collections: dict[str, Collection] = {}
+    """Mapping of collection aliases to collections"""
+
+    params: CoreParams = CoreParams()
+    """Interpreter parameters"""
+
+    operation_nodes: dict[str, OperationNode] = {}
+    """Mapping of operation aliases to operation nodes"""
+
+    collection_nodes: dict[str, CollectionNode] = {}
+    """Mapping of collection aliases to collection nodes"""
+
+    asset_nodes: dict[str, AssetNode] = {}
+    """Mapping of asset aliases to asset nodes"""
+
+    results: dict[str, list[Result]] = {}

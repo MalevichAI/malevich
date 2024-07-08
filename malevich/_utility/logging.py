@@ -3,7 +3,8 @@ from enum import Enum
 
 from rich.logging import RichHandler
 
-from ..manifest import manf
+from malevich.manifest import manf
+
 from ..models.actions import Action
 from ..models.preferences import LogFormat, UserPreferences, VerbosityLevel
 

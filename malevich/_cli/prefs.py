@@ -1,7 +1,7 @@
 import typer
 
-from ..manifest import ManifestManager
-from ..models.preferences import UserPreferences
+from malevich.manifest import ManifestManager
+from malevich.models.preferences import UserPreferences
 
 prefs = typer.Typer(
     help="Manage user preferences",
