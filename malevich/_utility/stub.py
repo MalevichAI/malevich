@@ -43,7 +43,7 @@ import typing
 from typing import *
 
 import malevich.annotations
-from malevich.models.type_annotations import ConfigArgument
+from malevich.models import ConfigArgument
 from malevich._meta.decor import proc
 from malevich._utility import Registry
 from malevich.models.nodes import OperationNode
