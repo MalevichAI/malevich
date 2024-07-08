@@ -382,14 +382,26 @@ class SpaceTask(BaseTask):
         **kwargs
     ) -> list[SpaceCollectionResult]:
         import asyncio
-
+        async def get_results_wrapper():
+            return await self.__async_get_results(
+                run_id,
+                fetch_timeout,
+                *args,
+                **kwargs
+            )
         try:
             import warnings
             with warnings.catch_warnings():
                 warnings.filterwarnings(
                     "ignore", message="There is no current event loop"
                 )
-                loop = asyncio.get_event_loop()
+                loop = asyncio.get_running_loop()
+                if loop.is_running():
+                    import concurrent.futures
+                    # Run the async function in the event loop using run_in_executor
+                    with concurrent.futures.ThreadPoolExecutor() as executor:
+                        future = asyncio.run_coroutine_threadsafe(get_results_wrapper(), loop)
+                        return future.result()
         except RuntimeError:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
@@ -398,11 +410,7 @@ class SpaceTask(BaseTask):
             raise e
 
         loop.set_exception_handler(raise_exc)
-        return loop.run_until_complete(self.__async_get_results(
-            run_id,
-            *args,
-            **kwargs
-        ))
+        return loop.run_until_complete(coro)
 
     def upload(self) -> None:
         if not self._component:

@@ -85,7 +85,6 @@ class SpaceInterpreterState:
         state.aux = self.aux
         state.space = self.space
         state.node_to_operation = self.node_to_operation
-        state.node_type = self.node_type
         state.selected_operation = self.selected_operation
         state.interpretation_id = self.interpretation_id
         state.collection_overrides = self.collection_overrides

@@ -228,7 +228,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
     ) -> CoreInterpreterState:
         if isinstance(node.owner, OperationNode):
             if node.owner.alias is None:
-                node.owner.alias = unique.unique(node.owner.processor_id)
+                node.owner.alias = unique(node.owner.processor_id)
             state.operation_nodes[node.owner.alias] = node.owner
 
             extra = registry.get(
@@ -278,11 +278,11 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
 
         elif isinstance(node.owner, CollectionNode):
             if node.owner.alias is None:
-                node.owner.alias = unique.unique(node.owner.collection.collection_id)
+                node.owner.alias = unique(node.owner.collection.collection_id)
             state.collection_nodes[node.owner.alias] = node.owner
         elif isinstance(node.owner, AssetNode):
             if node.owner.alias is None:
-                node.owner.alias = unique.unique(node.owner.core_path)
+                node.owner.alias = unique(node.owner.core_path)
             state.asset_nodes[node.owner.alias] = node.owner
         elif isinstance(node.owner, TreeNode):
             # Cannot be the case, AbstractInterpreter
