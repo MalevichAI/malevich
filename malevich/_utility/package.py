@@ -3,7 +3,7 @@ import os
 import shutil
 import sys
 
-from .singleton import SingletonMeta
+from .._dev.singleton import SingletonMeta
 
 
 class PackageManager(metaclass=SingletonMeta):

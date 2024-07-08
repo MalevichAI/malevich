@@ -1,18 +1,21 @@
+import re
 from typing import Annotated, Optional
 
 import rich
 import typer
+from malevich_space.schema import LoadedComponentSchema
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-from malevich.install.space import SpaceInstaller
-
-from ..constants import (
+from malevich._deploy import Space
+from malevich.constants import (
     DEFAULT_CORE_HOST,
     IMAGE_BASE,
 )
+from malevich.install import FlowInstaller, ImageInstaller, SpaceInstaller
+from malevich.manifest import ManifestManager
+from malevich.models.dependency import Integration
+
 from ..help import use as help
-from ..install.image import ImageInstaller
-from ..manifest import ManifestManager
 
 use = typer.Typer(help=help['--help'], rich_markup_mode="rich")
 
@@ -131,6 +134,8 @@ def _install_from_image(
             )
         raise err
 
+def underscored(entry: str):
+    return re.sub(r"[\W\s]", "_", entry)
 
 def _install_from_space(
     package_name: str,
@@ -140,6 +145,7 @@ def _install_from_space(
     progress: Progress = None,
 ) -> None:
     installer = SpaceInstaller()
+    flow_installer = FlowInstaller()
     if progress:
         task_ = progress.add_task(
             f"Attempting to install [b blue]{package_name}[/b blue] with"
@@ -155,42 +161,85 @@ def _install_from_space(
             version=version,
         )
         manifest_manager = ManifestManager()
-        if entry := manifest_manager.query("dependencies", package_name):
-            if entry.get("installer") != "space":
-                raise Exception(
-                    f"Package {package_name} already exists with different installer."
-                    "\nPossible solutions:"
-                    "\n\t- Remove package from manifest and try again. Use `malevich remove` command"  # noqa: E501
-                    "\n\t- Use `malevich restore` command to restore package with its installer"  # noqa: E501
-                )
 
-            manifest_manager.put(
-                "dependencies",
-                package_name,
-                value=manifest_entry.model_dump(),
-            )
-            if progress:
-                progress.update(
-                    task_,
-                    description="\n[green]✔[/green] Package "
-                    f"[blue]({package_name})[/blue] "
-                    "[yellow]updated[/yellow] successfully",
-                    completed=1,
+        if isinstance(manifest_entry, LoadedComponentSchema):
+                flow_branch_version, active_branch, active_versions = Space.fetch(
+                    reverse_id=reverse_id,
                 )
+                integrations = []
+                for branch, versions in flow_branch_version.items():
+                    for version, uid in versions.items():
+                        task = Space(
+                            reverse_id=reverse_id,
+                            uid=uid,
+                            policy='no_use',
+                        )
+
+                        injectables = task.get_injectables()
+
+                        mappings = {}
+                        for col in injectables:
+                            mappings[underscored(col.alias)] = col.alias
+
+                        integrations.append(
+                            Integration(
+                                mapping=mappings,
+                                version=version,
+                                deployment=uid,
+                                injectables=injectables,
+                                branch=branch
+                            )
+                        )
+
+                flow_installer.install(reverse_id=reverse_id, integrations=integrations)
+                manifest_manager.put('flows', reverse_id, value=integrations)
+                if progress:
+                    progress.update(
+                        task_,
+                        description="\n[green]✔[/green] Flow "
+                        f"[blue]({reverse_id})[/blue] "
+                        "synced successfully",
+                        completed=1,
+                    )
+
         else:
-            if progress:
-                progress.update(
-                    task_,
-                    description="\n[green]✔[/green] Package "
-                    f"[blue]({package_name})[/blue] "
-                    "installed successfully",
-                    completed=1,
+            if entry := manifest_manager.query("dependencies", package_name):
+                if entry.get("installer") != "space":
+                    raise Exception(
+                        f"Package {package_name} already exists "
+                        "with different installer."
+                        "\nPossible solutions:"
+                        "\n\t- Remove package from manifest and try again. Use `malevich remove` command"  # noqa: E501
+                        "\n\t- Use `malevich restore` command to restore package with its installer"  # noqa: E501
+                    )
+
+                manifest_manager.put(
+                    "dependencies",
+                    package_name,
+                    value=manifest_entry.model_dump(),
                 )
-            manifest_manager.put(
-                "dependencies",
-                value={f"{package_name}": manifest_entry.model_dump()},
-                append=True,
-            )
+                if progress:
+                    progress.update(
+                        task_,
+                        description="\n[green]✔[/green] Package "
+                        f"[blue]({package_name})[/blue] "
+                        "[yellow]updated[/yellow] successfully",
+                        completed=1,
+                    )
+            else:
+                if progress:
+                    progress.update(
+                        task_,
+                        description="\n[green]✔[/green] Package "
+                        f"[blue]({package_name})[/blue] "
+                        "installed successfully",
+                        completed=1,
+                    )
+                manifest_manager.put(
+                    "dependencies",
+                    value={f"{package_name}": manifest_entry.model_dump()},
+                    append=True,
+                )
 
         manifest_manager.save()
         return True
@@ -289,10 +338,27 @@ def install_from_space(
         str,
         typer.Argument(help="Reverse id of the component")
     ],
-    branch: Annotated[
-        Optional[str],
-        typer.Argument(help="Branch of the component")
-    ] = None,
+    deployment_id: str=typer.Option(
+        None,
+        '--deployment-id',
+        '-d',
+        show_default=False,
+        help='Flow Deployment ID. If not set, will get active version flow.'
+    ),
+    branch: str=typer.Option(
+        None,
+        '--branch',
+        '-b',
+        show_default=False,
+        help="Flow branch. If not specified, will take the active one."
+    ),
+    attach_any: bool=typer.Option(
+        False,
+        '--attach_any',
+        '-a',
+        show_default=False,
+        help="Attach to any flow deployment"
+    ),
     version: Annotated[
         Optional[str],
         typer.Argument(help="Version of the component")
@@ -304,6 +370,8 @@ def install_from_space(
             reverse_id=reverse_id,
             branch=branch,
             version=version,
+            attach_any=attach_any,
+            deployment_id=deployment_id,
             progress=Progress(
                 SpinnerColumn(), TextColumn("{task.description}")),
         )

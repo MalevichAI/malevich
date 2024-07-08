@@ -4,8 +4,8 @@ import warnings
 from itertools import islice
 from typing import Callable, ParamSpec, TypeVar
 
-from ..models.argument import ArgumentLink
 from . import tracer as gn
+from .link import AutoflowLink
 
 C = ParamSpec("C")
 R = TypeVar("R")
@@ -51,7 +51,7 @@ def autotrace(func: Callable[C, R]) -> Callable[C, R]:
             if isinstance(arg, gn.traced):
                 arg._autoflow.calledby(
                     result,
-                    ArgumentLink(index=i, name=argument_name)
+                    AutoflowLink(index=i, name=argument_name)
                 )
 
         return result
@@ -81,7 +81,7 @@ def sinktrace(func: Callable[C, R]) -> Callable[C, R]:
             real_index = min(i, len(names) - 1)
             argument_name = names[real_index]
             if isinstance(arg, gn.traced):
-                arg._autoflow.calledby(result, ArgumentLink(
+                arg._autoflow.calledby(result, AutoflowLink(
                         index=real_index,
                         name=argument_name
                     )

@@ -1,13 +1,15 @@
 import re
 from typing import Optional
 
-from .._core.scan import scan_core
-from .._utility.space.auto_space_ops import get_auto_ops
-from .._utility.stub import Stub
-from ..constants import DEFAULT_CORE_HOST
-from ..manifest import ManifestManager
-from ..models.installers.space import SpaceDependency, SpaceDependencyOptions
-from ..path import Paths
+from malevich_space.schema import LoadedComponentSchema
+
+from malevich._core.scan import scan_core
+from malevich._utility import Stub, get_auto_ops
+from malevich.constants import DEFAULT_CORE_HOST
+from malevich.manifest import ManifestManager
+from malevich.models.installers.space import SpaceDependency, SpaceDependencyOptions
+from malevich.path import Paths
+
 from .installer import Installer
 
 manf = ManifestManager()
@@ -79,7 +81,7 @@ class SpaceInstaller(Installer):
         reverse_id: str,
         branch: Optional[str] = None,
         version: Optional[str] = None,
-    ) -> SpaceDependency:
+    ) -> SpaceDependency | LoadedComponentSchema:
         package_name = re.sub(r'[\W\s]+', '_', package_name)
 
         component = self.__ops.get_parsed_component_by_reverse_id(
@@ -88,6 +90,9 @@ class SpaceInstaller(Installer):
 
         if component is None:
             raise Exception(f"Component {reverse_id} not found")
+
+        if component.flow is not None:
+            return component
 
         if component.app is None:
             raise Exception(f"Component {reverse_id} is not an app")
@@ -155,7 +160,10 @@ class SpaceInstaller(Installer):
 
         return dependency
 
-    def restore(self, dependency: SpaceDependency) -> SpaceDependency:
+    def restore(
+            self,
+            dependency: SpaceDependency
+    ) -> SpaceDependency | LoadedComponentSchema:
         return self.install(
             package_name=dependency.package_id,
             reverse_id=dependency.options.reverse_id,

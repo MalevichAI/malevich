@@ -2,7 +2,7 @@ from typing import Any, Optional
 
 from pydantic import BaseModel
 
-from .installers.compat import CompatabilityStrategy
+from .injections import SpaceInjectable
 
 
 class Dependency(BaseModel):
@@ -19,9 +19,16 @@ class Dependency(BaseModel):
     def compatible_with(
         self,
         other: 'Dependency',
-        compatability_strategy: CompatabilityStrategy = CompatabilityStrategy()
+        compatability_strategy: 'CompatabilityStrategy' = None
     ) -> bool:
         pass
 
     def checksum(self) -> str:
         pass
+
+
+class Integration(BaseModel):
+    version: Optional[str] = None
+    branch: Optional[str] = None
+    deployment: Optional[str] = None
+    injectables: list[SpaceInjectable] = []

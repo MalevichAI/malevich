@@ -1,6 +1,6 @@
 
+from malevich._dev.singleton import SingletonMeta
 from malevich._utility.package import package_manager as pm
-from malevich._utility.singleton import SingletonMeta
 from malevich.constants import TEST_DIR
 from malevich.install.image import ImageInstaller
 from malevich.install.installer import Installer

@@ -4,7 +4,7 @@ from ..models.nodes.asset import AssetNode
 from ..models.nodes.collection import CollectionNode
 from ..models.nodes.operation import OperationNode
 from ..models.nodes.tree import TreeNode
-from ..models.types import FlowTree
+from ..types import FlowTree
 from .tree import unwrap_tree
 
 

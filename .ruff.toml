@@ -1,6 +1,6 @@
 lint.select=["E", "F", "I", "W", "N", "UP", "ANN", "RUF"]
-lint.ignore=["ANN101", "ANN001", "ANN002", "ANN003", "RUF012", "ANN202"]
-exclude=["tests/*.py", "examples/*.py", "malevich/square/*.py", "docs/*.py", "malevich/_db/*.py", "test.py", ".github/"]
+lint.ignore=["ANN101", "ANN001", "ANN002", "ANN003", "RUF012", "ANN202", "F821"]
+exclude=["tests/*.py", "examples/*.py", "malevich/square/*.py", "docs/*.py", "malevich/_db/*.py", "test.py"]
 
 [lint.per-file-ignores]
 "__init__.py" = ["E402", "F", "I"]

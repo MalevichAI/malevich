@@ -1,13 +1,18 @@
 import logging
+import re
 from typing import Annotated
 
 import rich
 import typer
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-from .._cli.prefs import prefs as prefs
-from .._cli.use import _install_from_image, _install_from_space
-from .._utility.args import parse_kv_args
+from malevich._deploy import Space
+from malevich._utility import parse_kv_args
+from malevich.install.flow import FlowInstaller
+from malevich.models.dependency import Integration
+
+from .prefs import prefs as prefs
+from .use import _install_from_image, _install_from_space
 
 logging.getLogger("gql.transport.requests").setLevel(logging.ERROR)
 
@@ -21,14 +26,13 @@ __With_Args_Help = (
     ' see the list of supported arguments'
 )
 
-
 def auto_use(
     package_names: Annotated[list[str], typer.Argument(...)],
     using: Annotated[str, typer.Option(help="Installer to use")] = "space",
     with_args: Annotated[str, typer.Option(help=__With_Args_Help)] = "",
 ) -> None:
     rich.print(
-        "\n\nAttempting automatic installation of packages [b blue]"
+        "\n\nAttempting automatic installation of components [b blue]"
         f"{'[white], [/white]'.join(package_names)}[/b blue]\n"
     )
     args = parse_kv_args(with_args)
@@ -107,7 +111,6 @@ def auto_use(
                     progress.stop()
                     rich.print("\n\n[red]Installation failled[/red]")
                     raise err
-                    exit(-1)
                 else:
                     progress.update(
                         task,
@@ -126,3 +129,68 @@ def auto_use(
                 f"[red]Installer [yellow]{using}[/yellow] is not supported[/red]"
             )
             exit(-1)
+
+def underscored(entry: str):
+    return re.sub(r"[\W\s]", "_", entry)
+
+def install_flow(
+    reverse_id: str=typer.Argument(
+        ...,
+        show_default=False,
+        help="Space Flow Reverse ID"
+    ),
+    deployment_id: str=typer.Option(
+        None,
+        '--deployment-id',
+        '-d',
+        show_default=False,
+        help='Flow Deployment ID. If not set, will get active version flow.'
+    ),
+    branch: str=typer.Option(
+        None,
+        '--branch',
+        '-b',
+        show_default=False,
+        help="Flow branch. If not specified, will take the active one."
+    ),
+    attach_any: bool=typer.Option(
+        False,
+        '--attach_any',
+        '-a',
+        show_default=False,
+        help="Attach to any flow deployment"
+    )
+):
+    installer = FlowInstaller()
+    attach_to_last = deployment_id is None
+    task = Space(
+        reverse_id=reverse_id,
+        attach_to_any=attach_any,
+        attach_to_last=attach_to_last,
+        deployment_id=deployment_id,
+        branch=branch
+    )
+    version_name = task.component.version.readable_name
+    mappings = {}
+    injectables = task.get_injectables()
+    for col in injectables:
+        mappings[underscored(col.alias)] = col.alias
+
+    integration = Integration(
+        mapping=mappings,
+        version=version_name,
+        deployment=deployment_id,
+        injectables=injectables
+    )
+    try:
+        installer.install(
+            reverse_id,
+            integration
+        )
+    except Exception as e:
+        rich.print(f"Failed to install [yellow]{reverse_id}[/yellow]: [red]{e}[/red]")
+        exit(1)
+    rich.print(
+        f"Successfully installed: [yellow]{reverse_id}[/yellow], "
+        f"version [blue]{version_name}[/blue]"
+    )

@@ -1,9 +1,9 @@
 import os
 from typing import Optional, overload
 
-from .._autoflow import tracer as gn  # engine
-from ..annotations import Asset
-from ..models.nodes.asset import AssetNode
+from malevich._autoflow import tracer as gn  # engine
+from malevich.annotations import Asset
+from malevich.models.nodes.asset import AssetNode
 
 
 class AssetFactory:

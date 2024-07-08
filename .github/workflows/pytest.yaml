@@ -1,4 +1,4 @@
-name: Pytest
+git name: Pytest
 on:
   push:
     branches:
@@ -65,7 +65,7 @@ jobs:
     - name: Testing
       run: |
         cp -rf ./malevich/tests ./tests && rm -rf ./malevich
-        pytest -rP tests/suite
+        pytest -s tests/units/
       env:
         TESTS_SPACE_PASSWORD: ${{ secrets.TESTS_SPACE_PASSWORD }}
         TESTS_SPACE_USER: ${{ secrets.TESTS_SPACE_USER }}
@@ -76,13 +76,8 @@ jobs:
 
     - name: Test build app, endpoints and platforms
       run: |
-        malevich remove utility || echo "Utiilty was already removed"
         malevich use image simple_app ghcr.io/malevichai/test:simple_app malevichai ${{ secrets.TEST_GHCR_PACKAGE_PASSWORD }}
         malevich install utility
-        if [[ "${{ runner.debug }}" == "1" ]];
-        then
-          malevich manifest show
-        fi
         pytest -rP tests/app_build/
       env:
         CORE_USER: ${{ secrets.CORE_USER }}
@@ -91,6 +86,7 @@ jobs:
     - name: Clear core tasks
       if: always()
       run: |
+        echo "Not Implemented Yet. Waiting for core test account."
         python .github/workflows/clean.py
       env:
         CORE_USER: ${{ secrets.CORE_USER }}

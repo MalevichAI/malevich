@@ -1,0 +1,1 @@
+from .ops import result_collection_name

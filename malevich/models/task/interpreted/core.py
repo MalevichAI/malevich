@@ -1,5 +1,5 @@
 import enum
-import importlib
+import hashlib
 import json
 import pickle
 import uuid
@@ -12,34 +12,32 @@ import pandas as pd
 from malevich_space.schema import ComponentSchema
 from pydantic import BaseModel, ValidationError
 
-from malevich._meta import table
-from ...._utility.core_logging import IgnoreCoreLogs
-from malevich.models.endpoint import MetaEndpoint
-from malevich.models.types import FlowOutput
-
-from ...._autoflow.tracer import traced
-from ...._core.ops import (
-    batch_create_apps,
-    batch_create_tasks,
+from malevich._autoflow.tracer import traced
+from malevich._core.ops import (
     batch_upload_collections,
 )
-from ...._meta.decor import ProcessorFunction
-from ...._utility.logging import LogLevel, cout
-from ...._utility.package import package_manager
-from ....interpreter.abstract import Interpreter
-from ...actions import Action
-from ...collection import Collection
-from ...injections import CoreInjectable
-from ...nodes.asset import AssetNode
-from ...nodes.base import BaseNode
-from ...nodes.collection import CollectionNode
-from ...nodes.operation import OperationNode
-from ...nodes.tree import TreeNode
-from ...preferences import VerbosityLevel
-from ...results.core.result import CoreLocalDFResult, CoreResult
-from ...state.core import CoreInterpreterState
+from malevich._utility import IgnoreCoreLogs, LogLevel, cout
+from malevich.models import (
+    Action,
+    AssetNode,
+    BaseNode,
+    Collection,
+    CollectionNode,
+    CoreInjectable,
+    CoreInterpreterState,
+    CoreLocalDFResult,
+    CoreResult,
+    MetaEndpoint,
+    OperationNode,
+    TreeNode,
+    VerbosityLevel,
+)
+from malevich.types import FlowOutput
+
 from ..base import BaseTask
 
+
+class BootError(Exception): ...
 
 class PrepareStages(enum.Enum):
     BUILD = 0b01
@@ -51,6 +49,12 @@ class CoreTaskStage(enum.Enum):
     ONLINE = 0
     BUILT = 1
     NO_TASK = 3
+
+class CoreTaskState(CoreInterpreterState):
+    unique_task_hash: str | None = None
+    config: core.Cfg | None = None
+    config_id: str | None = None
+    pipeline_id: str | None = None
 
 
 class CoreTask(BaseTask):
@@ -67,69 +71,38 @@ class CoreTask(BaseTask):
     def __init__(
         self,
         state: CoreInterpreterState,
-        task_kwargs: list[dict] = None,  # noqa: RUF013
-        config_kwargs: dict[str, Any] = None,  # noqa: RUF013
-        leaf_node_uid: str = None,  # noqa: RUF013
-        partial: bool = False,
         component: ComponentSchema | None = None
     ) -> None:
-        super().__init__()
+        super().__init__(state)
+
         if state is None:
             raise Exception("CoreTask requires a self.state to be passed. ")
 
-        self.state = state
-        self.task_kwargs = task_kwargs
-        self.config_kwargs = config_kwargs
-        self.leaf_node_uid = leaf_node_uid
-        self._partial = partial
-        self._returned = None
+        self.state = CoreTaskState()
+        for key in CoreInterpreterState.model_fields.keys():
+            setattr(self.state, key, getattr(state, key))
+
         self.run_id = None
         self.component = component
 
-    def _create_cfg_safe(
-        self,
-        auth: core.AUTH = None,
-        conn_url: Optional[str] = None,
-        **kwargs,
-    ) -> None:
-        auth = auth or self.state.params.core_auth
-        conn_url = conn_url or self.state.params.core_host
-        with IgnoreCoreLogs():
-            try:
-                cfg_ = core.get_cfg(
-                    kwargs['cfg_id'],
-                    auth=auth,
-                    conn_url=conn_url
-                ).id
-            except Exception:
-                core.create_cfg(
-                    **kwargs,
-                    auth=auth,
-                    conn_url=conn_url
-                )
-            else:
-                core.update_cfg(
-                    cfg_,
-                    auth=auth,
-                    conn_url=conn_url,
-                    **kwargs
-                )
+        self._returned = None
 
     def get_stage(self) -> CoreTaskStage:
-        if self.state.params.operation_id is not None:
+        if self.state.pipeline_id is not None:
             try:
                 runs = core.get_run_active_runs(
                     auth=self.state.params.core_auth,
                     conn_url=self.state.params.core_host,
                 ).ids
-                if self.state.params.operation_id in runs:
+                if self.state.pipeline_id in runs:
                     return CoreTaskStage.ONLINE
             except Exception:
                 pass
 
-        if self.state.params.task_id is not None:
+        if self.state.unique_task_hash is not None:
             try:
-                core.get_task(
+                core.get_pipeline(
+                    self.state.unique_task_hash,
                     self.state.params.task_id,
                     auth=self.state.params.core_auth,
                     conn_url=self.state.params.core_host
@@ -159,14 +132,11 @@ class CoreTask(BaseTask):
             action=Action.Interpretation,
             verbosity=VerbosityLevel.OnlyStatus,
         )
-        uuid_ = {
-            k.alias: k.uuid
-            for k in self.state.ops.values()
-        }[operation]
 
-        self.state.app_args[uuid_]['platform'] = platform
+        self.state.processors[operation].platform = platform
         if platform_settings:
-            self.state.app_args[uuid_]['platform_settings'] = platform_settings
+            self.state.processors[operation].platformSettings = platform_settings
+
 
     def configure(
         self,
@@ -201,42 +171,6 @@ class CoreTask(BaseTask):
                 platform_settings=platform_settings,
                 **kwargs
             )
-
-    def _validate_proc_cfg_ext(
-        self,
-        package_id: str,
-        processor_id: str,
-        config_extension,
-    ):
-        """internal"""
-        try:
-            package_manager.get_package(package_id)
-            module = importlib.import_module(f'malevich.{package_id}')
-        except Exception:
-            return None
-        if not hasattr(module, processor_id):
-            return None
-        proc_stub = getattr(module, processor_id)
-        if not isinstance(proc_stub, ProcessorFunction):
-            return None
-
-        if isinstance(proc_stub.config, BaseModel) and isinstance(config_extension, BaseModel):  # noqa: E501
-            return type(proc_stub.config) == type(config_extension)
-        else:
-            return True
-
-    def _get_config_model(self, package_id: str, processor_id: str) -> BaseModel | None:
-        try:
-            module = importlib.import_module(f'malevich.{package_id}')
-        except ImportError:
-            return None
-
-        proc_stub = getattr(module, processor_id)
-        if isinstance(proc_stub, ProcessorFunction):
-            if issubclass(proc_stub.config, BaseModel):
-                return proc_stub.config
-        return None
-
 
 
     def prepare(
@@ -273,53 +207,95 @@ class CoreTask(BaseTask):
             level=LogLevel.Info
         )
 
-        if stage.value & PrepareStages.BUILD.value:
-            apps_ = batch_create_apps([
-                {
-                    **_app_args,
-                    'auth': self.state.params.core_auth,
-                    'conn_url': self.state.params.core_host,
-                    'extra_collections_from': self.state.extra_colls[_app_args['uid']]
-                } for _app_args in self.state.app_args.values()
-            ])
+        for node in self.state.collection_nodes.values():
+            collection = node.collection
+            try:
+                collection.core_id = (
+                    # No data request
+                    core.get_collections_by_name(collection.magic()).ownIds[-1]
+                )
+            except Exception:
+                collection.core_id = core.create_collection_from_df(
+                    collection.collection_data,
+                    name=collection.magic(),
+                    conn_url=self.state.params.core_host,
+                    auth=self.state.params.core_auth,
+                )
 
-            for settings, _ in apps_:
-                self.state.cfg.app_settings.append(settings)
-            self.config_kwargs['cfg'] = self.state.cfg
-                # TODO: Write cache
-            batch_create_tasks(
-                self.task_kwargs,
-                auth=self.state.params.core_auth,
-                conn_url=self.state.params.core_host
+        if not self.state.config:
+            config = core.Cfg(
+                collections={
+                    v.collection.collection_id: v.collection.core_id
+                    for k, v in self.state.collection_nodes.items()
+                }
             )
 
-            self._create_cfg_safe(**self.config_kwargs)
-            self.state.params.task_id = self.state.core_ops[self.leaf_node_uid]
+            self.state.config = config
+
+        if stage.value & PrepareStages.BUILD.value:
+            if not self.state.unique_task_hash:
+                self.state.unique_task_hash = hashlib.sha256(
+                    json.dumps(self.state.model_dump(), sort_keys=True).encode()
+                ).hexdigest()
+
+            self.state.config_id = self.state.unique_task_hash
+            try:
+                with IgnoreCoreLogs():
+                    self.state.pipeline_id = core.get_pipeline(
+                        self.state.unique_task_hash,
+                        conn_url=self.state.params.core_host,
+                        auth=self.state.params.core_auth,
+                    ).pipelineId
+            except Exception:
+                self.state.pipeline_id = core.create_pipeline(
+                    self.state.unique_task_hash,
+                    processors=self.state.processors,
+                    conditions=None, # NOTE: Future
+                    results=self.state.results,
+                    conn_url=self.state.params.core_host,
+                    auth=self.state.params.core_auth,
+                )
+
+
 
         if stage.value & PrepareStages.BOOT.value:
+            if self.state.pipeline_id is None:
+                raise BootError(
+                    "Failed to boot: no pipeline found. "
+                    "Try `.prepare(stage=PrepareStages.BUILD)` or reinterpret the task"
+                )
             try:
-                self.state.params.operation_id = core.task_prepare(
-                    task_id=self.state.params.task_id,
-                    cfg_id=self.config_kwargs['cfg_id'],
+                self._create_cfg_safe(
+                    cfg_id=self.state.unique_task_hash,
+                    cfg=self.state.config,
+                    auth=self.state.params.core_auth,
+                    conn_url=self.state.params.core_host
+                )
+
+                self.state.params.operation_id = core.pipeline_prepare(
+                    pipeline_id=self.state.unique_task_hash,
+                    cfg_id=self.state.unique_task_hash,
                     auth=self.state.params.core_auth,
                     conn_url=self.state.params.core_host,
                     *args,
                     **kwargs
                 ).operationId
             except (Exception, KeyboardInterrupt) as e:
-                # Cleanup
-                # core.task_stop(
-                #     self.state.params.task_id,
-                #     auth=self.state.params.core_auth,
-                #     conn_url=self.state.params.core_host,
-                # )
+                try:
+                    core.task_stop(
+                        self.state.params.operation_id,
+                        auth=self.state.params.core_auth,
+                        conn_url=self.state.params.core_host,
+                    )
+                except Exception:
+                    pass
                 raise e
 
-        return self.state.params.task_id, self.state.params.operation_id
+        return self.state.unique_task_hash, self.state.params.operation_id
 
     def run(
         self,
-        override: dict[str, table] | None = None,
+        override: dict[str, 'table'] | None = None,
         config_extension: dict[str, dict[str, Any] | BaseModel] | None = None,
         run_id: Optional[str] = None,
         detached: bool = False,
@@ -390,23 +366,13 @@ class CoreTask(BaseTask):
         else:
             real_overrides = {}
 
-        _cfg = deepcopy(self.state.cfg)
 
         self.run_id = run_id or uuid.uuid4().hex
-        _cfg.app_settings = [
-            core.AppSettings(
-                taskId=s.taskId,
-                appId=s.appId,
-                saveCollectionsName=(s.saveCollectionsName if isinstance(
-                    s.saveCollectionsName, str) else s.saveCollectionsName[0]
-                )
-            ) for s in _cfg.app_settings
-        ]
 
         app_cfg_extensions = {}
         if config_extension:
             for alias, extension in config_extension.items():
-                for x in self.state.ops.values():
+                for x in self.state.operation_nodes.values():
                     if isinstance(x, OperationNode) and x.alias == alias:
                         config_model: BaseModel | None = self._get_config_model(
                             x.package_id,
@@ -427,7 +393,7 @@ class CoreTask(BaseTask):
                         if config_model is not None:
                             try:
                                 config_model(**{
-                                    **self.state.app_args[x.uuid]['app_cfg'],
+                                    **x.config,
                                     **(extension if isinstance(extension, dict)
                                                  else extension.model_dump()
                                       )
@@ -460,29 +426,26 @@ class CoreTask(BaseTask):
                             # ok, validates before
                             pass
 
-                        app_cfg_extensions[
-                            self.state.core_ops[x.uuid] + '$'
-                            + self.state.core_ops[x.uuid]
-                        ] = extension_json
+                        app_cfg_extensions['$' + x.alias] = extension_json
 
         try:
             if real_overrides or app_cfg_extensions:
-                _cfg.collections = {
-                    **_cfg.collections,
+                new_config = self.state.config.model_copy(deep=True)
+                new_config.collections = {
+                    **self.state.config.collections,
                     **real_overrides,
                 }
-                _cfg_id = self.config_kwargs['cfg_id'] + \
-                    '-overridden' + uuid.uuid4().hex
-                _cfg.app_cfg_extension = app_cfg_extensions
+                new_config.app_cfg_extension = app_cfg_extensions
+                new_config_id = self.state.config_id + '_' +  uuid.uuid4().hex[:6]
                 self._create_cfg_safe(
-                    cfg_id=_cfg_id,
-                    cfg=_cfg,
+                    cfg_id=new_config_id,
+                    cfg=new_config,
                     conn_url=self.state.params.core_host,
                     auth=self.state.params.core_auth,
                 )
                 core.task_run(
                     self.state.params.operation_id,
-                    cfg_id=_cfg_id,
+                    cfg_id=new_config_id,
                     auth=self.state.params.core_auth,
                     conn_url=self.state.params.core_host,
                     wait=not detached,
@@ -584,16 +547,16 @@ class CoreTask(BaseTask):
                 )
             elif isinstance(node, OperationNode):
                 results.append(CoreResult(
-                    core_group_name=self.state.results[node.uuid],
-                    core_operation_id=self.state.params.operation_id,
+                    core_group_name=r.owner.alias,
+                    core_operation_id=self.state.params.operation_id ,
                     core_run_id=run_id,
                     auth=self.state.params.core_auth,
                     conn_url=self.state.params.core_host,
                 ))
             elif isinstance(node, AssetNode):
                 results.append(CoreResult(
-                    core_group_name=self.state.results[node.uuid],
-                    core_operation_id=self.state.params.operation_id,
+                    core_group_name=r.owner.alias,
+                    core_operation_id=self.state.params.operation_id ,
                     core_run_id=run_id,
                     conn_url=self.state.params.core_host
                 ))
@@ -631,13 +594,13 @@ class CoreTask(BaseTask):
         injectables = []
         nodes_ = set()
         nodes: Iterable[BaseNode] = []
-        for x in self.state.ops.values():
+        for x in self.state.collection_nodes.values():
             nodes.append(x)
             nodes_.add(x.uuid)
 
         for node in nodes:
             if isinstance(node, CollectionNode):
-                for cfg_coll_id, core_coll_id in self.state.cfg.collections.items():
+                for cfg_coll_id, core_coll_id in self.state.config.collections.items():
                     if cfg_coll_id == node.collection.collection_id:
                         injectables.append(
                             CoreInjectable(
@@ -655,8 +618,7 @@ class CoreTask(BaseTask):
     def get_operations(self, *args, **kwargs) -> list[str]:
         return [
             x.alias
-            for x in self.state.ops.values()
-            if isinstance(x, OperationNode)
+            for x in self.state.operation_nodes.values()
         ]
 
     def async_run(
@@ -707,7 +669,7 @@ class CoreTask(BaseTask):
     def get_interpreted_task(self) -> BaseTask:
         return self
 
-    def interpret(self, interpreter: Interpreter = None) -> None:
+    def interpret(self, interpreter: 'Interpreter' = None) -> None:
         raise Exception(
             "Trying to re-interpret task of type `CoreTask`. You can only interpret "
             "`PromisedTask`"
@@ -728,6 +690,10 @@ class CoreTask(BaseTask):
         *args,
         **kwargs
     ) -> MetaEndpoint:
+        raise NotImplementedError(
+            "Publishing is not supported for v2."
+        )
+
         from malevich_coretools import create_endpoint, update_endpoint
         if self.get_stage() not in [CoreTaskStage.BUILT, CoreTaskStage.ONLINE]:
             self.prepare(stage=PrepareStages.BUILD)

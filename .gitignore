@@ -12,3 +12,4 @@ malevich.yaml
 build-docs/
 dummy.txt
 .DS_Store
+malevich/flows

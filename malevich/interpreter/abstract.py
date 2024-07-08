@@ -5,13 +5,9 @@ from typing import Generic, TypeVar
 
 from malevich_space.schema import ComponentSchema
 
-from ..models.exceptions import InterpretationError
-
-from .._autoflow.tracer import traced
-from .._utility.tree import unwrap_tree
-from ..models.argument import ArgumentLink
-from ..models.nodes.base import BaseNode
-from ..models.nodes.tree import TreeNode
+from malevich._autoflow.tracer import traced
+from malevich._utility import unwrap_tree
+from malevich.models import ArgumentLink, BaseNode, InterpretationError, TreeNode
 
 State = TypeVar("State")
 Return = TypeVar("Return")
@@ -111,7 +107,7 @@ class Interpreter(Generic[State, Return]):
         else:
             self._state = self.state
 
-    def interpret(self, node: TreeNode, component: ComponentSchema = None):  # noqa: ANN201
+    def interpret(self, node: TreeNode, component: ComponentSchema = None) -> Return:
         """Interprets the execution tree
 
         The interpretation process is divided into 5 steps:
@@ -220,8 +216,8 @@ class Interpreter(Generic[State, Return]):
     def create_dependency(
         self,
         state: State,
-        callee: traced[BaseNode],
-        caller: traced[BaseNode],
+        from_node: traced[BaseNode],
+        to_node: traced[BaseNode],
         link: ArgumentLink[BaseNode],
     ) -> State:
         """Called when a new dependency is created

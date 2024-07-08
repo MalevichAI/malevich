@@ -9,9 +9,9 @@ from malevich_space.schema import (
     SpaceSetup,
 )
 
-from .._autoflow.tree import ExecutionTree
-from .._utility.space.space import resolve_setup
-from ..manifest import manf
+from malevich._autoflow.tree import ExecutionTree
+from malevich._utility import resolve_setup
+from malevich.manifest import manf
 
 
 class SpaceFlowExporter:

@@ -3,7 +3,7 @@ from typing import Any, Optional
 from malevich_space.schema import SpaceSetup
 from pydantic import BaseModel
 
-from .dependency import Dependency
+from .dependency import Dependency, Integration
 from .preferences import UserPreferences
 
 
@@ -13,6 +13,7 @@ class Manifest(BaseModel):
     space: Optional[SpaceSetup] = None
     dependencies: list[dict[str, Dependency]] = []
     preferences: UserPreferences = UserPreferences()
+    flows: dict[str, list[Integration]] = {}
 
 
 class ManifestUpdateEntry(BaseModel):

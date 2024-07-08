@@ -14,12 +14,8 @@ from malevich_space.schema.flow import (
 )
 from malevich_space.schema.host import LoadedHostSchema
 
-from ..nodes.tree import TreeNode
+from malevich.models import TreeNode
 
-
-class NodeType(Enum):
-    COLLECTION = 'collection'
-    OPERATION = 'operation'
 
 class SpaceAuxParams:
     task_id: str | None
@@ -65,8 +61,6 @@ class SpaceInterpreterState:
         self.components_config: dict[str, dict[str, str]] = {}
         # A mappping from node uuid to node type (collection or operation)
         self.node_to_operation: dict[str, str] = {}
-        # A mapping from node uuid to node type (collection or operation)
-        self.node_type: dict[str, NodeType] = {}
         # A mapping from node uuid to selected operation in the operation component
         self.selected_operation: dict[str, OpSchema] = {}
         # A mapping from collection uid to CA uid for override (if new data is provided)

@@ -5,9 +5,9 @@ from typing import Any, Iterable, Optional
 
 import pydantic_yaml as pydml
 
-from ._utility.singleton import SingletonMeta
-from .models.manifest import Manifest, Secret, Secrets
-from .path import Paths
+from malevich._dev.singleton import SingletonMeta
+from malevich.models.manifest import Manifest, Secret, Secrets
+from malevich.path import Paths
 
 
 class OverrideManifest:

@@ -2,10 +2,9 @@ from gql import gql
 from malevich_space.ops import SpaceOps
 from malevich_space.schema import SpaceSetup
 
+from malevich._db import cache_user, get_cached_users, get_db
+from malevich._db.schema.core_creds import CoreCredentials
 from malevich.core_api import check_auth
-
-from ..._db import cache_user, get_cached_users, get_db
-from ..._db.schema.core_creds import CoreCredentials
 
 
 def get_core_creds_from_setup(setup: SpaceSetup) -> tuple[str, str]:
@@ -32,7 +31,7 @@ def get_core_creds_from_setup(setup: SpaceSetup) -> tuple[str, str]:
         gql("""
         query GetAllHosts {
             hosts {
-                all {
+                public {
                     edges {
                         node {
                             details {
@@ -52,7 +51,7 @@ def get_core_creds_from_setup(setup: SpaceSetup) -> tuple[str, str]:
             x['node']['details']['connUrl'],
             x['node']['details']['uid']
         )
-        for x in r['hosts']['all']['edges']
+        for x in r['hosts']['public']['edges']
     ]
 
     uid = None
@@ -67,7 +66,7 @@ def get_core_creds_from_setup(setup: SpaceSetup) -> tuple[str, str]:
         gql("""
             query GetAllSAs($host_id: String!) {
                 host(uid: $host_id) {
-                    mySaOnHost {
+                    mySaOnHost (first: 10000000){
                         edges {
                             node {
                                 details {
@@ -81,7 +80,6 @@ def get_core_creds_from_setup(setup: SpaceSetup) -> tuple[str, str]:
             }
         """), variable_values={'host_id': uid}
     )
-
     sas = [
         (
             x['node']['details']['coreUsername'],
@@ -89,7 +87,6 @@ def get_core_creds_from_setup(setup: SpaceSetup) -> tuple[str, str]:
         )
         for x in r['host']['mySaOnHost']['edges']
     ]
-
     for u, p in sas:
         parts_ = u.split('__')
         if (

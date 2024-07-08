@@ -14,10 +14,9 @@ from datamodel_code_generator import generate
 from pydantic import BaseModel, Field
 
 import malevich
+from malevich.constants import reserved_config_fields
 from malevich.core_api import AppFunctionsInfo
-
-from ..constants import reserved_config_fields
-from ..models.dependency import Dependency
+from malevich.models.dependency import Dependency
 
 
 class Templates:
@@ -46,7 +45,7 @@ from typing import *
 import malevich.annotations
 from malevich.models.type_annotations import ConfigArgument
 from malevich._meta.decor import proc
-from malevich._utility.registry import Registry
+from malevich._utility import Registry
 from malevich.models.nodes import OperationNode
 from .scheme import *
 """
@@ -233,10 +232,10 @@ class Stub:
                     '\n'
                 )
                 return (
-                    re.search(
+                    re.findall(
                         r'class (?P<ClassName>\w+)',
                         out_script
-                    ).group('ClassName'),   # 1
+                    ),   # 1
                     out_script              # 2
                 )
 
@@ -284,6 +283,18 @@ class Stub:
             for name, processor in processors.items()
         }
 
+        config_model_class = {}
+        for processor_name, (class_names, _) in config_stubs.items():
+            if class_names:
+                for class_name in class_names:
+                    if class_name == processors[processor_name].contextClass['title']:
+                        config_model_class[processor_name] = class_name
+                        break
+                else:
+                    config_model_class[processor_name] = None
+            else:
+                config_model_class[processor_name] = None
+
         with chdir(path):
             with open('scheme.py', 'w+') as f_scheme:
                 i = 0
@@ -298,7 +309,7 @@ class Stub:
                         StubSchema(
                             name=name,
                             scheme=json.dumps(proc.contextClass),
-                            class_name=class_name,
+                            class_name=config_model_class[processor_name],
                         )
                     )
                     index.schemes_index[name] = (i, i + j)
@@ -311,15 +322,15 @@ class Stub:
                         StubSchema(
                             name=name,
                             scheme=schema,
-                            class_name=stub_[0]
+                            class_name=stub_[0][0]
                         )
                     )
                     index.schemes_index[name] = (i, i + j)
 
         importlib.import_module(f'malevich.{package_name}.scheme')
         config_models = {
-            name: eval(f'malevich.{package_name}.scheme.{config_stubs[name][0]}')
-            if config_stubs[name][0] else None
+            name: eval(f'malevich.{package_name}.scheme.{config_model_class[name]}')
+            if config_model_class[name] else None
             for name in processors
         }
 
@@ -357,7 +368,7 @@ class Stub:
                 config_schema=config_models[name],
             )
             functions[name].definition = functions[name].generate_definition(
-                config_model=config_stubs[name][0]
+                config_model=config_model_class[name]
             )
 
         with chdir(path):
@@ -376,7 +387,7 @@ class Stub:
                         operation_id=operation_ids[name],
                         use_sinktrace=bool(function.sink),
                         definition=function.definition,
-                        config_model=config_stubs[name][0],
+                        config_model=config_model_class[name]
                     ))
                     index.functions.append(function)
                     index.functions_index[name] = (i, i + j)

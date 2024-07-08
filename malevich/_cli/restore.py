@@ -3,11 +3,16 @@ import concurrent.futures
 import rich
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-from .._cli.prefs import prefs as prefs
-from ..install.image import ImageInstaller
-from ..install.installer import Installer
-from ..install.space import SpaceInstaller
-from ..manifest import ManifestManager
+from malevich._utility import FlowStub
+from malevich.install import (
+    ImageInstaller,
+    Installer,
+    SpaceInstaller,
+)
+from malevich.manifest import ManifestManager
+from malevich.models.dependency import Integration
+
+from .prefs import prefs as prefs
 
 
 def _restore(installer: Installer, depedency: dict, progress: Progress, task) -> None:
@@ -34,7 +39,6 @@ def _restore(installer: Installer, depedency: dict, progress: Progress, task) ->
 # @app.command(name="restore", help=restore_help["--help"])
 def restore() -> None:
     manf = ManifestManager()
-    image_installer = ImageInstaller()
     with Progress(
         SpinnerColumn(), TextColumn("{task.description}")
     ) as progress, concurrent.futures.ThreadPoolExecutor() as executor:
@@ -49,6 +53,7 @@ def restore() -> None:
                 total=1
             )
             if installed_by == "image":
+                image_installer = ImageInstaller()
                 futures.append(
                     executor.submit(_restore, image_installer,
                                     dependency, progress, task)
@@ -59,6 +64,7 @@ def restore() -> None:
                     executor.submit(_restore, space_installer,
                                     dependency, progress, task)
                 )
+
     for future in concurrent.futures.as_completed(futures):
         result = future.result()
         if result:
@@ -66,3 +72,13 @@ def restore() -> None:
             rich.print(f"[red]Failed to restore package {result[1]}[/red]")
             rich.print(result[0])
             exit(-1)
+
+    progress.stop()
+    rich.print("\n\n[b]Restoring integrations:[/b]")
+    for flow, integrations in manf.query('flows').items():
+        FlowStub.sync_flows(flow, integrations=[
+            Integration(**i) for i in integrations
+        ])
+        rich.print(
+            f"[green]✔[/green] [green]{flow}[/green] ({len(integrations)} integrations)"
+        )

@@ -11,7 +11,7 @@ from ._cli.core.app import core_app
 from ._cli.dev.dev import dev as dev_app
 from ._cli.flow import flow as flow_app
 from ._cli.init import init as init_
-from ._cli.install import auto_use
+from ._cli.install import auto_use, install_flow
 from ._cli.list import list_packages
 from ._cli.manifest import app as manifest_app
 from ._cli.new import new
@@ -40,6 +40,16 @@ app.registered_commands.append(
         help=help.install["--help"],
         callback=auto_use,
         cls=typer.core.TyperCommand,
+    )
+)
+
+# malevich install-flow
+app.registered_commands.append(
+    typer.models.CommandInfo(
+        name="install-flow",
+        help="Install flow to my flows",
+        callback=install_flow,
+        cls=typer.core.TyperCommand
     )
 )
 

@@ -134,33 +134,53 @@ def list_procs(
     ] = False,
 ) -> str:
     data = []
-
-    for root, _, files in os.walk(path):
-        for file in files:
-            # Parsing python files
-            if file.endswith(".py"):
-                with open(os.path.join(root, file)) as f:
-                    # Parsing AST
-                    tree = ast.parse(f.read())
-                    for node in ast.walk(tree):
-                        # Looking for functions with @processor decorator
-                        if isinstance(node, ast.FunctionDef) or isinstance(
-                            node, ast.AsyncFunctionDef
-                        ):
-                            function_name = node.name
-                            decorators = [
-                                # id may be absent?
-                                d.func.id
-                                for d in node.decorator_list
-                                if isinstance(d, ast.Call)
-                            ]
-                            if "processor" in decorators:
-                                data.append(
-                                    {
-                                        "name": function_name,
-                                        "path": os.path.abspath(f"{root}/{file}"),
-                                    }
-                                )
+    if os.path.isdir(path):
+        for root, _, files in os.walk(path):
+            for file in files:
+                # Parsing python files
+                if file.endswith(".py"):
+                    with open(os.path.join(root, file)) as f:
+                        # Parsing AST
+                        tree = ast.parse(f.read())
+                        for node in ast.walk(tree):
+                            # Looking for functions with @processor decorator
+                            if isinstance(node, ast.FunctionDef) or isinstance(
+                                node, ast.AsyncFunctionDef
+                            ):
+                                function_name = node.name
+                                decorators = [
+                                    # id may be absent?
+                                    d.func.id
+                                    for d in node.decorator_list
+                                    if isinstance(d, ast.Call)
+                                ]
+                                if "processor" in decorators:
+                                    data.append(
+                                        {
+                                            "name": function_name,
+                                            "path": os.path.abspath(f"{root}/{file}"),
+                                        }
+                                    )
+    else:
+        with open(path) as f:
+            tree = ast.parse(f.read())
+            for node in ast.walk(tree):
+                if isinstance(node, ast.FunctionDef) or isinstance(
+                    node, ast.AsyncFunctionDef
+                ):
+                    function_name = node.name
+                    decorators = [
+                        d.func.id
+                        for d in node.decorator_list
+                        if isinstance(d, ast.Call)
+                    ]
+                    if "processor" in decorators:
+                        data.append(
+                            {
+                                "name": function_name,
+                                "path": os.path.abspath(path),
+                            }
+                        )
 
     if out is not None:
         with open(out, "w") as f:

@@ -5,7 +5,7 @@ from typing import Annotated
 import rich
 import typer
 
-from .._utility.package import package_manager
+from malevich._utility import package_manager
 
 
 def new(

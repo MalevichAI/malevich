@@ -7,15 +7,12 @@ from typing import Any, Type
 
 from malevich_space.schema import ComponentSchema
 
-from malevich.models.endpoint import MetaEndpoint
+from malevich.types import FlowOutput
 
-from ...interpreter.abstract import Interpreter
-from ...interpreter.space import SpaceInterpreter
-from ...models.nodes.tree import TreeNode
-from ...models.task.base import BaseTask
-from ...models.types import FlowOutput
-from ..injections import BaseInjectable
+from ..endpoint import MetaEndpoint
+from ..nodes.tree import TreeNode
 from ..results import Result
+from .base import BaseInjectable, BaseTask
 
 
 class PromisedStage(Enum):
@@ -77,7 +74,10 @@ class PromisedTask(BaseTask[PromisedStage]):
         else:
             return PromisedStage
 
-    def interpret(self, interpreter: Interpreter = None) -> None:
+    def interpret(
+        self,
+        interpreter: 'malevich._interpreter.abstrct.Interpreter' = None
+    ) -> None:
         """Interprets the task with a particular interpreter
 
         Attaching a task to a particular platform and preparing it for execution.
@@ -92,6 +92,7 @@ class PromisedTask(BaseTask[PromisedStage]):
                 Interpreter to use. :class:`malevich.interprete.SpaceInterpreter`
                 is used when not specified. Defaults to None.
         """
+        from malevich.interpreter import SpaceInterpreter
         __interpreter = interpreter or SpaceInterpreter()
         try:
             task = __interpreter.interpret(self.__tree, self._component)

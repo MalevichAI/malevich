@@ -10,8 +10,6 @@ from malevich_coretools import (
 )
 from malevich_coretools.secondary.const import ENDPOINTS_RUN
 
-from malevich._meta import table
-
 
 class MetaEndpoint(Endpoint):
     conn_url: str
@@ -31,7 +29,7 @@ class MetaEndpoint(Endpoint):
 
     def run(
         self,
-        overrides: dict[str, table] = {},
+        overrides: dict[str, 'table'] = {},
         endpoint_override: EndpointOverride = None,
         with_auth: bool = False,
         *args,
