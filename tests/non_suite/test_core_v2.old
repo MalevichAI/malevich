@@ -27,8 +27,21 @@ def my_flow():
         alias='rename_column'
     )
 
-
 def test_default():
+    task = Core(
+        my_flow,
+        core_host=COREV2_HOST,
+        user=CORE_USER,
+        access_key=CORE_PASS,
+        use_v2=True
+    )
+    task.prepare()
+    task.run()
+    r = task.results()[0].get_df()
+    assert r['result'].to_list() == ["Hello is simple!", "Malevich is simple!"]
+    task.stop()
+
+def test_overrides():
     task = Core(
         my_flow,
         core_host=COREV2_HOST,
