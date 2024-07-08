@@ -519,7 +519,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
 
         state.components[node.owner.uuid] = comp
         state.components_alias[node.owner.uuid] = (
-            node.owner.alias or unique.unique(alias_base)
+            node.owner.alias or unique(alias_base)
         )
         node.owner.alias = state.components_alias[node.owner.uuid]
         return state

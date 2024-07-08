@@ -336,6 +336,16 @@ def flow(
                                     alias=name
                                 )
                             )
+
+                            # Substitute with collection for args as well
+                            for i in range(len(args)):
+                                if args[i] is value:
+                                    args[i] = traced_args[name]
+                            for k in kwargs:
+                                if kwargs[k] is value:
+                                    kwargs[k] = traced_args[name]
+
+
                     elif isinstance(value, traced):
                         df_ = generate_empty_df_from_schema(
                             collection_scheme

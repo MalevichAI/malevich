@@ -26,13 +26,17 @@ FlowArgs = ParamSpec('FlowArgs')
 class Core:
     def __new__(
         cls,
-        task: PromisedTask | FlowFunction[..., PromisedTask] | Any,  # noqa: ANN401
+        task = None, # PromisedTask | FlowFunction[..., PromisedTask] | Any,  # noqa: ANN401
+        *task_args,
+        pipeline_id: str | None = None,
         core_host: str | None = DEFAULT_CORE_HOST,
         user: str | None = None,
         access_key: str | None = None,
-        *task_args,
         **task_kwargs
     ) -> CoreTask:
+        if not task and not pipeline_id:
+            raise ValueError("No task or pipeline_id provided")
+
         if not user:
             try:
                 user, access_key = get_core_creds_from_setup(
@@ -65,8 +69,12 @@ class Core:
         intepreter = CoreInterpreter(
             core_auth=(user, access_key), core_host=core_host
         )
-        task.interpret(intepreter)
-        return task.get_interpreted_task()
+
+        if pipeline_id:
+            return intepreter.attach(pipeline_id)
+        else:
+            task.interpret(intepreter)
+            return task.get_interpreted_task()
 
 
 class Space:

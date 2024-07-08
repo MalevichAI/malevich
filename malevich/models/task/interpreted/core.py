@@ -73,7 +73,6 @@ class CoreTask(BaseTask):
         state: CoreInterpreterState,
         component: ComponentSchema | None = None
     ) -> None:
-        super().__init__(state)
 
         if state is None:
             raise Exception("CoreTask requires a self.state to be passed. ")
@@ -86,6 +85,35 @@ class CoreTask(BaseTask):
         self.component = component
 
         self._returned = None
+
+    def _create_cfg_safe(
+        self,
+        auth: core.AUTH = None,
+        conn_url: Optional[str] = None,
+        **kwargs,
+    ) -> None:
+        auth = auth or self.state.params.core_auth
+        conn_url = conn_url or self.state.params.core_host
+        with IgnoreCoreLogs():
+            try:
+                cfg_ = core.get_cfg(
+                    kwargs['cfg_id'],
+                    auth=auth,
+                    conn_url=conn_url
+                ).id
+            except Exception:
+                core.create_cfg(
+                    **kwargs,
+                    auth=auth,
+                    conn_url=conn_url
+                )
+            else:
+                core.update_cfg(
+                    cfg_,
+                    auth=auth,
+                    conn_url=conn_url,
+                    **kwargs
+                )
 
     def get_stage(self) -> CoreTaskStage:
         if self.state.pipeline_id is not None:
@@ -178,7 +206,7 @@ class CoreTask(BaseTask):
         stage: PrepareStages = PrepareStages.ALL,
         *args,
         **kwargs
-    ) -> None:
+    ) -> tuple[str, str]:
         """Prepares the task to be executed on Malevich Core
 
         The method is divided into two stages: build and boot.
@@ -443,6 +471,7 @@ class CoreTask(BaseTask):
                     conn_url=self.state.params.core_host,
                     auth=self.state.params.core_auth,
                 )
+                print(self.run_id)
                 core.task_run(
                     self.state.params.operation_id,
                     cfg_id=new_config_id,
