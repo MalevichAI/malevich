@@ -37,7 +37,7 @@ class TestManyToOne(FlowTestSuite):
 
     @flow
     def many_to_one():
-        from malevich import collection, config, table
+        from malevich import collection, table
         from malevich.utility import merge, rename
 
         col1 = collection(name="col1", df=table([[1, 2, 3, 4]], columns=['A', 'B', 'C', 'D']))
