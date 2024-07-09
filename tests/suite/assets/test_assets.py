@@ -17,7 +17,7 @@ class TestAsset(FlowTestSuite):
         from malevich import asset
         from malevich.utility import get_links_to_files
 
-        file = asset.from_file(name='test_asset', path='tests/units/assets/file.txt')
+        file = asset.from_file(name='test_asset', path='tests/suite/assets/file.txt')
 
         return get_links_to_files(file)
     
@@ -29,7 +29,7 @@ class TestAsset(FlowTestSuite):
         key =  data['path'].to_list()[0]
 
         wget.download(key, 'file_result.txt')
-        file = open('tests/units/assets/file.txt').read()
+        file = open('tests/suite/assets/file.txt').read()
         file1 = open('file_result.txt').read()
 
         assert file == file1
@@ -48,7 +48,7 @@ class TestMultipleAssets(FlowTestSuite):
         from malevich import asset
         from malevich.utility import  get_links_to_files
 
-        file = asset.from_files(name='malevich_test_assets', files=['tests/units/assets/file.txt', 'tests/units/assets/file1.txt'])
+        file = asset.from_files(name='malevich_test_assets', files=['tests/suite/assets/file.txt', 'tests/suite/assets/file1.txt'])
 
         return get_links_to_files(file)
     
@@ -59,7 +59,7 @@ class TestMultipleAssets(FlowTestSuite):
 
         df = results[0].get_df()
         assert len(df.index) == 2
-        files = ['tests/units/assets/file.txt', 'tests/units/assets/file1.txt']
+        files = ['tests/suite/assets/file.txt', 'tests/suite/assets/file1.txt']
         for file, link in zip(files, df['path'].to_list()):
             path = wget.download(
                 link,
