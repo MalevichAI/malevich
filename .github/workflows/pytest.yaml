@@ -62,6 +62,7 @@ jobs:
     - name: Testing
       run: |
         cp -rf ./malevich/tests ./tests && rm -rf ./malevich
+        malevich remove utility || echo 'utility removed'
         pytest -s tests/suite/
       env:
         TESTS_SPACE_PASSWORD: ${{ secrets.TESTS_SPACE_PASSWORD }}
@@ -74,6 +75,7 @@ jobs:
     - name: Test build app, endpoints and platforms
       run: |
         malevich use image simple_app ghcr.io/malevichai/test:simple_app malevichai ${{ secrets.TEST_GHCR_PACKAGE_PASSWORD }}
+        malevich remove utility || echo 'utility removed'
         malevich install utility
         pytest -rP tests/non_suite/
       env:
@@ -86,7 +88,6 @@ jobs:
     - name: Clear core tasks
       if: always()
       run: |
-        echo "Not Implemented Yet. Waiting for core test account."
         python tests/post/clean.py
       env:
         CORE_USER: ${{ secrets.CORE_USER }}
