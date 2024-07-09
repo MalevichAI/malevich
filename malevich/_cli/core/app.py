@@ -11,6 +11,8 @@ from ...manifest import manf
 from .assets import assets_app
 from .endpoints import endpoints_app
 from .limits import limits_app
+from .pipeline import pipeline_app
+from .tasks import tasks_app
 
 core_app = Typer(name='core')
 
@@ -61,8 +63,6 @@ def whoami(
     if show_password:
         print(f'Password: {password}')
 
-
-
 core_app.add_typer(endpoints_app, name='endpoints', help="Manage endpoints")
 core_app.add_typer(assets_app, name='assets', help="Manage binary files")
 core_app.add_typer(
@@ -70,3 +70,5 @@ core_app.add_typer(
     name='limits',
     help="Retrieve and set limits for cloud resource"
 )
+core_app.add_typer(pipeline_app, name='pipeline', help='Work with pipelines')
+core_app.add_typer(tasks_app, name='task', help='Work with core tasks')
