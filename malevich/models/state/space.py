@@ -56,6 +56,7 @@ class SpaceInterpreterState:
         # In flow components``
         self.components: dict[str, InFlowComponentSchema | ComponentSchema] = {}
         # In flow components aliases
+        # NOTE: deprecated in favor of node.alias
         self.components_alias: dict[str, str] = {}
         # In flow components configs
         self.components_config: dict[str, dict[str, str]] = {}

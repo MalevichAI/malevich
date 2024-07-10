@@ -1,4 +1,5 @@
 from .registry import Registry
+from .get_space_leaves import get_space_leaves
 from .schema import pd_to_json_schema, generate_empty_df_from_schema
 from .tree import unwrap_tree, deflat_edges
 from .space import (

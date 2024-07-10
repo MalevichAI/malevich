@@ -13,13 +13,19 @@ from .base import BaseNode
 
 
 class TreeNode(BaseNode):
-    tree: ExecutionTree[traced[BaseNode], ArgumentLink[BaseNode]]
+    tree: ExecutionTree[traced[BaseNode], ArgumentLink[BaseNode]] | None = None
     results: Iterable[traced[BaseNode]] | traced[BaseNode] | None = None
+
+    # Space Component
     reverse_id: PythonString
     name: str
     description: str = "Wonderful Flow!"
-    underlying_node: Optional['BaseNode'] = None
+    version_uid: str | None = None
+    branch_uid: str | None = None
+    # ================ #
 
+    underlying_node: Optional['BaseNode'] = None
+    integrated: bool = False
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def get_senstivite_fields(self) -> dict[str, str]:

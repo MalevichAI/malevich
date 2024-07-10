@@ -53,6 +53,13 @@ def autotrace(func: Callable[C, R]) -> Callable[C, R]:
                     result,
                     AutoflowLink(index=i, name=argument_name)
                 )
+            else:
+                raise ValueError(
+                    f"You passed invalid argument to {func.__name__} "
+                    f"at position {i}. When using processors, you may only "
+                    "pass specific objects produced by Malevich operations."
+                    # TODO: documentation ref
+                )
 
         return result
     return wrapper

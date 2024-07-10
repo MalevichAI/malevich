@@ -1,4 +1,4 @@
-from typing import Any, Literal, ParamSpec
+from typing import Any, Callable, Literal, ParamSpec, Self, Type, overload
 
 from malevich_space.ops import SpaceOps
 from malevich_space.schema import SpaceSetup
@@ -20,13 +20,14 @@ from .models.flow_function import FlowFunction
 from .models.task.interpreted.core import CoreTask
 from .models.task.interpreted.space import SpaceTask
 from .models.task.promised import PromisedTask
+from .types import TracedNode, TracedNodes
 
 FlowArgs = ParamSpec('FlowArgs')
 
 class Core:
     def __new__(
-        cls,
-        task = None, # PromisedTask | FlowFunction[..., PromisedTask] | Any,  # noqa: ANN401
+        cls: Type[Self],
+        task: PromisedTask | TracedNode | TracedNodes | FlowFunction = None,
         *task_args,
         pipeline_id: str | None = None,
         core_host: str | None = DEFAULT_CORE_HOST,
@@ -100,8 +101,8 @@ class Space:
 
     def __new__(
         cls,
-        task: PromisedTask | FlowFunction[..., Any] | Any = None,  # noqa: ANN401, for IDE hints
-        # version_mode: VersionMode = VersionMode.MINOR,
+        task: PromisedTask | TracedNode | TracedNodes | FlowFunction = None,
+        *task_args,
         reverse_id: str | None = None,
         uid: str | None = None,
         deployment_id: str | None = None,
@@ -109,7 +110,6 @@ class Space:
         version: str | None = None,
         ops: SpaceOps | None = None,
         policy: Literal['no_use', 'only_use', 'use_or_new']= 'use_or_new',
-        *task_args,
         **task_kwargs
     ) -> SpaceTask:
 
@@ -198,4 +198,3 @@ class Space:
 
         task.interpret(interpreter)
         return task.get_interpreted_task()
-
