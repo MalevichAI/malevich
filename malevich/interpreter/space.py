@@ -33,6 +33,7 @@ from malevich._utility import (
     get_space_leaves,
     resolve_setup,
     unique,
+    upload_zip_asset,
 )
 from malevich.interpreter import Interpreter
 from malevich.models import (
@@ -549,12 +550,24 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
                         checksum=node.owner.magic()
                     )
                 )
-
                 comp = ComponentSchema(
                     name=node.owner.name,
                     reverse_id=node.owner.name,
                     asset=asset_
                 )
+
+                asset_comp = self.state.space.parse_raw(comp, VersionMode.PATCH)
+                asset_comp = self.state.space.get_parsed_component_by_reverse_id(
+                    reverse_id=asset_comp.reverse_id
+                )
+
+                upload_zip_asset(
+                    url=asset_comp.asset.upload_url,
+                    file=node.owner.real_path if isinstance(node.owner.real_path, str) else None,
+                    files=node.owner.real_path if isinstance(node.owner.real_path, list) else None,
+                )
+
+
 
 
         if not comp:
@@ -721,7 +734,6 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
             except Exception as e:
                 # If it fails, try to get the component
                 # by reverse id
-                print(e)
                 loaded_component = (
                     state.component_manager.space.get_component_by_reverse_id(
                         component.reverse_id
