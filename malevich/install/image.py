@@ -7,13 +7,14 @@ import hashlib
 import re
 from typing import Optional
 
+from malevich._utility import Stub
+from malevich.constants import DEFAULT_CORE_HOST, IMAGE_BASE
+from malevich.install import Installer
+from malevich.manifest import ManifestManager
+from malevich.models import ImageDependency, ImageOptions
+from malevich.path import Paths
+
 from .._core.scan import scan_core
-from .._utility.stub import Stub
-from ..constants import DEFAULT_CORE_HOST, IMAGE_BASE
-from ..install.installer import Installer
-from ..manifest import ManifestManager
-from ..models.installers.image import ImageDependency, ImageOptions
-from ..path import Paths
 
 _pydantic_types = {
     "string": str.__name__,
@@ -36,7 +37,7 @@ DO NOT MODIFY THIS FILE MANUALLY.
 
     imports = """
 from malevich._autoflow.function import autotrace, sinktrace
-from malevich._utility.registry import Registry
+from malevich._utility import Registry
 from malevich.models.nodes import OperationNode
 
 from pydantic import BaseModel

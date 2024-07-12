@@ -3,13 +3,13 @@ from typing import Optional
 
 from malevich_space.schema import LoadedComponentSchema
 
-from .._core.scan import scan_core
-from .._utility.space.auto_space_ops import get_auto_ops
-from .._utility.stub import Stub
-from ..constants import DEFAULT_CORE_HOST
-from ..manifest import ManifestManager
-from ..models.installers.space import SpaceDependency, SpaceDependencyOptions
-from ..path import Paths
+from malevich._core.scan import scan_core
+from malevich._utility import Stub, get_auto_ops
+from malevich.constants import DEFAULT_CORE_HOST
+from malevich.manifest import ManifestManager
+from malevich.models.installers.space import SpaceDependency, SpaceDependencyOptions
+from malevich.path import Paths
+
 from .installer import Installer
 
 manf = ManifestManager()

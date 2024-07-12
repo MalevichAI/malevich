@@ -6,8 +6,9 @@ from typing import Optional
 import malevich_coretools as core
 import pandas as pd
 
-from ....constants import DEFAULT_CORE_HOST
-from ...collection import Collection
+from malevich.constants import DEFAULT_CORE_HOST
+from malevich.models import Collection
+
 from ..base import BaseResult
 
 

@@ -1,8 +1,8 @@
 
-from .._utility.flow_stub import FlowStub
-from ..install.installer import Installer
-from ..manifest import ManifestManager
-from ..models.dependency import Integration
+from malevich._utility import FlowStub
+from malevich.install.installer import Installer
+from malevich.manifest import ManifestManager
+from malevich.models.dependency import Integration
 
 manf = ManifestManager()
 

@@ -6,20 +6,21 @@ from typing import Any, Callable, Literal, Optional, ParamSpec, TypeVar, overloa
 
 import pandas as pd
 
-from .._autoflow.flow import Flow
-from .._autoflow.tracer import traced
-from .._utility.registry import Registry
-from .._utility.schema import generate_empty_df_from_schema
-from ..models.argument import ArgumentLink
-from ..models.flow_function import FlowFunction
-from ..models.nodes.base import BaseNode
-from ..models.nodes.tree import TreeNode
-from ..models.task.promised import PromisedTask
-from ..models.types import TracedNode, TracedNodes
+from malevich._autoflow import Flow, traced
+from malevich._utility import Registry, generate_empty_df_from_schema
+from malevich.models import (
+    ArgumentLink,
+    BaseNode,
+    FlowFunction,
+    PromisedTask,
+    TreeNode,
+)
+from malevich.types import TracedNode, TracedNodes
+
 from .collection import collection
 
 T = TypeVar("T")
-R = PromisedTask | TracedNode | TracedNodes
+FlowDecoratorReturn = PromisedTask | TracedNode | TracedNodes
 Args = ParamSpec("Args")
 reg = Registry()
 
@@ -34,7 +35,7 @@ def __no_auto_flow(
     name: Optional[str] = None,
     description: Optional[str] = None,
     **kwargs: Any,  # noqa: ANN401
-) -> Callable[[Callable[Args, T]], FlowFunction[Args, R]]:
+) -> Callable[[Callable[Args, T]], FlowFunction[Args, FlowDecoratorReturn]]:
     """Converts a function into a flow
 
     The function is converted into :class:`malevich.models.flow_function.FlowFunction` object that can be
@@ -58,7 +59,7 @@ def __no_auto_flow(
         Callable[[Callable[Args, T]], Callable[Args, T]]: Decorator for the function.
     """   # noqa: E501
 
-    def wrapper(function: Callable[Args, T]) -> FlowFunction[Args, R]:
+    def wrapper(function: Callable[Args, T]) -> FlowFunction[Args, FlowDecoratorReturn]:
         nonlocal reverse_id, name, description
 
         reverse_id = reverse_id or function.__name__
@@ -69,7 +70,7 @@ def __no_auto_flow(
             description = f"Meta flow: {name}"
 
         @wraps(function)
-        def fn(*args: Args.args, __component, **kwargs: Args.kwargs) -> R:
+        def fn(*args: Args.args, __component, **kwargs: Args.kwargs) -> FlowDecoratorReturn:
             is_subflow = Flow.isinflow()
             args = list(args)
             if is_subflow:
@@ -90,10 +91,19 @@ def __no_auto_flow(
                         __hkwargs[k] = traced(BaseNode())
                     else:
                         __hkwargs[k] = k_arg
+
                 if is_subflow:
                     __results = function(*__hargs, **__hkwargs)
                 else:
                     __results = function(*args, **kwargs)
+
+                _tree.cast_link_types(
+                    lambda x: ArgumentLink(
+                        index=x.index,
+                        name=x.name
+                    )
+                )
+
                 t_node = TreeNode(
                     tree=_tree,
                     reverse_id=reverse_id,
@@ -169,7 +179,7 @@ def __no_auto_flow(
 def flow(
     fn = None,
     /,
-) -> FlowFunction[Args, R]:
+) -> FlowFunction[Args, FlowDecoratorReturn]:
     pass
 
 @overload
@@ -179,7 +189,7 @@ def flow(
     name: Optional[str] = None,
     description: Optional[str] = None,
     dfs_are_collections: Optional[bool] = None,
-) -> Callable[[Callable[Args, T]], FlowFunction[Args, R]]:
+) -> Callable[[Callable[Args, T]], FlowFunction[Args, FlowDecoratorReturn]]:
     pass
 
 def flow(
@@ -188,9 +198,9 @@ def flow(
     reverse_id: Optional[str] = None,
     name: Optional[str] = None,
     description: Optional[str] = None,
-    disable_auto_collections: Literal[True] = False,
+    disable_auto_collections: bool = False,
     **kwargs: Any,
-) -> Callable[[Callable[Args, T]], FlowFunction[Args, R]]:
+) -> Callable[[Callable[Args, T]], FlowFunction[Args, FlowDecoratorReturn]]:
     """Converts a function into a flow
 
     The function is converted into :class:`malevich.models.flow_function.FlowFunction` object that can be
@@ -222,7 +232,7 @@ def flow(
             **kwargs
         )
 
-    def wrapper(function: Callable[Args, T]) -> FlowFunction[Args, R]:
+    def wrapper(function: Callable[Args, T]) -> FlowFunction[Args, FlowDecoratorReturn]:
         nonlocal reverse_id, name, description
 
         reverse_id = reverse_id or function.__name__
@@ -268,7 +278,7 @@ def flow(
         ]
 
         @wraps(function)
-        def fn(*args: Args.args, __component, **kwargs: Args.kwargs) -> R:
+        def fn(*args: Args.args, __component, **kwargs: Args.kwargs) -> FlowDecoratorReturn:
             is_subflow = Flow.isinflow()
             args = list(args)
             if is_subflow:
@@ -326,6 +336,17 @@ def flow(
                                     alias=name
                                 )
                             )
+
+                            # Substitute with collection for args as well
+                            for i in range(len(args)):
+                                if args[i] is value:
+                                    args[i] = traced_args[name]
+
+                            for k in kwargs:
+                                if kwargs[k] is value:
+                                    kwargs[k] = traced_args[name]
+
+
                     elif isinstance(value, traced):
                         df_ = generate_empty_df_from_schema(
                             collection_scheme

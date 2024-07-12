@@ -2,7 +2,8 @@ import hashlib
 from functools import cache
 from typing import Optional
 
-from ..types import PythonString
+from malevich.models.python_string import PythonString
+
 from .base import BaseNode
 
 
@@ -26,7 +27,7 @@ class AssetNode(BaseNode):
                 else:
                     with open(self.real_path, "rb") as f:
                         bytes_ += f.read()
-            bytes_ += self.core_path
+            bytes_ += self.core_path.encode()
             return hashlib.sha256(bytes_).hexdigest()
 
     def get_core_path(self) -> str:

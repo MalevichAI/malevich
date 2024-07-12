@@ -176,3 +176,8 @@ class ExecutionTree(Generic[T, LinkType]):
     def nodes(self) -> Iterable[T]:
         """Returns all nodes of the execution tree"""
         return list(self.nodes_)
+
+    def cast_link_types(self, type) -> None:
+        """Cast the link types in the tree"""
+        for i, (u, v, link) in enumerate(self.tree):
+            self.tree[i] = (u, v, type(link))

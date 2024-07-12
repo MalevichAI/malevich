@@ -257,6 +257,9 @@ def parse_docstring(
     if file:
         doc = open(doc).read()
 
+    if not doc:
+        error_exit("Missing documentation")
+
     doc = doc.replace("\n", "\\n ")
     try:
         user = re.search(r"(?P<USER>[\S\s]+)-----(?P<DEV>[\S\s]*)", doc).group("USER")

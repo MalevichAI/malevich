@@ -3,7 +3,6 @@ from typing import Any, Optional
 from pydantic import BaseModel
 
 from .injections import SpaceInjectable
-from .installers.compat import CompatabilityStrategy
 
 
 class Dependency(BaseModel):
@@ -20,7 +19,7 @@ class Dependency(BaseModel):
     def compatible_with(
         self,
         other: 'Dependency',
-        compatability_strategy: CompatabilityStrategy = CompatabilityStrategy()
+        compatability_strategy: 'CompatabilityStrategy' = None
     ) -> bool:
         pass
 

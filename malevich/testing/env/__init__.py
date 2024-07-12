@@ -3,8 +3,7 @@ import os
 import logging
 from datetime import datetime
 from pydantic import BaseModel
-from malevich._utility.singleton import SingletonMeta
-from malevich._utility.package import package_manager
+from malevich._dev.singleton import SingletonMeta
 from malevich.path import Paths
 from malevich.models.installers.compat import CompatabilityStrategy
 from malevich.install.installer import Installer
@@ -13,7 +12,7 @@ from malevich.models.dependency import Dependency
 from malevich.constants import TEST_DIR
 from malevich.install.image import ImageInstaller
 from malevich.install.space import SpaceInstaller
-from malevich._utility.cache.manager import CacheManager
+from malevich._utility import CacheManager, package_manager
 
 env_manf = ManifestManager(TEST_DIR)
 cache = CacheManager()

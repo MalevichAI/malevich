@@ -3,21 +3,29 @@ from typing import Iterable, Optional
 
 from pydantic import ConfigDict
 
-from ..._autoflow.tracer import traced
-from ..._autoflow.tree import ExecutionTree
-from ..argument import ArgumentLink
-from ..types import PythonString
+from malevich._autoflow.tracer import ExecutionTree, traced
+from malevich.models import (
+    ArgumentLink,
+    PythonString,
+)
+
 from .base import BaseNode
 
 
 class TreeNode(BaseNode):
-    tree: ExecutionTree[traced[BaseNode], ArgumentLink[BaseNode]]
+    tree: ExecutionTree[traced[BaseNode], ArgumentLink[BaseNode]] | None = None
     results: Iterable[traced[BaseNode]] | traced[BaseNode] | None = None
+
+    # Space Component
     reverse_id: PythonString
     name: str
     description: str = "Wonderful Flow!"
-    underlying_node: Optional['BaseNode'] = None
+    version_uid: str | None = None
+    branch_uid: str | None = None
+    # ================ #
 
+    underlying_node: Optional['BaseNode'] = None
+    integrated: bool = False
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def get_senstivite_fields(self) -> dict[str, str]:

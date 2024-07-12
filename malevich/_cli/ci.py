@@ -4,9 +4,9 @@ import rich
 import typer
 from rich.prompt import Prompt
 
-from .._utility.ci.github import DockerRegistry, GithubCIOps
-from ..constants import IMAGE_BASE
-from ..constants import SPACE_API_URL as DEFAULT_SPACE_HOST
+from malevich._utility.ci.github import DockerRegistry, GithubCIOps
+from malevich.constants import IMAGE_BASE
+from malevich.constants import SPACE_API_URL as DEFAULT_SPACE_HOST
 
 github = typer.Typer()
 

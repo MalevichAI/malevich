@@ -1,4 +1,5 @@
 import pickle
+from threading import Thread
 import uuid
 from enum import Enum
 from functools import cache
@@ -13,11 +14,10 @@ from malevich.core_api import BasePlatformSettings
 from malevich.models.injections import SpaceInjectable
 
 from ...._autoflow.tracer import traced
-from ....interpreter.space import SpaceInterpreterState
+from ....types import FlowOutput
 from ...nodes.base import BaseNode
 from ...nodes.tree import TreeNode
 from ...results.space.collection import SpaceCollectionResult
-from ...types import FlowOutput
 from ..base import BaseTask
 
 
@@ -50,7 +50,7 @@ class SpaceTask(BaseTask):
 
     def __init__(
         self,
-        state: SpaceInterpreterState,
+        state: 'SpaceInterpreterState',
         component: LoadedComponentSchema | None = None,
         get_component: Callable[..., LoadedComponentSchema] | None = None,
     ) -> None:
@@ -298,7 +298,7 @@ class SpaceTask(BaseTask):
     def commit_returned(self, returned: FlowOutput) -> None:
         self._returned = returned
 
-    async def __async_get_results(
+    async def async_results(
         self,
         run_id: Optional[str] = None,
         fetch_timeout: int = 150,
@@ -383,23 +383,34 @@ class SpaceTask(BaseTask):
         **kwargs
     ) -> list[SpaceCollectionResult]:
         import asyncio
-
-        try:
-            import warnings
-            with warnings.catch_warnings():
-                warnings.filterwarnings(
-                    "ignore", message="There is no current event loop"
-                )
+        import warnings
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore", message="There is no current event loop"
+            )
+            try:
                 loop = asyncio.get_event_loop()
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
+                if loop.is_running():
+                    result = None
+                    def worker():
+                        nonlocal result
+                        result = asyncio.run(
+                            self.async_results(run_id, fetch_timeout, *args, **kwargs)
+                        )
+
+                    thread = Thread(target=worker,)
+                    thread.start()
+                    thread.join()
+                    assert result is not None
+                    return result
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
 
         def raise_exc(e, *args) -> None:
             raise e
 
         loop.set_exception_handler(raise_exc)
-        return loop.run_until_complete(self.__async_get_results(
+        return loop.run_until_complete(self.async_results(
             run_id,
             *args,
             **kwargs

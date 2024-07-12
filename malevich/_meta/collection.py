@@ -7,10 +7,9 @@ import pandas as pd
 from malevich_space.schema.schema import SchemaMetadata
 from pydantic import BaseModel
 
-from .._autoflow import tracer as gn  # engine
-from .._utility.schema import pd_to_json_schema
-from ..models.collection import Collection
-from ..models.nodes import CollectionNode
+import malevich._autoflow.tracer as gn
+from malevich._utility import pd_to_json_schema
+from malevich.models import Collection, CollectionNode
 
 
 class CollectionNameMeta(type):

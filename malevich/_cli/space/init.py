@@ -6,7 +6,7 @@ import typer
 from malevich_space.schema import Setup
 from pydantic import ValidationError
 
-from ...manifest import ManifestManager
+from malevich.manifest import ManifestManager
 
 
 def init(path_to_setup: Annotated[str, typer.Argument(...)]) -> None:

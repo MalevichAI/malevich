@@ -1,11 +1,11 @@
 from malevich_space.schema import LoadedComponentSchema
 
+from malevich._utility import Stub
 from malevich.core_api import AppFunctionsInfo
+from malevich.manifest import manf
 from malevich.models.dependency import Dependency
+from malevich.path import Paths
 
-from .._utility.stub import Stub
-from ..manifest import manf
-from ..path import Paths
 from .installer import Installer
 from .space import SpaceDependency, SpaceDependencyOptions
 

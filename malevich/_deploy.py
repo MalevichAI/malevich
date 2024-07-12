@@ -1,67 +1,43 @@
-from typing import Any, Literal, ParamSpec, overload
+from typing import Any, Callable, Literal, ParamSpec, Self, Type, overload
 
 from malevich_space.ops import SpaceOps
 from malevich_space.schema import SpaceSetup
 from rich.prompt import Prompt
 
-from ._utility.space.auto_space_ops import get_auto_ops
 from malevich.core_api import check_auth
 
 from ._cli.space.login import login
+from ._utility.space.auto_space_ops import get_auto_ops
 from ._utility.space.get_core_creds import (
     get_core_creds_from_db,
     get_core_creds_from_setup,
 )
 from .constants import DEFAULT_CORE_HOST
 from .interpreter.core import CoreInterpreter
-from .interpreter.core_v2 import CoreInterpreterV2
 from .interpreter.space import SpaceInterpreter
 from .manifest import manf
 from .models.flow_function import FlowFunction
 from .models.task.interpreted.core import CoreTask
-from .models.task.interpreted.core_v2 import CoreTaskV2
 from .models.task.interpreted.space import SpaceTask
 from .models.task.promised import PromisedTask
+from .types import TracedNode, TracedNodes
 
 FlowArgs = ParamSpec('FlowArgs')
 
 class Core:
-    @overload
     def __new__(
-        cls,
-        task: PromisedTask | FlowFunction[..., PromisedTask] | Any,  # noqa: ANN401, for IDE hints
+        cls: Type[Self],
+        task: PromisedTask | TracedNode | TracedNodes | FlowFunction = None,
+        *task_args,
+        pipeline_id: str | None = None,
         core_host: str | None = DEFAULT_CORE_HOST,
         user: str | None = None,
         access_key: str | None = None,
-        use_v2: Literal[True] = True,
-        *task_args,
-        **task_kwargs
-    ) -> CoreTaskV2:
-        pass
-
-    @overload
-    def __new__(
-        cls,
-        task: PromisedTask | FlowFunction[..., PromisedTask] | Any,  # noqa: ANN401, for IDE hints
-        core_host: str | None = DEFAULT_CORE_HOST,
-        user: str | None = None,
-        access_key: str | None = None,
-        use_v2: Literal[False] = False,
-        *task_args,
         **task_kwargs
     ) -> CoreTask:
-        pass
+        if not task and not pipeline_id:
+            raise ValueError("No task or pipeline_id provided")
 
-    def __new__(
-        cls,
-        task: PromisedTask | FlowFunction[..., PromisedTask] | Any,
-        core_host: str | None = DEFAULT_CORE_HOST,
-        user: str | None = None,
-        access_key: str | None = None,
-        use_v2: Literal[True] = False,
-        *task_args,
-        **task_kwargs
-    ) -> CoreTask | CoreTaskV2:
         if not user:
             try:
                 user, access_key = get_core_creds_from_setup(
@@ -91,12 +67,15 @@ class Core:
         if isinstance(task, FlowFunction):
             task: PromisedTask = task(*task_args, **task_kwargs)
 
-        interpreter_class = (CoreInterpreter, CoreInterpreterV2)[use_v2]
-        intepreter = interpreter_class(
+        intepreter = CoreInterpreter(
             core_auth=(user, access_key), core_host=core_host
         )
-        task.interpret(intepreter)
-        return task.get_interpreted_task()
+
+        if pipeline_id:
+            return intepreter.attach(pipeline_id)
+        else:
+            task.interpret(intepreter)
+            return task.get_interpreted_task()
 
 
 class Space:
@@ -122,8 +101,8 @@ class Space:
 
     def __new__(
         cls,
-        task: PromisedTask | FlowFunction[..., Any] | Any = None,  # noqa: ANN401, for IDE hints
-        # version_mode: VersionMode = VersionMode.MINOR,
+        task: PromisedTask | TracedNode | TracedNodes | FlowFunction = None,
+        *task_args,
         reverse_id: str | None = None,
         uid: str | None = None,
         deployment_id: str | None = None,
@@ -131,7 +110,6 @@ class Space:
         version: str | None = None,
         ops: SpaceOps | None = None,
         policy: Literal['no_use', 'only_use', 'use_or_new']= 'use_or_new',
-        *task_args,
         **task_kwargs
     ) -> SpaceTask:
 
@@ -152,7 +130,7 @@ class Space:
         ops = SpaceOps(space_setup=setup)
 
 
-        if not uid:
+        if not uid and reverse_id is not None:
             flow_branch_version, active_branch, active_versions = cls.fetch(
                 reverse_id=reverse_id,
                 ops=ops
@@ -220,4 +198,3 @@ class Space:
 
         task.interpret(interpreter)
         return task.get_interpreted_task()
-

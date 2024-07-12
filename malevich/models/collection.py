@@ -6,7 +6,7 @@ from typing import Optional
 import pandas as pd
 from pydantic import BaseModel, ConfigDict, Field
 
-from .types import PythonString
+from malevich.models.python_string import PythonString
 
 
 class Collection(BaseModel):

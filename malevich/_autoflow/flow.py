@@ -7,7 +7,8 @@ an access to an execution tree in function contexts.
 
 from typing import Iterable
 
-from .._utility.singleton import SingletonMeta
+from malevich._dev.singleton import SingletonMeta
+
 from .tree import ExecutionTree
 
 

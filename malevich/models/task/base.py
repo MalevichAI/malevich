@@ -5,13 +5,8 @@ import enum
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Generic, ParamSpec, TypeVar
 
-from ..endpoint import MetaEndpoint
-
-# from ...interpreter.abstract import Interpreter
-from ..injections import BaseInjectable
-from ..nodes.tree import TreeNode
-from ..results import Result
-from ..types import FlowOutput
+from malevich.models import BaseInjectable, MetaEndpoint, Result, TreeNode
+from malevich.types import FlowOutput
 
 State = TypeVar("State")
 CallbackParams = ParamSpec('CallbackParams')
