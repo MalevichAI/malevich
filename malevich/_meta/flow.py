@@ -198,7 +198,7 @@ def flow(
     reverse_id: Optional[str] = None,
     name: Optional[str] = None,
     description: Optional[str] = None,
-    disable_auto_collections: Literal[True] = False,
+    disable_auto_collections: bool = False,
     **kwargs: Any,
 ) -> Callable[[Callable[Args, T]], FlowFunction[Args, FlowDecoratorReturn]]:
     """Converts a function into a flow
@@ -341,6 +341,7 @@ def flow(
                             for i in range(len(args)):
                                 if args[i] is value:
                                     args[i] = traced_args[name]
+
                             for k in kwargs:
                                 if kwargs[k] is value:
                                     kwargs[k] = traced_args[name]

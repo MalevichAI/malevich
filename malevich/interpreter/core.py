@@ -310,7 +310,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
             )
         elif isinstance(from_node.owner, AssetNode):
             state.processors[to_node.owner.alias].arguments[link.name] = Argument(
-                collectionName=state.asset_nodes[from_node.owner.alias].get_core_path()
+                collectionId=state.asset_nodes[from_node.owner.alias].get_core_path()
             )
 
         _log(

@@ -1,4 +1,5 @@
 import pickle
+from threading import Thread
 import uuid
 from enum import Enum
 from functools import cache
@@ -297,7 +298,7 @@ class SpaceTask(BaseTask):
     def commit_returned(self, returned: FlowOutput) -> None:
         self._returned = returned
 
-    async def __async_get_results(
+    async def async_results(
         self,
         run_id: Optional[str] = None,
         fetch_timeout: int = 150,
@@ -382,35 +383,38 @@ class SpaceTask(BaseTask):
         **kwargs
     ) -> list[SpaceCollectionResult]:
         import asyncio
-        async def get_results_wrapper():
-            return await self.__async_get_results(
-                run_id,
-                fetch_timeout,
-                *args,
-                **kwargs
+        import warnings
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore", message="There is no current event loop"
             )
-        try:
-            import warnings
-            with warnings.catch_warnings():
-                warnings.filterwarnings(
-                    "ignore", message="There is no current event loop"
-                )
-                loop = asyncio.get_running_loop()
+            try:
+                loop = asyncio.get_event_loop()
                 if loop.is_running():
-                    import concurrent.futures
-                    # Run the async function in the event loop using run_in_executor
-                    with concurrent.futures.ThreadPoolExecutor() as executor:
-                        future = asyncio.run_coroutine_threadsafe(get_results_wrapper(), loop)
-                        return future.result()
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
+                    result = None
+                    def worker():
+                        nonlocal result
+                        result = asyncio.run(
+                            self.async_results(run_id, fetch_timeout, *args, **kwargs)
+                        )
+
+                    thread = Thread(target=worker,)
+                    thread.start()
+                    thread.join()
+                    assert result is not None
+                    return result
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
 
         def raise_exc(e, *args) -> None:
             raise e
 
         loop.set_exception_handler(raise_exc)
-        return loop.run_until_complete(coro)
+        return loop.run_until_complete(self.async_results(
+            run_id,
+            *args,
+            **kwargs
+        ))
 
     def upload(self) -> None:
         if not self._component:

@@ -29,7 +29,29 @@ def list_assets(
     plain: bool = False,
     **kwargs
 ) -> None:
-    file_dirs = get_collection_objects(recursive=recursive, **kwargs)
+    kwargs.pop('path', None)
+    file_dirs = get_collection_objects(
+        path='/',
+        recursive=recursive,
+        **kwargs
+    )
+
+    while file_dirs.directories:
+        dirs = []
+        for dir in file_dirs.directories.copy():
+            recursive_file_dirs = get_collection_objects(
+                path=dir,
+                recursive=recursive,
+                **kwargs
+            )
+            file_dirs.files.update([
+                (f'{dir}/{file}', size)
+                for file, size in recursive_file_dirs.files.items()
+            ])
+            dirs.extend(recursive_file_dirs.directories)
+            file_dirs.directories.remove(dir)
+        file_dirs.directories = dirs
+
     if plain:
         if sizes:
             length_ = max(map(len, file_dirs.files.keys()))
