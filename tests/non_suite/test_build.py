@@ -14,7 +14,7 @@ def rebuild_simple_flow():
     col = collection(name='test_second_proc', alias='build2', df=table({'data': ['Java', 'Python']}), persistent=False)
     return simple_proc(col) 
 
-def in_progress_proc(): # TODO: Finish the test
+def test_in_progress_proc(): # TODO: Finish the test
     task = Core(build_simple_flow, user=os.environ.get('CORE_USER'), access_key=os.environ.get('CORE_PASS'))
     task.prepare()
     task.run(with_logs=True, profile_mode='all')

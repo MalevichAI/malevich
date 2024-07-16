@@ -29,7 +29,7 @@ def test_extension():
     with pytest.raises(ValueError):
         task.run(
             config_extension={
-                'rename_column': ['hello', 'world']
+                'get_data': ['hello', 'world']
             }
         )
     
