@@ -1,5 +1,6 @@
 import enum
 import hashlib
+import importlib
 import json
 import os
 import pickle
@@ -17,7 +18,9 @@ from malevich._autoflow.tracer import traced, tracedLike
 from malevich._core.ops import (
     batch_upload_collections,
 )
+from ...._meta.decor import ProcessorFunction
 from malevich._utility import IgnoreCoreLogs, LogLevel, cout, upload_zip_asset
+from ...._utility.package import PackageManager
 from malevich.models import (
     Action,
     AssetNode,
@@ -536,6 +539,41 @@ class CoreTask(BaseTask):
             for injectable in injectables
             if injectable.get_inject_key() in real_overrides
         }
+
+    def _validate_proc_cfg_ext(
+        self,
+        package_id: str,
+        processor_id: str,
+        config_extension,
+    ):
+        """internal"""
+        try:
+            PackageManager().get_package(package_id)
+            module = importlib.import_module(f'malevich.{package_id}')
+        except Exception:
+            return None
+        if not hasattr(module, processor_id):
+            return None
+        proc_stub = getattr(module, processor_id)
+        if not isinstance(proc_stub, ProcessorFunction):
+            return None
+
+        if isinstance(proc_stub.config, BaseModel) and isinstance(config_extension, BaseModel):  # noqa: E501
+            return type(proc_stub.config) == type(config_extension)  # noqa: E721
+        else:
+            return True
+
+    def _get_config_model(self, package_id: str, processor_id: str) -> BaseModel | None:
+        try:
+            module = importlib.import_module(f'malevich.{package_id}')
+        except ImportError:
+            return None
+
+        proc_stub = getattr(module, processor_id)
+        if isinstance(proc_stub, ProcessorFunction):
+            if issubclass(proc_stub.config, BaseModel):
+                return proc_stub.config
+        return None
 
     def run(
         self,
