@@ -849,26 +849,26 @@ class CoreTask(BaseTask):
             list[CoreInjectable]: A list of injections available for Malevich Core
         """
         injectables = []
-        nodes_ = set()
-        nodes: Iterable[BaseNode] = []
-        for x in self.state.collection_nodes.values():
-            nodes.append(x)
-            nodes_.add(x.uuid)
+        injectables.extend([
+            CoreInjectable(
+                alias=node.alias,
+                node=node,
+                collection_id=node.collection.collection_id,
+            ) for node in self.state.collection_nodes.values()])
 
-        for node in nodes:
-            if isinstance(node, CollectionNode):
-                for cfg_coll_id, core_coll_id in self.state.config.collections.items():
-                    if cfg_coll_id == node.collection.collection_id:
-                        injectables.append(
-                            CoreInjectable(
-                                node=node,
-                                collection_id=node.collection.collection_id,
-                                alias=node.alias,
-                                uploaded_id=core_coll_id
-                            )
-                        )
+        injectables.extend([
+            CoreInjectable(
+                alias=node.alias,
+                node=node,
+                collection_id='$' + (node.core_path or node.real_path)
+            ) for node in self.state.asset_nodes.values()])
 
-                        break
+        injectables.extend([
+            CoreInjectable(
+                alias=node.alias,
+                node=node,
+                collection_id='#' + (node.core_id or node.reverse_id)
+            ) for node in self.state.document_nodes.values()])
 
         return injectables
 
@@ -977,7 +977,7 @@ class CoreTask(BaseTask):
             ]
         else:
             node_results = [
-               tracedLike(OperationNode(alias=x, operation_id=''))
+                tracedLike(OperationNode(alias=x, operation_id=''))
                 for x in pipeline.results.keys()
             ]
 
