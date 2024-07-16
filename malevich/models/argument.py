@@ -1,16 +1,17 @@
 from typing import Any, Generic, TypeVar
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import ConfigDict
+
+from malevich._autoflow.link import AutoflowLink
 
 ArgumentLinkNodeType = TypeVar("ArgumentLinkNodeType")
 
-class ArgumentLink(BaseModel, Generic[ArgumentLinkNodeType]):
+class ArgumentLink(AutoflowLink, Generic[ArgumentLinkNodeType]):
     model_config = ConfigDict(
         arbitrary_types_allowed=True
     )
 
-    index: int
-    name: str
+
     compressed_edges: list[tuple['ArgumentLink', ArgumentLinkNodeType]] = []
     shadow_collection: Any = None
     is_compressed_edge: bool = False

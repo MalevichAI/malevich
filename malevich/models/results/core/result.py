@@ -29,9 +29,10 @@ class CoreResultPayload:
 
     def __init__(
         self,
-        data: pd.DataFrame | list[bytes],
+        data: pd.DataFrame | dict | list[bytes],
         is_asset: bool = False,
         is_composite_asset: bool = False,
+        is_document: bool = False,
         is_collection: bool = False,
         paths: Optional[list[str]] = None,
     ) -> None:
@@ -46,6 +47,7 @@ class CoreResultPayload:
         self._is_composite_asset = is_composite_asset
         self._is_collection = is_collection
         self._paths = paths or []
+        self.is_document = is_document
 
     def is_asset(self) -> bool:
         """Checks if the result is an asset
@@ -80,7 +82,7 @@ class CoreResultPayload:
             return len(self._data.index)
 
     @property
-    def data(self) -> pd.DataFrame | dict[str, bytes] | bytes:
+    def data(self) -> pd.DataFrame | dict[str, bytes] | bytes | core.ResultCollection:
         if self._is_asset:
             if self._is_composite_asset:
                 return {
@@ -214,7 +216,6 @@ class CoreResult(BaseResult[CoreResultPayload]):
             list[CoreResultPayload]: The list of results
 
         """  # noqa: E501
-        results_: list[pd.DataFrame] = []
         collections = [
             x for x in core.get_collections_by_group_name(
                 self.core_group_name,
@@ -225,13 +226,16 @@ class CoreResult(BaseResult[CoreResultPayload]):
             ).data
         ]
 
-        results_.extend([
-            pd.DataFrame([json.loads(j.data) for j in i.docs])
-            for i in collections
-        ])
-
         results = []
-        for result in results_:
+        for col in collections:
+            if '#' in col.id:
+                results.append(CoreResultPayload(
+                    data=json.loads(col.docs[0]),
+                    is_document=True,
+                ))
+                continue
+
+            result = pd.DataFrame([json.loads(j.data) for j in col.docs])
             if CoreResult.is_asset(result):
 # if asset
                 # NOTE: Path now returned without /mnt_obj/<user>
@@ -303,7 +307,7 @@ class CoreResult(BaseResult[CoreResultPayload]):
 # if collection
             else:
                 results.append(CoreResultPayload(
-                    data=result,
+                    data=col,
                     is_collection=True,
                 ))
 
@@ -425,6 +429,25 @@ class CoreResult(BaseResult[CoreResultPayload]):
         else:
             warnings.warn(f"No results found for {self.core_group_name}")
             return {}
+
+    @cache
+    def get_document(self, index: int = 0, model: type | None = None) -> dict:
+        """Retrieves the document of the result
+
+        Returns:
+            dict: The document of the result
+        """
+        if result := self.get():
+            if result[index].is_document:
+                return result[index].data if model is None else model(
+                    **result[index].data
+                )
+            else:
+                what = "asset" if result[index].is_asset() else "collection"
+                raise NotImplementedError(
+                    "Cannot return a document from a non-document result. "
+                    f"Result at index {index} is {what}"
+                )
 
 
 

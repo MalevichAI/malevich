@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import Generic, Type, TypeVar, get_args
+from typing import Generic, Type, TypeVar, get_args, overload
 
 import pandas as pd
+from pydantic import BaseModel
 
 RealResultType = TypeVar("RealResultType")
+DocumentType = TypeVar("DocumentType", bound=BaseModel)
 
 class BaseResult(ABC, Generic[RealResultType]):
     """Result obtained running a flow.
@@ -74,3 +76,34 @@ class BaseResult(ABC, Generic[RealResultType]):
             "conversion to dict of binary data"
         )
 
+
+    @overload
+    def get_document(self, index: int = 0) -> dict:
+        """Returns dumped document from the result if possible
+
+        Returns:
+            dict: The dumped document
+        """
+        pass
+
+    @overload
+    def get_document(self, index:int = 0, *, model: Type[DocumentType]) -> DocumentType:
+        """Returns dumped document from the result if possible
+
+        Returns:
+            dict: The dumped document
+        """
+        pass
+
+    def get_document(
+        self,
+        index: int = 0,
+        *,
+        model: Type[DocumentType] | None = None
+    ) -> DocumentType:
+        """Returns a document from the result if possible
+
+        Returns:
+            DocumentType: The document
+        """
+        pass

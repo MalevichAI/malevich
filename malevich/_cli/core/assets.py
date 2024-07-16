@@ -9,6 +9,7 @@ from rich.progress import Progress
 from rich.tree import Tree
 from typer import Typer
 
+from ..._utility.asset_full_tree import get_asset_full_tree
 from malevich.core_api import (
     delete_collection_object,
     get_collection_object,
@@ -24,33 +25,16 @@ assets_app = Typer(name='assets')
 @assets_app.command(name='list')
 @wrap_command(get_collection_objects)
 def list_assets(
-    recursive: bool = True,
     sizes: bool = False,
     plain: bool = False,
     **kwargs
 ) -> None:
     kwargs.pop('path', None)
-    file_dirs = get_collection_objects(
-        path='/',
-        recursive=recursive,
-        **kwargs
+    file_dirs = get_asset_full_tree(
+        base_path='/',
+        conn_url=kwargs.get('conn_url'),
+        auth=kwargs.get('auth'),
     )
-
-    while file_dirs.directories:
-        dirs = []
-        for dir in file_dirs.directories.copy():
-            recursive_file_dirs = get_collection_objects(
-                path=dir,
-                recursive=recursive,
-                **kwargs
-            )
-            file_dirs.files.update([
-                (f'{dir}/{file}', size)
-                for file, size in recursive_file_dirs.files.items()
-            ])
-            dirs.extend(recursive_file_dirs.directories)
-            file_dirs.directories.remove(dir)
-        file_dirs.directories = dirs
 
     if plain:
         if sizes:

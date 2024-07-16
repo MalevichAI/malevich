@@ -264,7 +264,6 @@ def _assure_asset(
                 conn_url=conn_url,
             )
     except Exception as e:
-        print(e)
         if asset.real_path is not None:
             _upload_asset(asset, auth, conn_url)
             return

@@ -16,6 +16,7 @@ from .constants import DEFAULT_CORE_HOST
 from .interpreter.core import CoreInterpreter
 from .interpreter.space import SpaceInterpreter
 from .manifest import manf
+from .models.exceptions import NoTaskToConnectError
 from .models.flow_function import FlowFunction
 from .models.task.interpreted.core import CoreTask
 from .models.task.interpreted.space import SpaceTask
@@ -30,6 +31,7 @@ class Core:
         task: PromisedTask | TracedNode | TracedNodes | FlowFunction = None,
         *task_args,
         pipeline_id: str | None = None,
+        should_connect: bool = False,
         core_host: str | None = DEFAULT_CORE_HOST,
         user: str | None = None,
         access_key: str | None = None,
@@ -72,7 +74,18 @@ class Core:
         )
 
         if pipeline_id:
-            return intepreter.attach(pipeline_id)
+            try:
+                return intepreter.attach(
+                    pipeline_id
+                )
+            except NoTaskToConnectError:
+                if should_connect:
+                    raise
+                else:
+                    return intepreter.attach(
+                        pipeline_id,
+                        only_fetch=True
+                    )
         else:
             task.interpret(intepreter)
             return task.get_interpreted_task()
