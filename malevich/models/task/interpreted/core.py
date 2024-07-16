@@ -18,9 +18,7 @@ from malevich._autoflow.tracer import traced, tracedLike
 from malevich._core.ops import (
     batch_upload_collections,
 )
-from ...._meta.decor import ProcessorFunction
 from malevich._utility import IgnoreCoreLogs, LogLevel, cout, upload_zip_asset
-from ...._utility.package import PackageManager
 from malevich.models import (
     Action,
     AssetNode,
@@ -36,11 +34,10 @@ from malevich.models import (
     TreeNode,
     VerbosityLevel,
 )
-from ...exceptions import NoPipelineFoundError, NoTaskToConnectError
-from malevich.table import table
 from malevich.types import FlowOutput
 
-from ...nodes.document import DocumentNode
+from ...._utility.package import PackageManager
+from ...exceptions import NoPipelineFoundError, NoTaskToConnectError
 from ...overrides import AssetOverride, CollectionOverride, DocumentOverride, Override
 from ..base import BaseTask
 
@@ -547,6 +544,7 @@ class CoreTask(BaseTask):
         config_extension,
     ):
         """internal"""
+        from malevich._meta.decor import ProcessorFunction
         try:
             PackageManager().get_package(package_id)
             module = importlib.import_module(f'malevich.{package_id}')
