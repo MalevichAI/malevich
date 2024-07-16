@@ -7,7 +7,17 @@ def test_asset():
     with pytest.raises(ValueError):
         @flow()
         def check_asset():
-            file = asset.from_file(name='invalid. asset', path='tests/suite/assets/file.txt')
+            file = asset.from_files(reverse_id='invalid. asset', file='tests/suite/assets/file.txt')
+
+
+        check_asset()
+
+
+    with pytest.raises(ValueError):
+        @flow()
+        def check_asset():
+            file = asset.from_files(reverse_id='valid_asset_id', file='tests/suite/assets/file.txt', alias='invalid .asset~alias')
+
 
         check_asset()
 
