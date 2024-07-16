@@ -307,7 +307,7 @@ class CoreResult(BaseResult[CoreResultPayload]):
 # if collection
             else:
                 results.append(CoreResultPayload(
-                    data=col,
+                    data=result,
                     is_collection=True,
                 ))
 
