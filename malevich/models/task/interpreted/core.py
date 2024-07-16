@@ -562,6 +562,8 @@ class CoreTask(BaseTask):
             return True
 
     def _get_config_model(self, package_id: str, processor_id: str) -> BaseModel | None:
+        from malevich._meta.decor import ProcessorFunction
+
         try:
             module = importlib.import_module(f'malevich.{package_id}')
         except ImportError:
