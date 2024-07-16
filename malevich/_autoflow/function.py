@@ -90,7 +90,8 @@ def sinktrace(func: Callable[C, R]) -> Callable[C, R]:
             if isinstance(arg, gn.traced):
                 arg._autoflow.calledby(result, AutoflowLink(
                         index=real_index,
-                        name=argument_name
+                        name=argument_name,
+                        in_sink=i >= len(names) - 1
                     )
                 )
             else:

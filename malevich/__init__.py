@@ -1,3 +1,4 @@
+from .table import table
 from .models import *
 from .interpreter import *
 from ._meta import *
@@ -21,3 +22,5 @@ from ._deploy import Core, Space
 # Handy ops
 from ._utility import get_auto_ops
 
+from malevich.models.overrides import CollectionOverride as __c
+__c.model_rebuild()

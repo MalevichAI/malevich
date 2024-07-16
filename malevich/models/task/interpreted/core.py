@@ -1,22 +1,23 @@
 import enum
 import hashlib
 import json
+import os
 import pickle
 import uuid
 import warnings
 from copy import deepcopy
-from typing import Any, Iterable, Literal, Optional, Type
+from typing import Any, Iterable, Literal, Optional, Self, Type
 
 import malevich_coretools as core
 import pandas as pd
 from malevich_space.schema import ComponentSchema
 from pydantic import BaseModel, ValidationError
 
-from malevich._autoflow.tracer import traced
+from malevich._autoflow.tracer import traced, tracedLike
 from malevich._core.ops import (
     batch_upload_collections,
 )
-from malevich._utility import IgnoreCoreLogs, LogLevel, cout
+from malevich._utility import IgnoreCoreLogs, LogLevel, cout, upload_zip_asset
 from malevich.models import (
     Action,
     AssetNode,
@@ -32,12 +33,18 @@ from malevich.models import (
     TreeNode,
     VerbosityLevel,
 )
+from ...exceptions import NoPipelineFoundError, NoTaskToConnectError
+from malevich.table import table
 from malevich.types import FlowOutput
 
+from ...nodes.document import DocumentNode
+from ...overrides import AssetOverride, CollectionOverride, DocumentOverride, Override
 from ..base import BaseTask
 
 
-class BootError(Exception): ...
+class BootError(Exception):
+    ...
+
 
 class PrepareStages(enum.Enum):
     BUILD = 0b01
@@ -49,6 +56,7 @@ class CoreTaskStage(enum.Enum):
     ONLINE = 0
     BUILT = 1
     NO_TASK = 3
+
 
 class CoreTaskState(CoreInterpreterState):
     unique_task_hash: str | None = None
@@ -115,6 +123,12 @@ class CoreTask(BaseTask):
                     **kwargs
                 )
 
+    def get_active_tasks(self) -> list[str]:
+        return core.get_run_active_runs(
+            auth=self.state.params.core_auth,
+            conn_url=self.state.params.core_host,
+        ).ids
+
     def get_stage(self) -> CoreTaskStage:
         if self.state.pipeline_id is not None:
             try:
@@ -154,7 +168,8 @@ class CoreTask(BaseTask):
         **kwargs
     ) -> None:
         """internal"""
-        assert platform in ['base', 'vast'], f"Platform {platform} is not supported. "
+        assert platform in [
+            'base', 'vast'], f"Platform {platform} is not supported. "
         cout(
             message=f"Configure {operation}: platform={platform}, platform_settings={platform_settings}",  # noqa: E501
             action=Action.Interpretation,
@@ -164,7 +179,6 @@ class CoreTask(BaseTask):
         self.state.processors[operation].platform = platform
         if platform_settings:
             self.state.processors[operation].platformSettings = platform_settings
-
 
     def configure(
         self,
@@ -200,6 +214,15 @@ class CoreTask(BaseTask):
                 **kwargs
             )
 
+    def get_pipeline_hash(self) -> str:
+        return hashlib.sha256(
+            core.Pipeline(
+                pipelineId='',
+                processors=self.state.processors,
+                conditions={},  # NOTE: Future
+                results=self.state.results
+            ).model_dump_json().encode()
+        ).hexdigest()
 
     def prepare(
         self,
@@ -250,6 +273,85 @@ class CoreTask(BaseTask):
                     auth=self.state.params.core_auth,
                 )
 
+        for node in self.state.asset_nodes.values():
+            if node.core_path is not None:
+                try:
+                    files = core.get_collection_objects(
+                        node.core_path,
+                        recursive=True
+                    ).files
+
+                    if node.real_path is not None:
+                        for file in node.real_path:
+                            if file not in files:
+                                raise FileNotFoundError(f'{file} missing')
+                            if os.path.getsize(file) != files[file]:
+                                raise FileNotFoundError(
+                                    f'{file} size mismatch')
+
+                except Exception as e:
+                    if isinstance(e, FileNotFoundError):
+                        message = e.strerror
+                    else:
+                        message = 'Failed to fetch asset'
+
+                    url = core.post_collection_object_presigned_url(
+                        node.core_path,
+                        expires_in=600,
+                        conn_url=self.state.params.core_host,
+                        auth=self.state.params.core_auth,
+                    )
+
+                    upload_zip_asset(
+                        url,
+                        files=node.real_path if isinstance(node.real_path, list) else None,  # noqa: E501
+                        file=node.real_path if isinstance(node.real_path, str) else None,  # noqa: E501
+                    )
+
+                    cout(
+                        action=Action.Preparation,
+                        message=f"Asset {node.name} updated. {message}",
+                        verbosity=VerbosityLevel.AllSteps,
+                        level=LogLevel.Debug
+                    )
+
+                else:
+                    cout(
+                        action=Action.Preparation,
+                        message=f"Asset {node.name} fully matched with the Core",
+                        verbosity=VerbosityLevel.AllSteps,
+                        level=LogLevel.Debug
+                    )
+
+        for node in self.state.document_nodes.values():
+            try:
+                node.core_id = core.get_doc_by_name(
+                    node.magic(),
+                    conn_url=self.state.params.core_host,
+                    auth=self.state.params.core_auth,
+                ).id
+
+                cout(
+                    action=Action.Preparation,
+                    message=f"Document {node.reverse_id} is already on Core. {node.magic()}",  # noqa: E501
+                    verbosity=VerbosityLevel.AllSteps,
+                    level=LogLevel.Debug
+                )
+            except Exception:
+                node.core_id = core.create_doc(
+                    data=node.document.model_dump_json(),
+                    name=node.magic(),
+                    conn_url=self.state.params.core_host,
+                    auth=self.state.params.core_auth,
+                )
+
+                cout(
+                    action=Action.Preparation,
+                    message=f"Document {node.reverse_id} uploaded. {node.magic()}",
+                    verbosity=VerbosityLevel.AllSteps,
+                    level=LogLevel.Debug
+                )
+
         if not self.state.config:
             config = core.Cfg(
                 collections={
@@ -258,13 +360,23 @@ class CoreTask(BaseTask):
                 }
             )
 
+            for an in self.state.asset_nodes.values():
+                config.collections = {
+                    **config.collections,
+                    an.name: an.get_core_path(),
+                }
+
+            for dn in self.state.document_nodes.values():
+                config.collections = {
+                    **config.collections,
+                    dn.reverse_id: dn.get_core_path(),
+                }
+
             self.state.config = config
 
         if stage.value & PrepareStages.BUILD.value:
             if not self.state.unique_task_hash:
-                self.state.unique_task_hash = hashlib.sha256(
-                    json.dumps(self.state.model_dump(), sort_keys=True).encode()
-                ).hexdigest()
+                self.state.unique_task_hash = self.get_pipeline_hash()
 
             self.state.config_id = self.state.unique_task_hash
             try:
@@ -274,17 +386,30 @@ class CoreTask(BaseTask):
                         conn_url=self.state.params.core_host,
                         auth=self.state.params.core_auth,
                     ).pipelineId
+
+                    cout(
+                        action=Action.Preparation,
+                        message=f"Pipeline {self.state.unique_task_hash} found.",
+                        verbosity=VerbosityLevel.AllSteps,
+                        level=LogLevel.Debug
+                    )
+
             except Exception:
                 self.state.pipeline_id = core.create_pipeline(
                     self.state.unique_task_hash,
                     processors=self.state.processors,
-                    conditions=None, # NOTE: Future
+                    conditions=None,  # NOTE: Future
                     results=self.state.results,
                     conn_url=self.state.params.core_host,
                     auth=self.state.params.core_auth,
                 )
 
-
+                cout(
+                    action=Action.Preparation,
+                    message=f"Pipeline {self.state.unique_task_hash} created.",
+                    verbosity=VerbosityLevel.AllSteps,
+                    level=LogLevel.Debug
+                )
 
         if stage.value & PrepareStages.BOOT.value:
             if self.state.pipeline_id is None:
@@ -321,9 +446,100 @@ class CoreTask(BaseTask):
 
         return self.state.unique_task_hash, self.state.params.operation_id
 
+    def _prepare_collection_overrides(
+        self,
+        injectables: list[CoreInjectable],
+        overrides: dict[str, CollectionOverride]
+    ) -> dict[str, str]:
+        collections = [
+            Collection(
+                collection_id=f'core_interpreter_override_{k}_{self.run_id}',
+                collection_data=v.data,
+                persistent=False
+            ) for k, v in overrides.items()
+        ]
+
+        core_ids = batch_upload_collections(
+            collections,
+            conn_url=self.state.params.core_host,
+            auth=self.state.params.core_auth,
+        )
+
+        key_to_core_id = {
+            k: core_id
+            for k, core_id in zip(overrides.keys(), core_ids)
+        }
+
+        return {
+            injectable.get_inject_data():
+            key_to_core_id[injectable.get_inject_key()]
+            for injectable in injectables
+            if injectable.get_inject_key() in overrides
+        }
+
+    def _prepare_asset_overrides(
+        self,
+        injectables: list[CoreInjectable],
+        overrides: dict[str, AssetOverride]
+    ) -> dict[str, str]:
+        real_overrides = {}
+
+        for k, v in overrides.items():
+            if v.path is not None:
+                if v.file is not None:
+                    core.update_collection_object(
+                        v.path,
+                        open(v.file, 'rb').read(),
+                        conn_url=self.state.params.core_host,
+                        auth=self.state.params.core_auth,
+                    )
+                elif v.files:
+                    url = core.post_collection_object_presigned_url(
+                        v.path,
+                        conn_url=self.state.params.core_host,
+                        auth=self.state.params.core_auth,
+                    )
+                    upload_zip_asset(
+                        url,
+                        files=v.files
+                    )
+                else:
+                    real_overrides[k] = v.path
+
+        return {
+            injectable.get_inject_data():
+            real_overrides[injectable.get_inject_key()]
+            for injectable in injectables
+            if injectable.get_inject_key() in real_overrides
+        }
+
+    def _prepare_document_overrides(
+        self,
+        injectables: list[CoreInjectable],
+        overrides: dict[str, DocumentOverride]
+    ) -> dict[str, str]:
+        real_overrides = {}
+
+        for k, v in overrides.items():
+            name = hashlib.sha256(v.data.model_dump_json().encode()).hexdigest() + '_override'  # noqa: E501
+            id = core.create_doc(
+                data=v.data.model_dump_json(),
+                name=name,
+                conn_url=self.state.params.core_host,
+                auth=self.state.params.core_auth,
+            )
+            real_overrides[k] = f'#{id}'
+
+        return {
+            injectable.get_inject_data():
+            real_overrides[injectable.get_inject_key()]
+            for injectable in injectables
+            if injectable.get_inject_key() in real_overrides
+        }
+
     def run(
         self,
-        override: dict[str, 'table'] | None = None,
+        override: dict[str, Override] | None = None,
         config_extension: dict[str, dict[str, Any] | BaseModel] | None = None,
         run_id: Optional[str] = None,
         detached: bool = False,
@@ -366,34 +582,46 @@ class CoreTask(BaseTask):
                             "Please, run `.prepare()` first.")
 
         if override:
-            collections = [
-                Collection(
-                    collection_id=f'core_interpreter_override_{k}_{run_id}',
-                    collection_data=v,
-                    persistent=False
-                ) for k, v in override.items()
-            ]
+            collection_overrides = {
+                k: v for k, v in override.items()
+                if isinstance(v, CollectionOverride)
+            }
+            asset_overrides = {
+                k: v for k, v in override.items()
+                if isinstance(v, AssetOverride)
+            }
 
-            core_ids = batch_upload_collections(
-                collections,
-                conn_url=self.state.params.core_host,
-                auth=self.state.params.core_auth,
-            )
+            document_overrides = {
+                k: v for k, v in override.items()
+                if isinstance(v, DocumentOverride)
+            }
 
             injectables = self.get_injectables()
-            key_to_core_id = {
-                k: core_id
-                for k, core_id in zip(override.keys(), core_ids)
+            real_overrides = {
+                **self._prepare_collection_overrides(
+                    injectables,
+                    collection_overrides
+                ),
+                **self._prepare_asset_overrides(
+                    injectables,
+                    asset_overrides
+                ),
+                **self._prepare_document_overrides(
+                    injectables,
+                    document_overrides
+                )
             }
 
-            real_overrides = {
-                injectable.get_inject_data():
-                key_to_core_id[injectable.get_inject_key()]
-                for injectable in injectables
-            }
+            for k, v in real_overrides.items():
+                cout(
+                    message=f"Override {k} with {v}",
+                    action=Action.Run,
+                    verbosity=VerbosityLevel.AllSteps,
+                    level=LogLevel.Debug
+                )
+
         else:
             real_overrides = {}
-
 
         self.run_id = run_id or uuid.uuid4().hex
 
@@ -423,8 +651,8 @@ class CoreTask(BaseTask):
                                 config_model(**{
                                     **x.config,
                                     **(extension if isinstance(extension, dict)
-                                                 else extension.model_dump()
-                                      )
+                                       else extension.model_dump()
+                                       )
                                 })
                             except ValidationError as e:
                                 raise ValueError(
@@ -464,14 +692,14 @@ class CoreTask(BaseTask):
                     **real_overrides,
                 }
                 new_config.app_cfg_extension = app_cfg_extensions
-                new_config_id = self.state.config_id + '_' +  uuid.uuid4().hex[:6]
+                new_config_id = self.state.config_id + \
+                    '_' + uuid.uuid4().hex[:6]
                 self._create_cfg_safe(
                     cfg_id=new_config_id,
                     cfg=new_config,
                     conn_url=self.state.params.core_host,
                     auth=self.state.params.core_auth,
                 )
-                print(self.run_id)
                 core.task_run(
                     self.state.params.operation_id,
                     cfg_id=new_config_id,
@@ -577,7 +805,7 @@ class CoreTask(BaseTask):
             elif isinstance(node, OperationNode):
                 results.append(CoreResult(
                     core_group_name=r.owner.alias,
-                    core_operation_id=self.state.params.operation_id ,
+                    core_operation_id=self.state.params.operation_id,
                     core_run_id=run_id,
                     auth=self.state.params.core_auth,
                     conn_url=self.state.params.core_host,
@@ -585,7 +813,7 @@ class CoreTask(BaseTask):
             elif isinstance(node, AssetNode):
                 results.append(CoreResult(
                     core_group_name=r.owner.alias,
-                    core_operation_id=self.state.params.operation_id ,
+                    core_operation_id=self.state.params.operation_id,
                     core_run_id=run_id,
                     conn_url=self.state.params.core_host
                 ))
@@ -711,6 +939,65 @@ class CoreTask(BaseTask):
             " instead."
         )
 
+    def connect(
+        self,
+        unique_task_hash: str | None = None,
+        only_fetch: bool = False,
+    ) -> Self:
+        unique_task_hash = unique_task_hash or self.get_pipeline_hash()
+        try:
+            pipeline = core.get_pipeline(
+                id=unique_task_hash,
+                conn_url=self.state.params.core_host,
+                auth=self.state.params.core_auth
+            )
+
+        except Exception:
+            raise NoPipelineFoundError(unique_task_hash)
+
+        self.state.processors = pipeline.processors
+        self.state.results = pipeline.results
+        self.state.conditions = pipeline.conditions
+        self.state.unique_task_hash = unique_task_hash
+        self.state.config = core.Cfg()
+
+        json_cfg = json.loads(core.get_cfg(
+            unique_task_hash,
+            conn_url=self.state.params.core_host,
+            auth=self.state.params.core_auth
+        ).data)
+
+        for key, value in json_cfg.items():
+            setattr(self.state.config, key, value)
+
+        if self.state.operation_nodes:
+            node_results = [
+                tracedLike(self.state.operation_nodes[x])
+                for x in pipeline.results.keys()
+            ]
+        else:
+            node_results = [
+               tracedLike(OperationNode(alias=x, operation_id=''))
+                for x in pipeline.results.keys()
+            ]
+
+        self.commit_returned(node_results)
+        if not only_fetch:
+            tasks = self.get_active_tasks()
+
+            if tasks:
+                self.state.params.operation_id = tasks[-1]
+                cout(
+                    Action.Attachment,
+                    message='Connected to online task. ' + tasks[-1],
+                    level=LogLevel.Info,
+                    verbosity=VerbosityLevel.OnlyStatus
+                )
+            else:
+                raise NoTaskToConnectError()
+
+        return self
+
     def publish(
         self,
         capture_results: list[str] | Literal['all'] | Literal['last'] = 'last',
@@ -719,29 +1006,12 @@ class CoreTask(BaseTask):
         *args,
         **kwargs
     ) -> MetaEndpoint:
-        raise NotImplementedError(
-            "Publishing is not supported for v2."
-        )
 
         from malevich_coretools import create_endpoint, update_endpoint
         if self.get_stage() not in [CoreTaskStage.BUILT, CoreTaskStage.ONLINE]:
             self.prepare(stage=PrepareStages.BUILD)
 
-        cfg = deepcopy(self.state.cfg)
-        if capture_results == 'last':
-            cfg.app_settings = [
-                x for x in cfg.app_settings
-                if x.taskId == self.state.params.task_id
-            ]
-        elif isinstance(capture_results, list):
-            task_ids = [
-                self.state.task_aliases[x]
-                for x in capture_results
-            ]
-            cfg.app_settings = [
-                x for x in cfg.app_settings
-                if x.taskId in task_ids
-            ]
+        cfg = deepcopy(self.state.config)
         cfg_id = f'endpoint-config-{uuid.uuid4().hex}'
 
         self._create_cfg_safe(
@@ -749,35 +1019,16 @@ class CoreTask(BaseTask):
             cfg=cfg
         )
 
-        injectables = self.get_injectables()
-        schemes = []
-        for inj in injectables:
-            extra_uuid = uuid.uuid4().hex[:4]
-            try:
-                core.create_scheme(
-                    inj.node.scheme,
-                    name=f'meta_scheme_{inj.node.collection.magic()}_{extra_uuid}',
-                    auth=self.state.params.core_auth,
-                    conn_url=self.state.params.core_host,
-                )
-            except Exception:
-                pass
-            schemes.append(f'meta_scheme_{inj.node.collection.magic()}_{extra_uuid}')
-
         if 'prepare' not in kwargs:
             kwargs['prepare'] = True
 
         if not hash:
             _hash = create_endpoint(
-                task_id=self.state.params.task_id,
+                task_id=self.state.unique_task_hash,
                 cfg_id=cfg_id,
                 auth=self.state.params.core_auth,
                 conn_url=self.state.params.core_host,
                 enable_not_auth=enable_not_auth,
-                expected_colls_with_schemes={
-                    k.get_inject_data(): s
-                    for k, s in zip(injectables, schemes)
-                },
                 description=(
                     self.component.description if self.component
                     else 'Auto-generated meta endpoint'
@@ -788,15 +1039,11 @@ class CoreTask(BaseTask):
         else:
             _hash = update_endpoint(
                 hash,
-                task_id=self.state.params.task_id,
+                task_id=self.state.unique_task_hash,
                 cfg_id=cfg_id,
                 auth=self.state.params.core_auth,
                 conn_url=self.state.params.core_host,
                 enable_not_auth=enable_not_auth,
-                expected_colls_with_schemes={
-                    k.get_inject_data(): s
-                    for k, s in zip(injectables, schemes)
-                },
                 description=(
                     self.component.description if self.component
                     else 'Auto-generated meta endpoint'
@@ -812,5 +1059,6 @@ class CoreTask(BaseTask):
         )
 
         return MetaEndpoint(
-            **_endpoint.model_dump(), conn_url=self.state.params.core_host
+            **_endpoint.model_dump(),
+            conn_url=self.state.params.core_host
         )

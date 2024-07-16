@@ -9,3 +9,7 @@ class InterpretationError(Exception):
         if interpreter:
             self.interpreter = interpreter
             self.state = state or interpreter.state
+
+
+class NoPipelineFoundError(Exception): ...
+class NoTaskToConnectError(Exception): ...

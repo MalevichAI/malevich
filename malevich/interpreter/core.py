@@ -22,6 +22,7 @@ from malevich.models import (
     CoreInterpreterState,
     CoreRegistryEntry,
     CoreTask,
+    DocumentNode,
     InjectedAppInfo,
     InterpretationError,
     OperationNode,
@@ -282,15 +283,38 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
             state.collection_nodes[node.owner.alias] = node.owner
         elif isinstance(node.owner, AssetNode):
             if node.owner.alias is None:
-                node.owner.alias = unique(node.owner.core_path)
+                node.owner.alias = unique(node.owner.name)
             state.asset_nodes[node.owner.alias] = node.owner
         elif isinstance(node.owner, TreeNode):
             # Cannot be the case, AbstractInterpreter
             # unwinds the tree is support_subtrees is False
             pass
+        elif isinstance(node.owner, DocumentNode):
+            if node.owner.alias is None:
+                node.owner.alias = unique(node.owner.reverse_id)
+            state.document_nodes[node.owner.alias] = node.owner
 
         _log(f"Node: {node.owner.uuid}, {node.owner.short_info()}", -1, 0, True)
         return state
+
+    def _add_argument(
+        self,
+        state: CoreInterpreterState,
+        argument: Argument,
+        alias: str,
+        link: ArgumentLink[BaseNode]
+    ):
+        a = state.processors[alias].arguments.get(link.name, None)
+        if a is None:
+            if link.in_sink:
+                state.processors[alias].arguments[link.name] = Argument(
+                    group=[argument]
+                )
+            else:
+                state.processors[alias].arguments[link.name] = argument
+        else:
+            a.group.append(argument)
+
 
     def create_dependency(
         self,
@@ -300,18 +324,29 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
         link: ArgumentLink[BaseNode],
     ) -> CoreInterpreterState:
         if isinstance(from_node.owner, CollectionNode):
-            state.processors[to_node.owner.alias].arguments[link.name] = Argument(
+            argument = Argument(
                 collectionName=state.collection_nodes[from_node.owner.alias].collection.collection_id
             )
         elif isinstance(from_node.owner, OperationNode):
-            state.processors[to_node.owner.alias].arguments[link.name] = Argument(
+            argument = Argument(
                 id=from_node.owner.alias,
                 indices=from_node.owner.subindex
             )
         elif isinstance(from_node.owner, AssetNode):
-            state.processors[to_node.owner.alias].arguments[link.name] = Argument(
-                collectionId=state.asset_nodes[from_node.owner.alias].get_core_path()
+            argument = Argument(
+                collectionName=state.asset_nodes[from_node.owner.alias].name
             )
+        elif isinstance(from_node.owner, DocumentNode):
+            argument = Argument(
+                collectionName=state.document_nodes[from_node.owner.alias].reverse_id
+            )
+
+        self._add_argument(
+            state,
+            argument,
+            to_node.owner.alias,
+            link
+        )
 
         _log(
             f"Dependency: {from_node.owner.short_info()} -> "
@@ -363,37 +398,13 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
             component=self._component,
         )
 
-    def attach(self, unique_task_hash: str) -> CoreTask:
-        try:
-            pipeline = core.get_pipeline(
-                id=unique_task_hash,
-                conn_url=self.__core_host,
-                auth=self.__core_auth
-            )
-
-        except Exception:
-            raise Exception("No pipeline found with id " + unique_task_hash)
-
+    def attach(
+        self,
+        unique_task_hash: str,
+        only_fetch: bool = False,
+    ) -> CoreTask:
         task = CoreTask(self.state)
-
-        task.state.processors = pipeline.processors
-        task.state.results = pipeline.results
-        task.state.conditions = pipeline.conditions
-        task.state.unique_task_hash = unique_task_hash
-        task.state.config = core.Cfg()
-
-        json_cfg = json.loads(core.get_cfg(
-            unique_task_hash,
-            conn_url=self.__core_host,
-            auth=self.__core_auth
-        ).data)
-
-        for key, value in json_cfg.items():
-            setattr(task.state.config, key, value)
-
-        node_results = [
-            tracedLike(OperationNode(alias=x, operation_id=''))
-            for x in pipeline.results.keys()
-        ]
-        task.commit_returned(node_results)
-        return task
+        return task.connect(
+            unique_task_hash=unique_task_hash,
+            only_fetch=only_fetch
+        )

@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from ..collection import Collection
 from ..nodes.asset import AssetNode
 from ..nodes.collection import CollectionNode
+from ..nodes.document import DocumentNode
 from ..nodes.operation import OperationNode
 
 
@@ -50,6 +51,9 @@ class CoreInterpreterState(BaseModel):
     """Mapping of collection aliases to collection nodes"""
 
     asset_nodes: dict[str, AssetNode] = {}
+    """Mapping of asset aliases to asset nodes"""
+
+    document_nodes: dict[str, DocumentNode] = {}
     """Mapping of asset aliases to asset nodes"""
 
     results: dict[str, list[Result]] = {}

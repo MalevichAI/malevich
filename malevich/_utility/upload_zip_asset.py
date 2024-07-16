@@ -27,8 +27,6 @@ def upload_zip_asset(
             for f in files:
                 zip_file.write(f)
         temp_file.seek(0)
-        print('URL:::', url)
-        response = requests.post(url, data=temp_file.read())
+        response: requests.Response = requests.post(url, data=temp_file.read())
         response.raise_for_status()
-        print(response.text)
         return response.raw

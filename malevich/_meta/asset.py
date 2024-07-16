@@ -3,13 +3,36 @@ from typing import Iterable, overload
 
 import malevich.annotations
 from malevich._autoflow import tracer as gn  # engine
-from malevich.models.nodes.asset import AssetNode
-
-from ..models.python_string import PythonString
+from malevich.models import AssetNode, AssetOverride, PythonString
 
 
 class AssetFactory:
     """Creates binary collections (assets) from files or folders"""
+
+    @staticmethod
+    def override(
+        path: str | None,
+        file: os.PathLike | None = None,
+        folder: os.PathLike | None = None,
+        files: Iterable[os.PathLike] | None = None,
+    ) -> AssetOverride:
+        _ = (
+            file is not None,
+            folder is not None,
+            files is not None,
+        ).count(True)
+        if _ != 1:
+            raise ValueError(
+                'Exactly one of `file`, `folder`, or `files` must be provided'
+            )
+
+        return AssetOverride(
+            path=path,
+            file=file,
+            folder=folder,
+            files=files,
+        )
+
 
     @staticmethod
     def from_remote_path(

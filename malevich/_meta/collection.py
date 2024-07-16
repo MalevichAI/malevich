@@ -9,7 +9,8 @@ from pydantic import BaseModel
 
 import malevich._autoflow.tracer as gn
 from malevich._utility import pd_to_json_schema
-from malevich.models import Collection, CollectionNode
+from malevich.models import Collection, CollectionNode, CollectionOverride
+from malevich.table import table
 
 
 class CollectionNameMeta(type):
@@ -34,6 +35,12 @@ class CollectionNameMeta(type):
         return CollectionProto
 
 class collection(metaclass=CollectionNameMeta):  # noqa: N801
+    @staticmethod
+    def override(
+        data: table,
+    ) -> CollectionOverride:
+        return CollectionOverride(data=data)
+
     def __new__(
         cls,
         name: str,
@@ -96,6 +103,7 @@ class collection(metaclass=CollectionNameMeta):  # noqa: N801
             pd_scheme = scheme or json.dumps(pd_to_json_schema(df))
         else:
             pd_scheme = scheme
+            df = pd.DataFrame([])
 
         node = CollectionNode(
             collection=Collection(

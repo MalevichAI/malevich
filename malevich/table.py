@@ -9,6 +9,8 @@ match _backend:
             _table_cls = pd.DataFrame
         except ImportError:
             pass
+    case _:
+        _table_cls = None
 
 if not _table_cls:
     raise ImportError(

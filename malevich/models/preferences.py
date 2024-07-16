@@ -25,6 +25,7 @@ class UserPreferences(BaseModel):
         Action.Installation.value: VerbosityLevel.Quiet.value,
         Action.Removal.value: VerbosityLevel.Quiet.value,
         Action.Results.value: VerbosityLevel.OnlyStatus.value,
+        Action.Attachment.value: VerbosityLevel.OnlyStatus.value,
     }
     log_format: LogFormat = LogFormat.Rich
     log_level: str = "INFO"
