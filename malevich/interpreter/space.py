@@ -851,7 +851,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
 
             # NOTE: there can be more leaves in future
             leave_aliasses = [
-                x.alias for x in flow.components if x.uid in (leaves)
+                x.alias for x in flow.components if x in leaves
             ]
 
             leaf_nodes = [
