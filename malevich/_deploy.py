@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 from typing import Any, Literal, ParamSpec, overload
+=======
+from typing import Any, Callable, Literal, ParamSpec, Type, overload
+>>>>>>> 77066c1 (rm: Self to support Python 3.10)
 
 from malevich_space.ops import SpaceOps
 from malevich_space.schema import SpaceSetup
