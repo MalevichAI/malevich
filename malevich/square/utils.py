@@ -803,7 +803,14 @@ class Context(Generic[MinimalCfg]):
         pass
 
 
-    def as_object(self, paths: Dict[str, str], *, dir: Optional[str] = None) -> OBJ:
+    def as_object(
+        self,
+        paths: Dict[str, str],
+        path_prefix: Optional[str] = None,
+        *,
+        dir: Optional[str] = None,
+        allow_update_dir: bool = True
+    ) -> OBJ:
         """Creates an asset (OBJ) by copying paths to specific directory and creating :class:`OBJ` by this dir.
 
         Assets (:class:`OBJ`) are simply a path within a directory accessible from within container
@@ -812,7 +819,9 @@ class Context(Generic[MinimalCfg]):
 
         Args:
             paths (Dict[str, str]): Path to an actual object -> subpath in asset directory
+            path_prefix (Optional[str], optional): prefix for `paths` key if not None
             dir (Optional[str], optional): target directory name. If not set, it is generated. Defaults to None
+            allow_update_dir (bool): raise exception if `dir` already exist and it set to False
 
         Returns:
             OBJ: OBJ with created directory captured
@@ -822,6 +831,10 @@ class Context(Generic[MinimalCfg]):
 
 def to_binary(smth: Any) -> bytes:  # noqa: ANN401
     """Converts object to binary
+<<<<<<< HEAD
+=======
+
+>>>>>>> f9049b55f1efeadd27e32843d9c0d8c4431a7405
     Args:
         smth (Any): object to convert
     """
@@ -830,6 +843,10 @@ def to_binary(smth: Any) -> bytes:  # noqa: ANN401
 
 def from_binary(smth: bytes) -> Any:
     """Converts binary to object
+<<<<<<< HEAD
+=======
+
+>>>>>>> f9049b55f1efeadd27e32843d9c0d8c4431a7405
     Args:
         smth (bytes): binary to convert
     """
