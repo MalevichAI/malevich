@@ -7,8 +7,8 @@ def {{processor_name}} (
     return OperationNode(
         operation_id="{{operation_id}}"
         config=config,
-        processor_id="{{name}}"
+        processor_id="{{processor_name}}"
         package_id="{{package_id}}"
         alias=alias,
-        is_condition="{{is_condition}}"
+        is_condition={{is_condition}}
     )

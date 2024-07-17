@@ -1,0 +1,14 @@
+Registry().register(
+    "{{operation_id}}",
+    {
+        'operation_id': '{{operation_id}}',
+        'reverse_id': '{{package_id}}',
+        'branch': '{{branch}}',
+        'version': '{{version}}',
+        'processor_name': '{{processor_name}}',
+        'processor_id': '{{processor_id}}',
+        'image_ref': ('dependencies', '{{package_id}}', 'options', 'image_ref'),
+        'image_auth_user': ('dependencies', '{{package_id}}', 'options', 'image_auth_user'),
+        'image_auth_pass': ('dependencies', '{{package_id}}', 'options', 'image_auth_pass')
+    }
+)

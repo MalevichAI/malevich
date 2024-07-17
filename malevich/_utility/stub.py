@@ -11,12 +11,15 @@ from typing import Type
 
 import pydantic_yaml as pydml
 from datamodel_code_generator import generate
+from jinja2 import Environment, FileSystemLoader
 from pydantic import BaseModel, Field
 
 import malevich
 from malevich.constants import reserved_config_fields
-from malevich.core_api import AppFunctionsInfo
+from malevich.core_api import AppFunctionsInfo, ConditionFunctionInfo
 from malevich.models.dependency import Dependency
+
+from ..path import Paths
 
 
 class Templates:
@@ -120,6 +123,9 @@ class StubFunction(BaseModel):
     docstrings: str | None = None
     config_schema: Type[BaseModel] | None = Field(None, exclude=True)
     definition: str | None = None
+    package_id: str
+    is_condition: bool = False
+    operation_id: str
 
     def generate_definition(self, config_model: str | None = None) -> str:
         """def processor_name(
@@ -132,67 +138,36 @@ class StubFunction(BaseModel):
             **kwargs
         ) -> RETURN_TYPE:
         """
-        # def processor_name(
-        def_ = "def " + self.name + "("
-        for arg in self.args:
-            # def processor_name(
-            #    ...
-            #    argX: typeX,
-            def_ += f'\n\t{arg[0]}: {arg[1] or "Any"}' + ","
-        # def processor_name(
-        #    ...
-        #    argX: typeX,
-        #    *,
-        if self.sink:
-            if len(self.args) > 0:
-                def_ += f'\n\t/,\n\t*{self.sink[0]}: Any, '
-            else:
-                def_ += f'\n\t*{self.sink[0]}: Any, '
+        environment = Environment(
+            loader=FileSystemLoader(Paths.templates('metascript', 'op_stub'))
+        )
+        if not self.config_schema:
+            data = environment.get_template('def.jinja2').render(
+                processor_name = self.name,
+                args = self.args,
+                docstrings = self.docstrings,
+                sink = self.sink,
+                is_condition = self.is_condition,
+                package_id = self.package_id,
+                config_model=config_model,
+                reserved_config_fields=reserved_config_fields,
+                operation_id=self.operation_id
+            )
         else:
-            # edge-case: no args for proccesor
-            if len(self.args) == 0:
-                def_ += "\n\t*, "
-            else:
-                def_ += "\n\t/, "
-        if self.config_schema is not None:
-            config_fields = self.config_schema.model_fields
-            for field in config_fields:
-                if field == "config":
-                    raise ValueError(
-                        "Trying to generate a definition for "
-                        "a function with a config field named 'config'"
-                    )
-                is_required = config_fields[field].is_required()
-                annotation = config_fields[field].annotation
-                if (
-                    hasattr(annotation, "__name__")
-                    and annotation.__module__ != typing.__name__
-                ):
-                    # class
-                    annotation = config_fields[field].annotation.__name__
-                else:
-                    # etc.
-                    annotation = str(config_fields[field].annotation)
-                # if not config_fields[field].is_required() and 'Optional' not in str(annotation):  # noqa: E501
-                #     def_ += f'\n\t{field}: Optional["{annotation}"]' + " = None,"
-                # elif not config_fields[field].is_required():
-                #     def_ += f'\n\t{field}: "{annotation}"' + " = None,"
-                # else:
-                #     def_ += f'\n\t{field}: "{annotation}"' + ","
+            data = environment.get_template('def.jinja2').render(
+                processor_name = self.name,
+                args = self.args,
+                docstrings = self.docstrings,
+                sink = self.sink,
+                is_condition = self.is_condition,
+                package_id = self.package_id,
+                config_model=config_model,
+                reserved_config_fields=reserved_config_fields,
+                config_fields=self.config_schema.model_fields, 
+                operation_id=self.operation_id
+            )
 
-                def_ += f'\n\t{field}: Annotated["{annotation}", ConfigArgument(required={is_required})] = None,'  # noqa: E501
-
-        for rkey, rtype in reserved_config_fields:
-            def_ += f'\n\t{rkey}: Optional["{rtype}"]' + " = None,"
-
-        if config_model:
-            def_ += f'\n\tconfig: Optional["{config_model}"] = None, '
-        else:
-            def_ += '\n\tconfig: Optional[dict] = None, '
-        def_ += '\n\t**extra_config_fields: dict[str, Any], '
-        def_ = def_[:-2] + ") -> malevich.annotations.OpResult:"
-        def_ += f'\n\t"""{self.docstrings}"""\n'
-        return def_.replace('\t', ' ' * 4)
+        return data
 
 
 class StubSchema(BaseModel):
@@ -266,7 +241,7 @@ class Stub:
     ) -> "Stub":
         os.makedirs(path, exist_ok=True)
 
-        processors = app_info.processors
+        processors = {**app_info.processors, **app_info.conditions}
         processors = {str(key): value for key, value in processors.items()}
 
         index = StubIndex(
@@ -366,9 +341,12 @@ class Stub:
                 sink=sink,
                 docstrings=processor.doc,
                 config_schema=config_models[name],
+                package_id=package_name,
+                is_condition = isinstance(processor, ConditionFunctionInfo),
+                operation_id=operation_ids[name]
             )
             functions[name].definition = functions[name].generate_definition(
-                config_model=config_model_class[name]
+                config_model=config_model_class[name],
             )
 
         with chdir(path):

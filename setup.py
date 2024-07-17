@@ -16,6 +16,11 @@ setup(
     },
     install_requires=requirements,
     package_data={
-        "malevich": ["**/*.yml", "_templates/*", "_templates/metascript/flow_stub/*"]
+        "malevich": [
+            "**/*.yml",
+            "_templates/*",
+            "_templates/metascript/flow_stub/*",
+            "_templates/metascript/op_stub/*"
+        ]
     }
 )
