@@ -29,6 +29,8 @@ class OperationNode(BaseNode):
     package_id: Optional[str] = None
     config: dict = {}
     subindex: list[int] | None = None
+    is_condition: bool = False
+
 
     def get_senstivite_fields(self) -> dict[str, str]:
         return {"config": json.dumps(self.config)}

@@ -1,0 +1,1582 @@
+dependency:
+  package_id: utility
+  version: 996b
+  installer: space
+  options:
+    reverse_id: utility
+    branch: 5dacb7e7ae004ea188fa5a256cd36606
+    version: 9f2f1af1b4484dcabaa225fef73ce45d
+    image_ref: public.ecr.aws/o1z1g3t0/utility:996b6c53ea40de79169b4a234b0820c6bfb11c4d
+    image_auth_user:
+    image_auth_pass:
+functions:
+- name: add_column
+  args:
+  - - df
+    - malevich.annotations.OpResult | malevich.annotations.Collection
+  sink:
+  docstrings: "Inserts a new column into a dataframe.\n\n    ## Input:\n        An
+    arbitrary dataframe and context information\n        with the following fields
+    in the app config:\n            column: name of the new column\n            value:
+    value of the new column\n            position: position of the new column\n\n\
+    \    ## Output:\n        The input dataframe with the new column inserted at the
+    specified position.\n\n    ## Details:\n        The function takes in a dataframe
+    as an input and adds a new column\n        at the specified position. The new
+    column has a constant value provided\n        by the user in the application configuration.\n\
+    \n        If the position is negative, the new column will be inserted from the\n\
+    \        end of the dataframe. For example, a position of -1 will insert the\n\
+    \        new column as the last column in the dataframe.\n\n    ## Configuration:\n\
+    \        - column: str, default 'new_column'.\n            The name of the new
+    column.\n        - value: any, default 'new_value'.\n            The value of
+    the new column.\n        - position: int, default 0.\n            The position
+    to insert the new column. If positive, the new column will be inserted from the
+    beginning of the dataframe. If negative, the new column will be inserted from
+    the end of the dataframe.\n        - skip_if_exists: bool, default False.\n  \
+    \          If columns exists, no exception will be thrown if this flag is set.\n\
+    \    -----\n\n    Args:\n        df: The input dataframe.\n        context: The
+    context information.\n\n    Returns:\n        The dataframe with new column.\n\
+    \    "
+  definition: "def add_column(\n    df: malevich.annotations.OpResult | malevich.annotations.Collection,\n\
+    \    /, \n    column: Annotated[\"typing.Optional[str]\", ConfigArgument(required=False)]
+    = None,\n    value: Annotated[\"typing.Any\", ConfigArgument(required=False)]
+    = None,\n    position: Annotated[\"typing.Optional[int]\", ConfigArgument(required=False)]
+    = None,\n    skip_if_exists: Annotated[\"typing.Optional[bool]\", ConfigArgument(required=False)]
+    = None,\n    alias: Optional[\"str\"] = None,\n    config: Optional[\"AddColumn\"\
+    ] = None, \n    **extra_config_fields: dict[str, Any]) -> malevich.annotations.OpResult:\n\
+    \    \"\"\"Inserts a new column into a dataframe.\n\n    ## Input:\n        An
+    arbitrary dataframe and context information\n        with the following fields
+    in the app config:\n            column: name of the new column\n            value:
+    value of the new column\n            position: position of the new column\n\n\
+    \    ## Output:\n        The input dataframe with the new column inserted at the
+    specified position.\n\n    ## Details:\n        The function takes in a dataframe
+    as an input and adds a new column\n        at the specified position. The new
+    column has a constant value provided\n        by the user in the application configuration.\n\
+    \n        If the position is negative, the new column will be inserted from the\n\
+    \        end of the dataframe. For example, a position of -1 will insert the\n\
+    \        new column as the last column in the dataframe.\n\n    ## Configuration:\n\
+    \        - column: str, default 'new_column'.\n            The name of the new
+    column.\n        - value: any, default 'new_value'.\n            The value of
+    the new column.\n        - position: int, default 0.\n            The position
+    to insert the new column. If positive, the new column will be inserted from the
+    beginning of the dataframe. If negative, the new column will be inserted from
+    the end of the dataframe.\n        - skip_if_exists: bool, default False.\n  \
+    \          If columns exists, no exception will be thrown if this flag is set.\n\
+    \    -----\n\n    Args:\n        df: The input dataframe.\n        context: The
+    context information.\n\n    Returns:\n        The dataframe with new column.\n\
+    \    \"\"\"\n"
+- name: add_index
+  args:
+  - - df
+    - malevich.annotations.OpResult | malevich.annotations.Collection
+  sink:
+  docstrings: "\n    Add index column to the dataframe\n\n    ## Input:\n\n    Any
+    dataframe\n\n    ## Output:\n\n    Input dataframe with additional column `index`\n\
+    \n    -----\n    Args:\n        df (DF[Any]): Any dataframe\n    Returns:\n  \
+    \      Input dataframe with additional column `index`\n    "
+  definition: "def add_index(\n    df: malevich.annotations.OpResult | malevich.annotations.Collection,\n\
+    \    /, \n    alias: Optional[\"str\"] = None,\n    config: Optional[dict] = None,
+    \n    **extra_config_fields: dict[str, Any]) -> malevich.annotations.OpResult:\n\
+    \    \"\"\"\n    Add index column to the dataframe\n\n    ## Input:\n\n    Any
+    dataframe\n\n    ## Output:\n\n    Input dataframe with additional column `index`\n\
+    \n    -----\n    Args:\n        df (DF[Any]): Any dataframe\n    Returns:\n  \
+    \      Input dataframe with additional column `index`\n    \"\"\"\n"
+- name: collect_asset
+  args:
+  - - df
+    - malevich.annotations.OpResult | malevich.annotations.Collection
+  sink:
+  docstrings: "\n    Moves assets to shared filesystem\n\n    ## Input:\n        An
+    asset\n\n    ## Output:\n        A dataframe with a column:\n        - `path`
+    (str): A path (or paths) to asset files in the shared FS.\n\n    -----\n    "
+  definition: "def collect_asset(\n    df: malevich.annotations.OpResult | malevich.annotations.Collection,\n\
+    \    /, \n    alias: Optional[\"str\"] = None,\n    config: Optional[dict] = None,
+    \n    **extra_config_fields: dict[str, Any]) -> malevich.annotations.OpResult:\n\
+    \    \"\"\"\n    Moves assets to shared filesystem\n\n    ## Input:\n        An
+    asset\n\n    ## Output:\n        A dataframe with a column:\n        - `path`
+    (str): A path (or paths) to asset files in the shared FS.\n\n    -----\n    \"\
+    \"\"\n"
+- name: concat
+  args: []
+  sink:
+  - input
+  - 0
+  docstrings: "\n    Concat DataFrames into one.\n\n    ## Input:\n\n    DataFrames
+    you want to concat.\n\n    ## Output:\n\n    Concatenated DataFrame.\n\n    -----\n\
+    \    Args:\n        input (Sink): DataFrames you want to concat.\n    Return:\n\
+    \        Concatenated DataFrame\n    "
+  definition: "def concat(\n    *input: Any, \n    alias: Optional[\"str\"] = None,\n\
+    \    config: Optional[dict] = None, \n    **extra_config_fields: dict[str, Any])
+    -> malevich.annotations.OpResult:\n    \"\"\"\n    Concat DataFrames into one.\n\
+    \n    ## Input:\n\n    DataFrames you want to concat.\n\n    ## Output:\n\n  \
+    \  Concatenated DataFrame.\n\n    -----\n    Args:\n        input (Sink): DataFrames
+    you want to concat.\n    Return:\n        Concatenated DataFrame\n    \"\"\"\n"
+- name: download
+  args:
+  - - links
+    - malevich.annotations.OpResult | malevich.annotations.Collection
+  sink:
+  docstrings: "Download files from the internet\n\n    ## Input:\n        A dataframe
+    with a column:\n        - `link` (str): links to files to download.\n\n    ##
+    Output:\n        A dataframe with a column:\n        - `file` (str): containing
+    paths to downloaded files.\n\n    ## Configuration:\n        - `prefix`: str,
+    default ''.\n        A prefix to add to the paths of downloaded files. If not
+    specified, files will be downloaded to the root of the app directory.\n\n    -----\n\
+    \n    Args:\n        links (DF[Links]): Dataframe with links to download\n   \
+    \     context (Context): Context object\n\n    Returns:\n        Dataframe with
+    paths to downloaded files\n    "
+  definition: "def download(\n    links: malevich.annotations.OpResult | malevich.annotations.Collection,\n\
+    \    /, \n    prefix: Annotated[\"typing.Optional[str]\", ConfigArgument(required=False)]
+    = None,\n    alias: Optional[\"str\"] = None,\n    config: Optional[\"Download\"\
+    ] = None, \n    **extra_config_fields: dict[str, Any]) -> malevich.annotations.OpResult:\n\
+    \    \"\"\"Download files from the internet\n\n    ## Input:\n        A dataframe
+    with a column:\n        - `link` (str): links to files to download.\n\n    ##
+    Output:\n        A dataframe with a column:\n        - `file` (str): containing
+    paths to downloaded files.\n\n    ## Configuration:\n        - `prefix`: str,
+    default ''.\n        A prefix to add to the paths of downloaded files. If not
+    specified, files will be downloaded to the root of the app directory.\n\n    -----\n\
+    \n    Args:\n        links (DF[Links]): Dataframe with links to download\n   \
+    \     context (Context): Context object\n\n    Returns:\n        Dataframe with
+    paths to downloaded files\n    \"\"\"\n"
+- name: get_links_to_files
+  args:
+  - - df
+    - malevich.annotations.OpResult | malevich.annotations.Collection
+  sink:
+  docstrings: "Get links to files produced during the workflow execution.\n\n    ##
+    Input:\n        An arbitrary dataframe.\n\n    ## Output:\n        The same dataframe,
+    but with all file paths replaced\n        with openable links to the files.\n\n\
+    \    ## Configuration:\n        - `expiration`: int, default 21600.\n        The
+    number of seconds after which the link will expire. Defaults to 6 hours. Maximum
+    is 24 hours.\n\n    -----\n\n    Args:\n        df (DF):\n            An arbitrary
+    dataframe.\n        ctx (Context):\n            The context object.\n\n    Returns:\n\
+    \        DF:\n            The same dataframe, but with all file paths replaced\n\
+    \            with openable links to the files.\n    "
+  definition: "def get_links_to_files(\n    df: malevich.annotations.OpResult | malevich.annotations.Collection,\n\
+    \    /, \n    expiration: Annotated[\"typing.Optional[int]\", ConfigArgument(required=False)]
+    = None,\n    alias: Optional[\"str\"] = None,\n    config: Optional[\"GetLinksToFiles\"\
+    ] = None, \n    **extra_config_fields: dict[str, Any]) -> malevich.annotations.OpResult:\n\
+    \    \"\"\"Get links to files produced during the workflow execution.\n\n    ##
+    Input:\n        An arbitrary dataframe.\n\n    ## Output:\n        The same dataframe,
+    but with all file paths replaced\n        with openable links to the files.\n\n\
+    \    ## Configuration:\n        - `expiration`: int, default 21600.\n        The
+    number of seconds after which the link will expire. Defaults to 6 hours. Maximum
+    is 24 hours.\n\n    -----\n\n    Args:\n        df (DF):\n            An arbitrary
+    dataframe.\n        ctx (Context):\n            The context object.\n\n    Returns:\n\
+    \        DF:\n            The same dataframe, but with all file paths replaced\n\
+    \            with openable links to the files.\n    \"\"\"\n"
+- name: pattern_match_processor
+  args:
+  - - dataframe
+    - malevich.annotations.OpResult | malevich.annotations.Collection
+  sink:
+  docstrings: "\n    This processor finds all the fragments\n    that match a certain
+    pattern within each cell.\n\n    They are later joined with a certain symbol and
+    saved in an analogue cell\n\n    ## Input:\n\n        An arbitrary DataFrame\n\
+    \n    ## Configuration:\n        - `pattern`: str.\n        A regular expression
+    pattern to match.\n        - `join_char`: str, default ';'.\n        A character
+    to join the matches with.\n\n    ## Output:\n\n        Result DataFrame\n\n  \
+    \  -----\n\n    Args:\n        dataframe: the input\n        context: the usual
+    Malevich context, we expect the field 'pattern' from it.\n\n    Returns: a new
+    dataframe with the same dimensions and names as the input dataframe.\n    "
+  definition: "def pattern_match_processor(\n    dataframe: malevich.annotations.OpResult
+    | malevich.annotations.Collection,\n    /, \n    pattern: Annotated[\"str\", ConfigArgument(required=True)]
+    = None,\n    join_char: Annotated[\"typing.Optional[str]\", ConfigArgument(required=False)]
+    = None,\n    alias: Optional[\"str\"] = None,\n    config: Optional[\"MatchPattern\"\
+    ] = None, \n    **extra_config_fields: dict[str, Any]) -> malevich.annotations.OpResult:\n\
+    \    \"\"\"\n    This processor finds all the fragments\n    that match a certain
+    pattern within each cell.\n\n    They are later joined with a certain symbol and
+    saved in an analogue cell\n\n    ## Input:\n\n        An arbitrary DataFrame\n\
+    \n    ## Configuration:\n        - `pattern`: str.\n        A regular expression
+    pattern to match.\n        - `join_char`: str, default ';'.\n        A character
+    to join the matches with.\n\n    ## Output:\n\n        Result DataFrame\n\n  \
+    \  -----\n\n    Args:\n        dataframe: the input\n        context: the usual
+    Malevich context, we expect the field 'pattern' from it.\n\n    Returns: a new
+    dataframe with the same dimensions and names as the input dataframe.\n    \"\"\
+    \"\n"
+- name: merge
+  args: []
+  sink:
+  - dfs
+  - 0
+  docstrings: "Merges multiple dataframes into one\n\n    ## Input:\n        An iterable
+    containing multiple dataframes to be merged.\n\n    ## Configuration:\n      \
+    \  - `how`: str, default 'inner'.\n            The type of merge to be performed.\n\
+    \n            Possible values:\n                'inner':\n                   \
+    \ Use intersection of keys from both frames,\n                    similar to a
+    SQL inner join;\n                'outer':\n                    Use union of keys
+    from both frames,\n                    similar to a SQL full outer join;\n   \
+    \             'left':\n                    Use only keys from left frame,\n  \
+    \                  similar to a SQL left outer join;\n                'right':\n\
+    \                    Use only keys from right frame,\n                    similar
+    to a SQL right outer join;\n                'cross':\n                    Create
+    a cartesian product from both frames,\n                    similar to a SQL cross
+    join.\n\n        - `both_on`: str|tuple, default ''.\n            Column name
+    or 'index' to merge on. If 'index', the index of the dataframe will be used. If
+    column name, the column should be present in all dataframes.\n        - `left_on`:
+    str|list, default ''.\n            Column name or 'index' to join on in the left
+    DataFrame. If 'index', the index of the dataframe will be used. If column name,
+    the column should be present in all but last dataframes.\n        - `right_on`:
+    str|list, default ''.\n            Column name or 'index' to join on in the right
+    DataFrame. If 'index', the index of the dataframe will be used. If column name,
+    the column should be present in all but first dataframes.\n        - `suffixes`:
+    tuple, default ('_0', '_1').\n            Suffix to apply to overlapping column
+    names in the left and right dataframes.\n\n    ## Output:\n        Merged DataFrame\n\
+    \n    ## Notes:\n        If both 'both_on' and 'left_on/right_on' are provided,\n\
+    \        'both_on' will be ignored.\n\n        Dataframes are merged iteratively
+    from left to right.\n\n        If using left_on column, all dataframes except\n\
+    \        the last one should have the column.\n\n        If using right_on column,
+    all dataframes except\n        the first one should have the column.\n\n    -----\n\
+    \n    Args:\n        dfs: DFS containing DataFrames to be merged.\n\n    Returns:\n\
+    \        The merged dataframe\n    "
+  definition: "def merge(\n    *dfs: Any, \n    how: Annotated[\"typing.Optional[str]\"\
+    , ConfigArgument(required=False)] = None,\n    both_on: Annotated[\"typing.Union[str,
+    typing.List, NoneType]\", ConfigArgument(required=False)] = None,\n    left_on:
+    Annotated[\"typing.Union[str, typing.List, NoneType]\", ConfigArgument(required=False)]
+    = None,\n    right_on: Annotated[\"typing.Union[str, typing.List, NoneType]\"
+    , ConfigArgument(required=False)] = None,\n    suffixes: Annotated[\"typing.Optional[typing.List]\"\
+    , ConfigArgument(required=False)] = None,\n    alias: Optional[\"str\"] = None,\n\
+    \    config: Optional[\"Merge\"] = None, \n    **extra_config_fields: dict[str,
+    Any]) -> malevich.annotations.OpResult:\n    \"\"\"Merges multiple dataframes
+    into one\n\n    ## Input:\n        An iterable containing multiple dataframes
+    to be merged.\n\n    ## Configuration:\n        - `how`: str, default 'inner'.\n\
+    \            The type of merge to be performed.\n\n            Possible values:\n\
+    \                'inner':\n                    Use intersection of keys from both
+    frames,\n                    similar to a SQL inner join;\n                'outer':\n\
+    \                    Use union of keys from both frames,\n                   \
+    \ similar to a SQL full outer join;\n                'left':\n               \
+    \     Use only keys from left frame,\n                    similar to a SQL left
+    outer join;\n                'right':\n                    Use only keys from
+    right frame,\n                    similar to a SQL right outer join;\n       \
+    \         'cross':\n                    Create a cartesian product from both frames,\n\
+    \                    similar to a SQL cross join.\n\n        - `both_on`: str|tuple,
+    default ''.\n            Column name or 'index' to merge on. If 'index', the index
+    of the dataframe will be used. If column name, the column should be present in
+    all dataframes.\n        - `left_on`: str|list, default ''.\n            Column
+    name or 'index' to join on in the left DataFrame. If 'index', the index of the
+    dataframe will be used. If column name, the column should be present in all but
+    last dataframes.\n        - `right_on`: str|list, default ''.\n            Column
+    name or 'index' to join on in the right DataFrame. If 'index', the index of the
+    dataframe will be used. If column name, the column should be present in all but
+    first dataframes.\n        - `suffixes`: tuple, default ('_0', '_1').\n      \
+    \      Suffix to apply to overlapping column names in the left and right dataframes.\n\
+    \n    ## Output:\n        Merged DataFrame\n\n    ## Notes:\n        If both 'both_on'
+    and 'left_on/right_on' are provided,\n        'both_on' will be ignored.\n\n \
+    \       Dataframes are merged iteratively from left to right.\n\n        If using
+    left_on column, all dataframes except\n        the last one should have the column.\n\
+    \n        If using right_on column, all dataframes except\n        the first one
+    should have the column.\n\n    -----\n\n    Args:\n        dfs: DFS containing
+    DataFrames to be merged.\n\n    Returns:\n        The merged dataframe\n    \"\
+    \"\"\n"
+- name: pass_through
+  args:
+  - - df
+    - malevich.annotations.OpResult | malevich.annotations.Collection
+  sink:
+  docstrings: "\n    Passes df to the next app\n\n    ## Input:\n\n        Arbitrary
+    DataFrame\n\n    ## Output:\n\n        Arbitrary DataFrame\n\n    -----\n    Args:\n\
+    \        df (DF): Arbitrary DataFrame\n    Returns:\n        df (DF): Arbitrary
+    DataFrame\n    "
+  definition: "def pass_through(\n    df: malevich.annotations.OpResult | malevich.annotations.Collection,\n\
+    \    /, \n    alias: Optional[\"str\"] = None,\n    config: Optional[dict] = None,
+    \n    **extra_config_fields: dict[str, Any]) -> malevich.annotations.OpResult:\n\
+    \    \"\"\"\n    Passes df to the next app\n\n    ## Input:\n\n        Arbitrary
+    DataFrame\n\n    ## Output:\n\n        Arbitrary DataFrame\n\n    -----\n    Args:\n\
+    \        df (DF): Arbitrary DataFrame\n    Returns:\n        df (DF): Arbitrary
+    DataFrame\n    \"\"\"\n"
+- name: rename
+  args:
+  - - df
+    - malevich.annotations.OpResult | malevich.annotations.Collection
+  sink:
+  docstrings: "Renames columns in a dataframe.\n\n    ## Input:\n        DataFrame
+    with the columns to be renamed.\n\n    ## Output:\n        DataFrame with renamed
+    column\n\n    ## Configuration:\n        Provides mapping of old column names
+    to their new names.\n\n        For example, if the dataframe has columns 'a',
+    'b', 'c' and we want to rename\n        'a' to 'A', 'b' to 'B', and 'c' to 'C',
+    the configuration should be:\n\n        {\n            'a': 'A',\n           \
+    \ 'b': 'B',\n            'c': 'C'\n        }\n\n\n        Provides mapping of
+    old column names to their new names. For example 'a': 'A'.\n\n    ## Details:\n\
+    \        This processor renames columns in the dataframe based on provided mappings.\n\
+    \        User needs to provide a dictionary in the configuration hat specifies
+    old\n        column names as keys and new column names as values.\n\n    -----\n\
+    \n    Args:\n        df: DataFrame in which to rename columns.\n\n    Returns:\n\
+    \        DataFrame with renamed columns.\n    "
+  definition: "def rename(\n    df: malevich.annotations.OpResult | malevich.annotations.Collection,\n\
+    \    /, \n    alias: Optional[\"str\"] = None,\n    config: Optional[dict] = None,
+    \n    **extra_config_fields: dict[str, Any]) -> malevich.annotations.OpResult:\n\
+    \    \"\"\"Renames columns in a dataframe.\n\n    ## Input:\n        DataFrame
+    with the columns to be renamed.\n\n    ## Output:\n        DataFrame with renamed
+    column\n\n    ## Configuration:\n        Provides mapping of old column names
+    to their new names.\n\n        For example, if the dataframe has columns 'a',
+    'b', 'c' and we want to rename\n        'a' to 'A', 'b' to 'B', and 'c' to 'C',
+    the configuration should be:\n\n        {\n            'a': 'A',\n           \
+    \ 'b': 'B',\n            'c': 'C'\n        }\n\n\n        Provides mapping of
+    old column names to their new names. For example 'a': 'A'.\n\n    ## Details:\n\
+    \        This processor renames columns in the dataframe based on provided mappings.\n\
+    \        User needs to provide a dictionary in the configuration hat specifies
+    old\n        column names as keys and new column names as values.\n\n    -----\n\
+    \n    Args:\n        df: DataFrame in which to rename columns.\n\n    Returns:\n\
+    \        DataFrame with renamed columns.\n    \"\"\"\n"
+- name: s3_save
+  args:
+  - - dfs
+    - malevich.annotations.OpResult | malevich.annotations.Collection
+  sink:
+  docstrings: "Saves dataframes to S3.\n\n    ## Input:\n        dfs: Multiple dataframes
+    to be saved.\n\n    ## Configuration:\n        - `names`: list[str]|str.\n   \
+    \         Names of the dataframes to be saved.\n            If a list is provided,
+    it should have the same length as the number of dataframes.\n            If a
+    string is provided, it is used as a format string to generate the names of the
+    dataframes.\n            Available format variables:\n                {ID}: index
+    of the dataframe\n            If the number of dataframes is greater than the
+    length of the list or\n            the number of format variables in the string,
+    default names are used\n            for the remaining dataframes.\n        - `append_run_id`:
+    bool, default False.\n            If True, the run_id is appended to the names
+    of the dataframes.\n        - `extra_str`: str, default None.\n            If
+    provided, it is appended to the names of the dataframes.\n\n        Also, the
+    app should be provided with parameters to connect to S3:\n        - `aws_access_key_id`:
+    str.\n            AWS access key ID.\n        - `aws_secret_access_key`: str.\n\
+    \            AWS secret access key.\n        - `bucket_name`: str.\n         \
+    \   Name of the S3 bucket.\n        - `endpoint_url`: str, default None.\n   \
+    \         Endpoint URL of the S3 bucket.\n        - `aws_region`: str, default
+    None.\n            AWS region of the S3 bucket.\n\n    ## Details:\n        This
+    processor saves dataframes to S3. User can provide names for the\n        dataframes
+    to be saved. If no names are provided, default names are used.\n        If the
+    number of dataframes is greater than the length of the list of names\n       \
+    \ or the number of format variables in the string, default names are used\n  \
+    \      for the remaining dataframes.\n\n        If `append_run_id` is True, the
+    run_id is appended to the names of the\n        dataframes. If `extra_str` is
+    provided, it is appended to the names of\n        the dataframes.\n\n        The
+    dataframes are saved to S3 using the following key:\n            <EXTRA_STR>/<RUN_ID>/<NAME>\n\
+    \n        A common use case of extra_str is to save dataframes to different folders\n\
+    \        within the S3 bucket. For example, if extra_str is 'train', the dataframes\n\
+    \        are saved to the following key:\n\n            train/<RUN_ID>/<NAME>\n\
+    \n    ## Output:\n        The same as the input.\n\n    -----\n\n    Args:\n \
+    \       dfs: DFS containing DataFrames to be saved.\n\n    Returns:\n        The
+    same dataframes as the input.\n\n    "
+  definition: "def s3_save(\n    dfs: malevich.annotations.OpResult | malevich.annotations.Collection,\n\
+    \    /, \n    names: Annotated[\"typing.Union[typing.List[str], str]\", ConfigArgument(required=True)]
+    = None,\n    append_run_id: Annotated[\"typing.Optional[bool]\", ConfigArgument(required=False)]
+    = None,\n    extra_str: Annotated[\"typing.Optional[str]\", ConfigArgument(required=False)]
+    = None,\n    aws_access_key_id: Annotated[\"str\", ConfigArgument(required=True)]
+    = None,\n    aws_secret_access_key: Annotated[\"str\", ConfigArgument(required=True)]
+    = None,\n    bucket_name: Annotated[\"str\", ConfigArgument(required=True)] =
+    None,\n    endpoint_url: Annotated[\"typing.Optional[str]\", ConfigArgument(required=False)]
+    = None,\n    aws_region: Annotated[\"typing.Optional[str]\", ConfigArgument(required=False)]
+    = None,\n    alias: Optional[\"str\"] = None,\n    config: Optional[\"S3Save\"\
+    ] = None, \n    **extra_config_fields: dict[str, Any]) -> malevich.annotations.OpResult:\n\
+    \    \"\"\"Saves dataframes to S3.\n\n    ## Input:\n        dfs: Multiple dataframes
+    to be saved.\n\n    ## Configuration:\n        - `names`: list[str]|str.\n   \
+    \         Names of the dataframes to be saved.\n            If a list is provided,
+    it should have the same length as the number of dataframes.\n            If a
+    string is provided, it is used as a format string to generate the names of the
+    dataframes.\n            Available format variables:\n                {ID}: index
+    of the dataframe\n            If the number of dataframes is greater than the
+    length of the list or\n            the number of format variables in the string,
+    default names are used\n            for the remaining dataframes.\n        - `append_run_id`:
+    bool, default False.\n            If True, the run_id is appended to the names
+    of the dataframes.\n        - `extra_str`: str, default None.\n            If
+    provided, it is appended to the names of the dataframes.\n\n        Also, the
+    app should be provided with parameters to connect to S3:\n        - `aws_access_key_id`:
+    str.\n            AWS access key ID.\n        - `aws_secret_access_key`: str.\n\
+    \            AWS secret access key.\n        - `bucket_name`: str.\n         \
+    \   Name of the S3 bucket.\n        - `endpoint_url`: str, default None.\n   \
+    \         Endpoint URL of the S3 bucket.\n        - `aws_region`: str, default
+    None.\n            AWS region of the S3 bucket.\n\n    ## Details:\n        This
+    processor saves dataframes to S3. User can provide names for the\n        dataframes
+    to be saved. If no names are provided, default names are used.\n        If the
+    number of dataframes is greater than the length of the list of names\n       \
+    \ or the number of format variables in the string, default names are used\n  \
+    \      for the remaining dataframes.\n\n        If `append_run_id` is True, the
+    run_id is appended to the names of the\n        dataframes. If `extra_str` is
+    provided, it is appended to the names of\n        the dataframes.\n\n        The
+    dataframes are saved to S3 using the following key:\n            <EXTRA_STR>/<RUN_ID>/<NAME>\n\
+    \n        A common use case of extra_str is to save dataframes to different folders\n\
+    \        within the S3 bucket. For example, if extra_str is 'train', the dataframes\n\
+    \        are saved to the following key:\n\n            train/<RUN_ID>/<NAME>\n\
+    \n    ## Output:\n        The same as the input.\n\n    -----\n\n    Args:\n \
+    \       dfs: DFS containing DataFrames to be saved.\n\n    Returns:\n        The
+    same dataframes as the input.\n\n    \"\"\"\n"
+- name: s3_save_files_auto
+  args:
+  - - files
+    - malevich.annotations.OpResult | malevich.annotations.Collection
+  sink:
+  docstrings: "Saves files from local file system to S3 preserving the original names.\n\
+    \n    ## Input:\n\n        A dataframe with one column:\n            - `filename`
+    (str): Contains the names of the files to be saved.\n\n    ## Configuration:\n\
+    \        - `append_run_id`: bool, default False.\n            If True, the run_id
+    is appended to the names of the files.\n        - `extra_str`: str, default None.\n\
+    \            If provided, it is appended to the names of the files.\n\n      \
+    \  Also, the app should be provided with parameters to connect to S3:\n      \
+    \  - `aws_access_key_id`: str.\n            AWS access key ID.\n        - `aws_secret_access_key`:
+    str.\n            AWS secret access key.\n        - `bucket_name`: str.\n    \
+    \        Name of the S3 bucket.\n        - `endpoint_url`: str, default None.\n\
+    \            Endpoint URL of the S3 bucket.\n        - `aws_region`: str, default
+    None.\n            AWS region of the S3 bucket.\n\n    ## Details:\n        Files
+    are expected to be in the share folder e.g. should be shared with\n        `context.share(<FILE>)`
+    before by a previous processor.\n\n        The files are saved to S3 using the
+    following key:\n            <EXTRA_STR>/<RUN_ID>/<SHARED_FILE_NAME>\n\n      \
+    \  A common use case of extra_str is to save files to different folders\n    \
+    \    within the S3 bucket. For example, if extra_str is 'train', the files\n \
+    \       are saved to the following key:\n\n                train/<RUN_ID>/<SHARED_FILE_NAME>\n\
+    \n    ## Output:\n        The same as the input.\n\n    -----\n\n    Args:\n \
+    \       files: DF containing filenames to be saved.\n\n    Returns:\n        The
+    same dataframe as the input.\n    "
+  definition: "def s3_save_files_auto(\n    files: malevich.annotations.OpResult |
+    malevich.annotations.Collection,\n    /, \n    append_run_id: Annotated[\"typing.Optional[bool]\"\
+    , ConfigArgument(required=False)] = None,\n    extra_str: Annotated[\"typing.Optional[str]\"\
+    , ConfigArgument(required=False)] = None,\n    aws_access_key_id: Annotated[\"\
+    str\", ConfigArgument(required=True)] = None,\n    aws_secret_access_key: Annotated[\"\
+    str\", ConfigArgument(required=True)] = None,\n    bucket_name: Annotated[\"str\"\
+    , ConfigArgument(required=True)] = None,\n    endpoint_url: Annotated[\"typing.Optional[str]\"\
+    , ConfigArgument(required=False)] = None,\n    aws_region: Annotated[\"typing.Optional[str]\"\
+    , ConfigArgument(required=False)] = None,\n    alias: Optional[\"str\"] = None,\n\
+    \    config: Optional[\"S3SaveFilesAuto\"] = None, \n    **extra_config_fields:
+    dict[str, Any]) -> malevich.annotations.OpResult:\n    \"\"\"Saves files from
+    local file system to S3 preserving the original names.\n\n    ## Input:\n\n  \
+    \      A dataframe with one column:\n            - `filename` (str): Contains
+    the names of the files to be saved.\n\n    ## Configuration:\n        - `append_run_id`:
+    bool, default False.\n            If True, the run_id is appended to the names
+    of the files.\n        - `extra_str`: str, default None.\n            If provided,
+    it is appended to the names of the files.\n\n        Also, the app should be provided
+    with parameters to connect to S3:\n        - `aws_access_key_id`: str.\n     \
+    \       AWS access key ID.\n        - `aws_secret_access_key`: str.\n        \
+    \    AWS secret access key.\n        - `bucket_name`: str.\n            Name of
+    the S3 bucket.\n        - `endpoint_url`: str, default None.\n            Endpoint
+    URL of the S3 bucket.\n        - `aws_region`: str, default None.\n          \
+    \  AWS region of the S3 bucket.\n\n    ## Details:\n        Files are expected
+    to be in the share folder e.g. should be shared with\n        `context.share(<FILE>)`
+    before by a previous processor.\n\n        The files are saved to S3 using the
+    following key:\n            <EXTRA_STR>/<RUN_ID>/<SHARED_FILE_NAME>\n\n      \
+    \  A common use case of extra_str is to save files to different folders\n    \
+    \    within the S3 bucket. For example, if extra_str is 'train', the files\n \
+    \       are saved to the following key:\n\n                train/<RUN_ID>/<SHARED_FILE_NAME>\n\
+    \n    ## Output:\n        The same as the input.\n\n    -----\n\n    Args:\n \
+    \       files: DF containing filenames to be saved.\n\n    Returns:\n        The
+    same dataframe as the input.\n    \"\"\"\n"
+- name: s3_save_files
+  args:
+  - - files
+    - malevich.annotations.OpResult | malevich.annotations.Collection
+  sink:
+  docstrings: "Saves files from local file system to S3.\n\n    ## Input:\n      \
+    \  A dataframe with columns:\n        - `filename` (str): the names of the files
+    to be saved.\n        - `s3key` (str): the S3 key for each file.\n\n    ## Configuration:\n\
+    \        - `append_run_id`: bool, default False.\n            If True, the run_id
+    is appended to the names of the files.\n\n        Also, the app should be provided
+    with parameters to connect to S3:\n        - `aws_access_key_id`: str.\n     \
+    \       AWS access key ID.\n        - `aws_secret_access_key`: str.\n        \
+    \    AWS secret access key.\n        - `bucket_name`: str.\n            Name of
+    the S3 bucket.\n        - `endpoint_url`: str, default None.\n            Endpoint
+    URL of the S3 bucket.\n        - `aws_region`: str, default None.\n          \
+    \  AWS region of the S3 bucket.\n\n    ## Details:\n        Files are expected
+    to be in the share folder e.g. should be shared with\n        `context.share(<FILE>)`
+    before by a previous processor.\n\n        The files are saved to S3 using the
+    following key:\n            <EXTRA_STR>/<RUN_ID>/<S3_KEY>\n\n        A common
+    use case of extra_str is to save files to different folders\n        within the
+    S3 bucket. For example, if extra_str is 'train', the files\n        are saved
+    to the following key:\n\n                train/<RUN_ID>/<S3_KEY>\n\n        S3
+    keys might contain following variables:\n            - {ID}: index of the dataframe\n\
+    \            - {FILE}: base filename, for example 'file.csv' for 'path/to/file.csv'\n\
+    \            - {RUN_ID}: run_id\n\n        For example, if the S3 key is 'train/{RUN_ID}/{FILE}',
+    file name is 'file.csv',\n        run_id is 'run_1', the file will be saved to
+    'train/run_1/file.csv'.\n\n    ## Output:\n        The same as the input.\n\n\
+    \    -----\n\n    Args:\n        files: DF containing filenames to be saved.\n\
+    \n    Returns:\n        The same dataframe as the input.\n    "
+  definition: "def s3_save_files(\n    files: malevich.annotations.OpResult | malevich.annotations.Collection,\n\
+    \    /, \n    append_run_id: Annotated[\"typing.Optional[bool]\", ConfigArgument(required=False)]
+    = None,\n    aws_access_key_id: Annotated[\"str\", ConfigArgument(required=True)]
+    = None,\n    aws_secret_access_key: Annotated[\"str\", ConfigArgument(required=True)]
+    = None,\n    bucket_name: Annotated[\"str\", ConfigArgument(required=True)] =
+    None,\n    endpoint_url: Annotated[\"typing.Optional[str]\", ConfigArgument(required=False)]
+    = None,\n    aws_region: Annotated[\"typing.Optional[str]\", ConfigArgument(required=False)]
+    = None,\n    alias: Optional[\"str\"] = None,\n    config: Optional[\"S3SaveFiles\"\
+    ] = None, \n    **extra_config_fields: dict[str, Any]) -> malevich.annotations.OpResult:\n\
+    \    \"\"\"Saves files from local file system to S3.\n\n    ## Input:\n      \
+    \  A dataframe with columns:\n        - `filename` (str): the names of the files
+    to be saved.\n        - `s3key` (str): the S3 key for each file.\n\n    ## Configuration:\n\
+    \        - `append_run_id`: bool, default False.\n            If True, the run_id
+    is appended to the names of the files.\n\n        Also, the app should be provided
+    with parameters to connect to S3:\n        - `aws_access_key_id`: str.\n     \
+    \       AWS access key ID.\n        - `aws_secret_access_key`: str.\n        \
+    \    AWS secret access key.\n        - `bucket_name`: str.\n            Name of
+    the S3 bucket.\n        - `endpoint_url`: str, default None.\n            Endpoint
+    URL of the S3 bucket.\n        - `aws_region`: str, default None.\n          \
+    \  AWS region of the S3 bucket.\n\n    ## Details:\n        Files are expected
+    to be in the share folder e.g. should be shared with\n        `context.share(<FILE>)`
+    before by a previous processor.\n\n        The files are saved to S3 using the
+    following key:\n            <EXTRA_STR>/<RUN_ID>/<S3_KEY>\n\n        A common
+    use case of extra_str is to save files to different folders\n        within the
+    S3 bucket. For example, if extra_str is 'train', the files\n        are saved
+    to the following key:\n\n                train/<RUN_ID>/<S3_KEY>\n\n        S3
+    keys might contain following variables:\n            - {ID}: index of the dataframe\n\
+    \            - {FILE}: base filename, for example 'file.csv' for 'path/to/file.csv'\n\
+    \            - {RUN_ID}: run_id\n\n        For example, if the S3 key is 'train/{RUN_ID}/{FILE}',
+    file name is 'file.csv',\n        run_id is 'run_1', the file will be saved to
+    'train/run_1/file.csv'.\n\n    ## Output:\n        The same as the input.\n\n\
+    \    -----\n\n    Args:\n        files: DF containing filenames to be saved.\n\
+    \n    Returns:\n        The same dataframe as the input.\n    \"\"\"\n"
+- name: s3_download_files
+  args:
+  - - files
+    - malevich.annotations.OpResult | malevich.annotations.Collection
+  sink:
+  docstrings: "Downloads files from S3 to local file system.\n\n    ## Input:\n  \
+    \      A dataframe with columns:\n        - `filename` (str): the names of the
+    files to be saved.\n        - `s3key` (str): the S3 key for each file.\n\n   \
+    \ ## Configuration:\n\n        The app's only configuration is the connection
+    to S3:\n        - `aws_access_key_id`: str.\n            AWS access key ID.\n\
+    \        - `aws_secret_access_key`: str.\n            AWS secret access key.\n\
+    \        - `bucket_name`: str.\n            Name of the S3 bucket.\n        -
+    `endpoint_url`: str, default None.\n            Endpoint URL of the S3 bucket.\n\
+    \        - `aws_region`: str, default None.\n            AWS region of the S3
+    bucket.\n\n    ## Details:\n       Files are downloaded by their S3 keys. The
+    files are shared across processors\n       under keys specified by `filename`
+    column.\n\n       For example, for the dataframe:\n            | filename  | \
+    \           s3key          |\n            | --------  |            -----     \
+    \     |\n            | file1.csv | path/to/some_file.csv     |\n\n           \
+    \ The file is assumed to be in S3 under the key `path/to/some_file.csv`.\n   \
+    \         The file is downloaded from S3 and shared under the key `file1.csv`.\n\
+    \n    ## Output:\n        The dataframe with downloaded filenames.\n\n    -----\n\
+    \n    Args:\n        files: DF containing filenames to be downloaded.\n\n    Returns:\n\
+    \        The dataframe with downloaded filenames.\n    "
+  definition: "def s3_download_files(\n    files: malevich.annotations.OpResult |
+    malevich.annotations.Collection,\n    /, \n    aws_access_key_id: Annotated[\"\
+    str\", ConfigArgument(required=True)] = None,\n    aws_secret_access_key: Annotated[\"\
+    str\", ConfigArgument(required=True)] = None,\n    bucket_name: Annotated[\"str\"\
+    , ConfigArgument(required=True)] = None,\n    endpoint_url: Annotated[\"typing.Optional[str]\"\
+    , ConfigArgument(required=False)] = None,\n    aws_region: Annotated[\"typing.Optional[str]\"\
+    , ConfigArgument(required=False)] = None,\n    alias: Optional[\"str\"] = None,\n\
+    \    config: Optional[\"S3DownloadFiles\"] = None, \n    **extra_config_fields:
+    dict[str, Any]) -> malevich.annotations.OpResult:\n    \"\"\"Downloads files from
+    S3 to local file system.\n\n    ## Input:\n        A dataframe with columns:\n\
+    \        - `filename` (str): the names of the files to be saved.\n        - `s3key`
+    (str): the S3 key for each file.\n\n    ## Configuration:\n\n        The app's
+    only configuration is the connection to S3:\n        - `aws_access_key_id`: str.\n\
+    \            AWS access key ID.\n        - `aws_secret_access_key`: str.\n   \
+    \         AWS secret access key.\n        - `bucket_name`: str.\n            Name
+    of the S3 bucket.\n        - `endpoint_url`: str, default None.\n            Endpoint
+    URL of the S3 bucket.\n        - `aws_region`: str, default None.\n          \
+    \  AWS region of the S3 bucket.\n\n    ## Details:\n       Files are downloaded
+    by their S3 keys. The files are shared across processors\n       under keys specified
+    by `filename` column.\n\n       For example, for the dataframe:\n            |
+    filename  |            s3key          |\n            | --------  |           \
+    \ -----          |\n            | file1.csv | path/to/some_file.csv     |\n\n\
+    \            The file is assumed to be in S3 under the key `path/to/some_file.csv`.\n\
+    \            The file is downloaded from S3 and shared under the key `file1.csv`.\n\
+    \n    ## Output:\n        The dataframe with downloaded filenames.\n\n    -----\n\
+    \n    Args:\n        files: DF containing filenames to be downloaded.\n\n    Returns:\n\
+    \        The dataframe with downloaded filenames.\n    \"\"\"\n"
+- name: s3_download_files_auto
+  args:
+  - - keys
+    - malevich.annotations.OpResult | malevich.annotations.Collection
+  sink:
+  docstrings: "Downloads files from S3 to local file system.\n\n    ## Input:\n  \
+    \      A dataframe with columns:\n        - `s3key` (str): the S3 key for each
+    file.\n\n    ## Configuration:\n\n        The app's only configuration is the
+    connection to S3:\n\n        - `aws_access_key_id`: str.\n            AWS access
+    key ID.\n        - `aws_secret_access_key`: str.\n            AWS secret access
+    key.\n        - `bucket_name`: str.\n            Name of the S3 bucket.\n    \
+    \    - `endpoint_url`: str, default None.\n            Endpoint URL of the S3
+    bucket.\n        - `aws_region`: str, default None.\n            AWS region of
+    the S3 bucket.\n\n    ## Output:\n        A dataframe with columns:\n        \
+    \    - s3key (str): S3 key of the file\n            - filename (str): The name
+    of the file\n\n    -----\n\n    Args:\n        keys: DF containing keys of the
+    files to be downloaded.\n\n    Returns:\n        A dataframe with columns:\n \
+    \           - s3key (str): S3 key of the file\n            - filename (str): The
+    name of the file\n    "
+  definition: "def s3_download_files_auto(\n    keys: malevich.annotations.OpResult
+    | malevich.annotations.Collection,\n    /, \n    aws_access_key_id: Annotated[\"\
+    str\", ConfigArgument(required=True)] = None,\n    aws_secret_access_key: Annotated[\"\
+    str\", ConfigArgument(required=True)] = None,\n    bucket_name: Annotated[\"str\"\
+    , ConfigArgument(required=True)] = None,\n    endpoint_url: Annotated[\"typing.Optional[str]\"\
+    , ConfigArgument(required=False)] = None,\n    aws_region: Annotated[\"typing.Optional[str]\"\
+    , ConfigArgument(required=False)] = None,\n    alias: Optional[\"str\"] = None,\n\
+    \    config: Optional[\"S3DownloadFilesAuto\"] = None, \n    **extra_config_fields:
+    dict[str, Any]) -> malevich.annotations.OpResult:\n    \"\"\"Downloads files from
+    S3 to local file system.\n\n    ## Input:\n        A dataframe with columns:\n\
+    \        - `s3key` (str): the S3 key for each file.\n\n    ## Configuration:\n\
+    \n        The app's only configuration is the connection to S3:\n\n        - `aws_access_key_id`:
+    str.\n            AWS access key ID.\n        - `aws_secret_access_key`: str.\n\
+    \            AWS secret access key.\n        - `bucket_name`: str.\n         \
+    \   Name of the S3 bucket.\n        - `endpoint_url`: str, default None.\n   \
+    \         Endpoint URL of the S3 bucket.\n        - `aws_region`: str, default
+    None.\n            AWS region of the S3 bucket.\n\n    ## Output:\n        A dataframe
+    with columns:\n            - s3key (str): S3 key of the file\n            - filename
+    (str): The name of the file\n\n    -----\n\n    Args:\n        keys: DF containing
+    keys of the files to be downloaded.\n\n    Returns:\n        A dataframe with
+    columns:\n            - s3key (str): S3 key of the file\n            - filename
+    (str): The name of the file\n    \"\"\"\n"
+- name: filter
+  args:
+  - - df
+    - malevich.annotations.OpResult | malevich.annotations.Collection
+  sink:
+  docstrings: "Filters rows by a number of conditions\n\n    ## Input:\n        An
+    arbitrary dataframe to filter rows from\n\n    ## Output:\n        A filtered
+    dataframe\n\n    ## Configuration:\n\n        - `conditions`: list[dict], default
+    [].\n            A list of conditions containing dictionaries.\n        A list
+    of conditions containing dictionaries with the following keys:\n\n        `column`:
+    str.\n            The column to filter on.\n        `operation`: str.\n      \
+    \      The operation to perform.\n        `value`: any.\n            The value
+    to filter on.\n        `type`: str.\n            The type of the value to filter
+    on (optional).\n\n    ## Example:\n    {\n        \"conditions\": [\n        \
+    \    {\n                \"column\": \"age\",\n                \"operation\": \"\
+    greater\",\n                \"value\": 18,\n                \"type\": \"int\"\n\
+    \            },\n            {\n                \"column\": \"name\",\n      \
+    \          \"operation\": \"like\",\n                \"value\": \"John\"\n   \
+    \         }\n        ]\n    }\n\n    Supported operations:\n    - equal\n    -
+    not_equal\n    - greater\n    - greater_equal\n    - less\n    - less_equal\n\
+    \    - in\n    - not_in\n    - like\n    - not_like\n    - is_null\n    - is_not_null\n\
+    \n    Supported types:\n    - int\n    - float\n    - bool\n    - str\n\n    -----\n\
+    \n    Args:\n        df: the dataframe to filter rows from\n        context: the
+    context of the current request\n\n    Returns:\n        A filtered dataframe\n\
+    \    "
+  definition: "def filter(\n    df: malevich.annotations.OpResult | malevich.annotations.Collection,\n\
+    \    /, \n    conditions: Annotated[\"typing.Optional[typing.List[typing.Dict[str,
+    typing.Any]]]\", ConfigArgument(required=False)] = None,\n    alias: Optional[\"\
+    str\"] = None,\n    config: Optional[\"Filter\"] = None, \n    **extra_config_fields:
+    dict[str, Any]) -> malevich.annotations.OpResult:\n    \"\"\"Filters rows by a
+    number of conditions\n\n    ## Input:\n        An arbitrary dataframe to filter
+    rows from\n\n    ## Output:\n        A filtered dataframe\n\n    ## Configuration:\n\
+    \n        - `conditions`: list[dict], default [].\n            A list of conditions
+    containing dictionaries.\n        A list of conditions containing dictionaries
+    with the following keys:\n\n        `column`: str.\n            The column to
+    filter on.\n        `operation`: str.\n            The operation to perform.\n\
+    \        `value`: any.\n            The value to filter on.\n        `type`: str.\n\
+    \            The type of the value to filter on (optional).\n\n    ## Example:\n\
+    \    {\n        \"conditions\": [\n            {\n                \"column\":
+    \"age\",\n                \"operation\": \"greater\",\n                \"value\"\
+    : 18,\n                \"type\": \"int\"\n            },\n            {\n    \
+    \            \"column\": \"name\",\n                \"operation\": \"like\",\n\
+    \                \"value\": \"John\"\n            }\n        ]\n    }\n\n    Supported
+    operations:\n    - equal\n    - not_equal\n    - greater\n    - greater_equal\n\
+    \    - less\n    - less_equal\n    - in\n    - not_in\n    - like\n    - not_like\n\
+    \    - is_null\n    - is_not_null\n\n    Supported types:\n    - int\n    - float\n\
+    \    - bool\n    - str\n\n    -----\n\n    Args:\n        df: the dataframe to
+    filter rows from\n        context: the context of the current request\n\n    Returns:\n\
+    \        A filtered dataframe\n    \"\"\"\n"
+- name: locs
+  args:
+  - - df
+    - malevich.annotations.OpResult | malevich.annotations.Collection
+  sink:
+  docstrings: " Locate Statically - Extracts a subset of the dataframe\n\n    ## Input:\n\
+    \        A DataFrame to be processed.\n\n    ## Output:\n        A DataFrame with
+    requested columns\n\n    ## Configuration:\n        The app configuration should
+    contain at least one of the following fields:\n\n        - `column`: str, default
+    None.\n          The column to be extracted.\n        - `columns`: list[str],
+    default None.\n          The columns to be extracted.\n        - `column_idx`:
+    int, default None.\n            The column index to be extracted.\n        - `column_idxs`:
+    list[int], default None.\n            The column indexes to be extracted.\n  \
+    \      - `row`: int, default None.\n            The row to be extracted.\n   \
+    \     - `rows`: list[int], default None.\n            The rows to be extracted.\n\
+    \        - `row_idx`: int, default None.\n            The row index to be extracted.\n\
+    \        - `row_idxs`: list[int], default None.\n            The row indexes to
+    be extracted.\n        - `unique`: bool, default False.\n            Get unique
+    values from column. Must be used with `column` or `column_idx`.\n\n        Multiple
+    fields may be provided and in such case,\n        the function will extract the
+    intersection of the fields.\n\n    ## Notes:\n        At least one of the above
+    fields should be provided for the function to work.\n\n        Moreover, the dataframe
+    is processed in column first then row order.\n        Queries are executed from
+    the most specific to the least within each category.\n        If both specific
+    and general conditions are given, the function prioritizes\n        the specific
+    ones to maintain consistency.\n\n    -----\n\n    Args:\n        df (pd.DataFrame):
+    The DataFrame to be processed.\n\n    Returns:\n        The extracted subset from
+    the DataFrame.\n    "
+  definition: "def locs(\n    df: malevich.annotations.OpResult | malevich.annotations.Collection,\n\
+    \    /, \n    column: Annotated[\"typing.Optional[str]\", ConfigArgument(required=False)]
+    = None,\n    columns: Annotated[\"typing.Optional[typing.List[str]]\", ConfigArgument(required=False)]
+    = None,\n    column_idx: Annotated[\"typing.Optional[int]\", ConfigArgument(required=False)]
+    = None,\n    column_idxs: Annotated[\"typing.Optional[typing.List[int]]\", ConfigArgument(required=False)]
+    = None,\n    row: Annotated[\"typing.Optional[int]\", ConfigArgument(required=False)]
+    = None,\n    rows: Annotated[\"typing.Optional[typing.List[int]]\", ConfigArgument(required=False)]
+    = None,\n    row_idx: Annotated[\"typing.Optional[int]\", ConfigArgument(required=False)]
+    = None,\n    row_idxs: Annotated[\"typing.Optional[typing.List[int]]\", ConfigArgument(required=False)]
+    = None,\n    unique: Annotated[\"typing.Optional[bool]\", ConfigArgument(required=False)]
+    = None,\n    alias: Optional[\"str\"] = None,\n    config: Optional[\"Locs\"]
+    = None, \n    **extra_config_fields: dict[str, Any]) -> malevich.annotations.OpResult:\n\
+    \    \"\"\" Locate Statically - Extracts a subset of the dataframe\n\n    ## Input:\n\
+    \        A DataFrame to be processed.\n\n    ## Output:\n        A DataFrame with
+    requested columns\n\n    ## Configuration:\n        The app configuration should
+    contain at least one of the following fields:\n\n        - `column`: str, default
+    None.\n          The column to be extracted.\n        - `columns`: list[str],
+    default None.\n          The columns to be extracted.\n        - `column_idx`:
+    int, default None.\n            The column index to be extracted.\n        - `column_idxs`:
+    list[int], default None.\n            The column indexes to be extracted.\n  \
+    \      - `row`: int, default None.\n            The row to be extracted.\n   \
+    \     - `rows`: list[int], default None.\n            The rows to be extracted.\n\
+    \        - `row_idx`: int, default None.\n            The row index to be extracted.\n\
+    \        - `row_idxs`: list[int], default None.\n            The row indexes to
+    be extracted.\n        - `unique`: bool, default False.\n            Get unique
+    values from column. Must be used with `column` or `column_idx`.\n\n        Multiple
+    fields may be provided and in such case,\n        the function will extract the
+    intersection of the fields.\n\n    ## Notes:\n        At least one of the above
+    fields should be provided for the function to work.\n\n        Moreover, the dataframe
+    is processed in column first then row order.\n        Queries are executed from
+    the most specific to the least within each category.\n        If both specific
+    and general conditions are given, the function prioritizes\n        the specific
+    ones to maintain consistency.\n\n    -----\n\n    Args:\n        df (pd.DataFrame):
+    The DataFrame to be processed.\n\n    Returns:\n        The extracted subset from
+    the DataFrame.\n    \"\"\"\n"
+- name: subset
+  args:
+  - - dfs
+    - malevich.annotations.OpResult | malevich.annotations.Collection
+  sink:
+  docstrings: "Select a subset of dataframes from the list of dataframes.\n\n    ##
+    Input:\n        A number of dataframes.\n\n    ## Output:\n        A subset of
+    dataframes or a single dataframe.\n\n    ## Configuration:\n        - `expr`:
+    str, default None.\n            A comma-separated list of integers or slices,
+    e.g. `0,1:3,5:7,6,9:10`. The first dataframe has index 0.\n\n    ## Details:\n\
+    \        The `expr` field should be a comma-separated list of integers or slices,\n\
+    \        e.g. `0,1:3,5:7,6,9:10`.\n\n        Zero-based indexing is used for the
+    dataframes.\n\n        `expr` is matched against the regular expression\n    \
+    \        `^(\\d+|(\\d+\\:\\d+))(\\,(\\d+|(\\d+\\:\\d+)))*$`.\n\n        If the
+    expression contains only one element, a single dataframe is\n        returned.
+    Otherwise, a slice of dataframes is returned.\n\n    -----\n\n    Args:\n    \
+    \    dfs: A number of arbitrary dataframes.\n\n    Returns:\n        A subset
+    of dataframes or a single dataframe if the subset contains\n        a single index.\n\
+    \    "
+  definition: "def subset(\n    dfs: malevich.annotations.OpResult | malevich.annotations.Collection,\n\
+    \    /, \n    expr: Annotated[\"typing.Optional[str]\", ConfigArgument(required=False)]
+    = None,\n    alias: Optional[\"str\"] = None,\n    config: Optional[\"Subset\"\
+    ] = None, \n    **extra_config_fields: dict[str, Any]) -> malevich.annotations.OpResult:\n\
+    \    \"\"\"Select a subset of dataframes from the list of dataframes.\n\n    ##
+    Input:\n        A number of dataframes.\n\n    ## Output:\n        A subset of
+    dataframes or a single dataframe.\n\n    ## Configuration:\n        - `expr`:
+    str, default None.\n            A comma-separated list of integers or slices,
+    e.g. `0,1:3,5:7,6,9:10`. The first dataframe has index 0.\n\n    ## Details:\n\
+    \        The `expr` field should be a comma-separated list of integers or slices,\n\
+    \        e.g. `0,1:3,5:7,6,9:10`.\n\n        Zero-based indexing is used for the
+    dataframes.\n\n        `expr` is matched against the regular expression\n    \
+    \        `^(\\d+|(\\d+\\:\\d+))(\\,(\\d+|(\\d+\\:\\d+)))*$`.\n\n        If the
+    expression contains only one element, a single dataframe is\n        returned.
+    Otherwise, a slice of dataframes is returned.\n\n    -----\n\n    Args:\n    \
+    \    dfs: A number of arbitrary dataframes.\n\n    Returns:\n        A subset
+    of dataframes or a single dataframe if the subset contains\n        a single index.\n\
+    \    \"\"\"\n"
+- name: squash_rows
+  args:
+  - - df
+    - malevich.annotations.OpResult | malevich.annotations.Collection
+  sink:
+  docstrings: "Squash multiple rows into one row.\n\n    ## Input:\n        An arbitrary
+    dataframe with columns that contain multiple values.\n\n    ## Output:\n     \
+    \   A dataframe with the same columns as the input dataframe, but with\n     \
+    \   multiple rows for each input row.\n\n    ## Configuration:\n        - `by`:
+    str, default 'all'.\n            The column to group by. If not specified, all
+    columns will be squashed.\n\n        - `delim`: str, default ','.\n          \
+    \  The delimiter used to separate values in the columns. If not specified, the
+    default delimiter is a comma (,).\n\n    -----\n\n    Args:\n        df (DF[Any]):
+    Dataframe\n        context (Context): Context object\n\n    Returns:\n       \
+    \ Dataframe with squashed rows\n    "
+  definition: "def squash_rows(\n    df: malevich.annotations.OpResult | malevich.annotations.Collection,\n\
+    \    /, \n    by: Annotated[\"typing.Optional[str]\", ConfigArgument(required=False)]
+    = None,\n    delim: Annotated[\"typing.Optional[str]\", ConfigArgument(required=False)]
+    = None,\n    alias: Optional[\"str\"] = None,\n    config: Optional[\"SquashRows\"\
+    ] = None, \n    **extra_config_fields: dict[str, Any]) -> malevich.annotations.OpResult:\n\
+    \    \"\"\"Squash multiple rows into one row.\n\n    ## Input:\n        An arbitrary
+    dataframe with columns that contain multiple values.\n\n    ## Output:\n     \
+    \   A dataframe with the same columns as the input dataframe, but with\n     \
+    \   multiple rows for each input row.\n\n    ## Configuration:\n        - `by`:
+    str, default 'all'.\n            The column to group by. If not specified, all
+    columns will be squashed.\n\n        - `delim`: str, default ','.\n          \
+    \  The delimiter used to separate values in the columns. If not specified, the
+    default delimiter is a comma (,).\n\n    -----\n\n    Args:\n        df (DF[Any]):
+    Dataframe\n        context (Context): Context object\n\n    Returns:\n       \
+    \ Dataframe with squashed rows\n    \"\"\"\n"
+- name: squash
+  args:
+  - - df
+    - malevich.annotations.OpResult | malevich.annotations.Collection
+  sink:
+  docstrings: "Squash multiple rows into one row.\n\n    ## Input:\n        An arbitrary
+    dataframe with columns that contain multiple values.\n\n    ## Output:\n     \
+    \   A dataframe with the same columns as the input dataframe, but with\n     \
+    \   multiple rows for each input row.\n\n    ## Configuration:\n        - `by`:
+    str, default 'all'.\n            The column to group by. If not specified, all
+    columns will be squashed.\n\n        - `delim`: str, default ','.\n          \
+    \  The delimiter used to separate values in the columns. If not specified, the
+    default delimiter is a comma (,).\n\n    -----\n\n    Args:\n        df (DF[Any]):
+    Dataframe\n        context (Context): Context object\n\n    Returns:\n       \
+    \ Dataframe with squashed rows\n    "
+  definition: "def squash(\n    df: malevich.annotations.OpResult | malevich.annotations.Collection,\n\
+    \    /, \n    by: Annotated[\"typing.Optional[str]\", ConfigArgument(required=False)]
+    = None,\n    delim: Annotated[\"typing.Optional[str]\", ConfigArgument(required=False)]
+    = None,\n    alias: Optional[\"str\"] = None,\n    config: Optional[\"Squash\"\
+    ] = None, \n    **extra_config_fields: dict[str, Any]) -> malevich.annotations.OpResult:\n\
+    \    \"\"\"Squash multiple rows into one row.\n\n    ## Input:\n        An arbitrary
+    dataframe with columns that contain multiple values.\n\n    ## Output:\n     \
+    \   A dataframe with the same columns as the input dataframe, but with\n     \
+    \   multiple rows for each input row.\n\n    ## Configuration:\n        - `by`:
+    str, default 'all'.\n            The column to group by. If not specified, all
+    columns will be squashed.\n\n        - `delim`: str, default ','.\n          \
+    \  The delimiter used to separate values in the columns. If not specified, the
+    default delimiter is a comma (,).\n\n    -----\n\n    Args:\n        df (DF[Any]):
+    Dataframe\n        context (Context): Context object\n\n    Returns:\n       \
+    \ Dataframe with squashed rows\n    \"\"\"\n"
+- name: squash_columns
+  args:
+  - - df
+    - malevich.annotations.OpResult | malevich.annotations.Collection
+  sink:
+  docstrings: "Squash multiple columns into one column.\n\n    ## Input:\n       \
+    \ An arbitrary dataframe.\n\n    ## Output:\n        A dataframe with the same
+    rows as the input dataframe, but with\n        specified columns squashed into
+    one column.\n\n    ## Configuration:\n        - `columns`: list[str], default
+    None.\n            The columns to squash. If not specified, all columns will be
+    squashed.\n        - `result_column_name`: str, default None.\n            The
+    name of the resulting column. If not specified, the default name is the concatenation
+    of the column names.\n        - `drop`: bool, default False.\n            Whether
+    to drop the original columns. If not specified, the default value is False.\n\
+    \        - `delim`: str, default ','.\n            The delimiter used to separate
+    values in the columns. If not specified, the default delimiter is a comma (,).\n\
+    \n    -----\n\n    Args:\n        df (DF[Any]): An input collection\n        config
+    (Context): Configuration object\n\n    Returns:\n        Dataframe with squashed
+    columns\n    "
+  definition: "def squash_columns(\n    df: malevich.annotations.OpResult | malevich.annotations.Collection,\n\
+    \    /, \n    columns: Annotated[\"typing.Optional[typing.List[str]]\", ConfigArgument(required=False)]
+    = None,\n    result_column_name: Annotated[\"typing.Optional[str]\", ConfigArgument(required=False)]
+    = None,\n    drop: Annotated[\"typing.Optional[bool]\", ConfigArgument(required=False)]
+    = None,\n    delim: Annotated[\"typing.Optional[str]\", ConfigArgument(required=False)]
+    = None,\n    alias: Optional[\"str\"] = None,\n    config: Optional[\"SquashColumns\"\
+    ] = None, \n    **extra_config_fields: dict[str, Any]) -> malevich.annotations.OpResult:\n\
+    \    \"\"\"Squash multiple columns into one column.\n\n    ## Input:\n       \
+    \ An arbitrary dataframe.\n\n    ## Output:\n        A dataframe with the same
+    rows as the input dataframe, but with\n        specified columns squashed into
+    one column.\n\n    ## Configuration:\n        - `columns`: list[str], default
+    None.\n            The columns to squash. If not specified, all columns will be
+    squashed.\n        - `result_column_name`: str, default None.\n            The
+    name of the resulting column. If not specified, the default name is the concatenation
+    of the column names.\n        - `drop`: bool, default False.\n            Whether
+    to drop the original columns. If not specified, the default value is False.\n\
+    \        - `delim`: str, default ','.\n            The delimiter used to separate
+    values in the columns. If not specified, the default delimiter is a comma (,).\n\
+    \n    -----\n\n    Args:\n        df (DF[Any]): An input collection\n        config
+    (Context): Configuration object\n\n    Returns:\n        Dataframe with squashed
+    columns\n    \"\"\"\n"
+- name: unwrap
+  args:
+  - - df
+    - malevich.annotations.OpResult | malevich.annotations.Collection
+  sink:
+  docstrings: "Unwrap columns with multiple values into multiple rows.\n\n    If a
+    column contains multiple values, this processor will create a new row\n    for
+    each value. The new rows will be identical to the original row except\n    for
+    the column that was unwrapped.\n\n    For example, if the input dataframe is:\n\
+    \n    | id | name | tags |\n    |----|------|------|\n    | 1  | A    | a,b  |\n\
+    \    | 2  | B    | c    |\n\n    Then the output dataframe will be:\n\n    | id
+    | name | tags |\n    |----|------|------|\n    | 1  | A    | a    |\n    | 1 \
+    \ | A    | b    |\n    | 2  | B    | c    |\n\n\n    ## Input:\n\n        An arbitrary
+    dataframe with columns that contain multiple values.\n\n    ## Output:\n\n   \
+    \     A dataframe with the same columns as the input dataframe, but with\n   \
+    \     multiple rows for each input row.\n\n    ## Configuration:\n\n        -
+    `columns`: list[str], default ['all'].\n            The columns to unwrap. If
+    not specified, all columns will be unwrapped.\n\n        - `delimiter`: str, default
+    ','.\n            The delimiter used to separate values in the columns. If not
+    specified, the default delimiter is a comma (,).\n\n    ## Notes:\n\n        Be
+    careful when using this processor with columns that contain\n        non-text
+    values. For example, if a column contains a list of numbers,\n        and the
+    delimiter is a dot, then the processor will treat each number\n        as a separate
+    value. For example, if the input dataframe is:\n\n    | id | name | numbers |\n\
+    \    |----|------|---------|\n    | 1  | A.B  | 1.2     |\n\n        Then the
+    output dataframe will be:\n\n    | id | name | numbers |\n    |----|------|---------|\n\
+    \    | 1  | A    | 1       |\n    | 1  | A    | 2       |\n    | 1  | B    | 1\
+    \       |\n    | 1  | B    | 2       |\n\n    -----\n\n    Args:\n\n        df
+    (pandas.DataFrame): The input dataframe.\n\n        config (dict): The configuration
+    for this processor.\n\n    Returns:\n\n        The same dataframe as the input
+    dataframe, but with multiple rows for\n        each input row.\n    "
+  definition: "def unwrap(\n    df: malevich.annotations.OpResult | malevich.annotations.Collection,\n\
+    \    /, \n    columns: Annotated[\"typing.Optional[typing.List[str]]\", ConfigArgument(required=False)]
+    = None,\n    delimiter: Annotated[\"typing.Optional[str]\", ConfigArgument(required=False)]
+    = None,\n    alias: Optional[\"str\"] = None,\n    config: Optional[\"Unwrap\"\
+    ] = None, \n    **extra_config_fields: dict[str, Any]) -> malevich.annotations.OpResult:\n\
+    \    \"\"\"Unwrap columns with multiple values into multiple rows.\n\n    If a
+    column contains multiple values, this processor will create a new row\n    for
+    each value. The new rows will be identical to the original row except\n    for
+    the column that was unwrapped.\n\n    For example, if the input dataframe is:\n\
+    \n    | id | name | tags |\n    |----|------|------|\n    | 1  | A    | a,b  |\n\
+    \    | 2  | B    | c    |\n\n    Then the output dataframe will be:\n\n    | id
+    | name | tags |\n    |----|------|------|\n    | 1  | A    | a    |\n    | 1 \
+    \ | A    | b    |\n    | 2  | B    | c    |\n\n\n    ## Input:\n\n        An arbitrary
+    dataframe with columns that contain multiple values.\n\n    ## Output:\n\n   \
+    \     A dataframe with the same columns as the input dataframe, but with\n   \
+    \     multiple rows for each input row.\n\n    ## Configuration:\n\n        -
+    `columns`: list[str], default ['all'].\n            The columns to unwrap. If
+    not specified, all columns will be unwrapped.\n\n        - `delimiter`: str, default
+    ','.\n            The delimiter used to separate values in the columns. If not
+    specified, the default delimiter is a comma (,).\n\n    ## Notes:\n\n        Be
+    careful when using this processor with columns that contain\n        non-text
+    values. For example, if a column contains a list of numbers,\n        and the
+    delimiter is a dot, then the processor will treat each number\n        as a separate
+    value. For example, if the input dataframe is:\n\n    | id | name | numbers |\n\
+    \    |----|------|---------|\n    | 1  | A.B  | 1.2     |\n\n        Then the
+    output dataframe will be:\n\n    | id | name | numbers |\n    |----|------|---------|\n\
+    \    | 1  | A    | 1       |\n    | 1  | A    | 2       |\n    | 1  | B    | 1\
+    \       |\n    | 1  | B    | 2       |\n\n    -----\n\n    Args:\n\n        df
+    (pandas.DataFrame): The input dataframe.\n\n        config (dict): The configuration
+    for this processor.\n\n    Returns:\n\n        The same dataframe as the input
+    dataframe, but with multiple rows for\n        each input row.\n    \"\"\"\n"
+functions_index:
+  add_column:
+  - 255
+  - 3178
+  add_index:
+  - 3178
+  - 4459
+  collect_asset:
+  - 4459
+  - 5698
+  concat:
+  - 5698
+  - 6883
+  download:
+  - 6883
+  - 8623
+  get_links_to_files:
+  - 8623
+  - 10453
+  pattern_match_processor:
+  - 10453
+  - 12377
+  merge:
+  - 12377
+  - 16111
+  pass_through:
+  - 16111
+  - 17366
+  rename:
+  - 17366
+  - 19317
+  s3_save:
+  - 19317
+  - 23493
+  s3_save_files_auto:
+  - 23493
+  - 26775
+  s3_save_files:
+  - 26775
+  - 30190
+  s3_download_files:
+  - 30190
+  - 33082
+  s3_download_files_auto:
+  - 33082
+  - 35590
+  filter:
+  - 35590
+  - 38128
+  locs:
+  - 38128
+  - 41709
+  subset:
+  - 41709
+  - 43779
+  squash_rows:
+  - 43779
+  - 45690
+  squash:
+  - 45690
+  - 47573
+  squash_columns:
+  - 47573
+  - 50009
+  unwrap:
+  - 50009
+  - 53182
+schemes:
+- name: add_column
+  scheme: '{"properties": {"column": {"anyOf": [{"type": "string"}, {"type": "null"}],
+    "default": "new_column", "description": "The name of the new column", "title":
+    "Column"}, "value": {"anyOf": [{}, {"type": "null"}], "default": "new_value",
+    "description": "The value of the new column", "title": "Value"}, "position": {"anyOf":
+    [{"type": "integer"}, {"type": "null"}], "default": 0, "description": "The position
+    to insert the new column. If positive, the new column will be inserted from the
+    beginning of the dataframe. If negative, the new column will be inserted from
+    the end of the dataframe", "title": "Position"}, "skip_if_exists": {"anyOf": [{"type":
+    "boolean"}, {"type": "null"}], "default": false, "description": "If set, the processor
+    will not raise exeception if column exists.", "title": "Skip If Exists"}}, "title":
+    "AddColumn", "type": "object"}'
+  class_name: Unwrap
+- name: download
+  scheme: '{"properties": {"prefix": {"anyOf": [{"type": "string"}, {"type": "null"}],
+    "default": "", "description": "A prefix to add to the paths of downloaded files.
+    If not specified, files will be downloaded to the root of the app directory",
+    "title": "Prefix"}}, "title": "Download", "type": "object"}'
+  class_name: Unwrap
+- name: get_links_to_files
+  scheme: '{"properties": {"expiration": {"anyOf": [{"type": "integer"}, {"type":
+    "null"}], "default": 21600, "description": "The number of seconds after which
+    the link will expire. Defaults to 6 hours. Maximum is 24 hours", "title": "Expiration"}},
+    "title": "GetLinksToFiles", "type": "object"}'
+  class_name: Unwrap
+- name: pattern_match_processor
+  scheme: '{"properties": {"pattern": {"description": "A regular expression pattern
+    to match", "title": "Pattern", "type": "string"}, "join_char": {"anyOf": [{"type":
+    "string"}, {"type": "null"}], "default": ";", "description": "A character to join
+    the matches with", "title": "Join Char"}}, "required": ["pattern"], "title": "MatchPattern",
+    "type": "object"}'
+  class_name: Unwrap
+- name: merge
+  scheme: "{\"properties\": {\"how\": {\"anyOf\": [{\"type\": \"string\"}, {\"type\"\
+    : \"null\"}], \"default\": \"inner\", \"description\": \"The type of merge to
+    be performed\", \"title\": \"How\"}, \"both_on\": {\"anyOf\": [{\"type\": \"string\"\
+    }, {\"items\": {}, \"type\": \"array\"}, {\"type\": \"null\"}], \"default\": \"\
+    \", \"description\": \"Column name or 'index' to merge on. If 'index', the index
+    of the dataframe will be used. If column name, the column should be present in
+    all dataframes\", \"title\": \"Both On\"}, \"left_on\": {\"anyOf\": [{\"type\"\
+    : \"string\"}, {\"items\": {}, \"type\": \"array\"}, {\"type\": \"null\"}], \"\
+    default\": \"\", \"description\": \"Column name or 'index' to join on in the left
+    DataFrame. If 'index', the index of the dataframe will be used. If column name,
+    the column should be present in all but last dataframes\", \"title\": \"Left On\"\
+    }, \"right_on\": {\"anyOf\": [{\"type\": \"string\"}, {\"items\": {}, \"type\"\
+    : \"array\"}, {\"type\": \"null\"}], \"default\": \"\", \"description\": \"Column
+    name or 'index' to join on in the right DataFrame. If 'index', the index of the
+    dataframe will be used. If column name, the column should be present in all but
+    first dataframes\", \"title\": \"Right On\"}, \"suffixes\": {\"anyOf\": [{\"items\"\
+    : {}, \"type\": \"array\"}, {\"type\": \"null\"}], \"default\": [\"_0\", \"_1\"\
+    ], \"description\": \"Suffix to apply to overlapping column names in the left
+    and right dataframes\", \"title\": \"Suffixes\"}}, \"title\": \"Merge\", \"type\"\
+    : \"object\"}"
+  class_name: Unwrap
+- name: s3_save
+  scheme: '{"properties": {"names": {"anyOf": [{"items": {"type": "string"}, "type":
+    "array"}, {"type": "string"}], "description": "Names of the dataframes to be saved",
+    "title": "Names"}, "append_run_id": {"anyOf": [{"type": "boolean"}, {"type": "null"}],
+    "default": false, "description": "If True, the run_id is appended to the names
+    of the dataframes", "title": "Append Run Id"}, "extra_str": {"anyOf": [{"type":
+    "string"}, {"type": "null"}], "default": null, "description": "If provided, it
+    is appended to the names of the dataframes", "title": "Extra Str"}, "aws_access_key_id":
+    {"description": "AWS access key ID", "title": "Aws Access Key Id", "type": "string"},
+    "aws_secret_access_key": {"description": "AWS secret access key", "title": "Aws
+    Secret Access Key", "type": "string"}, "bucket_name": {"description": "Name of
+    the S3 bucket", "title": "Bucket Name", "type": "string"}, "endpoint_url": {"anyOf":
+    [{"type": "string"}, {"type": "null"}], "default": null, "description": "Endpoint
+    URL of the S3 bucket", "title": "Endpoint Url"}, "aws_region": {"anyOf": [{"type":
+    "string"}, {"type": "null"}], "default": null, "description": "AWS region of the
+    S3 bucket", "title": "Aws Region"}}, "required": ["names", "aws_access_key_id",
+    "aws_secret_access_key", "bucket_name"], "title": "S3Save", "type": "object"}'
+  class_name: Unwrap
+- name: s3_save_files_auto
+  scheme: '{"properties": {"append_run_id": {"anyOf": [{"type": "boolean"}, {"type":
+    "null"}], "default": false, "description": "If True, the run_id is appended to
+    the names of the files", "title": "Append Run Id"}, "extra_str": {"anyOf": [{"type":
+    "string"}, {"type": "null"}], "default": null, "description": "If provided, it
+    is appended to the names of the files", "title": "Extra Str"}, "aws_access_key_id":
+    {"description": "AWS access key ID", "title": "Aws Access Key Id", "type": "string"},
+    "aws_secret_access_key": {"description": "AWS secret access key", "title": "Aws
+    Secret Access Key", "type": "string"}, "bucket_name": {"description": "Name of
+    the S3 bucket", "title": "Bucket Name", "type": "string"}, "endpoint_url": {"anyOf":
+    [{"type": "string"}, {"type": "null"}], "default": null, "description": "Endpoint
+    URL of the S3 bucket", "title": "Endpoint Url"}, "aws_region": {"anyOf": [{"type":
+    "string"}, {"type": "null"}], "default": null, "description": "AWS region of the
+    S3 bucket", "title": "Aws Region"}}, "required": ["aws_access_key_id", "aws_secret_access_key",
+    "bucket_name"], "title": "S3SaveFilesAuto", "type": "object"}'
+  class_name: Unwrap
+- name: s3_save_files
+  scheme: '{"properties": {"append_run_id": {"anyOf": [{"type": "boolean"}, {"type":
+    "null"}], "default": false, "description": "If True, the run_id is appended to
+    the names of the files", "title": "Append Run Id"}, "aws_access_key_id": {"description":
+    "AWS access key ID", "title": "Aws Access Key Id", "type": "string"}, "aws_secret_access_key":
+    {"description": "AWS secret access key", "title": "Aws Secret Access Key", "type":
+    "string"}, "bucket_name": {"description": "Name of the S3 bucket", "title": "Bucket
+    Name", "type": "string"}, "endpoint_url": {"anyOf": [{"type": "string"}, {"type":
+    "null"}], "default": null, "description": "Endpoint URL of the S3 bucket", "title":
+    "Endpoint Url"}, "aws_region": {"anyOf": [{"type": "string"}, {"type": "null"}],
+    "default": null, "description": "AWS region of the S3 bucket", "title": "Aws Region"}},
+    "required": ["aws_access_key_id", "aws_secret_access_key", "bucket_name"], "title":
+    "S3SaveFiles", "type": "object"}'
+  class_name: Unwrap
+- name: s3_download_files
+  scheme: '{"properties": {"aws_access_key_id": {"description": "AWS access key ID",
+    "title": "Aws Access Key Id", "type": "string"}, "aws_secret_access_key": {"description":
+    "AWS secret access key", "title": "Aws Secret Access Key", "type": "string"},
+    "bucket_name": {"description": "Name of the S3 bucket", "title": "Bucket Name",
+    "type": "string"}, "endpoint_url": {"anyOf": [{"type": "string"}, {"type": "null"}],
+    "default": null, "description": "Endpoint URL of the S3 bucket", "title": "Endpoint
+    Url"}, "aws_region": {"anyOf": [{"type": "string"}, {"type": "null"}], "default":
+    null, "description": "AWS region of the S3 bucket", "title": "Aws Region"}}, "required":
+    ["aws_access_key_id", "aws_secret_access_key", "bucket_name"], "title": "S3DownloadFiles",
+    "type": "object"}'
+  class_name: Unwrap
+- name: s3_download_files_auto
+  scheme: '{"properties": {"aws_access_key_id": {"description": "AWS access key ID",
+    "title": "Aws Access Key Id", "type": "string"}, "aws_secret_access_key": {"description":
+    "AWS secret access key", "title": "Aws Secret Access Key", "type": "string"},
+    "bucket_name": {"description": "Name of the S3 bucket", "title": "Bucket Name",
+    "type": "string"}, "endpoint_url": {"anyOf": [{"type": "string"}, {"type": "null"}],
+    "default": null, "description": "Endpoint URL of the S3 bucket", "title": "Endpoint
+    Url"}, "aws_region": {"anyOf": [{"type": "string"}, {"type": "null"}], "default":
+    null, "description": "AWS region of the S3 bucket", "title": "Aws Region"}}, "required":
+    ["aws_access_key_id", "aws_secret_access_key", "bucket_name"], "title": "S3DownloadFilesAuto",
+    "type": "object"}'
+  class_name: Unwrap
+- name: filter
+  scheme: '{"properties": {"conditions": {"anyOf": [{"items": {"type": "object"},
+    "type": "array"}, {"type": "null"}], "default": [], "description": "A list of
+    conditions containing dictionaries", "title": "Conditions"}}, "title": "Filter",
+    "type": "object"}'
+  class_name: Unwrap
+- name: locs
+  scheme: '{"properties": {"column": {"anyOf": [{"type": "string"}, {"type": "null"}],
+    "default": null, "description": "The column to be extracted", "title": "Column"},
+    "columns": {"anyOf": [{"items": {"type": "string"}, "type": "array"}, {"type":
+    "null"}], "default": null, "description": "The columns to be extracted", "title":
+    "Columns"}, "column_idx": {"anyOf": [{"type": "integer"}, {"type": "null"}], "default":
+    null, "description": "The column index to be extracted", "title": "Column Idx"},
+    "column_idxs": {"anyOf": [{"items": {"type": "integer"}, "type": "array"}, {"type":
+    "null"}], "default": null, "description": "The column indexes to be extracted",
+    "title": "Column Idxs"}, "row": {"anyOf": [{"type": "integer"}, {"type": "null"}],
+    "default": null, "description": "The row to be extracted", "title": "Row"}, "rows":
+    {"anyOf": [{"items": {"type": "integer"}, "type": "array"}, {"type": "null"}],
+    "default": null, "description": "The rows to be extracted", "title": "Rows"},
+    "row_idx": {"anyOf": [{"type": "integer"}, {"type": "null"}], "default": null,
+    "description": "The row index to be extracted", "title": "Row Idx"}, "row_idxs":
+    {"anyOf": [{"items": {"type": "integer"}, "type": "array"}, {"type": "null"}],
+    "default": null, "description": "The row indexes to be extracted", "title": "Row
+    Idxs"}, "unique": {"anyOf": [{"type": "boolean"}, {"type": "null"}], "default":
+    false, "description": "Get unique values from column. Must be used with `column`
+    or `column_idx`", "title": "Unique"}}, "title": "Locs", "type": "object"}'
+  class_name: Unwrap
+- name: subset
+  scheme: '{"properties": {"expr": {"anyOf": [{"type": "string"}, {"type": "null"}],
+    "default": null, "description": "A comma-separated list of integers or slices,
+    e.g. `0,1:3,5:7,6,9:10`. The first dataframe has index 0", "title": "Expr"}},
+    "title": "Subset", "type": "object"}'
+  class_name: Unwrap
+- name: squash_rows
+  scheme: '{"properties": {"by": {"anyOf": [{"type": "string"}, {"type": "null"}],
+    "default": "all", "description": "The column to group by. If not specified, all
+    columns will be squashed", "title": "By"}, "delim": {"anyOf": [{"type": "string"},
+    {"type": "null"}], "default": ",", "description": "The delimiter used to separate
+    values in the columns. If not specified, the default delimiter is a comma (,)",
+    "title": "Delim"}}, "title": "SquashRows", "type": "object"}'
+  class_name: Unwrap
+- name: squash
+  scheme: '{"properties": {"by": {"anyOf": [{"type": "string"}, {"type": "null"}],
+    "default": "all", "description": "The column to group by. If not specified, all
+    columns will be squashed", "title": "By"}, "delim": {"anyOf": [{"type": "string"},
+    {"type": "null"}], "default": ",", "description": "The delimiter used to separate
+    values in the columns. If not specified, the default delimiter is a comma (,)",
+    "title": "Delim"}}, "title": "Squash", "type": "object"}'
+  class_name: Unwrap
+- name: squash_columns
+  scheme: '{"properties": {"columns": {"anyOf": [{"items": {"type": "string"}, "type":
+    "array"}, {"type": "null"}], "default": null, "description": "The columns to squash.
+    If not specified, all columns will be squashed", "title": "Columns"}, "result_column_name":
+    {"anyOf": [{"type": "string"}, {"type": "null"}], "default": null, "description":
+    "The name of the resulting column. If not specified, the default name is the concatenation
+    of the column names", "title": "Result Column Name"}, "drop": {"anyOf": [{"type":
+    "boolean"}, {"type": "null"}], "default": false, "description": "Whether to drop
+    the original columns. If not specified, the default value is False", "title":
+    "Drop"}, "delim": {"anyOf": [{"type": "string"}, {"type": "null"}], "default":
+    ",", "description": "The delimiter used to separate values in the columns. If
+    not specified, the default delimiter is a comma (,)", "title": "Delim"}}, "title":
+    "SquashColumns", "type": "object"}'
+  class_name: Unwrap
+- name: unwrap
+  scheme: '{"properties": {"columns": {"anyOf": [{"items": {"type": "string"}, "type":
+    "array"}, {"type": "null"}], "default": ["all"], "description": "The columns to
+    unwrap. If not specified, all columns will be unwrapped", "title": "Columns"},
+    "delimiter": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": ",",
+    "description": "The delimiter used to separate values in the columns. If not specified,
+    the default delimiter is a comma (,)", "title": "Delimiter"}}, "title": "Unwrap",
+    "type": "object"}'
+  class_name: Unwrap
+- name: default_scheme
+  scheme: '{"properties": {"data": {"title": "Data"}}, "required": ["data"], "title":
+    "default_scheme", "type": "object"}'
+  class_name: DefaultScheme
+- name: obj
+  scheme: '{"properties": {"path": {"title": "Path", "type": "string"}}, "required":
+    ["path"], "title": "obj", "type": "object"}'
+  class_name: Obj
+- name: AddColumn
+  scheme: '{"properties": {"column": {"anyOf": [{"type": "string"}, {"type": "null"}],
+    "default": "new_column", "description": "The name of the new column", "title":
+    "Column"}, "value": {"anyOf": [{}, {"type": "null"}], "default": "new_value",
+    "description": "The value of the new column", "title": "Value"}, "position": {"anyOf":
+    [{"type": "integer"}, {"type": "null"}], "default": 0, "description": "The position
+    to insert the new column. If positive, the new column will be inserted from the
+    beginning of the dataframe. If negative, the new column will be inserted from
+    the end of the dataframe", "title": "Position"}, "skip_if_exists": {"anyOf": [{"type":
+    "boolean"}, {"type": "null"}], "default": false, "description": "If set, the processor
+    will not raise exeception if column exists.", "title": "Skip If Exists"}}, "title":
+    "AddColumn", "type": "object"}'
+  class_name: AddColumn
+- name: Download
+  scheme: '{"properties": {"prefix": {"anyOf": [{"type": "string"}, {"type": "null"}],
+    "default": "", "description": "A prefix to add to the paths of downloaded files.
+    If not specified, files will be downloaded to the root of the app directory",
+    "title": "Prefix"}}, "title": "Download", "type": "object"}'
+  class_name: Download
+- name: Links
+  scheme: '{"properties": {"link": {"title": "Link", "type": "string"}}, "required":
+    ["link"], "title": "Links", "type": "object"}'
+  class_name: Links
+- name: GetLinksToFiles
+  scheme: '{"properties": {"expiration": {"anyOf": [{"type": "integer"}, {"type":
+    "null"}], "default": 21600, "description": "The number of seconds after which
+    the link will expire. Defaults to 6 hours. Maximum is 24 hours", "title": "Expiration"}},
+    "title": "GetLinksToFiles", "type": "object"}'
+  class_name: GetLinksToFiles
+- name: MatchPattern
+  scheme: '{"properties": {"pattern": {"description": "A regular expression pattern
+    to match", "title": "Pattern", "type": "string"}, "join_char": {"anyOf": [{"type":
+    "string"}, {"type": "null"}], "default": ";", "description": "A character to join
+    the matches with", "title": "Join Char"}}, "required": ["pattern"], "title": "MatchPattern",
+    "type": "object"}'
+  class_name: MatchPattern
+- name: Merge
+  scheme: "{\"properties\": {\"how\": {\"anyOf\": [{\"type\": \"string\"}, {\"type\"\
+    : \"null\"}], \"default\": \"inner\", \"description\": \"The type of merge to
+    be performed\", \"title\": \"How\"}, \"both_on\": {\"anyOf\": [{\"type\": \"string\"\
+    }, {\"items\": {}, \"type\": \"array\"}, {\"type\": \"null\"}], \"default\": \"\
+    \", \"description\": \"Column name or 'index' to merge on. If 'index', the index
+    of the dataframe will be used. If column name, the column should be present in
+    all dataframes\", \"title\": \"Both On\"}, \"left_on\": {\"anyOf\": [{\"type\"\
+    : \"string\"}, {\"items\": {}, \"type\": \"array\"}, {\"type\": \"null\"}], \"\
+    default\": \"\", \"description\": \"Column name or 'index' to join on in the left
+    DataFrame. If 'index', the index of the dataframe will be used. If column name,
+    the column should be present in all but last dataframes\", \"title\": \"Left On\"\
+    }, \"right_on\": {\"anyOf\": [{\"type\": \"string\"}, {\"items\": {}, \"type\"\
+    : \"array\"}, {\"type\": \"null\"}], \"default\": \"\", \"description\": \"Column
+    name or 'index' to join on in the right DataFrame. If 'index', the index of the
+    dataframe will be used. If column name, the column should be present in all but
+    first dataframes\", \"title\": \"Right On\"}, \"suffixes\": {\"anyOf\": [{\"items\"\
+    : {}, \"type\": \"array\"}, {\"type\": \"null\"}], \"default\": [\"_0\", \"_1\"\
+    ], \"description\": \"Suffix to apply to overlapping column names in the left
+    and right dataframes\", \"title\": \"Suffixes\"}}, \"title\": \"Merge\", \"type\"\
+    : \"object\"}"
+  class_name: Merge
+- name: MergeThree
+  scheme: "{\"properties\": {\"how\": {\"anyOf\": [{\"type\": \"string\"}, {\"type\"\
+    : \"null\"}], \"default\": \"inner\", \"description\": \"The type of merge to
+    be performed\", \"title\": \"How\"}, \"both_on\": {\"anyOf\": [{\"type\": \"string\"\
+    }, {\"items\": {}, \"type\": \"array\"}, {\"type\": \"null\"}], \"default\": \"\
+    \", \"description\": \"Column name or 'index' to merge on. If 'index', the index
+    of the dataframe will be used. If column name, the column should be present in
+    all dataframes\", \"title\": \"Both On\"}, \"left_on\": {\"anyOf\": [{\"type\"\
+    : \"string\"}, {\"items\": {}, \"type\": \"array\"}, {\"type\": \"null\"}], \"\
+    default\": \"\", \"description\": \"Column name or 'index' to join on in the left
+    DataFrame. If 'index', the index of the dataframe will be used. If column name,
+    the column should be present in all but last dataframes\", \"title\": \"Left On\"\
+    }, \"right_on\": {\"anyOf\": [{\"type\": \"string\"}, {\"items\": {}, \"type\"\
+    : \"array\"}, {\"type\": \"null\"}], \"default\": \"\", \"description\": \"Column
+    name or 'index' to join on in the right DataFrame. If 'index', the index of the
+    dataframe will be used. If column name, the column should be present in all but
+    first dataframes\", \"title\": \"Right On\"}, \"suffixes\": {\"anyOf\": [{\"items\"\
+    : {}, \"type\": \"array\"}, {\"type\": \"null\"}], \"default\": [\"_0\", \"_1\"\
+    ], \"description\": \"Suffix to apply to overlapping column names in the left
+    and right dataframes\", \"title\": \"Suffixes\"}}, \"title\": \"MergeThree\",
+    \"type\": \"object\"}"
+  class_name: MergeThree
+- name: MergeTwo
+  scheme: "{\"properties\": {\"how\": {\"anyOf\": [{\"type\": \"string\"}, {\"type\"\
+    : \"null\"}], \"default\": \"inner\", \"description\": \"The type of merge to
+    be performed\", \"title\": \"How\"}, \"both_on\": {\"anyOf\": [{\"type\": \"string\"\
+    }, {\"items\": {}, \"type\": \"array\"}, {\"type\": \"null\"}], \"default\": \"\
+    \", \"description\": \"Column name or 'index' to merge on. If 'index', the index
+    of the dataframe will be used. If column name, the column should be present in
+    all dataframes\", \"title\": \"Both On\"}, \"left_on\": {\"anyOf\": [{\"type\"\
+    : \"string\"}, {\"items\": {}, \"type\": \"array\"}, {\"type\": \"null\"}], \"\
+    default\": \"\", \"description\": \"Column name or 'index' to join on in the left
+    DataFrame. If 'index', the index of the dataframe will be used. If column name,
+    the column should be present in all but last dataframes\", \"title\": \"Left On\"\
+    }, \"right_on\": {\"anyOf\": [{\"type\": \"string\"}, {\"items\": {}, \"type\"\
+    : \"array\"}, {\"type\": \"null\"}], \"default\": \"\", \"description\": \"Column
+    name or 'index' to join on in the right DataFrame. If 'index', the index of the
+    dataframe will be used. If column name, the column should be present in all but
+    first dataframes\", \"title\": \"Right On\"}, \"suffixes\": {\"anyOf\": [{\"items\"\
+    : {}, \"type\": \"array\"}, {\"type\": \"null\"}], \"default\": [\"_0\", \"_1\"\
+    ], \"description\": \"Suffix to apply to overlapping column names in the left
+    and right dataframes\", \"title\": \"Suffixes\"}}, \"title\": \"MergeTwo\", \"\
+    type\": \"object\"}"
+  class_name: MergeTwo
+- name: S3Save
+  scheme: '{"properties": {"names": {"anyOf": [{"items": {"type": "string"}, "type":
+    "array"}, {"type": "string"}], "description": "Names of the dataframes to be saved",
+    "title": "Names"}, "append_run_id": {"anyOf": [{"type": "boolean"}, {"type": "null"}],
+    "default": false, "description": "If True, the run_id is appended to the names
+    of the dataframes", "title": "Append Run Id"}, "extra_str": {"anyOf": [{"type":
+    "string"}, {"type": "null"}], "default": null, "description": "If provided, it
+    is appended to the names of the dataframes", "title": "Extra Str"}, "aws_access_key_id":
+    {"description": "AWS access key ID", "title": "Aws Access Key Id", "type": "string"},
+    "aws_secret_access_key": {"description": "AWS secret access key", "title": "Aws
+    Secret Access Key", "type": "string"}, "bucket_name": {"description": "Name of
+    the S3 bucket", "title": "Bucket Name", "type": "string"}, "endpoint_url": {"anyOf":
+    [{"type": "string"}, {"type": "null"}], "default": null, "description": "Endpoint
+    URL of the S3 bucket", "title": "Endpoint Url"}, "aws_region": {"anyOf": [{"type":
+    "string"}, {"type": "null"}], "default": null, "description": "AWS region of the
+    S3 bucket", "title": "Aws Region"}}, "required": ["names", "aws_access_key_id",
+    "aws_secret_access_key", "bucket_name"], "title": "S3Save", "type": "object"}'
+  class_name: S3Save
+- name: S3SaveFilesAuto
+  scheme: '{"properties": {"append_run_id": {"anyOf": [{"type": "boolean"}, {"type":
+    "null"}], "default": false, "description": "If True, the run_id is appended to
+    the names of the files", "title": "Append Run Id"}, "extra_str": {"anyOf": [{"type":
+    "string"}, {"type": "null"}], "default": null, "description": "If provided, it
+    is appended to the names of the files", "title": "Extra Str"}, "aws_access_key_id":
+    {"description": "AWS access key ID", "title": "Aws Access Key Id", "type": "string"},
+    "aws_secret_access_key": {"description": "AWS secret access key", "title": "Aws
+    Secret Access Key", "type": "string"}, "bucket_name": {"description": "Name of
+    the S3 bucket", "title": "Bucket Name", "type": "string"}, "endpoint_url": {"anyOf":
+    [{"type": "string"}, {"type": "null"}], "default": null, "description": "Endpoint
+    URL of the S3 bucket", "title": "Endpoint Url"}, "aws_region": {"anyOf": [{"type":
+    "string"}, {"type": "null"}], "default": null, "description": "AWS region of the
+    S3 bucket", "title": "Aws Region"}}, "required": ["aws_access_key_id", "aws_secret_access_key",
+    "bucket_name"], "title": "S3SaveFilesAuto", "type": "object"}'
+  class_name: S3SaveFilesAuto
+- name: S3SaveFiles
+  scheme: '{"properties": {"append_run_id": {"anyOf": [{"type": "boolean"}, {"type":
+    "null"}], "default": false, "description": "If True, the run_id is appended to
+    the names of the files", "title": "Append Run Id"}, "aws_access_key_id": {"description":
+    "AWS access key ID", "title": "Aws Access Key Id", "type": "string"}, "aws_secret_access_key":
+    {"description": "AWS secret access key", "title": "Aws Secret Access Key", "type":
+    "string"}, "bucket_name": {"description": "Name of the S3 bucket", "title": "Bucket
+    Name", "type": "string"}, "endpoint_url": {"anyOf": [{"type": "string"}, {"type":
+    "null"}], "default": null, "description": "Endpoint URL of the S3 bucket", "title":
+    "Endpoint Url"}, "aws_region": {"anyOf": [{"type": "string"}, {"type": "null"}],
+    "default": null, "description": "AWS region of the S3 bucket", "title": "Aws Region"}},
+    "required": ["aws_access_key_id", "aws_secret_access_key", "bucket_name"], "title":
+    "S3SaveFiles", "type": "object"}'
+  class_name: S3SaveFiles
+- name: S3DownloadFiles
+  scheme: '{"properties": {"aws_access_key_id": {"description": "AWS access key ID",
+    "title": "Aws Access Key Id", "type": "string"}, "aws_secret_access_key": {"description":
+    "AWS secret access key", "title": "Aws Secret Access Key", "type": "string"},
+    "bucket_name": {"description": "Name of the S3 bucket", "title": "Bucket Name",
+    "type": "string"}, "endpoint_url": {"anyOf": [{"type": "string"}, {"type": "null"}],
+    "default": null, "description": "Endpoint URL of the S3 bucket", "title": "Endpoint
+    Url"}, "aws_region": {"anyOf": [{"type": "string"}, {"type": "null"}], "default":
+    null, "description": "AWS region of the S3 bucket", "title": "Aws Region"}}, "required":
+    ["aws_access_key_id", "aws_secret_access_key", "bucket_name"], "title": "S3DownloadFiles",
+    "type": "object"}'
+  class_name: S3DownloadFiles
+- name: S3DownloadFilesAuto
+  scheme: '{"properties": {"aws_access_key_id": {"description": "AWS access key ID",
+    "title": "Aws Access Key Id", "type": "string"}, "aws_secret_access_key": {"description":
+    "AWS secret access key", "title": "Aws Secret Access Key", "type": "string"},
+    "bucket_name": {"description": "Name of the S3 bucket", "title": "Bucket Name",
+    "type": "string"}, "endpoint_url": {"anyOf": [{"type": "string"}, {"type": "null"}],
+    "default": null, "description": "Endpoint URL of the S3 bucket", "title": "Endpoint
+    Url"}, "aws_region": {"anyOf": [{"type": "string"}, {"type": "null"}], "default":
+    null, "description": "AWS region of the S3 bucket", "title": "Aws Region"}}, "required":
+    ["aws_access_key_id", "aws_secret_access_key", "bucket_name"], "title": "S3DownloadFilesAuto",
+    "type": "object"}'
+  class_name: S3DownloadFilesAuto
+- name: FilenameS3Key
+  scheme: '{"properties": {"filename": {"title": "Filename", "type": "string"}, "s3key":
+    {"title": "S3Key", "type": "string"}}, "required": ["filename", "s3key"], "title":
+    "FilenameS3Key", "type": "object"}'
+  class_name: FilenameS3Key
+- name: S3Key
+  scheme: '{"properties": {"s3key": {"title": "S3Key", "type": "string"}}, "required":
+    ["s3key"], "title": "S3Key", "type": "object"}'
+  class_name: S3Key
+- name: Filename
+  scheme: '{"properties": {"filename": {"title": "Filename", "type": "string"}}, "required":
+    ["filename"], "title": "Filename", "type": "object"}'
+  class_name: Filename
+- name: Locs
+  scheme: '{"properties": {"column": {"anyOf": [{"type": "string"}, {"type": "null"}],
+    "default": null, "description": "The column to be extracted", "title": "Column"},
+    "columns": {"anyOf": [{"items": {"type": "string"}, "type": "array"}, {"type":
+    "null"}], "default": null, "description": "The columns to be extracted", "title":
+    "Columns"}, "column_idx": {"anyOf": [{"type": "integer"}, {"type": "null"}], "default":
+    null, "description": "The column index to be extracted", "title": "Column Idx"},
+    "column_idxs": {"anyOf": [{"items": {"type": "integer"}, "type": "array"}, {"type":
+    "null"}], "default": null, "description": "The column indexes to be extracted",
+    "title": "Column Idxs"}, "row": {"anyOf": [{"type": "integer"}, {"type": "null"}],
+    "default": null, "description": "The row to be extracted", "title": "Row"}, "rows":
+    {"anyOf": [{"items": {"type": "integer"}, "type": "array"}, {"type": "null"}],
+    "default": null, "description": "The rows to be extracted", "title": "Rows"},
+    "row_idx": {"anyOf": [{"type": "integer"}, {"type": "null"}], "default": null,
+    "description": "The row index to be extracted", "title": "Row Idx"}, "row_idxs":
+    {"anyOf": [{"items": {"type": "integer"}, "type": "array"}, {"type": "null"}],
+    "default": null, "description": "The row indexes to be extracted", "title": "Row
+    Idxs"}, "unique": {"anyOf": [{"type": "boolean"}, {"type": "null"}], "default":
+    false, "description": "Get unique values from column. Must be used with `column`
+    or `column_idx`", "title": "Unique"}}, "title": "Locs", "type": "object"}'
+  class_name: Locs
+- name: Subset
+  scheme: '{"properties": {"expr": {"anyOf": [{"type": "string"}, {"type": "null"}],
+    "default": null, "description": "A comma-separated list of integers or slices,
+    e.g. `0,1:3,5:7,6,9:10`. The first dataframe has index 0", "title": "Expr"}},
+    "title": "Subset", "type": "object"}'
+  class_name: Subset
+- name: Filter
+  scheme: '{"properties": {"conditions": {"anyOf": [{"items": {"type": "object"},
+    "type": "array"}, {"type": "null"}], "default": [], "description": "A list of
+    conditions containing dictionaries", "title": "Conditions"}}, "title": "Filter",
+    "type": "object"}'
+  class_name: Filter
+- name: SquashRows
+  scheme: '{"properties": {"by": {"anyOf": [{"type": "string"}, {"type": "null"}],
+    "default": "all", "description": "The column to group by. If not specified, all
+    columns will be squashed", "title": "By"}, "delim": {"anyOf": [{"type": "string"},
+    {"type": "null"}], "default": ",", "description": "The delimiter used to separate
+    values in the columns. If not specified, the default delimiter is a comma (,)",
+    "title": "Delim"}}, "title": "SquashRows", "type": "object"}'
+  class_name: SquashRows
+- name: Squash
+  scheme: '{"properties": {"by": {"anyOf": [{"type": "string"}, {"type": "null"}],
+    "default": "all", "description": "The column to group by. If not specified, all
+    columns will be squashed", "title": "By"}, "delim": {"anyOf": [{"type": "string"},
+    {"type": "null"}], "default": ",", "description": "The delimiter used to separate
+    values in the columns. If not specified, the default delimiter is a comma (,)",
+    "title": "Delim"}}, "title": "Squash", "type": "object"}'
+  class_name: Squash
+- name: SquashColumns
+  scheme: '{"properties": {"columns": {"anyOf": [{"items": {"type": "string"}, "type":
+    "array"}, {"type": "null"}], "default": null, "description": "The columns to squash.
+    If not specified, all columns will be squashed", "title": "Columns"}, "result_column_name":
+    {"anyOf": [{"type": "string"}, {"type": "null"}], "default": null, "description":
+    "The name of the resulting column. If not specified, the default name is the concatenation
+    of the column names", "title": "Result Column Name"}, "drop": {"anyOf": [{"type":
+    "boolean"}, {"type": "null"}], "default": false, "description": "Whether to drop
+    the original columns. If not specified, the default value is False", "title":
+    "Drop"}, "delim": {"anyOf": [{"type": "string"}, {"type": "null"}], "default":
+    ",", "description": "The delimiter used to separate values in the columns. If
+    not specified, the default delimiter is a comma (,)", "title": "Delim"}}, "title":
+    "SquashColumns", "type": "object"}'
+  class_name: SquashColumns
+- name: Unwrap
+  scheme: '{"properties": {"columns": {"anyOf": [{"items": {"type": "string"}, "type":
+    "array"}, {"type": "null"}], "default": ["all"], "description": "The columns to
+    unwrap. If not specified, all columns will be unwrapped", "title": "Columns"},
+    "delimiter": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": ",",
+    "description": "The delimiter used to separate values in the columns. If not specified,
+    the default delimiter is a comma (,)", "title": "Delimiter"}}, "title": "Unwrap",
+    "type": "object"}'
+  class_name: Unwrap
+schemes_index:
+  add_column:
+  - 0
+  - 955
+  download:
+  - 955
+  - 1417
+  get_links_to_files:
+  - 1417
+  - 1868
+  pattern_match_processor:
+  - 1868
+  - 2349
+  merge:
+  - 2349
+  - 3768
+  s3_save:
+  - 3768
+  - 5083
+  s3_save_files_auto:
+  - 5083
+  - 6258
+  s3_save_files:
+  - 6258
+  - 7267
+  s3_download_files:
+  - 7267
+  - 8104
+  s3_download_files_auto:
+  - 8104
+  - 8945
+  filter:
+  - 8945
+  - 9366
+  locs:
+  - 9366
+  - 10722
+  subset:
+  - 10722
+  - 11157
+  squash_rows:
+  - 11157
+  - 11769
+  squash:
+  - 11769
+  - 12377
+  squash_columns:
+  - 12377
+  - 13431
+  unwrap:
+  - 13431
+  - 14071
+  default_scheme:
+  - 14071
+  - 14348
+  obj:
+  - 14071
+  - 14314
+  AddColumn:
+  - 14071
+  - 15026
+  Download:
+  - 14071
+  - 14533
+  Links:
+  - 14071
+  - 14316
+  GetLinksToFiles:
+  - 14071
+  - 14522
+  MatchPattern:
+  - 14071
+  - 14552
+  Merge:
+  - 14071
+  - 15490
+  MergeThree:
+  - 14071
+  - 15495
+  MergeTwo:
+  - 14071
+  - 15493
+  S3Save:
+  - 14071
+  - 15386
+  S3SaveFilesAuto:
+  - 14071
+  - 15246
+  S3SaveFiles:
+  - 14071
+  - 15080
+  S3DownloadFiles:
+  - 14071
+  - 14908
+  S3DownloadFilesAuto:
+  - 14071
+  - 14912
+  FilenameS3Key:
+  - 14071
+  - 14375
+  S3Key:
+  - 14071
+  - 14318
+  Filename:
+  - 14071
+  - 14327
+  Locs:
+  - 14071
+  - 15427
+  Subset:
+  - 14071
+  - 14506
+  Filter:
+  - 14071
+  - 14492
+  SquashRows:
+  - 14071
+  - 14683
+  Squash:
+  - 14071
+  - 14679
+  SquashColumns:
+  - 14071
+  - 15125
+  Unwrap:
+  - 14071
+  - 14711

@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field
 
 import malevich
 from malevich.constants import reserved_config_fields
-from malevich.core_api import AppFunctionsInfo
+from malevich.core_api import AppFunctionsInfo, ConditionFunctionInfo
 from malevich.models.dependency import Dependency
 
 
@@ -63,6 +63,7 @@ Registry().register("{operation_id}", {registry_record})
         processor_id="{name}",
         package_id="{package_id}",
         alias=alias,
+        is_condition="{is_condition}",
     )
 """
 
@@ -120,6 +121,7 @@ class StubFunction(BaseModel):
     docstrings: str | None = None
     config_schema: Type[BaseModel] | None = Field(None, exclude=True)
     definition: str | None = None
+    is_condition: bool = False
 
     def generate_definition(self, config_model: str | None = None) -> str:
         """def processor_name(
@@ -266,8 +268,8 @@ class Stub:
     ) -> "Stub":
         os.makedirs(path, exist_ok=True)
 
-        processors = app_info.processors
-        processors = {str(key): value for key, value in processors.items()}
+        operations = {**app_info.processors, **app_info.conditions}
+        operations = {str(key): value for key, value in operations.items()}
 
         index = StubIndex(
             dependency=dependency,
@@ -280,14 +282,14 @@ class Stub:
             name: Stub.Utils.generate_context_schema(
                 json.dumps(processor.contextClass),
             ) if processor.contextClass is not None else (None, None)
-            for name, processor in processors.items()
+            for name, processor in operations.items()
         }
 
         config_model_class = {}
         for processor_name, (class_names, _) in config_stubs.items():
             if class_names:
                 for class_name in class_names:
-                    if class_name == processors[processor_name].contextClass['title']:
+                    if class_name == operations[processor_name].contextClass['title']:
                         config_model_class[processor_name] = class_name
                         break
                 else:
@@ -299,7 +301,7 @@ class Stub:
             with open('scheme.py', 'w+') as f_scheme:
                 i = 0
                 for (name, (class_name, stub,)), proc in zip(
-                    config_stubs.items(), processors.values()
+                    config_stubs.items(), operations.values()
                 ):
                     if class_name is None or stub is None:
                         continue
@@ -331,13 +333,13 @@ class Stub:
         config_models = {
             name: eval(f'malevich.{package_name}.scheme.{config_model_class[name]}')
             if config_model_class[name] else None
-            for name in processors
+            for name in operations
         }
 
         functions: dict[str, StubFunction] = {}
         schemes = {*app_info.schemes.values()}
 
-        for name, processor in processors.items():
+        for name, processor in operations.items():
             args = processor.arguments
             parsed = []
             sink = None
@@ -366,6 +368,7 @@ class Stub:
                 sink=sink,
                 docstrings=processor.doc,
                 config_schema=config_models[name],
+                is_condition=isinstance(processor, ConditionFunctionInfo)
             )
             functions[name].definition = functions[name].generate_definition(
                 config_model=config_model_class[name]
@@ -387,7 +390,8 @@ class Stub:
                         operation_id=operation_ids[name],
                         use_sinktrace=bool(function.sink),
                         definition=function.definition,
-                        config_model=config_model_class[name]
+                        config_model=config_model_class[name],
+                        is_condition=function.is_condition,
                     ))
                     index.functions.append(function)
                     index.functions_index[name] = (i, i + j)

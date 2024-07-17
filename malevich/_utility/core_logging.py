@@ -1,5 +1,4 @@
 import logging
-from typing import Self
 
 from malevich.core_api import set_logger
 
@@ -8,7 +7,7 @@ handles = [*logger.handlers]
 set_logger(logger)
 
 class IgnoreCoreLogs:
-    def __enter__(self, *args) -> Self:
+    def __enter__(self, *args):
         logger.setLevel(logging.CRITICAL + 1)
         logger.handlers = []
         logger.propagate = False
