@@ -998,6 +998,7 @@ class CoreTask(BaseTask):
         self.state.conditions = pipeline.conditions
         self.state.unique_task_hash = unique_task_hash
         self.state.config = core.Cfg()
+        self.state.config_id = unique_task_hash
 
         json_cfg = json.loads(core.get_cfg(
             unique_task_hash,
