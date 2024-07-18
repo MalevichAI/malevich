@@ -1,23 +1,21 @@
-{% if not args %}
-*,
-{%- else -%}
-{% for arg in args %}
+{% if args %}
+ {% for arg in args -%}
 {{ arg[0] }}: {{ arg[1] or "Any"}},
-{% endfor %}
-{%- if sink -%}
-{%- if args|length > 0 -%}
+ {%- endfor -%}
+{%- endif %}
+{% if sink -%}
+ {%- if args|length > 0 -%}
 /,
-*{{self.sink[0]}}: Any,
-{% else %}
-*{{self.sink[0]}}: Any,
-{% endif %}
+*{{sink[0]}}: Any,
+ {%- else -%}
+*{{sink[0]}}: Any,
+ {%- endif -%}
 {%- else -%}
-{%- if args|length > 0 -%}
+ {%- if args|length > 0 -%}
 /,
-{%- else -%}
+ {%- else -%}
 *,
-{%- endif -%}
-{% endif %}
+ {%- endif -%}
 {%- endif %}
 {%- if config_fields %}
 {%- for key, field in config_fields.items() %}

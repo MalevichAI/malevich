@@ -3,7 +3,6 @@ import json
 import os
 import re
 import tempfile
-import typing
 from contextlib import chdir
 from hashlib import sha256
 from pathlib import Path
@@ -60,13 +59,6 @@ Registry().register("{operation_id}", {registry_record})
     processor = """
 @proc(use_sinktrace={use_sinktrace}, config_model={config_model})
 {definition}
-    return OperationNode(
-        operation_id="{operation_id}",
-        config=config,
-        processor_id="{name}",
-        package_id="{package_id}",
-        alias=alias,
-    )
 """
 
 
@@ -141,31 +133,22 @@ class StubFunction(BaseModel):
         environment = Environment(
             loader=FileSystemLoader(Paths.templates('metascript', 'op_stub'))
         )
-        if not self.config_schema:
-            data = environment.get_template('def.jinja2').render(
-                processor_name = self.name,
-                args = self.args,
-                docstrings = self.docstrings,
-                sink = self.sink,
-                is_condition = self.is_condition,
-                package_id = self.package_id,
-                config_model=config_model,
-                reserved_config_fields=reserved_config_fields,
-                operation_id=self.operation_id
-            )
-        else:
-            data = environment.get_template('def.jinja2').render(
-                processor_name = self.name,
-                args = self.args,
-                docstrings = self.docstrings,
-                sink = self.sink,
-                is_condition = self.is_condition,
-                package_id = self.package_id,
-                config_model=config_model,
-                reserved_config_fields=reserved_config_fields,
-                config_fields=self.config_schema.model_fields, 
-                operation_id=self.operation_id
-            )
+        extra_kwargs_ = {}
+        if self.config_schema:
+            extra_kwargs_['config_fields'] = self.config_schema.model_computed_fields
+        if self.sink:
+            extra_kwargs_['sink'] = self.sink
+        data = environment.get_template('def.jinja2').render(
+            processor_name = self.name,
+            args = self.args,
+            docstrings = self.docstrings,
+            is_condition = self.is_condition,
+            package_id = self.package_id,
+            config_model=config_model,
+            reserved_config_fields=reserved_config_fields,
+            operation_id=self.operation_id,
+            **extra_kwargs_
+        )
 
         return data
 
@@ -360,9 +343,6 @@ class Stub:
                     ))
 
                     j += f_F.write(Templates.processor.format(
-                        name=name,
-                        package_id=package_name,
-                        operation_id=operation_ids[name],
                         use_sinktrace=bool(function.sink),
                         definition=function.definition,
                         config_model=config_model_class[name]
