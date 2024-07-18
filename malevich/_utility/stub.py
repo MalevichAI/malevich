@@ -4,7 +4,6 @@ import os
 import re
 import tempfile
 import typing
-from contextlib import chdir
 from hashlib import sha256
 from pathlib import Path
 from typing import Type
@@ -248,13 +247,12 @@ class Stub:
         malevich_app_name: str | None = None,
         dependency: Dependency | None = None
     ) -> None:
-        with chdir(path):
-            assert Path('index.yaml').exists(
-            ), "No index.yaml found in the package"
-            self.index = pydml.parse_yaml_file_as(StubIndex, 'index.yaml')
-            self.path = path
-            self.malevich_app_name = malevich_app_name
-            self.dependency = dependency
+        ipath = os.path.join(path, 'index.yaml')
+        assert Path(ipath).exists(), "No index.yaml found in the package"
+        self.index = pydml.parse_yaml_file_as(StubIndex, ipath)
+        self.path = path
+        self.malevich_app_name = malevich_app_name
+        self.dependency = dependency
 
     @staticmethod
     def from_app_info(
@@ -297,37 +295,36 @@ class Stub:
             else:
                 config_model_class[processor_name] = None
 
-        with chdir(path):
-            with open('scheme.py', 'w+') as f_scheme:
-                i = 0
-                for (name, (class_name, stub,)), proc in zip(
-                    config_stubs.items(), operations.values()
-                ):
-                    if class_name is None or stub is None:
-                        continue
+        with open(os.path.join(path, 'scheme.py'), 'w+') as f_scheme:
+            i = 0
+            for (name, (class_name, stub,)), proc in zip(
+                config_stubs.items(), operations.values()
+            ):
+                if class_name is None or stub is None:
+                    continue
 
-                    j = f_scheme.write(stub + '\n')
-                    index.schemes.append(
-                        StubSchema(
-                            name=name,
-                            scheme=json.dumps(proc.contextClass),
-                            class_name=config_model_class[processor_name],
-                        )
+                j = f_scheme.write(stub + '\n')
+                index.schemes.append(
+                    StubSchema(
+                        name=name,
+                        scheme=json.dumps(proc.contextClass),
+                        class_name=config_model_class[processor_name],
                     )
-                    index.schemes_index[name] = (i, i + j)
-                    i += j
+                )
+                index.schemes_index[name] = (i, i + j)
+                i += j
 
-                for name, schema in app_info.schemes.items():
-                    stub_ = Stub.Utils.generate_context_schema(schema)
-                    j = f_scheme.write(stub_[1] + '\n')
-                    index.schemes.append(
-                        StubSchema(
-                            name=name,
-                            scheme=schema,
-                            class_name=stub_[0][0]
-                        )
+            for name, schema in app_info.schemes.items():
+                stub_ = Stub.Utils.generate_context_schema(schema)
+                j = f_scheme.write(stub_[1] + '\n')
+                index.schemes.append(
+                    StubSchema(
+                        name=name,
+                        scheme=schema,
+                        class_name=stub_[0][0]
                     )
-                    index.schemes_index[name] = (i, i + j)
+                )
+                index.schemes_index[name] = (i, i + j)
 
         importlib.import_module(f'malevich.{package_name}.scheme')
         config_models = {
@@ -374,44 +371,42 @@ class Stub:
                 config_model=config_model_class[name]
             )
 
-        with chdir(path):
-            with open('F.py', 'w+') as f_F:  # noqa: N806
-                i = f_F.write(Templates.imports)
+        with open(os.path.join(path, 'F.py'), 'w+') as f_F:  # noqa: N806
+            i = f_F.write(Templates.imports)
 
-                for name, function in functions.items():
-                    j = f_F.write(Templates.registry.format(
-                        operation_id=operation_ids[name],
-                        registry_record=registry_records[name]
-                    ))
+            for name, function in functions.items():
+                j = f_F.write(Templates.registry.format(
+                    operation_id=operation_ids[name],
+                    registry_record=registry_records[name]
+                ))
 
-                    j += f_F.write(Templates.processor.format(
-                        name=name,
-                        package_id=package_name,
-                        operation_id=operation_ids[name],
-                        use_sinktrace=bool(function.sink),
-                        definition=function.definition,
-                        config_model=config_model_class[name],
-                        is_condition=function.is_condition,
-                    ))
-                    index.functions.append(function)
-                    index.functions_index[name] = (i, i + j)
-                    i += j
+                j += f_F.write(Templates.processor.format(
+                    name=name,
+                    package_id=package_name,
+                    operation_id=operation_ids[name],
+                    use_sinktrace=bool(function.sink),
+                    definition=function.definition,
+                    config_model=config_model_class[name],
+                    is_condition=function.is_condition,
+                ))
+                index.functions.append(function)
+                index.functions_index[name] = (i, i + j)
+                i += j
 
-            # yaml.dump(index.model_dump(), open('index.yaml', 'w+'))
-            pydml.to_yaml_file('index.yaml', index)
-            with open('__init__.py', 'w+') as init:
-                if description:
-                    init.write(Templates.module_specific_description.format(
-                        description=description
-                    ))
-                else:
-                    init.write(Templates.module_general_description)
+        pydml.to_yaml_file(os.path.join(path, 'index.yaml'), index)
+        with open(os.path.join(path, '__init__.py'), 'w+') as init:
+            if description:
+                init.write(Templates.module_specific_description.format(
+                    description=description
+                ))
+            else:
+                init.write(Templates.module_general_description)
 
-                init.write(
-                    "\n"
-                    "from .F import *\n"
-                    "from .scheme import *\n"
-                )
+            init.write(
+                "\n"
+                "from .F import *\n"
+                "from .scheme import *\n"
+            )
 
         return Stub(
             path=path,
