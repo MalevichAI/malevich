@@ -438,16 +438,19 @@ class CoreResult(BaseResult[CoreResultPayload]):
             dict: The document of the result
         """
         if result := self.get():
-            if result[index].is_document:
-                return result[index].data if model is None else model(
-                    **result[index].data
-                )
-            else:
-                what = "asset" if result[index].is_asset() else "collection"
-                raise NotImplementedError(
-                    "Cannot return a document from a non-document result. "
-                    f"Result at index {index} is {what}"
-                )
+            # if result[index].is_document:
+            #     return result[index].data if model is None else model(
+            #         **result[index].data
+            #     )
+            # else:
+            #     what = "asset" if result[index].is_asset() else "collection"
+            #     raise NotImplementedError(
+            #         "Cannot return a document from a non-document result. "
+            #         f"Result at index {index} is {what}"
+            #     )
+            data_ = result[0][0]
+            assert isinstance(data_, dict), 'not a doc' 
+            return model(**data_) if model else data_
 
 
 
