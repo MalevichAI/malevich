@@ -453,13 +453,13 @@ class CoreResult(BaseResult[CoreResultPayload]):
             #         "Cannot return a document from a non-document result. "
             #         f"Result at index {index} is {what}"
             #     )
-            data_ = result[0].data.iloc[0]
+            data_ = result[0].data.to_dict(orient='records')[0]
             return model(**data_) if model else data_
 
     @cache
     def get_documents(
         self,
-        model: type[DocumentModelType] | None
+        model: type[DocumentModelType] | None = None
     ) -> list[dict] | list[DocumentModelType]:
         if result := self.get():
             # if result[index].is_document:
