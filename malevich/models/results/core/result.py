@@ -453,7 +453,7 @@ class CoreResult(BaseResult[CoreResultPayload]):
             #         "Cannot return a document from a non-document result. "
             #         f"Result at index {index} is {what}"
             #     )
-            data_ = result[0].iloc[0]
+            data_ = result[0].data.iloc[0]
             return model(**data_) if model else data_
 
     @cache
@@ -472,7 +472,7 @@ class CoreResult(BaseResult[CoreResultPayload]):
             #         "Cannot return a document from a non-document result. "
             #         f"Result at index {index} is {what}"
             #     )
-            data_ = result[0].to_dict(orient='records')
+            data_ = result[0].data.to_dict(orient='records')
             if model:
                 return [model(**d) for d in data_]
             return data_
