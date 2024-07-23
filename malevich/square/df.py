@@ -2,16 +2,19 @@ import os
 from functools import cached_property
 from typing import (
     Any,
+    Dict,
     ForwardRef,
     Generic,
     Iterator,
     List,
     Optional,
+    Type,
     TypeVar,
     Union,
 )
 
 import pandas as pd
+from pydantic import BaseModel
 from typing_extensions import TypeVarTuple, Unpack
 
 Schemes = TypeVarTuple('Schemes')
@@ -25,7 +28,7 @@ def _is_M(type: Any) -> bool:  # noqa: N802, ANN401
 
 class M(Generic[SchemeM]):
     """Special indicator to be used in :class:`DFS` to denote variable number of inputs.
-    
+
     See :class:`DFS` for more details.
     """
     pass
@@ -33,28 +36,28 @@ class M(Generic[SchemeM]):
 
 class DF(Generic[Scheme], pd.DataFrame):
     """Wrapper class for tabular data.
-    
+
     DF (and DFS) classes are used to denote tabular data.
-    They can specify the scheme of the data. The scheme can be a reference 
+    They can specify the scheme of the data. The scheme can be a reference
     tp class adecorated with :func:`malevich.square.jls.scheme`
     or simply a string containing the name of the scheme.
-    
+
     DF may follow an interface of different data frames implementation.
     But, most of the time, it is just a wrapper of :class:`pandas.DataFrame`.
     So, you can use all the methods of :class:`pandas.DataFrame` directly on DF object.
-    
+
     .. warning::
-    
+
         You should not construct DF directly. Instead, when
         returning results from processors, you should use
         any of supported data frames classes directly.
-        
+
         For example, you may return a :class:`pandas.DataFrame`:
-        
+
         .. code-block:: python
-    
+
             import pandas as pd
-        
+
             @processor()
             def my_processor(df: DF):
                 return pd.DataFrame(...)
@@ -94,15 +97,15 @@ class DF(Generic[Scheme], pd.DataFrame):
 
 class DFS(Generic[Unpack[Schemes]]):
     """Wrapper class for tabular data.
-    
+
     DFS is a container for multiple DFs. It is used to denote an
-    output of processors that return multiple data frames. 
-    
+    output of processors that return multiple data frames.
+
     Each of the elements of DFS is also a :class:`DF` or :class:`DFS`.
     """
     def __init__(self) -> None:
         """set dfs with init"""
-        self.__dfs: List[Union[DF, DFS, OBJ, None]] = []
+        self.__dfs: List[Union[DF, DFS, OBJ, Doc, None]] = []
         self.__inited = False
 
     def init(self, *dfs: pd.DataFrame, nested: bool = False) -> 'DFS':
@@ -112,9 +115,13 @@ class DFS(Generic[Unpack[Schemes]]):
         self.__init(list(dfs), nested)
         return self
 
-    def __add_jdf(self, df: Union[str, pd.DataFrame], type) -> None:
+    def __add_jdf(self, df: Union[str, pd.DataFrame, Type[BaseModel], Dict], type) -> None: # noqa: E501
         if isinstance(df, str):
             self.__dfs.append(OBJ(df))
+        elif (hasattr(type, "__origin__") and type.__origin__ is Doc) or type is Doc:
+            self.__dfs.append(type(df).init())
+        elif (type is Any or type is None) and (isinstance(df, Dict) or issubclass(df.__class__, BaseModel)):   # noqa: E501
+            self.__dfs.append(Doc[type](df))
         else:
             self.__dfs.append(DF[type](df))
 
@@ -161,39 +168,39 @@ class DFS(Generic[Unpack[Schemes]]):
 
 class Sink(Generic[Unpack[Schemes]]):
     """Wrapper class to denote a specific type inputs to processor
-    
+
     Normally, each argument in processor function signature corresponds to
     exactly one output of the previous processor or exactly one collection.
-    
+
     To denote a processor that is able to accept a variable number of inputs,
     you should use this class.
-        
+
     Argument of type `Sink` should be the only argument
     of the processor function besides Context.
-    
+
     ```python
-    
+
         from typing import Any
         from malevich.square import Sink, DFS, M, processor
-        
+
         @processor()
         def merge_tables_sink(dfs: Sink["sql_tables"]):
             pass
-            
+
         @processor()
         def merge_tables_dfs(dfs: DFS[M["sql_tables"]]):
             pass
     ```
-            
+
     Here, we have two processors. `Sink[schema]` is
-    equivalent to `List[DFS[M[schema]]]`. 
-    
+    equivalent to `List[DFS[M[schema]]]`.
+
     The difference between two processors lies in the fact that
     the first one can be connected to any number of processors
     that return data frames with scheme "sql_tables", while the
     second one can be connected to exactly one processor that
     returns any number of data frames with scheme "sql_tables".
-    
+
     """
     def __init__(self) -> None:
         """set sink with init"""
@@ -225,7 +232,7 @@ class Sink(Generic[Unpack[Schemes]]):
 
 class OBJ:
     """Wrapper class that represents files (or folders)
-    
+
     Used in the same way as :class:`DF`, but provides
     additional functionality to work with files and folders.
     """
@@ -259,8 +266,23 @@ class OBJ:
     @cached_property
     def df(self) -> pd.DataFrame:
         """Reads the asset as a data frame as .csv file
-        
+
         Raises:
-            Exception: If asset is not pointed to a .csv file 
+            Exception: If asset is not pointed to a .csv file
         """
         return pd.read_csv(self.__path)
+
+
+class Doc(Generic[Scheme]):
+    def __init__(self, data: Union[Scheme, Dict]) -> None:
+        assert isinstance(data, Dict) or issubclass(data.__class__, BaseModel), f"wrong Doc data type: expected Dict or subclass of BaseModel, found {type(data)}"  # noqa: E501
+        self.__data: Union[Scheme, Type[BaseModel], Dict] = data
+
+    def parse(self) -> Union[Scheme, Type[BaseModel], Dict]:
+        return self.__data
+
+    @cached_property
+    def _scheme_cls(self) -> Optional[Any]: # noqa: ANN401
+        if hasattr(self, "__orig_class__"):
+            return self.__orig_class__.__args__[0]
+        return None
