@@ -95,6 +95,9 @@ class ExecutionTree(Generic[T, LinkType]):
         """Returns all edges starting from the specified node"""
         return [n for n in self.tree if n[0] == node]
 
+    def edges_to(self, node: T) -> None:
+        return [n for n in self.tree if n[1] == node]
+
     def traverse(self) -> Iterator[tuple[T, T, LinkType]]:
         """Traverse the execution tree
 

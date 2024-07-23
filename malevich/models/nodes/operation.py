@@ -30,7 +30,9 @@ class OperationNode(BaseNode):
     config: dict = {}
     subindex: list[int] | None = None
     is_condition: bool = False
-
+    
+    should_be_true: list[str] = []
+    should_be_false: list[str] = []
 
     def get_senstivite_fields(self) -> dict[str, str]:
         return {"config": json.dumps(self.config)}
@@ -51,9 +53,6 @@ class OperationNode(BaseNode):
 
     def __hash__(self) -> int:
         return super().__hash__()
-
-    def __iter__(self) -> Iterable['OperationNode']:
-        return OperationNodeSpawner(self)
 
     def __getitem__(self, index: int | slice) -> 'OperationNode':
         if isinstance(index, slice):

@@ -62,7 +62,7 @@ Registry().register("{operation_id}", {registry_record})
         processor_id="{name}",
         package_id="{package_id}",
         alias=alias,
-        is_condition="{is_condition}",
+        is_condition={is_condition},
     )
 """
 
@@ -265,7 +265,6 @@ class Stub:
         description: str | None = None,
     ) -> "Stub":
         os.makedirs(path, exist_ok=True)
-
         operations = {**app_info.processors, **app_info.conditions}
         operations = {str(key): value for key, value in operations.items()}
 

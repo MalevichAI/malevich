@@ -19,6 +19,7 @@ from malevich._core.ops import (
     batch_upload_collections,
 )
 from malevich._utility import IgnoreCoreLogs, LogLevel, cout, upload_zip_asset
+from ...._utility.cache.manager import CacheManager
 from malevich.models import (
     Action,
     AssetNode,
@@ -93,6 +94,14 @@ class CoreTask(BaseTask):
         self.component = component
 
         self._returned = None
+        
+        CacheManager().core.write_entry(
+            self.get_pipeline().model_dump_json(indent=4),
+            entry_name=self.get_pipeline_hash() + '.json',
+            entry_group='pipelines',
+            force_overwrite=True
+        )
+
 
     def _create_cfg_safe(
         self,
@@ -132,23 +141,25 @@ class CoreTask(BaseTask):
     def get_stage(self) -> CoreTaskStage:
         if self.state.pipeline_id is not None:
             try:
-                runs = core.get_run_active_runs(
-                    auth=self.state.params.core_auth,
-                    conn_url=self.state.params.core_host,
-                ).ids
-                if self.state.pipeline_id in runs:
-                    return CoreTaskStage.ONLINE
+                with IgnoreCoreLogs():
+                    runs = core.get_run_active_runs(
+                        auth=self.state.params.core_auth,
+                        conn_url=self.state.params.core_host,
+                    ).ids
+                    if self.state.pipeline_id in runs:
+                        return CoreTaskStage.ONLINE
             except Exception:
                 pass
 
         if self.state.unique_task_hash is not None:
             try:
-                core.get_pipeline(
-                    self.state.unique_task_hash,
-                    self.state.params.task_id,
-                    auth=self.state.params.core_auth,
-                    conn_url=self.state.params.core_host
-                )
+                with IgnoreCoreLogs():
+                    core.get_pipeline(
+                        self.state.unique_task_hash,
+                        self.state.params.task_id,
+                        auth=self.state.params.core_auth,
+                        conn_url=self.state.params.core_host
+                    )
                 return CoreTaskStage.BUILT
             except Exception:
                 pass
@@ -214,14 +225,21 @@ class CoreTask(BaseTask):
                 **kwargs
             )
 
+    def get_pipeline(self, with_hash=False) -> core.Pipeline:
+        pipeline = core.Pipeline(
+            pipelineId='',
+            processors=self.state.processors,
+            conditions=self.state.conditions,
+            results=self.state.results
+        )
+        if with_hash:
+            pipeline.pipelineId = self.get_pipeline_hash()
+
+        return pipeline
+
     def get_pipeline_hash(self) -> str:
         return hashlib.sha256(
-            core.Pipeline(
-                pipelineId='',
-                processors=self.state.processors,
-                conditions={},  # NOTE: Future
-                results=self.state.results
-            ).model_dump_json().encode()
+           self.get_pipeline(with_hash=False).model_dump_json().encode() 
         ).hexdigest()
 
     def prepare(
@@ -325,11 +343,12 @@ class CoreTask(BaseTask):
 
         for node in self.state.document_nodes.values():
             try:
-                node.core_id = core.get_doc_by_name(
-                    node.magic(),
-                    conn_url=self.state.params.core_host,
-                    auth=self.state.params.core_auth,
-                ).id
+                with IgnoreCoreLogs():
+                    node.core_id = core.get_doc_by_name(
+                        node.magic(),
+                        conn_url=self.state.params.core_host,
+                        auth=self.state.params.core_auth,
+                    ).id
 
                 cout(
                     action=Action.Preparation,
@@ -398,7 +417,7 @@ class CoreTask(BaseTask):
                 self.state.pipeline_id = core.create_pipeline(
                     self.state.unique_task_hash,
                     processors=self.state.processors,
-                    conditions=None,  # NOTE: Future
+                    conditions=self.state.conditions or None,
                     results=self.state.results,
                     conn_url=self.state.params.core_host,
                     auth=self.state.params.core_auth,
@@ -719,7 +738,6 @@ class CoreTask(BaseTask):
                         else:
                             # ok, validates before
                             pass
-                        print(self.state.processors)
                         app_cfg_extensions['$' + x.alias] = extension_json
 
         try:

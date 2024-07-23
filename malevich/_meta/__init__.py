@@ -9,5 +9,5 @@ __all__ = [
     "collection",
     "flow",
     "run",
-    "document"
+    "document",
 ]

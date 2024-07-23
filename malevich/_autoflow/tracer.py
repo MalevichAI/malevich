@@ -62,6 +62,8 @@ class traced(Generic[T]):  # noqa: N801
     _autoflow: autoflow
     """Autoflow bridge"""
 
+    __keep_tree_on_deepcopy__ = True
+
     def __init__(
         self,
         owner: T = root()
@@ -107,6 +109,12 @@ class traced(Generic[T]):  # noqa: N801
 
     def __hash__(self) -> int:
         return hash(self.owner)
+
+    def __copy__(self, *args):
+        return self
+
+    def __deepcopy__(self, *args):
+        return self
 
 
 class tracedLike(traced[T]):  # noqa: N801

@@ -60,3 +60,8 @@ class Flow(metaclass=SingletonMeta):
     def get_stack() -> tuple[ExecutionTree]:
         """Returns immutable stack of execution trees"""
         return tuple(Flow.__flow_stack)
+    
+    @staticmethod
+    def _hardset_tree(tree: ExecutionTree) -> None:
+        """Injects a tree into the flow stack"""
+        Flow.__flow_stack[-1] = tree

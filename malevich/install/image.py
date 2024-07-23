@@ -130,12 +130,12 @@ class ImageInstaller(Installer):
 
         operation_ids = {
             str(op.id): hashlib.sha256(op.model_dump_json().encode()).hexdigest()
-            for op in app_info.processors.values()
+            for op in [*app_info.processors.values(), *app_info.conditions.values()]
         }
 
         operation_names = {
             str(op.id): op.name
-            for op in app_info.processors.values()
+            for op in [*app_info.processors.values(), *app_info.conditions.values()]
         }
 
         Stub.from_app_info(

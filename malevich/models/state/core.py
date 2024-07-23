@@ -57,3 +57,5 @@ class CoreInterpreterState(BaseModel):
     """Mapping of asset aliases to asset nodes"""
 
     results: dict[str, list[Result]] = {}
+    """Mapping of processor aliases to results"""
+
