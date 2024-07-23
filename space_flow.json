@@ -1,0 +1,156 @@
+{
+  "name": "Space Flow",
+  "reverse_id": "space_flow",
+  "uid": null,
+  "visibility": [],
+  "anticipated_python_deps": [],
+  "anticipated_default": [],
+  "anticipated_api_call": null,
+  "anticipated_api_name": null,
+  "example_code_before_juliusfication": null,
+  "description": "Meta flow: Space Flow",
+  "designed_for": null,
+  "not_designed_for": null,
+  "designed_for_use_case": [],
+  "not_designed_for_use_case": [],
+  "tags": null,
+  "app": null,
+  "flow": {
+    "is_demo": false,
+    "components": [
+      {
+        "reverse_id": "utility",
+        "alias": "combine",
+        "offsetX": null,
+        "offsetY": null,
+        "limits": null,
+        "depends": {
+          "pass": {
+            "as_collection": null,
+            "alias": "pass",
+            "reverse_id": null,
+            "from_op_id": "967abe6f3676423f9660ce9fff49805b",
+            "to_op_id": "193c5b5dac79412fb9e0edaada967902",
+            "terminals": null,
+            "schema_aliases": null,
+            "order": 0
+          },
+          "change": {
+            "as_collection": null,
+            "alias": "change",
+            "reverse_id": null,
+            "from_op_id": "967abe6f3676423f9660ce9fff49805b",
+            "to_op_id": "193c5b5dac79412fb9e0edaada967902",
+            "terminals": null,
+            "schema_aliases": null,
+            "order": 0
+          }
+        },
+        "app": {
+          "active_op": [
+            {
+              "core_id": "merge",
+              "type": "processor",
+              "requires": []
+            }
+          ]
+        },
+        "active_cfg": {
+          "readable_name": "Meta Config for Utility",
+          "core_name": "meta-config-for-utility-e94e84b0",
+          "cfg_json": {},
+          "core_id": null
+        }
+      },
+      {
+        "reverse_id": "utility",
+        "alias": "change",
+        "offsetX": null,
+        "offsetY": null,
+        "limits": null,
+        "depends": {
+          "space_test_data": {
+            "as_collection": null,
+            "alias": "space_test_data",
+            "reverse_id": null,
+            "from_op_id": null,
+            "to_op_id": "967abe6f3676423f9660ce9fff49805b",
+            "terminals": null,
+            "schema_aliases": null,
+            "order": 0
+          }
+        },
+        "app": {
+          "active_op": [
+            {
+              "core_id": "rename",
+              "type": "processor",
+              "requires": []
+            }
+          ]
+        },
+        "active_cfg": {
+          "readable_name": "Meta Config for Utility",
+          "core_name": "meta-config-for-utility-b0a2f964",
+          "cfg_json": {
+            "test1": "test2"
+          },
+          "core_id": null
+        }
+      },
+      {
+        "reverse_id": "space_test_data",
+        "alias": "space_test_data",
+        "offsetX": null,
+        "offsetY": null,
+        "limits": null,
+        "depends": {},
+        "app": null,
+        "active_cfg": null
+      },
+      {
+        "reverse_id": "utility",
+        "alias": "pass",
+        "offsetX": null,
+        "offsetY": null,
+        "limits": null,
+        "depends": {
+          "space_test_data": {
+            "as_collection": null,
+            "alias": "space_test_data",
+            "reverse_id": null,
+            "from_op_id": null,
+            "to_op_id": "967abe6f3676423f9660ce9fff49805b",
+            "terminals": null,
+            "schema_aliases": null,
+            "order": 0
+          }
+        },
+        "app": {
+          "active_op": [
+            {
+              "core_id": "rename",
+              "type": "processor",
+              "requires": []
+            }
+          ]
+        },
+        "active_cfg": {
+          "readable_name": "Meta Config for Utility",
+          "core_name": "meta-config-for-utility-7ebf4311",
+          "cfg_json": {},
+          "core_id": null
+        }
+      }
+    ]
+  },
+  "collection": null,
+  "asset": null,
+  "icon": null,
+  "hf_url": null,
+  "repo_url": null,
+  "docs_url": null,
+  "branch": null,
+  "version": null,
+  "required_schema": []
+}

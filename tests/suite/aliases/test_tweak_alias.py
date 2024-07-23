@@ -1,6 +1,4 @@
 from malevich.models.task.promised import PromisedTask
-from malevich.models.flow_function import FlowFunction
-from malevich.models.results.base import BaseResult
 from malevich.testing import FlowTestEnv, FlowTestSuite, ImageDependency
 from malevich import CoreInterpreter, flow
 import os

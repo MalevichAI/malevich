@@ -1,0 +1,9 @@
+
+
+Attempting automatic installation of components utility
+
+  ✔ Success with space (utility)
+
+
+Installation of utility with space installer was successful
+
