@@ -71,6 +71,7 @@ space = {
     '--help': """Communicate with Malevich Space - a public provider of Malevich Core""",
     'init --help': """Imports Malevich Space configuration into the current environment""",
     'login --help': """Interactive login to Malevich Space""",
+    'whoami --help': """Get information about connected Space user"""
 }
 
 remove = {
@@ -87,4 +88,8 @@ list_ = {
 
 new = {
     '--help': """Create a new app from a template""",
+}
+
+core = {
+    '--help': """Manage your Core account"""
 }

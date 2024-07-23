@@ -1,0 +1,3 @@
+{%- for injectable in injectables %}
+    {{injectable.alias}}: collection['{{injectable.reverse_id}}', None] | table = None,
+{%- endfor -%}

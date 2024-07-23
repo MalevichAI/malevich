@@ -588,7 +588,6 @@ class Context(Generic[MinimalCfg]):
         synchronize: bool = True
     ) -> None:
         """Shares multiple files or directories.
-
         The same as :meth:`async_share`, but for multiple files or directories.
         Ignores paths that do not exist.
         """
@@ -832,7 +831,10 @@ class Context(Generic[MinimalCfg]):
 
 def to_binary(smth: Any) -> bytes:  # noqa: ANN401
     """Converts object to binary
+<<<<<<< HEAD
+=======
 
+>>>>>>> f9049b55f1efeadd27e32843d9c0d8c4431a7405
     Args:
         smth (Any): object to convert
     """
@@ -841,7 +843,10 @@ def to_binary(smth: Any) -> bytes:  # noqa: ANN401
 
 def from_binary(smth: bytes) -> Any:
     """Converts binary to object
+<<<<<<< HEAD
+=======
 
+>>>>>>> f9049b55f1efeadd27e32843d9c0d8c4431a7405
     Args:
         smth (bytes): binary to convert
     """
@@ -937,7 +942,6 @@ class S3Helper:
 class SmtpSender:
     """
     Ready-made auxiliary wrapper for interacting with SMTP
-
     Args:
         login (str): login
         password (str): password
@@ -1121,7 +1125,6 @@ def _tensor_from_df(x: pd.DataFrame) -> list:
 
 def to_df(x: Any, force: bool = False) -> pd.DataFrame:
     """Creates a data frame from an arbitrary object
-
     - `torch.Tensor`: Tensor is serialized using torch.save and then encoded using base112. Autograd information is preserved.
     - `numpy`, `list`, `tuple`, `range`, `bytearray`: Data is serialized using pickle and stored as is in `data` column.
     - `set`, `frozenset`: Data is converted to list and stored as is in `data` column.

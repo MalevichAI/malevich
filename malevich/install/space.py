@@ -1,13 +1,16 @@
 import re
 from typing import Optional
 
-from malevich_space.ops import SpaceOps
+from malevich_space.schema import LoadedComponentSchema
 
-from .._utility.space.space import resolve_setup
-from ..manifest import ManifestManager
-from ..models.installers.space import SpaceDependency, SpaceDependencyOptions
+from malevich._core.scan import scan_core
+from malevich._utility import Stub, get_auto_ops
+from malevich.constants import DEFAULT_CORE_HOST
+from malevich.manifest import ManifestManager
+from malevich.models.installers.space import SpaceDependency, SpaceDependencyOptions
+from malevich.path import Paths
+
 from .installer import Installer
-from .stub import create_package_stub
 
 manf = ManifestManager()
 
@@ -62,12 +65,15 @@ class SpaceInstaller(Installer):
     def __init__(self) -> None:
         super().__init__()
         try:
-            self.__ops = SpaceOps(resolve_setup(
-                manf.query('space', resolve_secrets=True)
-            ))
+            self.__ops = get_auto_ops()
         except Exception as e:
-            raise Exception(
-                "Setup is invalid. Run `malevich space login`") from e
+            from malevich._cli.space.login import login
+            if not login():
+                raise Exception(
+                    "Login failed. Run `malevich space login` to try again"
+                ) from e
+            SpaceInstaller.__init__(self)
+
 
     def install(
         self,
@@ -75,7 +81,8 @@ class SpaceInstaller(Installer):
         reverse_id: str,
         branch: Optional[str] = None,
         version: Optional[str] = None,
-    ) -> SpaceDependency:
+    ) -> SpaceDependency | LoadedComponentSchema:
+        package_name = re.sub(r'[\W\s]+', '_', package_name)
 
         component = self.__ops.get_parsed_component_by_reverse_id(
             reverse_id=reverse_id
@@ -84,11 +91,12 @@ class SpaceInstaller(Installer):
         if component is None:
             raise Exception(f"Component {reverse_id} not found")
 
+        if component.flow is not None:
+            return component
+
         if component.app is None:
             raise Exception(f"Component {reverse_id} is not an app")
 
-        metascript = Templates.disclaimer
-        metascript += Templates.imports
 
         m = ManifestManager()
 
@@ -99,55 +107,6 @@ class SpaceInstaller(Installer):
             )
         else:
             iauth, itoken = None, None
-
-        for op in component.app.ops:
-            if op.type != "processor":
-                continue
-            metascript += Templates.registry.format(
-                operation_id=op.uid,
-                reverse_id=reverse_id,
-                branch=str(component.branch.model_dump()),
-                version=str(component.version.model_dump()),
-                name=op.core_id,
-                image_ref=(
-                    "dependencies",
-                    package_name,
-                    "options",
-                    "image_ref"
-                ),
-                image_auth_user=(
-                    "dependencies",
-                    package_name,
-                    "options",
-                    "image_auth_user",
-                ),
-                image_auth_pass=(
-                    "dependencies",
-                    package_name,
-                    "options",
-                    "image_auth_pass",
-                ),
-            )
-            is_sink = any(
-                ['Sink' in arg_.arg_type
-                 for arg_ in op.args if arg_.arg_type
-            ])
-            args_ = []
-
-            for arg_ in op.args:
-                if "return" in arg_.arg_name \
-                        or (arg_.arg_type and "Context" in arg_.arg_type):
-                    continue
-                args_.append(arg_.arg_name)
-
-            metascript += Templates.processor.format(
-                name=op.core_id,
-                args=(", ".join(args_) + ", " if args_ else "") if not is_sink else '*args, ',  # noqa: E501
-                docs=op.doc,
-                operation_id=op.uid,
-                decor='autotrace' if not is_sink else 'sinktrace',
-                package_id=package_name
-            )
 
         dependency = SpaceDependency(
             package_id=package_name,
@@ -163,15 +122,48 @@ class SpaceInstaller(Installer):
             )
         )
 
-        create_package_stub(
-            package_name=re.sub(r"[^a-zA-Z0-9_]", "_", package_name),
-            metascript=metascript,
-            dependency=dependency
+        Stub.from_app_info(
+            app_info=scan_core(
+                image_ref=component.app.container_ref,
+                image_auth=(
+                    component.app.container_user, component.app.container_token
+                ),
+                core_host=DEFAULT_CORE_HOST,
+            ),
+            path=Paths.module(package_name),
+            package_name=package_name,
+            dependency=dependency,
+            operation_ids={
+                op.core_id: op.uid
+                for op in component.app.ops
+            },
+            registry_records={
+                str(op.core_id): {
+                    "operation_id": op.uid,
+                    "reverse_id": reverse_id,
+                    "branch": component.branch.uid,
+                    "version": component.version.uid,
+                    "processor_name": op.core_id,
+                    "processor_id":  op.core_id,
+                    "image_ref": ('dependencies', package_name, 'options', 'image_ref'),
+                    "image_auth_user": (
+                        'dependencies', package_name, 'options', 'image_auth_user'
+                    ),
+                    "image_auth_pass": (
+                        'dependencies', package_name, 'options', 'image_auth_pass'
+                    )
+                }
+                for op in component.app.ops
+            },
+            description=component.description
         )
 
         return dependency
 
-    def restore(self, dependency: SpaceDependency) -> None:
+    def restore(
+            self,
+            dependency: SpaceDependency
+    ) -> SpaceDependency | LoadedComponentSchema:
         return self.install(
             package_name=dependency.package_id,
             reverse_id=dependency.options.reverse_id,

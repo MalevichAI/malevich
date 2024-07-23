@@ -85,9 +85,18 @@ class ExecutionTree(Generic[T, LinkType]):
             if x not in outer_nodes
         ])
 
+    def roots(self) -> Iterable[tuple[int, T]]:
+        return [
+            (i, x) for i, x in enumerate(self.tree)
+            if not any(y[1] == x[0] for y in self.tree)
+        ]
+
     def edges_from(self, node: T) -> None:
         """Returns all edges starting from the specified node"""
         return [n for n in self.tree if n[0] == node]
+
+    def edges_to(self, node: T) -> None:
+        return [n for n in self.tree if n[1] == node]
 
     def traverse(self) -> Iterator[tuple[T, T, LinkType]]:
         """Traverse the execution tree
@@ -98,19 +107,15 @@ class ExecutionTree(Generic[T, LinkType]):
         Returns:
             Generator[T]: Generator of nodes
         """
-        graph = self.tree
 
         # Mark visited nodes
-        visited = [False] * len(graph)
+        visited = [False] * len(self.tree)
 
         # Find roots
-        roots = [
-            (i, x) for i, x in enumerate(graph)
-            if not any(y[1] == x[0] for y in graph)
-        ]
+        roots = self.roots()
 
         # Traverse
-        q = deque(maxlen=len(graph))
+        q = deque(maxlen=len(self.tree))
         for i, r in roots:
             # BFS
             q.append((i, r,))
@@ -127,9 +132,33 @@ class ExecutionTree(Generic[T, LinkType]):
             q.extend(
                 filter(
                     lambda x: x[1][0] == edge[1] and not visited[x[0]],
-                    enumerate(graph)
+                    enumerate(self.tree)
                 )
             )
+
+    def topsort(self) -> Iterator[tuple[T, T, LinkType]]:
+        sort_ = []
+        s = [r[0] for _, r in self.roots()]
+        edges = list(enumerate(self.tree))
+        mask = [False] * len(edges)
+        while s:
+            n = s.pop()
+            if n not in sort_:
+                sort_.append(n)
+            for i, (_, to, _) in filter(
+                lambda x: x[1][0] == n and not mask[x[0]], edges
+            ):
+                mask[i] = True
+                in_ = list(filter(lambda x: x[1][1] == to and not mask[x[0]], edges))
+                add = True
+                for j, (m, _, _) in in_:
+                    if m != n and not mask[j]:
+                        add = False
+                if add:
+                    s = [to, *s]
+
+        return sort_
+
 
     def leaves(self) -> Iterable[T]:
         """Returns all leaves of the execution tree"""
@@ -150,3 +179,8 @@ class ExecutionTree(Generic[T, LinkType]):
     def nodes(self) -> Iterable[T]:
         """Returns all nodes of the execution tree"""
         return list(self.nodes_)
+
+    def cast_link_types(self, type) -> None:
+        """Cast the link types in the tree"""
+        for i, (u, v, link) in enumerate(self.tree):
+            self.tree[i] = (u, v, type(link))

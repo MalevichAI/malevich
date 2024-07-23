@@ -5,11 +5,8 @@ import enum
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Generic, ParamSpec, TypeVar
 
-# from ...interpreter.abstract import Interpreter
-from ..injections import BaseInjectable
-from ..nodes.tree import TreeNode
-from ..results import Result
-from ..types import FlowOutput
+from malevich.models import BaseInjectable, MetaEndpoint, Result, TreeNode
+from malevich.types import FlowOutput
 
 State = TypeVar("State")
 CallbackParams = ParamSpec('CallbackParams')
@@ -149,7 +146,14 @@ class BaseTask(ABC, Generic[StageClass]):
         pass
 
     @abstractmethod
-    def configure(self, operation: str, **kwargs) -> None:
+    def configure(
+        self,
+        *operations: str,
+        # Configurable parameters
+        platform: str = 'base',
+        platform_settings: dict[str, Any] | None = None,
+        **kwargs
+    )-> None:
         """Configures a given operation within the task"""
         pass
 
@@ -159,3 +163,10 @@ class BaseTask(ABC, Generic[StageClass]):
     def get_interpreted_task(self) -> BaseTask:
         """Returns the task interpreted for a particular platform"""
         pass
+
+
+    def publish(self, *args, **kwargs) -> MetaEndpoint:
+        raise NotImplementedError(
+            f"Publishing is not available for {self.__class__.__name__}"
+        )
+

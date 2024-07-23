@@ -5,7 +5,8 @@ from typing import Any
 import pandas as pd
 from malevich_space.schema.schema import SchemaMetadata
 
-from ..collection import Collection
+from malevich.models import Collection
+
 from .base import BaseNode
 
 

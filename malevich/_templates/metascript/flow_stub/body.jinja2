@@ -1,0 +1,20 @@
+{% include "imports.jinja2" %}
+
+{% for integration in integrations -%}
+    {%- include "stub.jinja2" -%}
+{%- endfor %}
+
+{% with i = integrations | first %}
+@integrated(reverse_id='{{reverse_id}}')
+def {{reverse_id}}(
+    version: Literal['{{i.version}}'] = None,
+    branch: Literal['{{i.branch}}'] = None,
+    *args,
+    {% filter indent(width=4) %}
+        {%- include "common_args.jinja2" -%}
+    {% endfilter %},
+    **kwargs,
+):
+   pass
+
+{% endwith %}

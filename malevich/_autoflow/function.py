@@ -1,15 +1,20 @@
 import functools
+import inspect
 import warnings
+from itertools import islice
 from typing import Callable, ParamSpec, TypeVar
 
-from ..models.argument import ArgumentLink
+
 from . import tracer as gn
+from .link import AutoflowLink
 
 C = ParamSpec("C")
 R = TypeVar("R")
 
 
 def autotrace(func: Callable[C, R]) -> Callable[C, R]:
+    from malevich.models.nodes.joint import JointNode
+    
     """Function decorator that enables automatic dependency tracking
 
     The result is turned into :func:`traced <malevich._autoflow.tracer.traced>`
@@ -26,30 +31,45 @@ def autotrace(func: Callable[C, R]) -> Callable[C, R]:
     **kwargs, raises a warning and does not link the argument.
     """
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):  # noqa: ANN202
+    def wrapper(*args, **kwargs):
+        # Call function to obtain resuts
         result = func(*args, **kwargs)
         result = gn.traced(result) if not isinstance(
-            result, gn.traced) else result
+            result, gn.traced # If the results is not traced, trace it
+        ) else result
+        # Obtain parameters from function signature.
+        parameters = list(inspect.signature(func).parameters.values())
+        # !! The function only traces positional only arguments
+        # which are the ones that preceed \
+        # def func(arg1, arg2, /, arg3, *, ...) <-- only arg1 and arg2 are
+        # considered
+        varnames = [ # filter pos-only args
+            p.name for p in parameters
+            if p.kind == inspect.Parameter.POSITIONAL_ONLY
 
-        varnames = func.__code__.co_varnames
-        for i, arg in enumerate(args):
-            argument_name = varnames[min(i, len(varnames) - 1)]
+        ]
+        # tracing arguments, slicing up to known args
+        for i, arg in enumerate(islice(args, 0, len(varnames))):
+            argument_name = varnames[i]
             if isinstance(arg, gn.traced):
+                # FIXME: Temporal for AlternativeArgument
+                if isinstance(arg._owner, JointNode):
+                    raise ValueError(
+                        f"Processor {func.__name__} was called "
+                        "with joint node. Most probably you have a branch "
+                        "that modifies the variable declared outside the branch. "
+                    )
                 arg._autoflow.calledby(
                     result,
-                    ArgumentLink(index=i, name=argument_name)
+                    AutoflowLink(index=i, name=argument_name)
                 )
-        for key in kwargs:
-            if isinstance(kwargs[key], gn.traced):
-                if key in varnames:
-                    kwargs[key]._autoflow.calledby(
-                        result, ArgumentLink(index=varnames.index(key), name=key)
-                    )
-                else:
-                    warnings.warn(
-                        "Passing a keyword argument to a traced function that is not"
-                        " a formal argument of the function is not supported."
-                    )
+            else:
+                raise ValueError(
+                    f"You passed invalid argument to {func.__name__} "
+                    f"at position {i}. When using processors, you may only "
+                    "pass specific objects produced by Malevich operations."
+                    # TODO: documentation ref
+                )
 
         return result
     return wrapper
@@ -61,19 +81,29 @@ def sinktrace(func: Callable[C, R]) -> Callable[C, R]:
     This decorator is applied to processors that contains
     """
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):  # noqa: ANN202
-        from ..models.nodes.collection import CollectionNode
-        for arg in args:
-            if isinstance(arg, CollectionNode):
-                # NOTE: That should be addressed
-                raise ValueError(
-                    "App with unrestricted number of arguments cannot be "
-                    "run with collections")
+    def wrapper(*args, **kwargs) -> gn.traced:
+        # Call function to obtain resuts
         result = func(*args, **kwargs)
         result = gn.traced(result) if not isinstance(result, gn.traced) else result
+        parameters = list(inspect.signature(func).parameters.values())
+        names = [
+            p.name for p in parameters
+            if p.kind in (
+                inspect.Parameter.VAR_POSITIONAL,
+                inspect.Parameter.POSITIONAL_ONLY
+            )
+        ]
+
         for i, arg in enumerate(args):
+            real_index = min(i, len(names) - 1)
+            argument_name = names[real_index]
             if isinstance(arg, gn.traced):
-                arg._autoflow.calledby(result, ArgumentLink(index=i, name=''))
+                arg._autoflow.calledby(result, AutoflowLink(
+                        index=real_index,
+                        name=argument_name,
+                        in_sink=i >= len(names) - 1
+                    )
+                )
             else:
                 warnings.warn(
                     "Ignoring non-traced argument in sinktrace function"

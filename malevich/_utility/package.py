@@ -3,7 +3,7 @@ import os
 import shutil
 import sys
 
-from .singleton import SingletonMeta
+from .._dev.singleton import SingletonMeta
 
 
 class PackageManager(metaclass=SingletonMeta):
@@ -49,19 +49,28 @@ class PackageManager(metaclass=SingletonMeta):
             raise Exception(f"Package {package_name} does not exist")
         shutil.rmtree(package_path)
 
-    def get_package(self, package_name: str) -> None:
+    def get_package(self, package_name: str) -> str:
         package_path = self.get_package_path(package_name)
         if not self.is_package(package_path):
             raise Exception(f"Package {package_name} does not exist")
         return package_path
 
-    def is_package(self, package_fol_path: str) -> None:
+    def is_package(self, package_fol_path: str) -> bool:
         is_package = os.path.exists(package_fol_path)
         is_package &= os.path.isdir(package_fol_path)
         init_py = os.path.join(package_fol_path, '__init__.py')
         is_package &= os.path.exists(init_py)
         is_package &= os.path.isfile(init_py)
+        is_old_package = False
+        is_new_package = False
+
+        F_py = os.path.join(package_fol_path, 'F.py')  # noqa: N806
+        scheme_py = os.path.join(package_fol_path, 'scheme.py')
+        if os.path.exists(F_py) and os.path.exists(scheme_py):
+            is_new_package = True
+
         if is_package:
+            is_old_package = is_package
             with open(init_py) as f:
                 str_ = ""
                 for line in f.readlines():
@@ -69,13 +78,13 @@ class PackageManager(metaclass=SingletonMeta):
                         exec(line)
                         checksum = locals().get('__Metascript_checksum__')
                         n_checksum =  hashlib.sha256(str_[:-1].encode()).hexdigest()
-                        is_package &= checksum == n_checksum
+                        is_old_package &= checksum == n_checksum
                         break
                     else:
                         str_ += line
                 else:
-                    is_package = False
-        return is_package
+                    is_old_package = False
+        return is_new_package or is_old_package
 
     def get_all_packages(self) -> list[str]:
         return [

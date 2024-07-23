@@ -9,16 +9,16 @@ from multiprocessing import cpu_count
 from typing import Optional
 
 import malevich_coretools as core
+from malevich_coretools import FilesDirs
 
-from ..constants import DEFAULT_CORE_HOST
-from ..models.collection import Collection
-from ..models.nodes.asset import AssetNode
+from malevich.constants import DEFAULT_CORE_HOST
+from malevich.models import AssetNode, Collection
 
 executor = ProcessPoolExecutor(max_workers=cpu_count())
 
 
-def result_collection_name(operation_id: str) -> str:
-    return f"result-{operation_id}"
+def result_collection_name(operation_id: str, alias: str = '') -> str:
+    return f"result-{operation_id}-{alias}"
 
 
 def _create_app_safe(
@@ -28,12 +28,13 @@ def _create_app_safe(
         auth: core.AUTH = None,
         conn_url: Optional[str] = DEFAULT_CORE_HOST,
         *args,
+        alias: str = '',
         **kwargs,
 ) -> None:
     settings = core.AppSettings(
         appId=app_id,
         taskId=app_id,
-        saveCollectionsName=result_collection_name(uid)
+        saveCollectionsName=result_collection_name(uid, alias)
     )
 
     kwargs_ = {
@@ -249,11 +250,19 @@ def _assure_asset(
     conn_url: Optional[str] = None,
 ) -> None:
     try:
-        objs = core.get_collection_objects(
-            asset.core_path,
-            auth=auth,
-            conn_url=conn_url,
-        )
+        if not asset.is_composite:
+            core.get_collection_object(
+                asset.core_path,
+                auth=auth,
+                conn_url=conn_url,
+            )
+            objs = FilesDirs(files={asset.core_path: 0}, directories=[])
+        else:
+            objs = core.get_collection_objects(
+                asset.core_path,
+                auth=auth,
+                conn_url=conn_url,
+            )
     except Exception as e:
         if asset.real_path is not None:
             _upload_asset(asset, auth, conn_url)

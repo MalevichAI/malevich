@@ -51,3 +51,9 @@ html_css_files = [
 mermaid_verbose = True
 autodoc_member_order = 'bysource'
 autosectionlabel_prefix_document = True
+html_theme_options = {
+   "logo": {
+      "image_light": "_static/logo-light.svg",
+      "image_dark": "_static/logo-dark.svg",
+   }
+}

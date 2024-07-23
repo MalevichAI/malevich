@@ -1,7 +1,7 @@
 
 from typing import TypeVar
 
-from .._utility.singleton import SingletonMeta
+from malevich._dev.singleton import SingletonMeta
 
 T = TypeVar('T')
 

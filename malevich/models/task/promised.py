@@ -7,13 +7,12 @@ from typing import Any, Type
 
 from malevich_space.schema import ComponentSchema
 
-from ...interpreter.abstract import Interpreter
-from ...interpreter.space import SpaceInterpreter
-from ...models.nodes.tree import TreeNode
-from ...models.task.base import BaseTask
-from ...models.types import FlowOutput
-from ..injections import BaseInjectable
+from malevich.types import FlowOutput
+
+from ..endpoint import MetaEndpoint
+from ..nodes.tree import TreeNode
 from ..results import Result
+from .base import BaseInjectable, BaseTask
 
 
 class PromisedStage(Enum):
@@ -44,7 +43,7 @@ class PromisedTask(BaseTask[PromisedStage]):
         self.__tree = tree
         self.__task = None
         self.__conf_memory = []
-        self.__component = component
+        self._component = component
 
     @property
     def tree(self) -> TreeNode:
@@ -75,7 +74,10 @@ class PromisedTask(BaseTask[PromisedStage]):
         else:
             return PromisedStage
 
-    def interpret(self, interpreter: Interpreter = None) -> None:
+    def interpret(
+        self,
+        interpreter: 'malevich._interpreter.abstrct.Interpreter' = None
+    ) -> None:
         """Interprets the task with a particular interpreter
 
         Attaching a task to a particular platform and preparing it for execution.
@@ -90,10 +92,12 @@ class PromisedTask(BaseTask[PromisedStage]):
                 Interpreter to use. :class:`malevich.interprete.SpaceInterpreter`
                 is used when not specified. Defaults to None.
         """
+        from malevich.interpreter import SpaceInterpreter
         __interpreter = interpreter or SpaceInterpreter()
         try:
-            task = __interpreter.interpret(self.__tree, self.__component)
-            task.commit_returned(self.__results)
+            task = __interpreter.interpret(self.__tree, self._component)
+            if self.__results:
+                task.commit_returned(self.__results)
             self.__task = task
             # Apply the configuration that was stored in memory
             for operation, kwargs in self.__conf_memory:
@@ -242,9 +246,9 @@ class PromisedTask(BaseTask[PromisedStage]):
             task_bytes_ = self.__task.dump()
         else:
             task_bytes_ = b""
-        tree_bytes_ = pickle.dumps(self.__tree)
+        tree_bytes_ = pickle.dumps(self.__tree.model_dump())
         results_bytes_ = pickle.dumps(self.__results)
-        component_bytes_ = pickle.dumps(self.__component)
+        component_bytes_ = pickle.dumps(self._component)
         return pickle.dumps(
             (task_bytes_, tree_bytes_, results_bytes_, component_bytes_)
         )
@@ -255,7 +259,7 @@ class PromisedTask(BaseTask[PromisedStage]):
         task_bytes_, tree_bytes_, results_bytes_, component_bytes_ = pickle.loads(object_bytes)  # noqa: E501
         task = PromisedTask(
             results=pickle.loads(results_bytes_),
-            tree=pickle.loads(tree_bytes_),
+            tree=TreeNode(**pickle.loads(tree_bytes_)),
             component=pickle.loads(component_bytes_)
         )
         if len(task_bytes_) > 0:
@@ -293,7 +297,7 @@ class PromisedTask(BaseTask[PromisedStage]):
             )
         return self.__task.get_operations()
 
-    def configure(self, operation: str, **kwargs) -> None:
+    def configure(self, *operations: str, **kwargs) -> None:
         """Configures the task for a particular operation
 
         What is configurable and how it is configurable is defined by the
@@ -305,11 +309,12 @@ class PromisedTask(BaseTask[PromisedStage]):
             **kwargs (Any): Arguments to configure the operation
         """
         if not self.__task:
+            for op in operations:
             # Remember the configuration to apply it later
-            self.__conf_memory.append((operation, kwargs))
+                self.__conf_memory.append((op, kwargs))
             return None
         # Otherwise proxy directly
-        return self.__task.configure(operation, **kwargs)
+        return self.__task.configure(*operations, **kwargs)
 
     def get_interpreted_task(self) -> BaseTask:
         """Retrieves the interpreted task that is produced when calling :meth:`interpret`
@@ -324,3 +329,21 @@ class PromisedTask(BaseTask[PromisedStage]):
                 "a particular platform"
             )
         return self.__task
+
+    def publish(self, *args, **kwargs) -> MetaEndpoint:
+        """Creates a HTTP endpoint for the task
+
+        Accepts any arguments and keyword arguments and passes them to the
+        underlying callback created in the interpreter itself. For particular
+        arguments and keyword arguments, see the documentation of the interpreter
+        used before calling this method.
+
+        Returns:
+            :class:`malevich.models.endpoint.MetaEndpoint`: An endpoint object
+        """
+        if not self.__task:
+            raise Exception(
+                "Cannot publish uninterpreted task. "
+                "Use `.interpret()` first."
+            )
+        return self.__task.publish(*args, **kwargs)
