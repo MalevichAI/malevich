@@ -238,7 +238,7 @@ def flow(
         )
 
     globals_ = inspect.currentframe().f_back.f_globals
-    
+
     def wrapper(function: Callable[Args, T]) -> FlowFunction[Args, FlowDecoratorReturn]:
         nonlocal reverse_id, name, description
         reverse_id = reverse_id or function.__name__
@@ -248,6 +248,7 @@ def flow(
         if description is None:
             description = f"Meta flow: {function_name}"
 
+        annotations = {}
         sign = signature(function)
 
         # Check whether the function has variable positional arguments
@@ -269,15 +270,17 @@ def flow(
             )
 
         # Check whether the function has annotations
-        for p in sign.parameters.values():
+        for key, p in sign.parameters.items():
             if p.annotation is p.empty:
-                p.annotation = collection[p.name]
+                annotations[p.name] = collection[p.name, None]
                 warnings.warn(
                     f"Argument '{p.name}' has no annotation. "
                     f"Assuming it is a collection with name '{p.name}'. "
                     "It is recommended to provide an explicit annotation.",
                     NoArgumentAnnotation,
                 )
+            else:
+                annotations[p.name] = p.annotation
 
         pos_arg_names = [
             p.name for p in sign.parameters.values() if p.default is p.empty
@@ -313,9 +316,10 @@ def flow(
                 for (name, value), param in zip(
                     named_args.items(), sign.parameters.values()
                 ):
-                    if hasattr(param.annotation, "__malevich_collection_name__"):
-                        collection_name = param.annotation.__malevich_collection_name__
-                        collection_scheme = param.annotation.__malevich_collection_scheme__  # noqa: E501
+                    ann = annotations[name]
+                    if hasattr(ann, "__malevich_collection_name__"):
+                        collection_name = ann.__malevich_collection_name__
+                        collection_scheme = ann.__malevich_collection_scheme__  # noqa: E501
                     else:
                         raise TypeError(
                             f"Argument '{name}' has invalid annotation. "
