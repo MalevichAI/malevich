@@ -1,5 +1,6 @@
 import ast
 import inspect
+import re
 from copy import deepcopy
 from typing import Callable
 import warnings
@@ -223,7 +224,11 @@ def boot_flow(
         if key not in __locals:
             raise TypeError(f"Missing required argument: {key}")
 
-    body = ast.parse(inspect.getsource(function)).body[0].body
+    func_body = inspect.getsource(function)
+    indent_ = re.search(r'^(?P<INDENT> *)def', func_body, flags=re.MULTILINE).group('INDENT')
+    func_body = re.sub(rf'^{indent_}', '', func_body, flags=re.MULTILINE)
+
+    body = ast.parse(func_body).body[0].body
     return_value, _ = exec_flow(
         body, (__globals, __locals), inspect.getsourcefile(function)
     )
