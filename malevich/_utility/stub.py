@@ -13,16 +13,10 @@ from datamodel_code_generator import generate
 from pydantic import BaseModel, Field
 
 import malevich
-<<<<<<< HEAD
 from malevich.core_api import AppFunctionsInfo
 
 from ..constants import reserved_config_fields
 from ..models.dependency import Dependency
-=======
-from malevich.constants import reserved_config_fields
-from malevich.core_api import AppFunctionsInfo, ConditionFunctionInfo
-from malevich.models.dependency import Dependency
->>>>>>> 77066c1 (rm: Self to support Python 3.10)
 
 
 class Templates:
@@ -372,7 +366,7 @@ class Stub:
                 sink=sink,
                 docstrings=processor.doc,
                 config_schema=config_models[name],
-                is_condition=isinstance(processor, ConditionFunctionInfo)
+                is_condition=False,
             )
             functions[name].definition = functions[name].generate_definition(
                 config_model=config_model_class[name]
