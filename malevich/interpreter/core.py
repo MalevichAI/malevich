@@ -270,7 +270,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
             state.collections[node.uuid] = (
                 node.collection.collection_id, core_id)
             if not node.alias:
-                node.alias = node.collection.collection_id + '-' + \
+                node.alias = node.collection.collection_id + '_' + \
                     str(_name(node.collection.collection_id))
 
         for node in asset_nodes:
@@ -328,7 +328,7 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
                 state.extra_colls[op.uuid][link.name].append(coll)
 
             if not op.alias:
-                op.alias = extra["processor_id"] + '-' + str(_name(extra["processor_id"]))  # noqa: E501
+                op.alias = extra["processor_id"] + '_' + str(_name(extra["processor_id"]))  # noqa: E501
 
             app_core_name = op.uuid + f"-{extra['processor_id']}-{op.alias}"
 

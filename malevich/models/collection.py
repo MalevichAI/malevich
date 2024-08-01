@@ -10,7 +10,7 @@ from .types import PythonString
 
 
 class Collection(BaseModel):
-    collection_id: PythonString
+    collection_id: str
     core_id: Optional[str] = None
     collection_data: Optional[pd.DataFrame] = Field(
         pd.DataFrame([]), repr=False, exclude=True

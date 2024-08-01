@@ -7,7 +7,7 @@ from .base import BaseNode
 
 
 class AssetNode(BaseNode):
-    name: PythonString
+    name: str
     core_path: Optional[str] = None
     real_path: Optional[str | list[str]] = None
     is_composite: Optional[bool] = False

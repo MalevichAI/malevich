@@ -13,7 +13,7 @@ from .base import BaseNode
 class TreeNode(BaseNode):
     tree: ExecutionTree[traced[BaseNode], ArgumentLink[BaseNode]]
     results: Iterable[traced[BaseNode]] | traced[BaseNode] | None = None
-    reverse_id: PythonString
+    reverse_id: str
     name: str
     description: str = "Wonderful Flow!"
     underlying_node: Optional['BaseNode'] = None
