@@ -4,7 +4,7 @@ batched operations on Malevich Core
 
 """
 import os
-from concurrent.futures import Future, ProcessPoolExecutor
+from concurrent.futures import Future, ThreadPoolExecutor
 from multiprocessing import cpu_count
 from typing import Optional
 
@@ -15,7 +15,7 @@ from ..constants import DEFAULT_CORE_HOST
 from ..models.collection import Collection
 from ..models.nodes.asset import AssetNode
 
-executor = ProcessPoolExecutor(max_workers=cpu_count())
+executor = ThreadPoolExecutor(max_workers=4)
 
 
 def result_collection_name(operation_id: str, alias: str = '') -> str:
