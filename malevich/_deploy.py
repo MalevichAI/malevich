@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 from typing import Any, Literal, ParamSpec, overload
-=======
-from typing import Any, Callable, Literal, ParamSpec, Type, overload
->>>>>>> 77066c1 (rm: Self to support Python 3.10)
 
 from malevich_space.ops import SpaceOps
 from malevich_space.schema import SpaceSetup
@@ -156,7 +152,7 @@ class Space:
         ops = SpaceOps(space_setup=setup)
 
 
-        if not uid:
+        if not uid and reverse_id is not None:
             flow_branch_version, active_branch, active_versions = cls.fetch(
                 reverse_id=reverse_id,
                 ops=ops
