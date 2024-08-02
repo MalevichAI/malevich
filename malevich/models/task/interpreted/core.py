@@ -7,7 +7,7 @@ import pickle
 import uuid
 import warnings
 from copy import deepcopy
-from typing import Any, Iterable, Literal, Optional, Self, Type
+from typing import Any, Iterable, Literal, Optional, Type
 
 import malevich_coretools as core
 import pandas as pd
@@ -981,7 +981,7 @@ class CoreTask(BaseTask):
         self,
         unique_task_hash: str | None = None,
         only_fetch: bool = False,
-    ) -> Self:
+    ) -> 'CoreTask':
         unique_task_hash = unique_task_hash or self.get_pipeline_hash()
         try:
             pipeline = core.get_pipeline(

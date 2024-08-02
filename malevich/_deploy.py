@@ -1,4 +1,4 @@
-from typing import Any, Callable, Literal, ParamSpec, Self, Type, overload
+from typing import Any, Callable, Literal, ParamSpec, Type, overload
 
 from malevich_space.ops import SpaceOps
 from malevich_space.schema import SpaceSetup
@@ -27,7 +27,7 @@ FlowArgs = ParamSpec('FlowArgs')
 
 class Core:
     def __new__(
-        cls: Type[Self],
+        cls: Type,
         task: PromisedTask | TracedNode | TracedNodes | FlowFunction = None,
         *task_args,
         pipeline_id: str | None = None,

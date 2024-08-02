@@ -60,7 +60,11 @@ Registry().register("{operation_id}", {registry_record})
 {definition}
 
 {processor_name} = proc(use_sinktrace={use_sinktrace}, config_model={config_model})(__{processor_name})
+<<<<<<< Updated upstream
 \"""{docstrings}\"""
+=======
+{docstrings}
+>>>>>>> Stashed changes
 """  # noqa: E501
 
 
