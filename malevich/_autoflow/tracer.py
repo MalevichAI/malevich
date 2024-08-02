@@ -108,6 +108,15 @@ class traced(Generic[T]):  # noqa: N801
     def __hash__(self) -> int:
         return hash(self.owner)
 
+    def __copy__(self, *args):
+        return self
+
+    def __deepcopy__(self, *args):
+        return self
+
+    def __getitem__(self, *args):
+        return traced(self._owner.__getitem__(*args))
+
 
 class tracedLike(traced[T]):  # noqa: N801
     """This class is used to immitate the traced object without actually tracing it

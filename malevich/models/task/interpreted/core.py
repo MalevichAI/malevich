@@ -339,7 +339,7 @@ class CoreTask(BaseTask):
                 )
             except Exception:
                 node.core_id = core.create_doc(
-                    data=node.document.model_dump_json(),
+                    data=node.dump_document_json(),
                     name=node.magic(),
                     conn_url=self.state.params.core_host,
                     auth=self.state.params.core_auth,

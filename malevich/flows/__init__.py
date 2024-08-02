@@ -1,1 +1,2 @@
 
+from .xcard_generate_description import xcard_generate_description

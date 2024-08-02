@@ -6,7 +6,8 @@ from uuid import uuid4
 from malevich_space.ops.component_manager import ComponentManager
 from malevich_space.ops.space import SpaceOps
 from malevich_space.schema import SpaceSetup, VersionMode
-from malevich_space.schema.asset import Asset, CreateAsset
+from malevich_space.schema.asset import CreateAsset
+from malevich_space.schema.branch import BranchSchema
 from malevich_space.schema.cfg import CfgSchema
 from malevich_space.schema.collection_alias import CollectionAliasSchema
 from malevich_space.schema.component import (
@@ -793,7 +794,10 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
 
         self._component.flow = state.flow
 
-        def get_component():
+        def get_component(branch: str | None = None):
+            if branch:
+                self._component.branch = BranchSchema(name=branch)
+
             component = state.component_manager.component(
                 self._component,
                 self._version_mode,

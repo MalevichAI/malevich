@@ -1,6 +1,8 @@
 import json
 from typing import Iterable, Optional
 
+from pydantic import Field
+
 from .base import BaseNode
 
 
@@ -29,6 +31,21 @@ class OperationNode(BaseNode):
     package_id: Optional[str] = None
     config: dict = {}
     subindex: list[int] | None = None
+    is_condition: bool = False
+
+    should_be_true: list[str] = []
+    should_be_false: list[str] = []
+
+    def __eq__(self, other) -> bool:
+        if isinstance(other, OperationNode):
+            return all([
+                self.uuid == other.uuid,
+                self.subindex == other.subindex,
+                self.should_be_true == other.should_be_true,
+                self.should_be_false == other.should_be_false,
+            ])
+        else:
+            return False
 
     def get_senstivite_fields(self) -> dict[str, str]:
         return {"config": json.dumps(self.config)}
@@ -45,7 +62,7 @@ class OperationNode(BaseNode):
             p_ += f"{self.package_id}"
         if self.processor_id:
             p_ += f"::{self.processor_id}"
-        return f"{self.__class__.__name__}({self.operation_id}, {p_})"
+        return f"{self.__class__.__name__}({self.uuid[:6]}, {p_}, {self.alias})"
 
     def __hash__(self) -> int:
         return super().__hash__()
@@ -62,8 +79,9 @@ class OperationNode(BaseNode):
                     "Only positive stop index is supported for operation result "
                     "slicing. But either stop index is negative or not provided."
                 )
-            return self.model_copy(
+            copy_ = self.model_copy(
                 update={'subindex': [i for i in range(start, index.stop)]},
                 deep=False
             )
-        return self.model_copy(update={'subindex': [index]}, deep=False)
+        copy_ = self.model_copy(update={'subindex': [index]}, deep=False)
+        return copy_

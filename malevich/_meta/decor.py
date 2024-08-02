@@ -98,6 +98,10 @@ class ProcessorFunction(Generic[Config, ProcFunArgs, ProcFunReturn]):
     __call__: Callable[ProcFunArgs, ProcFunReturn] = _fn_call
 
     @property
+    def __doc__(self) -> str:
+        return self.base_fn.__doc__
+
+    @property
     def config(self) -> Type[Config] | Type[ConfigStruct]:
         return self.__config_model or ConfigStruct
 
@@ -107,7 +111,7 @@ def proc(
     config_model: Type[ProcConfig] = BaseModel,
 ) -> Callable[
     [Callable[FnArgs, FnReturn]],
-    ProcessorFunction[ProcConfig, FnArgs, FnReturn]
+    Callable | ProcessorFunction[ProcConfig, FnArgs, FnReturn]
 ]:
     def decorator(
         fn: Callable[FnArgs, FnReturn]

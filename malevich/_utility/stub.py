@@ -271,7 +271,7 @@ class Stub:
                     StubSchema(
                         name=name,
                         scheme=json.dumps(proc.contextClass),
-                        class_name=config_model_class[processor_name],
+                        class_name=class_name[0],
                     )
                 )
                 index.schemes_index[name] = (i, i + j)
@@ -340,6 +340,9 @@ class Stub:
             i = f_F.write(Templates.imports)
 
             for name, function in functions.items():
+                if name not in operation_ids:
+                    continue
+
                 j = f_F.write(Templates.registry.format(
                     operation_id=operation_ids[name],
                     registry_record=registry_records[name]

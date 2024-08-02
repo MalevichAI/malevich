@@ -1,8 +1,8 @@
 import pickle
-from threading import Thread
 import uuid
 from enum import Enum
 from functools import cache
+from threading import Thread
 from typing import Callable, Iterable, Optional, Type
 
 import pandas as pd
@@ -416,7 +416,7 @@ class SpaceTask(BaseTask):
             **kwargs
         ))
 
-    def upload(self) -> None:
+    def upload(self, branch: str | None = None) -> None:
         if not self._component:
-            self._component = self.__get_component()
+            self._component = self.__get_component(branch=branch)
 

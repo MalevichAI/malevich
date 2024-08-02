@@ -172,7 +172,7 @@ def _install_from_space(
                         task = Space(
                             reverse_id=reverse_id,
                             uid=uid,
-                            policy='no_use',
+                            policy='fetch',
                         )
 
                         injectables = task.get_injectables()

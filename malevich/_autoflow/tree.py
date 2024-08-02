@@ -59,9 +59,9 @@ class ExecutionTree(Generic[T, LinkType]):
         Raises:
             BadEdgeError: If the edge already exists, or if the edge is a self-edge
         """
-        if any(x[0] == callee and x[1] == caller for x in self.tree):
+        if any(x[0] == callee and x[1] == caller and x[2] == link for x in self.tree):
             raise BadEdgeError("Edge already exists", (callee, caller, link))
-        if any(x[0] == caller and x[1] == callee for x in self.tree):
+        if any(x[0] == caller and x[1] == callee and x[2] == link for x in self.tree):
             raise BadEdgeError("Edge already exists", (callee, caller, link))
         if caller == callee:
             raise BadEdgeError("Self-edge", (callee, caller, link))

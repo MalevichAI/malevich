@@ -1,6 +1,9 @@
 import os
 from typing import Iterable, overload
 
+import dill
+import tempfile
+
 import malevich.annotations
 from malevich._autoflow import tracer as gn  # engine
 from malevich.models import AssetNode, AssetOverride, PythonString
@@ -32,6 +35,20 @@ class AssetFactory:
             folder=folder,
             files=files,
         )
+
+    @staticmethod
+    def capture_function(
+        function: callable,
+    ) -> malevich.annotations.Asset:
+        tfile_ = tempfile.NamedTemporaryFile(delete=False)
+        dill.dump(function, tfile_, byref=False)
+
+        return gn.traced(AssetNode(
+            name=function.__name__,
+            core_path='__functions__/' + function.__name__ + '_' + str(hash(function)),
+            real_path=tfile_.name,
+            alias='captureof_' + function.__name__,
+        ))
 
 
     @staticmethod

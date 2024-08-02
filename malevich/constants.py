@@ -7,7 +7,7 @@ from .path import MALEVICH_CACHE, MALEVICH_HOME, Paths  # noqa: F401
 DEFAULT_CORE_HOST = "https://core.malevich.ai/"
 
 APP_HELP = """
-
+Malevich is a co
 """
 
 USE_HELP = """
@@ -20,8 +20,7 @@ the functionality provided by them will be pulled and parsed accordingly.
 """
 
 USE_SPACE_HELP = """
-Install apps using published Docker images. The information about
-the functionality provided by them will be pulled and parsed accordingly.
+Install components from Malevich Space repository.
 """
 
 IMAGE_BASE = "public.ecr.aws/o1z1g3t0/{app}:latest"

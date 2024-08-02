@@ -17,30 +17,33 @@ class document:  # noqa: N801
 
     def __new__(
         cls,
-        type_or_model: Type[DocumentArgType] | DocumentArgType,
+        type_or_value: Type[DocumentArgType] | DocumentArgType | dict,
         reverse_id: str,
         alias: str | None = None,
-    ) -> traced[DocumentNode[DocumentArgType]]:
-        if isclass(type_or_model):
-            if issubclass(type_or_model, BaseModel):
+    ) -> traced[DocumentNode]:
+        if isclass(type_or_value):
+            if issubclass(type_or_value, BaseModel):
                 return traced(
                     DocumentNode(
-                        document_class=type_or_model,
+                        document_class=type_or_value,
                         reverse_id=reverse_id,
                         alias=alias
                     )
                 )
             else:
-                raise TypeError(
-                    "Expected first argument of document(...) to be either "
-                    "instance of pydantic BaseModel or a pydantic model class "
-                    f"but got {type_or_model}"
+                return traced(
+                    DocumentNode(
+                        document=type_or_value.__dict__,
+                        document_class=dict,
+                        reverse_id=reverse_id,
+                        alias=alias
+                    )
                 )
         else:
             return traced(
                 DocumentNode(
-                    document=type_or_model,
-                    document_class=type(type_or_model),
+                    document=type_or_value,
+                    document_class=type(type_or_value),
                     reverse_id=reverse_id,
                     alias=alias
                 )

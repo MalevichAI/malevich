@@ -22,7 +22,7 @@ class BaseNode(BaseModel):
         pass
 
     def short_info(self) -> str:
-        return f"{self.__class__.__name__}({self.uuid})"
+        return f"{self.__class__.__name__}({self.uuid[:6]}, {self.alias})"
 
     def __hash__(self) -> int:
         return hash(self.uuid)

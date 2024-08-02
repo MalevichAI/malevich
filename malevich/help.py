@@ -27,7 +27,7 @@ use = {
 
     2. Install the same app, but from a privately hosted Malevich Core
 
-            malevich use image app user/malevich:app --core-host https://my.malevich.core --core-user admin --core-token kd923fn
+            malevich use image app user/malevich:app --core-host https://core.malevich.ai --core-user admin --core-token kd923fn
     """,
     'space --help': """Install apps available at Malevich Space.
 
@@ -40,7 +40,7 @@ use = {
 }
 
 install =  {
-    '--help': """The simplest way to install Malevich Apps
+    '--help': """The simplest way to install Malevich apps
 
     Usage examples:
 
@@ -54,11 +54,11 @@ install =  {
 
         3. Install utility and openai using the image installer
 
-                malevich install utility openai --using image
+            malevich install utility openai --using image
 
         4. Install utility using the image installer and specify the image reference
 
-                malevich install utility --using image --with-args image_ref=user/malevich:utility
+            malevich install utility --using image --with-args image_ref=user/malevich:utility
     """
 }
 
@@ -71,7 +71,8 @@ space = {
     '--help': """Communicate with Malevich Space - a public provider of Malevich Core""",
     'init --help': """Imports Malevich Space configuration into the current environment""",
     'login --help': """Interactive login to Malevich Space""",
-    'whoami --help': """Get information about connected Space user"""
+    'whoami --help': """Get information about connected Space user""",
+    'upload-flow --help': """Upload a new version of flow declared with @flow decorator""",
 }
 
 remove = {

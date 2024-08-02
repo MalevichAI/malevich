@@ -25,7 +25,11 @@ class Paths:
         return os.path.join(MALEVICH_CACHE, *path)
 
     @staticmethod
-    def pwd(*path) -> str:
+    def pwd(*path, create: bool = False) -> str:
+        if create:
+            p = _Path(os.path.join(os.getcwd(), *path))
+            p.touch()
+            return str(p)
         return os.path.join(os.getcwd(), *path)
 
     @staticmethod
