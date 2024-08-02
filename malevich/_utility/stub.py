@@ -57,9 +57,11 @@ Registry().register("{operation_id}", {registry_record})
 """
 
     processor = """
-@proc(use_sinktrace={use_sinktrace}, config_model={config_model})
 {definition}
-"""
+
+{processor_name} = proc(use_sinktrace={use_sinktrace}, config_model={config_model})(__{processor_name})
+\"""{docstrings}\"""
+"""  # noqa: E501
 
 
 def create_package_stub(
@@ -223,8 +225,8 @@ class Stub:
     ) -> "Stub":
         os.makedirs(path, exist_ok=True)
 
-        processors = {**app_info.processors, **app_info.conditions}
-        processors = {str(key): value for key, value in processors.items()}
+        operations = {**app_info.processors, **app_info.conditions}
+        operations = {str(key): value for key, value in operations.items()}
 
         index = StubIndex(
             dependency=dependency,
@@ -237,14 +239,14 @@ class Stub:
             name: Stub.Utils.generate_context_schema(
                 json.dumps(processor.contextClass),
             ) if processor.contextClass is not None else (None, None)
-            for name, processor in processors.items()
+            for name, processor in operations.items()
         }
 
         config_model_class = {}
         for processor_name, (class_names, _) in config_stubs.items():
             if class_names:
                 for class_name in class_names:
-                    if class_name == processors[processor_name].contextClass['title']:
+                    if class_name == operations[processor_name].contextClass['title']:
                         config_model_class[processor_name] = class_name
                         break
                 else:
@@ -287,13 +289,13 @@ class Stub:
         config_models = {
             name: eval(f'malevich.{package_name}.scheme.{config_model_class[name]}')
             if config_model_class[name] else None
-            for name in processors
+            for name in operations
         }
 
         functions: dict[str, StubFunction] = {}
         schemes = {*app_info.schemes.values()}
 
-        for name, processor in processors.items():
+        for name, processor in operations.items():
             args = processor.arguments
             parsed = []
             sink = None
@@ -340,13 +342,11 @@ class Stub:
                 ))
 
                 j += f_F.write(Templates.processor.format(
-                    name=name,
-                    package_id=package_name,
-                    operation_id=operation_ids[name],
                     use_sinktrace=bool(function.sink),
                     definition=function.definition,
                     config_model=config_model_class[name],
-                    is_condition=function.is_condition,
+                    processor_name=function.name,
+                    docstrings=function.docstrings
                 ))
                 index.functions.append(function)
                 index.functions_index[name] = (i, i + j)
