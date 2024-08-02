@@ -337,7 +337,12 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
             else:
                 op_group[alias].arguments[link.name] = argument
         else:
-            a.group.append(argument)
+            if a.group is None:
+                op_group[alias].arguments[link.name] = Argument(
+                    group=[a, argument]
+                )
+            else:
+                op_group[alias].arguments[link.name].group.append(argument)
 
 
     def create_dependency(
@@ -347,6 +352,14 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
         to_node: traced[OperationNode],
         link: ArgumentLink[BaseNode],
     ) -> CoreInterpreterState:
+        if from_node.owner.alias is None:
+            for node in self._state.operation_nodes.values():
+                if node.uuid == from_node.owner.uuid:
+                    from_node.owner.alias = node.alias
+                    break
+            else:
+                from_node.owner.alias = unique(from_node.owner.uuid)
+
         if isinstance(from_node.owner, CollectionNode):
             argument = Argument(
                 collectionName=state.collection_nodes[from_node.owner.alias].collection.collection_id
@@ -403,6 +416,8 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
     def after_interpret(self, state: CoreInterpreterState) -> CoreInterpreterState:
         _log("Flow is built. Uploading to Core", step=True)
         for operation in state.operation_nodes.values():
+            if operation.is_condition:
+                continue
             if operation.should_be_true:
                 for cond_uid in operation.should_be_true:
                     for condition in state.operation_nodes.values():
