@@ -21,7 +21,7 @@ ProcFunArgs = ParamSpec("ProcFunArgs")
 ProcFunReturn = TypeVar("ProcFunReturn")
 
 class ConfigStruct(dict):
-    def __new__(cls, **kwargs) -> 'ConfigStruct':
+    def __new__(cls, **kwargs):
         return dict(**kwargs)
 
     def __init__(self, **kwargs) -> None:

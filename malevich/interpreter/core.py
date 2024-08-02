@@ -3,7 +3,7 @@ from collections import defaultdict
 from typing import Optional
 
 import malevich_coretools as core
-from malevich_coretools import Argument, JsonImage, Processor, Result
+from malevich_coretools import Argument, JsonImage, Processor, Result, Condition
 from malevich_space.schema import ComponentSchema
 
 from malevich._autoflow import traced, tracedLike
@@ -255,25 +255,47 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
                     + verbose_
                 )
 
-            state.processors[node.owner.alias] = Processor(
-                arguments={},
-                cfg=json.dumps({
-                    **node.owner.config,
-                    CORE_INTERPRETER_IN_APP_INFO_KEY: InjectedAppInfo(
-                        conn_url=self.__core_host,
-                        auth=self.__core_auth,
-                        app_id=node.owner.alias, # NOTE: was processor_id
-                        image_auth=(extra.image_auth_user, extra.image_auth_pass),
-                        image_ref=extra.image_ref
-                    ).model_dump()
-                }),
-                image=JsonImage(
-                    ref=extra.image_ref,
-                    user=extra.image_auth_user,
-                    token=extra.image_auth_pass
-                ),
-                processorId=node.owner.processor_id,
-            )
+            if node.owner.is_condition:
+                state.conditions[node.owner.alias] = Condition(
+                    arguments={},
+                    cfg=json.dumps({
+                        **node.owner.config,
+                        CORE_INTERPRETER_IN_APP_INFO_KEY: InjectedAppInfo(
+                            conn_url=self.__core_host,
+                            auth=self.__core_auth,
+                            app_id=node.owner.alias, # NOTE: was processor_id
+                            image_auth=(extra.image_auth_user, extra.image_auth_pass),
+                            image_ref=extra.image_ref
+                        ).model_dump()
+                    }),
+                    image=JsonImage(
+                        ref=extra.image_ref,
+                        user=extra.image_auth_user,
+                        token=extra.image_auth_pass
+                    ),
+                    conditionId=node.owner.processor_id,
+                )
+
+            else:
+                state.processors[node.owner.alias] = Processor(
+                    arguments={},
+                    cfg=json.dumps({
+                        **node.owner.config,
+                        CORE_INTERPRETER_IN_APP_INFO_KEY: InjectedAppInfo(
+                            conn_url=self.__core_host,
+                            auth=self.__core_auth,
+                            app_id=node.owner.alias, # NOTE: was processor_id
+                            image_auth=(extra.image_auth_user, extra.image_auth_pass),
+                            image_ref=extra.image_ref
+                        ).model_dump()
+                    }),
+                    image=JsonImage(
+                        ref=extra.image_ref,
+                        user=extra.image_auth_user,
+                        token=extra.image_auth_pass
+                    ),
+                    processorId=node.owner.processor_id,
+                )
 
             state.results[node.owner.alias] = [Result(name=node.owner.alias)]
 
@@ -302,18 +324,25 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
         state: CoreInterpreterState,
         argument: Argument,
         alias: str,
-        link: ArgumentLink[BaseNode]
+        link: ArgumentLink[BaseNode],
+        is_condition: bool = False
     ):
-        a = state.processors[alias].arguments.get(link.name, None)
+        op_group = state.processors if not is_condition else state.conditions
+        a = op_group[alias].arguments.get(link.name, None)
         if a is None:
             if link.in_sink:
-                state.processors[alias].arguments[link.name] = Argument(
+                op_group[alias].arguments[link.name] = Argument(
                     group=[argument]
                 )
             else:
-                state.processors[alias].arguments[link.name] = argument
+                op_group[alias].arguments[link.name] = argument
         else:
-            a.group.append(argument)
+            if a.group is None:
+                op_group[alias].arguments[link.name] = Argument(
+                    group=[a, argument]
+                )
+            else:
+                op_group[alias].arguments[link.name].group.append(argument)
 
 
     def create_dependency(
@@ -323,6 +352,14 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
         to_node: traced[OperationNode],
         link: ArgumentLink[BaseNode],
     ) -> CoreInterpreterState:
+        if from_node.owner.alias is None:
+            for node in self._state.operation_nodes.values():
+                if node.uuid == from_node.owner.uuid:
+                    from_node.owner.alias = node.alias
+                    break
+            else:
+                from_node.owner.alias = unique(from_node.owner.uuid)
+
         if isinstance(from_node.owner, CollectionNode):
             argument = Argument(
                 collectionName=state.collection_nodes[from_node.owner.alias].collection.collection_id
@@ -345,7 +382,8 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
             state,
             argument,
             to_node.owner.alias,
-            link
+            link,
+            is_condition=to_node.owner.is_condition
         )
 
         _log(
@@ -377,6 +415,26 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
 
     def after_interpret(self, state: CoreInterpreterState) -> CoreInterpreterState:
         _log("Flow is built. Uploading to Core", step=True)
+        for operation in state.operation_nodes.values():
+            if operation.is_condition:
+                continue
+            if operation.should_be_true:
+                for cond_uid in operation.should_be_true:
+                    for condition in state.operation_nodes.values():
+                        if condition.uuid == cond_uid:
+                            _log(f"Condition {operation.alias}: {condition.alias} == True", -1, step=True)
+                            if not state.processors[operation.alias].conditions:
+                                state.processors[operation.alias].conditions = {}
+                            state.processors[operation.alias].conditions[condition.alias] = True
+            if operation.should_be_false:
+                for cond_uid in operation.should_be_false:
+                    for condition in state.operation_nodes.values():
+                        if condition.uuid == cond_uid:
+                            if not state.processors[operation.alias].conditions:
+                                state.processors[operation.alias].conditions = {}
+                            _log(f"Condition {operation.alias}: {condition.alias} == False", -1, step=True)
+                            state.processors[operation.alias].conditions[condition.alias] = False
+
         return state
 
     def get_task(

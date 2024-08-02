@@ -67,9 +67,6 @@ class OperationNode(BaseNode):
     def __hash__(self) -> int:
         return super().__hash__()
 
-    def __iter__(self) -> Iterable['OperationNode']:
-        return OperationNodeSpawner(self)
-
     def __getitem__(self, index: int | slice) -> 'OperationNode':
         if isinstance(index, slice):
             assert index.step is None, "Step is not supported"

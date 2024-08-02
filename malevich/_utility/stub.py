@@ -60,13 +60,8 @@ Registry().register("{operation_id}", {registry_record})
 {definition}
 
 {processor_name} = proc(use_sinktrace={use_sinktrace}, config_model={config_model})(__{processor_name})
-<<<<<<< Updated upstream
 \"""{docstrings}\"""
-=======
-{docstrings}
->>>>>>> Stashed changes
 """  # noqa: E501
-
 
 def create_package_stub(
     package_name: str,
@@ -228,7 +223,6 @@ class Stub:
         description: str | None = None,
     ) -> "Stub":
         os.makedirs(path, exist_ok=True)
-
         operations = {**app_info.processors, **app_info.conditions}
         operations = {str(key): value for key, value in operations.items()}
 

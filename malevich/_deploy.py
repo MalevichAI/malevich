@@ -1,4 +1,5 @@
 from typing import Any, Callable, Literal, ParamSpec, Type, overload
+import warnings
 
 from malevich_space.ops import SpaceOps
 from malevich_space.schema import SpaceSetup
@@ -26,6 +27,9 @@ from .types import TracedNode, TracedNodes
 FlowArgs = ParamSpec('FlowArgs')
 
 class Core:
+    """Deployment assistant that manages interactions with Malevich Core
+     Check out the details: https://core.malevich.ai/
+    """
     def __new__(
         cls: Type,
         task: PromisedTask | TracedNode | TracedNodes | FlowFunction = None,
@@ -122,7 +126,7 @@ class Space:
         branch: str | None = None,
         version: str | None = None,
         ops: SpaceOps | None = None,
-        policy: Literal['no_use', 'only_use', 'use_or_new']= 'use_or_new',
+        policy: Literal['no_use', 'only_use', 'use_or_new', 'fetch'] = 'use_or_new',
         **task_kwargs
     ) -> SpaceTask:
 
@@ -141,7 +145,6 @@ class Space:
             setup = ops.space_setup
 
         ops = SpaceOps(space_setup=setup)
-
 
         if not uid and reverse_id is not None:
             flow_branch_version, active_branch, active_versions = cls.fetch(
@@ -186,8 +189,9 @@ class Space:
                 reverse_id=reverse_id,
                 flow_uid=uid,
                 deployment_id=deployment_id,
-                search_deployments=(policy != 'no_use')
+                search_deployments=(policy not in ['no_use', 'fetch']),
             )
+
             if policy == 'no_use':
                 task.prepare()
                 return task
@@ -205,9 +209,14 @@ class Space:
                             "No active tasks found for 'use_only' policy. "
                             "You can change policy 'use_or_new' or 'no_use'."
                         )
-                else:
+                elif policy != 'fetch':
                     task.prepare()
             return task
+        else:
+            if branch is not None:
+                warnings.warn("Space(branch=...) is not supported when @flow function is used.")  # noqa: E501
+            if version is not None:
+                warnings.warn("Space(version=...) is not supported when @flow function is used.")  # noqa: E501
 
-        task.interpret(interpreter)
+            task.interpret(interpreter)
         return task.get_interpreted_task()

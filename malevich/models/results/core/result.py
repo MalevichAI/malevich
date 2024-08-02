@@ -1,16 +1,18 @@
 import json
 import warnings
 from functools import cache
-from typing import Optional
+from typing import Optional, TypeVar
 
 import malevich_coretools as core
 import pandas as pd
+from pydantic import BaseModel
 
 from malevich.constants import DEFAULT_CORE_HOST
 from malevich.models import Collection
 
 from ..base import BaseResult
 
+DocumentModelType = TypeVar('DocumentModelType', bound=BaseModel)
 
 class CoreResultPayload:
     """An actual information that is saved as result
@@ -431,23 +433,49 @@ class CoreResult(BaseResult[CoreResultPayload]):
             return {}
 
     @cache
-    def get_document(self, index: int = 0, model: type | None = None) -> dict:
+    def get_document(
+        self,
+        model: type[DocumentModelType] | None = None
+    ) -> dict | DocumentModelType:
         """Retrieves the document of the result
 
         Returns:
             dict: The document of the result
         """
         if result := self.get():
-            if result[index].is_document:
-                return result[index].data if model is None else model(
-                    **result[index].data
-                )
-            else:
-                what = "asset" if result[index].is_asset() else "collection"
-                raise NotImplementedError(
-                    "Cannot return a document from a non-document result. "
-                    f"Result at index {index} is {what}"
-                )
+            # if result[index].is_document:
+            #     return result[index].data if model is None else model(
+            #         **result[index].data
+            #     )
+            # else:
+            #     what = "asset" if result[index].is_asset() else "collection"
+            #     raise NotImplementedError(
+            #         "Cannot return a document from a non-document result. "
+            #         f"Result at index {index} is {what}"
+            #     )
+            data_ = result[0].data.to_dict(orient='records')[0]
+            return model(**data_) if model else data_
+
+    @cache
+    def get_documents(
+        self,
+        model: type[DocumentModelType] | None = None
+    ) -> list[dict] | list[DocumentModelType]:
+        if result := self.get():
+            # if result[index].is_document:
+            #     return result[index].data if model is None else model(
+            #         **result[index].data
+            #     )
+            # else:
+            #     what = "asset" if result[index].is_asset() else "collection"
+            #     raise NotImplementedError(
+            #         "Cannot return a document from a non-document result. "
+            #         f"Result at index {index} is {what}"
+            #     )
+            data_ = result[0].data.to_dict(orient='records')
+            if model:
+                return [model(**d) for d in data_]
+            return data_
 
 
 
