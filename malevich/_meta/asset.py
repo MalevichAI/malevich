@@ -1,6 +1,9 @@
+import hashlib
+import inspect
 import os
+import pickle
 from typing import Iterable, overload
-
+import io
 import dill
 import tempfile
 
@@ -41,15 +44,15 @@ class AssetFactory:
         function: callable,
     ) -> malevich.annotations.Asset:
         tfile_ = tempfile.NamedTemporaryFile(delete=False)
-        dill.dump(function, tfile_, byref=False)
+        tfile_.write(dill.dumps((function, inspect.getsource(function)), recurse=True))
 
         return gn.traced(AssetNode(
             name=function.__name__,
-            core_path='__functions__/' + function.__name__ + '_' + str(hash(function)),
+            core_path='__functions__/' +
+            function.__name__ + '_' + str(hash(function)),
             real_path=tfile_.name,
             alias='captureof_' + function.__name__,
         ))
-
 
     @staticmethod
     def from_remote_path(
@@ -147,7 +150,6 @@ class AssetFactory:
                 alias=alias,
                 core_path=remote_path,
             ))
-
 
         if files is not None:
             for file in files:
