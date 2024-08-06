@@ -3,13 +3,14 @@ from collections import defaultdict
 from typing import Optional
 
 import malevich_coretools as core
-from malevich_coretools import Argument, JsonImage, Processor, Result, Condition
+from malevich_coretools import Argument, Condition, JsonImage, Processor, Result
 from malevich_space.schema import ComponentSchema
 
 from malevich._autoflow import traced, tracedLike
 from malevich._core import (
     result_collection_name,
 )
+from malevich._core.service.service import CoreService
 from malevich._utility import CacheManager, LogLevel, Registry, cout, unique
 from malevich.constants import CORE_INTERPRETER_IN_APP_INFO_KEY, DEFAULT_CORE_HOST
 from malevich.interpreter import Interpreter
@@ -175,10 +176,17 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
         core_host: str = DEFAULT_CORE_HOST,
     ) -> None:
         super().__init__(CoreInterpreterState())
+        # TODO: Remove this (deprecated in favor of service)
         self.__core_host = core_host
         self.__core_auth = core_auth
         self._state.params["core_host"] = core_host
         self._state.params["core_auth"] = core_auth
+        # ====================
+
+        self._state.service = CoreService(
+            auth=core_auth, conn_url=core_host
+        )
+
         self.update_state()
 
     def _result_collection_name(self, operation_id: str) -> str:

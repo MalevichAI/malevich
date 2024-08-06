@@ -94,7 +94,7 @@ class CoreTask(BaseTask):
         self.component = component
 
         self._returned = None
-        
+
         CacheManager().core.write_entry(
             self.get_pipeline().model_dump_json(indent=4),
             entry_name=self.get_pipeline_hash() + '.json',
@@ -103,49 +103,14 @@ class CoreTask(BaseTask):
         )
 
 
-    def _create_cfg_safe(
-        self,
-        auth: core.AUTH = None,
-        conn_url: Optional[str] = None,
-        **kwargs,
-    ) -> None:
-        auth = auth or self.state.params.core_auth
-        conn_url = conn_url or self.state.params.core_host
-        with IgnoreCoreLogs():
-            try:
-                cfg_ = core.get_cfg(
-                    kwargs['cfg_id'],
-                    auth=auth,
-                    conn_url=conn_url
-                ).id
-            except Exception:
-                core.create_cfg(
-                    **kwargs,
-                    auth=auth,
-                    conn_url=conn_url
-                )
-            else:
-                core.update_cfg(
-                    cfg_,
-                    auth=auth,
-                    conn_url=conn_url,
-                    **kwargs
-                )
-
     def get_active_tasks(self) -> list[str]:
-        return core.get_run_active_runs(
-            auth=self.state.params.core_auth,
-            conn_url=self.state.params.core_host,
-        ).ids
+        return self.state.service.run.active.list().ids
 
     def get_stage(self) -> CoreTaskStage:
         if self.state.pipeline_id is not None:
             try:
                 with IgnoreCoreLogs():
-                    runs = core.get_run_active_runs(
-                        auth=self.state.params.core_auth,
-                        conn_url=self.state.params.core_host,
-                    ).ids
+                    runs = self.get_active_tasks()
                     if self.state.pipeline_id in runs:
                         return CoreTaskStage.ONLINE
             except Exception:
@@ -154,12 +119,9 @@ class CoreTask(BaseTask):
         if self.state.unique_task_hash is not None:
             try:
                 with IgnoreCoreLogs():
-                    core.get_pipeline(
-                        self.state.unique_task_hash,
-                        self.state.params.task_id,
-                        auth=self.state.params.core_auth,
-                        conn_url=self.state.params.core_host
-                    )
+                    self.state.service.pipeline.id(
+                        self.state.unique_task_hash
+                    ).get()
                 return CoreTaskStage.BUILT
             except Exception:
                 pass
@@ -275,27 +237,24 @@ class CoreTask(BaseTask):
             verbosity=VerbosityLevel.OnlyStatus,
             level=LogLevel.Info
         )
-
+        service = self.state.service
         for node in self.state.collection_nodes.values():
             collection = node.collection
             try:
                 collection.core_id = (
                     # No data request
-                    core.get_collections_by_name(collection.magic()).ownIds[-1]
+                    service.collection.name(collection.magic()).list().ownIds[-1]
                 )
             except Exception:
-                collection.core_id = core.create_collection_from_df(
-                    collection.collection_data,
-                    name=collection.magic(),
-                    conn_url=self.state.params.core_host,
-                    auth=self.state.params.core_auth,
+                collection.core_id = (
+                    service.collection.name(collection.magic())
+                    .create_if_not_exists(collection.collection_data)
                 )
 
         for node in self.state.asset_nodes.values():
             if node.core_path is not None:
                 try:
-                    files = core.get_collection_objects(
-                        node.core_path,
+                    files = service.asset.path(node.core_path).list(
                         recursive=True
                     ).files
 
@@ -313,17 +272,9 @@ class CoreTask(BaseTask):
                     else:
                         message = 'Failed to fetch asset'
 
-                    url = core.post_collection_object_presigned_url(
-                        node.core_path,
-                        expires_in=600,
-                        conn_url=self.state.params.core_host,
-                        auth=self.state.params.core_auth,
-                    )
-
-                    upload_zip_asset(
-                        url,
-                        files=node.real_path if isinstance(node.real_path, list) else None,  # noqa: E501
+                    service.asset.path(node.core_path).create(
                         file=node.real_path if isinstance(node.real_path, str) else None,  # noqa: E501
+                        files=node.real_path if isinstance(node.real_path, list) else None,  # noqa: E501
                     )
 
                     cout(
@@ -343,13 +294,9 @@ class CoreTask(BaseTask):
 
         for node in self.state.document_nodes.values():
             try:
+                ref = service.document.name(node.magic())
                 with IgnoreCoreLogs():
-                    node.core_id = core.get_doc_by_name(
-                        node.magic(),
-                        conn_url=self.state.params.core_host,
-                        auth=self.state.params.core_auth,
-                    ).id
-
+                    node.core_id = ref.get().id
                 cout(
                     action=Action.Preparation,
                     message=f"Document {node.reverse_id} is already on Core. {node.magic()}",  # noqa: E501
@@ -357,12 +304,7 @@ class CoreTask(BaseTask):
                     level=LogLevel.Debug
                 )
             except Exception:
-                node.core_id = core.create_doc(
-                    data=node.dump_document_json(),
-                    name=node.magic(),
-                    conn_url=self.state.params.core_host,
-                    auth=self.state.params.core_auth,
-                )
+                node.core_id = ref.create(data=node.dump_document_json())
 
                 cout(
                     action=Action.Preparation,
@@ -399,13 +341,9 @@ class CoreTask(BaseTask):
 
             self.state.config_id = self.state.unique_task_hash
             try:
+                pref = service.pipeline.id(self.state.unique_task_hash)
                 with IgnoreCoreLogs():
-                    self.state.pipeline_id = core.get_pipeline(
-                        self.state.unique_task_hash,
-                        conn_url=self.state.params.core_host,
-                        auth=self.state.params.core_auth,
-                    ).pipelineId
-
+                    self.state.pipeline_id = pref.get().pipelineId
                     cout(
                         action=Action.Preparation,
                         message=f"Pipeline {self.state.unique_task_hash} found.",
@@ -414,13 +352,10 @@ class CoreTask(BaseTask):
                     )
 
             except Exception:
-                self.state.pipeline_id = core.create_pipeline(
-                    self.state.unique_task_hash,
+                self.state.pipeline_id = pref.create(
                     processors=self.state.processors,
                     conditions=self.state.conditions or None,
                     results=self.state.results,
-                    conn_url=self.state.params.core_host,
-                    auth=self.state.params.core_auth,
                 )
 
                 cout(
@@ -437,28 +372,19 @@ class CoreTask(BaseTask):
                     "Try `.prepare(stage=PrepareStages.BUILD)` or reinterpret the task"
                 )
             try:
-                self._create_cfg_safe(
-                    cfg_id=self.state.unique_task_hash,
+                service.cfg.name(self.state.config_id).update_or_create(
+                    cfg_id=self.state.config_id,
                     cfg=self.state.config,
-                    auth=self.state.params.core_auth,
-                    conn_url=self.state.params.core_host
                 )
-
-                self.state.params.operation_id = core.pipeline_prepare(
-                    pipeline_id=self.state.unique_task_hash,
+                piperef = service.pipeline.id(self.state.unique_task_hash)
+                self.state.params.operation_id = piperef.prepare(
                     cfg_id=self.state.unique_task_hash,
-                    auth=self.state.params.core_auth,
-                    conn_url=self.state.params.core_host,
                     *args,
                     **kwargs
                 ).operationId
             except (Exception, KeyboardInterrupt) as e:
                 try:
-                    core.task_stop(
-                        self.state.params.operation_id,
-                        auth=self.state.params.core_auth,
-                        conn_url=self.state.params.core_host,
-                    )
+                    service.run.operation_id(self.state.params.operation_id).stop()
                 except Exception:
                     pass
                 raise e
@@ -478,11 +404,15 @@ class CoreTask(BaseTask):
             ) for k, v in overrides.items()
         ]
 
-        core_ids = batch_upload_collections(
-            collections,
-            conn_url=self.state.params.core_host,
-            auth=self.state.params.core_auth,
-        )
+        refs = [
+            self.state.service.collection.name(collection.magic())
+            for collection in collections
+        ]
+
+        core_ids = [
+            ref.update_or_create(data=col.collection_data)
+            for ref, col in zip(refs, collections)
+        ]
 
         key_to_core_id = {
             k: core_id
@@ -505,21 +435,9 @@ class CoreTask(BaseTask):
 
         for k, v in overrides.items():
             if v.path is not None:
-                if v.file is not None:
-                    core.update_collection_object(
-                        v.path,
-                        open(v.file, 'rb').read(),
-                        conn_url=self.state.params.core_host,
-                        auth=self.state.params.core_auth,
-                    )
-                elif v.files:
-                    url = core.post_collection_object_presigned_url(
-                        v.path,
-                        conn_url=self.state.params.core_host,
-                        auth=self.state.params.core_auth,
-                    )
-                    upload_zip_asset(
-                        url,
+                if v.file is not None or v.files is not None:
+                    self.state.service.asset.path(v.path).create(
+                        file=v.file,
                         files=v.files
                     )
                 else:
@@ -541,11 +459,8 @@ class CoreTask(BaseTask):
 
         for k, v in overrides.items():
             name = hashlib.sha256(v.data.model_dump_json().encode()).hexdigest() + '_override'  # noqa: E501
-            id = core.create_doc(
+            id = self.state.service.document.name(name).update(
                 data=v.data.model_dump_json(),
-                name=name,
-                conn_url=self.state.params.core_host,
-                auth=self.state.params.core_auth,
             )
             real_overrides[k] = f'#{id}'
 
@@ -740,6 +655,9 @@ class CoreTask(BaseTask):
                             pass
                         app_cfg_extensions['$' + x.alias] = extension_json
 
+        tref = self.state.service.run.operation_id(
+            self.state.params.operation_id
+        )
         try:
             if real_overrides or app_cfg_extensions:
                 new_config = self.state.config.model_copy(deep=True)
@@ -750,28 +668,22 @@ class CoreTask(BaseTask):
                 new_config.app_cfg_extension = app_cfg_extensions
                 new_config_id = self.state.config_id + \
                     '_' + uuid.uuid4().hex[:6]
-                self._create_cfg_safe(
+
+                self.state.service.cfg.name(new_config_id).update_or_create(
                     cfg_id=new_config_id,
                     cfg=new_config,
-                    conn_url=self.state.params.core_host,
-                    auth=self.state.params.core_auth,
                 )
-                core.task_run(
+                tref.run(
                     self.state.params.operation_id,
                     cfg_id=new_config_id,
-                    auth=self.state.params.core_auth,
-                    conn_url=self.state.params.core_host,
                     wait=not detached,
                     run_id=self.run_id,
                     *args,
                     **kwargs
                 )
             else:
-                core.task_run(
-                    self.state.params.operation_id,
+                tref.run(
                     *args,
-                    auth=self.state.params.core_auth,
-                    conn_url=self.state.params.core_host,
                     run_id=self.run_id,
                     wait=not detached,
                     **kwargs
@@ -802,13 +714,9 @@ class CoreTask(BaseTask):
         if "operation_id" not in self.state.params:
             raise Exception("Attempt to run a task which is not prepared. "
                             "Please, run `.prepare()` first.")
-        core.task_stop(
-            self.state.params.operation_id,
-            *args,
-            auth=self.state.params.core_auth,
-            conn_url=self.state.params.core_host,
-            **kwargs
-        )
+        self.state.service.run.operation_id(
+            self.state.params.operation_id
+        ).stop(*args, **kwargs)
 
     def results(
         self,
@@ -1002,12 +910,7 @@ class CoreTask(BaseTask):
     ) -> 'CoreTask':
         unique_task_hash = unique_task_hash or self.get_pipeline_hash()
         try:
-            pipeline = core.get_pipeline(
-                id=unique_task_hash,
-                conn_url=self.state.params.core_host,
-                auth=self.state.params.core_auth
-            )
-
+            pipeline = self.state.service.pipeline.id(unique_task_hash).get()
         except Exception:
             raise NoPipelineFoundError(unique_task_hash)
 
@@ -1018,11 +921,9 @@ class CoreTask(BaseTask):
         self.state.config = core.Cfg()
         self.state.config_id = unique_task_hash
 
-        json_cfg = json.loads(core.get_cfg(
-            unique_task_hash,
-            conn_url=self.state.params.core_host,
-            auth=self.state.params.core_auth
-        ).data)
+        json_cfg = json.loads(
+            self.state.service.cfg.id(unique_task_hash).get().data
+        )
 
         for key, value in json_cfg.items():
             setattr(self.state.config, key, value)
@@ -1063,7 +964,7 @@ class CoreTask(BaseTask):
         *args,
         **kwargs
     ) -> MetaEndpoint:
-
+        raise NotImplementedError()
         from malevich_coretools import create_endpoint, update_endpoint
         if self.get_stage() not in [CoreTaskStage.BUILT, CoreTaskStage.ONLINE]:
             self.prepare(stage=PrepareStages.BUILD)
