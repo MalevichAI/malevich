@@ -32,3 +32,4 @@ wget
 duckdb
 duckdb-engine
 humanfriendly
+dill
