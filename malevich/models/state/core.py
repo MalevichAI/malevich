@@ -1,8 +1,11 @@
-from typing import Any
+from copy import deepcopy
+from typing import Annotated, Any
 
 import malevich_coretools as core
 from malevich_coretools import Condition, Processor, Result
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field, SkipValidation
+
+from ..._core.service.service import CoreService
 
 from ..collection import Collection
 from ..nodes.asset import AssetNode
@@ -31,6 +34,12 @@ class CoreParams(BaseModel):
 
 class CoreInterpreterState(BaseModel):
     """State of the CoreInterpreterV2"""
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True
+    )
+
+    service: SkipValidation[CoreService] | None = Field(default=None, exclude=True)
+    """CoreService instance"""
 
     processors: dict[str, Processor] = {}
     """Mapping of operation aliases to processors"""
@@ -59,3 +68,7 @@ class CoreInterpreterState(BaseModel):
     results: dict[str, list[Result]] = {}
     """Mapping of processor aliases to results"""
 
+
+    def __deepcopy__(self, memo=None) -> "CoreInterpreterState":
+        # Deepcopy the state without the service
+        return CoreInterpreterState(**deepcopy(self.model_dump()), service=self.service)
