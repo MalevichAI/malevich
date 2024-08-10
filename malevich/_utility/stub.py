@@ -136,9 +136,29 @@ class StubFunction(BaseModel):
         )
         extra_kwargs_ = {}
         if self.config_schema:
-            extra_kwargs_['config_fields'] = self.config_schema.model_computed_fields
+            config_fields = self.config_schema.model_fields
+            for field in config_fields:
+                if field == "config":
+                    raise ValueError(
+                        "Trying to generate a definition for "
+                        "a function with a config field named 'config'"
+                    )
+                annotation = config_fields[field].annotation
+                if (
+                    hasattr(annotation, "__name__")
+                    and annotation.__module__ != typing.__name__
+                ):
+                    # class
+                    annotation = config_fields[field].annotation.__name__
+                else:
+                    # etc.
+                    annotation = str(config_fields[field].annotation)
+                config_fields[field].annotation = annotation
+
+            extra_kwargs_['config_fields'] = config_fields
         if self.sink:
             extra_kwargs_['sink'] = self.sink
+
         data = environment.get_template('def.jinja2').render(
             processor_name = self.name,
             args = self.args,
