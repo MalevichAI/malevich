@@ -253,44 +253,68 @@ class CoreTask(BaseTask):
 
         for node in self.state.asset_nodes.values():
             if node.core_path is not None:
-                try:
-                    files = service.asset.path(node.core_path).list(
-                        recursive=True
-                    ).files
+                with IgnoreCoreLogs():
+                    try:
+                        try:
+                            files = service.asset.path(node.core_path).list(
+                                recursive=True
+                            ).files
+                        except Exception as fe:
+                            try:
+                                files = service.asset.path(node.core_path).get()
+                            except Exception as e:
+                                raise fe from e
 
-                    if node.real_path is not None:
-                        for file in node.real_path:
-                            if file not in files:
-                                raise FileNotFoundError(f'{file} missing')
-                            if os.path.getsize(file) != files[file]:
-                                raise FileNotFoundError(
-                                    f'{file} size mismatch')
 
-                except Exception as e:
-                    if isinstance(e, FileNotFoundError):
-                        message = e.strerror
+
+                        if node.real_path is not None:
+                            if isinstance(files, bytes):
+                                if isinstance(node.real_path, str):
+                                    if os.path.getsize(node.real_path) != len(files):
+                                        raise FileNotFoundError(
+                                            f'{node.real_path} size mismatch'
+                                        )
+                                elif isinstance(node.real_path, list) and len(node.real_path) == 1:  # noqa: E501
+                                    if os.path.getsize(node.real_path[0]) != len(files):
+                                        raise FileNotFoundError(
+                                            f'{node.real_path} size mismatch'
+                                        )
+                                else:
+                                    raise FileNotFoundError(
+                                        "Multiple files specified, but core asset is a single file"  # noqa: E501
+                                    )
+                            else:
+                                for file in node.real_path:
+                                    if file not in files:
+                                        raise FileNotFoundError(f'{file} missing')
+                                    if os.path.getsize(file) != files[file]:
+                                        raise FileNotFoundError(
+                                            f'{file} size mismatch')
+                    except Exception as e:
+                        if isinstance(e, FileNotFoundError):
+                            message = e.strerror
+                        else:
+                            message = 'Failed to fetch asset'
+
+                        service.asset.path(node.core_path).create(
+                            file=node.real_path if isinstance(node.real_path, str) else None,  # noqa: E501
+                            files=node.real_path if isinstance(node.real_path, list) else None,  # noqa: E501
+                        )
+
+                        cout(
+                            action=Action.Preparation,
+                            message=f"Asset {node.name} updated. {message}",
+                            verbosity=VerbosityLevel.AllSteps,
+                            level=LogLevel.Debug
+                        )
+
                     else:
-                        message = 'Failed to fetch asset'
-
-                    service.asset.path(node.core_path).create(
-                        file=node.real_path if isinstance(node.real_path, str) else None,  # noqa: E501
-                        files=node.real_path if isinstance(node.real_path, list) else None,  # noqa: E501
-                    )
-
-                    cout(
-                        action=Action.Preparation,
-                        message=f"Asset {node.name} updated. {message}",
-                        verbosity=VerbosityLevel.AllSteps,
-                        level=LogLevel.Debug
-                    )
-
-                else:
-                    cout(
-                        action=Action.Preparation,
-                        message=f"Asset {node.name} fully matched with the Core",
-                        verbosity=VerbosityLevel.AllSteps,
-                        level=LogLevel.Debug
-                    )
+                        cout(
+                            action=Action.Preparation,
+                            message=f"Asset {node.name} fully matched with the Core",
+                            verbosity=VerbosityLevel.AllSteps,
+                            level=LogLevel.Debug
+                        )
 
         for node in self.state.document_nodes.values():
             try:
