@@ -10,6 +10,7 @@ from typing import Type
 
 import pydantic_yaml as pydml
 from datamodel_code_generator import generate
+from deepdiff import DeepDiff
 from jinja2 import Environment, FileSystemLoader
 from pydantic import BaseModel, Field
 
@@ -191,6 +192,35 @@ class StubIndex(BaseModel):
 class Stub:
     class Utils:
         @staticmethod
+        def combine_schemas(schemas: list[str]) -> str:
+            schemas = [json.loads(schema) for schema in schemas]
+            all_defs = {}
+            for schema in schemas:
+                if not schema:
+                    continue
+
+                defs = schema.get('$defs', schema.get('definitions', {}))
+                for def_name, def_schema in defs.items():
+                    if def_name in all_defs:
+                        diff = DeepDiff(all_defs[def_name], def_schema)
+                        if diff:
+                            raise ValueError(
+                                "Duplicate schemas found with different content: "
+                                f"{def_name}"
+                            )
+                    else:
+                        all_defs[def_name] = def_schema
+
+                if 'title' in schema:
+                    all_defs[schema['title']] = schema
+
+            return json.dumps({
+                "$defs": all_defs,
+                "type": "object",
+            })
+
+
+        @staticmethod
         def generate_context_schema(json_schema: str) -> tuple[str, str]:
 
             with (
@@ -205,10 +235,13 @@ class Stub:
                     use_annotated=False,
                     input_file_type='jsonschema',
                     base_class='malevich.models._model._Model', # cool
+                    collapse_root_models=True,
+                    disable_timestamp=True,
+                    custom_file_header='"""Malevich auto-generated schema"""',
                 )
                 out_script =  open(out.name).read().replace(
                     'from __future__ import annotations',
-                    '\n'
+                    ''
                 )
                 return (
                     re.findall(
@@ -260,8 +293,13 @@ class Stub:
             for name, processor in operations.items()
         }
 
+        schemes = [
+            *app_info.schemes.values(),
+            *[json.dumps(processor.contextClass) for processor in operations.values()]
+        ]
+
         config_model_class = {}
-        for processor_name, (class_names, _) in config_stubs.items():
+        for processor_name, (class_names, stub) in config_stubs.items():
             if class_names:
                 for class_name in class_names:
                     if class_name == operations[processor_name].contextClass['title']:
@@ -272,36 +310,14 @@ class Stub:
             else:
                 config_model_class[processor_name] = None
 
+
         with open(os.path.join(path, 'scheme.py'), 'w+') as f_scheme:
-            i = 0
-            for (name, (class_name, stub,)), proc in zip(
-                config_stubs.items(), operations.values()
-            ):
-                if class_name is None or stub is None:
-                    continue
+            f_scheme.write(
+                Stub.Utils.generate_context_schema(
+                    Stub.Utils.combine_schemas(schemes)
+                )[1]
+            )
 
-                j = f_scheme.write(stub + '\n')
-                index.schemes.append(
-                    StubSchema(
-                        name=name,
-                        scheme=json.dumps(proc.contextClass),
-                        class_name=class_name[0],
-                    )
-                )
-                index.schemes_index[name] = (i, i + j)
-                i += j
-
-            for name, schema in app_info.schemes.items():
-                stub_ = Stub.Utils.generate_context_schema(schema)
-                j = f_scheme.write(stub_[1] + '\n')
-                index.schemes.append(
-                    StubSchema(
-                        name=name,
-                        scheme=schema,
-                        class_name=stub_[0][0]
-                    )
-                )
-                index.schemes_index[name] = (i, i + j)
 
         importlib.import_module(f'malevich.{package_name}.scheme')
         config_models = {
