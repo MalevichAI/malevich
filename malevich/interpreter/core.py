@@ -3,7 +3,14 @@ from collections import defaultdict
 from typing import Optional
 
 import malevich_coretools as core
-from malevich_coretools import Argument, Condition, JsonImage, Processor, Result
+from malevich_coretools import (
+    AlternativeArgument,
+    Argument,
+    Condition,
+    JsonImage,
+    Processor,
+    Result,
+)
 from malevich_space.schema import ComponentSchema
 
 from malevich._autoflow import traced, tracedLike
@@ -30,6 +37,8 @@ from malevich.models import (
     TreeNode,
     VerbosityLevel,
 )
+
+from ..models.nodes.morph import MorphNode
 
 cache = CacheManager()
 registry = Registry()
@@ -337,21 +346,67 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
     ):
         op_group = state.processors if not is_condition else state.conditions
         a = op_group[alias].arguments.get(link.name, None)
-        if a is None:
-            if link.in_sink:
-                op_group[alias].arguments[link.name] = Argument(
-                    group=[argument]
-                )
+        if a is not None: # has previous arguments
+            assert a.alternative or not argument.conditions, (
+                "violation: argument with conditions, but no alternative"
+                f" {a.model_dump()}"
+            )
+            if argument.conditions:
+                a.alternative.append(argument)
             else:
-                op_group[alias].arguments[link.name] = argument
-        else:
-            if a.group is None:
-                op_group[alias].arguments[link.name] = Argument(
-                    group=[a, argument]
+                assert link.in_sink, (
+                    "violation: clash of arguments but no in_sink flag"
                 )
-            else:
-                op_group[alias].arguments[link.name].group.append(argument)
 
+                if a.group is None:
+                    a.group = []
+                a.group.append(argument)
+        else:
+            if argument.conditions:
+                a = AlternativeArgument(alternative=[argument])
+            elif link.in_sink:
+                a = AlternativeArgument(group=[argument])
+            else:
+                a = AlternativeArgument(**argument.model_dump())
+
+        op_group[alias].arguments[link.name] = a
+
+
+    def make_argument(
+        self,
+        state: CoreInterpreterState,
+        node: BaseNode,
+        conditions: dict[OperationNode, str] | None = None,
+    ) -> Argument | AlternativeArgument:
+
+        conditions = {
+            key.alias: value
+            for key, value in (conditions or {}).items()
+        }
+
+        if isinstance(node, CollectionNode):
+            argument = Argument(
+                collectionName=state.collection_nodes[node.alias].collection.collection_id,
+                conditions=conditions
+            )
+        elif isinstance(node, OperationNode):
+            argument = Argument(
+                id=node.alias,
+                indices=node.subindex,
+                conditions=conditions
+            )
+        elif isinstance(node, AssetNode):
+            argument = Argument(
+                collectionName=state.asset_nodes[node.alias].name,
+                conditions=conditions
+            )
+        elif isinstance(node, DocumentNode):
+            argument = Argument(
+                collectionName=state.document_nodes[node.alias].reverse_id,
+                conditions=conditions
+            )
+
+        return argument
 
     def create_dependency(
         self,
@@ -359,46 +414,37 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
         from_node: traced[BaseNode],
         to_node: traced[OperationNode],
         link: ArgumentLink[BaseNode],
+        conditions: dict[str, bool] | None = None
     ) -> CoreInterpreterState:
-        if from_node.owner.alias is None:
-            for node in self._state.operation_nodes.values():
-                if node.uuid == from_node.owner.uuid:
-                    from_node.owner.alias = node.alias
-                    break
-            else:
-                from_node.owner.alias = unique(from_node.owner.uuid)
+        for fcondition, fnode in from_node.owner:
+            for tcondition, tnode in to_node.owner:
+                if fnode.alias is None:
+                    for node in self._state.operation_nodes.values():
+                        if node.uuid == fnode.uuid:
+                            fnode.alias = node.alias
+                            break
+                    else:
+                        fnode.alias = unique(fnode.uuid)
 
-        if isinstance(from_node.owner, CollectionNode):
-            argument = Argument(
-                collectionName=state.collection_nodes[from_node.owner.alias].collection.collection_id
-            )
-        elif isinstance(from_node.owner, OperationNode):
-            argument = Argument(
-                id=from_node.owner.alias,
-                indices=from_node.owner.subindex
-            )
-        elif isinstance(from_node.owner, AssetNode):
-            argument = Argument(
-                collectionName=state.asset_nodes[from_node.owner.alias].name
-            )
-        elif isinstance(from_node.owner, DocumentNode):
-            argument = Argument(
-                collectionName=state.document_nodes[from_node.owner.alias].reverse_id
-            )
+                cond_stmt = {
+                    **(fcondition or {}),
+                    **(conditions or {}),
+                    **(tcondition or {})
+                }
+                self._add_argument(
+                    state,
+                    self.make_argument(state, fnode, cond_stmt),
+                    tnode.alias,
+                    link,
+                    is_condition=(isinstance(tnode, OperationNode) and tnode.is_condition)
+                )
 
-        self._add_argument(
-            state,
-            argument,
-            to_node.owner.alias,
-            link,
-            is_condition=to_node.owner.is_condition
-        )
-
-        _log(
-            f"Dependency: {from_node.owner.short_info()} -> "
-            f"{to_node.owner.short_info()}, "
-            f"Link: {link.name}", -1, 0, True
-        )
+                _log(
+                    f"Dependency: {fnode.short_info()} -> "
+                    f"{tnode.short_info()}, "
+                    f"Link: {link.name}"
+                    f"", -1, 0, True
+                )
         return state
 
     def before_interpret(self, state: CoreInterpreterState) -> CoreInterpreterState:

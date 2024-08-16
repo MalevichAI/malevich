@@ -8,6 +8,8 @@ from typing import Any, Callable, Literal, Optional, ParamSpec, TypeVar, overloa
 
 import pandas as pd
 
+from ..models.nodes.morph import MorphNode
+
 from .._ast import boot_flow
 
 
@@ -293,7 +295,7 @@ def flow(
             if is_subflow:
                 outer_tracer = traced()
 
-            with Flow() as sub_tree:
+            with Flow():
                 named_args = {
                     **{name: value for name, value in zip(pos_arg_names, args)},
                     **kwargs
@@ -382,6 +384,17 @@ def flow(
                     __results = boot_flow(function, globals_, {}, *traced_pos_args, **traced_kwargs)
                 else:
                     __results = boot_flow(function, globals_, {}, *args, **kwargs)
+
+                sub_tree = Flow.flow_ref()
+
+                sub_tree.cast_link_types(
+                    lambda x: ArgumentLink(
+                        index=x.index,
+                        name=x.name,
+                        in_sink=x.in_sink
+                    )
+                )
+
                 t_node = TreeNode(
                     tree=sub_tree,
                     reverse_id=reverse_id,
@@ -413,22 +426,37 @@ def flow(
                         )
                         traced_shadows[name]._autoflow.calledby(outer_tracer, _a)
 
+                # Check whether len of each item in __results is the same
+                for r in __results:
+                    if len(r) != len(__results[0]):
+                        raise ValueError(
+                            "Subflow function returned different number of results "
+                            "in return statements. All return statements should return "
+                            "the same number of results."
+                        )
+
+                morphed_results = []
+                for i in range(len(__results[0])):
+                    morph = MorphNode()
+                    for morphome in __results:
+                        morph.members.append((morphome[0], morphome[1][i].owner))
+                    morph.correct_self()
+                    morphed_results.append(morph)
+
                 outputs = [
                     traced(
                         TreeNode(
                             **t_node.model_dump(exclude=["underlying_node"]),
-                            underlying_node=o.owner,
+                            underlying_node=o,
                         )
                     )
-                    for o in ([__results] if isinstance(__results, traced) else
-                              __results)
-                    if isinstance(o, traced)
+                    for o in morphed_results
                 ]
 
                 assert all([o.owner.results is not None for o in outputs])
-
-                return outputs[0] if len(outputs) == 1 else outputs
+                return outputs
             else:
+                # Save t_node.tree
                 return PromisedTask(
                     results=__results, tree=t_node, component=__component
                 )

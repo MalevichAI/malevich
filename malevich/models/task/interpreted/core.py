@@ -73,6 +73,8 @@ class CoreTask(BaseTask):
     using Malevich Core API.
     """
 
+    supports_conditional_output = True
+
     @staticmethod
     def load(object_bytes: bytes) -> 'CoreTask':
         return pickle.loads(object_bytes)
@@ -240,16 +242,10 @@ class CoreTask(BaseTask):
         service = self.state.service
         for node in self.state.collection_nodes.values():
             collection = node.collection
-            try:
-                collection.core_id = (
-                    # No data request
-                    service.collection.name(collection.magic()).list().ownIds[-1]
-                )
-            except Exception:
-                collection.core_id = (
-                    service.collection.name(collection.magic())
-                    .create_if_not_exists(collection.collection_data)
-                )
+            collection.core_id = (
+                service.collection.name(collection.magic())
+                .update_or_create(collection.collection_data)
+            )
 
         for node in self.state.asset_nodes.values():
             if node.core_path is not None:
@@ -763,6 +759,22 @@ class CoreTask(BaseTask):
         if not run_id:
             run_id = self.run_id
 
+        if isinstance(self._returned, dict):
+            logs = core.logs(
+                self.state.params.operation_id,
+                run_id=run_id,
+                auth=self.state.params.core_auth,
+                conn_url=self.state.params.core_host,
+            )
+            key = {
+                key: value[min(value.keys()), value[min(value.keys())]] for key, value in
+                logs.pipeline.conditions.items()
+            }
+            if key in self._returned:
+                returned = self._returned[key]
+            else:
+                returned = self._returned[None]
+
         if isinstance(self._returned, traced):
             returned = [returned]
 
@@ -905,7 +917,9 @@ class CoreTask(BaseTask):
     ) -> None:
         self.prepare(stage, *args, **kwargs)
 
-    def commit_returned(self, returned: FlowOutput) -> None:
+    def commit_returned(
+        self, returned: FlowOutput | dict[dict[str, bool], FlowOutput]
+    ) -> None:
         self._returned = returned
 
     def dump(self) -> bytes:

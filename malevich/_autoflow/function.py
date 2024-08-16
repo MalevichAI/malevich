@@ -13,8 +13,6 @@ R = TypeVar("R")
 
 
 def autotrace(func: Callable[C, R]) -> Callable[C, R]:
-    from malevich.models.nodes.joint import JointNode
-    
     """Function decorator that enables automatic dependency tracking
 
     The result is turned into :func:`traced <malevich._autoflow.tracer.traced>`
@@ -52,13 +50,6 @@ def autotrace(func: Callable[C, R]) -> Callable[C, R]:
         for i, arg in enumerate(islice(args, 0, len(varnames))):
             argument_name = varnames[i]
             if isinstance(arg, gn.traced):
-                # FIXME: Temporal for AlternativeArgument
-                if isinstance(arg._owner, JointNode):
-                    raise ValueError(
-                        f"Processor {func.__name__} was called "
-                        "with joint node. Most probably you have a branch "
-                        "that modifies the variable declared outside the branch. "
-                    )
                 arg._autoflow.calledby(
                     result,
                     AutoflowLink(index=i, name=argument_name)

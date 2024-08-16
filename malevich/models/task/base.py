@@ -15,6 +15,8 @@ StageClass = TypeVar("StageClass", bound=enum.Enum)
 
 
 class BaseTask(ABC, Generic[StageClass]):
+    supports_conditional_output: bool = False
+
     @property
     @abstractmethod
     def tree(self) -> TreeNode:

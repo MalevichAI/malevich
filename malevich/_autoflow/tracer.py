@@ -1,4 +1,6 @@
+from collections import defaultdict
 import uuid
+import weakref
 from hashlib import sha256
 from typing import Any, Generic, Optional, TypeVar
 
@@ -36,9 +38,44 @@ class autoflow(Generic[T]):  # noqa: N801
     interfaces for reporting a new dependency in the execution tree.
     """
 
+    _trace_map: dict[weakref.ref[ExecutionTree], set['autoflow']] = defaultdict(set)
+    _tracers = 0
+
+    @staticmethod
+    def get_tree_ref(tree: ExecutionTree) -> weakref.ref[ExecutionTree] | None:
+        for t in autoflow._trace_map.keys():
+            if t() is not None and t() is tree:
+                return t
+        return weakref.ref(tree)
+
+    @staticmethod
+    def get_trace_refs(tree: ExecutionTree) -> set['autoflow']:
+        tree = autoflow.get_tree_ref(tree)
+        if tree is None:
+            raise ValueError("Tree not found")
+        return autoflow._trace_map[tree]
+
+
+    @staticmethod
+    def retrace(old_tree: ExecutionTree, new_tree: ExecutionTree, /) -> None:
+        new_tree_ref = autoflow.get_tree_ref(new_tree)
+        for a in autoflow.get_trace_refs(old_tree):
+            a._tree_ref = new_tree_ref
+            autoflow._trace_map[new_tree_ref].add(a)
+
+    def retrace_self(self, new_tree: ExecutionTree) -> 'autoflow':
+        new_tree_ref = autoflow.get_tree_ref(new_tree)
+
+        autoflow._trace_map[self._tree_ref].remove(self)
+        self._tree_ref = new_tree_ref
+        autoflow._trace_map[new_tree_ref].add(self)
+        return self
+
     def __init__(self, tree: ExecutionTree[T, Any]) -> None:
-        self._tree_ref = tree
+        self._tree_ref = autoflow.get_tree_ref(tree)
         self._component_ref = None
+        self._trace_map[self._tree_ref].add(self)
+        self._tracers += 1
 
     def attach(self, component: T) -> None:
         """Attach the autoflow to a traced object"""
@@ -47,7 +84,20 @@ class autoflow(Generic[T]):  # noqa: N801
     def calledby(self, caller: 'traced', argument: Optional[str] = None) -> None:
         """Report a new dependency in the execution tree"""
         assert isinstance(caller, traced), "Caller must be a traced object"
-        self._tree_ref.put_edge(self._component_ref, caller, argument)
+        self._tree_ref().put_edge(self._component_ref, caller, argument)
+
+    def __deepcopy__(self, *args):
+        copy = super().__deepcopy__(*args)
+        autoflow._trace_map[copy._tree_ref].add(copy)
+        self._tracers += 1
+        return copy
+
+    def __copy__(self, *args):
+        copy = super().__copy__(*args)
+        autoflow._trace_map[copy._tree_ref].add(copy)
+        self._tracers += 1
+        return copy
+
 
 
 class traced(Generic[T]):  # noqa: N801

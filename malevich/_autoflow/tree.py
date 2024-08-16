@@ -46,6 +46,58 @@ class ExecutionTree(Generic[T, LinkType]):
             self.nodes_.add(u)
             self.nodes_.add(v)
 
+        self._node_map  = {}
+        self._edge_map  = {}
+
+    def remove_node_mapper(self, key: str) -> None:
+        self._node_map.pop(key)
+
+    def remove_edge_mapper(self, key: str) -> None:
+        self._edge_map.pop(key)
+
+    def clone_node_mappers(self, other: 'ExecutionTree') -> None:
+        self._node_map = {**other._node_map}
+
+    def clone_edge_mappers(self, other: 'ExecutionTree') -> None:
+        self._edge_map = {**other._edge_map}
+
+    def register_node_mapper(
+        self, mapper: 'BaseNodeMapper', key: str | None = None
+    ) -> None:
+        """Register a node mapper
+
+        Args:
+            mapper (BaseNodeMapper): The node mapper to register
+        """
+        if key is None:
+            key = id(mapper)
+        self._node_map[key] = mapper
+
+    def register_edge_mapper(
+        self, mapper: 'BaseEdgeMapper', key: str | None = None
+    ) -> None:
+        """Register an edge mapper
+
+        Args:
+            mapper (BaseEdgeMapper): The edge mapper to register
+        """
+        if key is None:
+            key = id(mapper)
+        self._edge_map[key] = mapper
+
+    def add_node(self, node: T) -> None:
+        """Add a node to the execution tree
+
+        Args:
+            node (T): The node to add
+        """
+        for x in self._node_map.values():
+            x(node)
+
+        if node not in self.nodes_:
+            self.nodes_.add(node)
+
+
     def put_edge(self, callee: T, caller: T, link: LinkType = None) -> None:
         """Add an edge to the execution tree
 
@@ -65,9 +117,13 @@ class ExecutionTree(Generic[T, LinkType]):
             raise BadEdgeError("Edge already exists", (callee, caller, link))
         if caller == callee:
             raise BadEdgeError("Self-edge", (callee, caller, link))
+
+        self.add_node(callee)
+        self.add_node(caller)
+
+        for x in self._edge_map.values():
+            x(callee, caller, link)
         self.tree.append((callee, caller, link))
-        self.nodes_.add(callee)
-        self.nodes_.add(caller)
 
     def prune(self, outer_nodes: list[T]) -> None:
         """Removes specified nodes from the execution tree

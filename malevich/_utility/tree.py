@@ -1,5 +1,6 @@
 from malevich._autoflow import ExecutionTree, traced, tracedLike
 from malevich.models import ArgumentLink, BaseNode
+from ..models.nodes.morph import MorphNode
 from malevich.types import FlowTree
 
 MAX_DEFLAT_DEPTH = 1024
@@ -72,4 +73,25 @@ def unwrap_tree(
                 (tracedLike(u.underlying_node), edge[1], edge[2]),)
         else:
             edges.append(edge)
-    return ExecutionTree(edges)
+
+    w_out_mophed_trees = []
+    for u, v, link in edges:
+        if isinstance(u.owner, MorphNode):
+            members = []
+            for conds, node in u.owner:
+                if isinstance(node, TreeNode):
+                    node = node.underlying_node
+                members.append((conds, node))
+            u = tracedLike(MorphNode(members=members))
+            u.owner.correct_self()
+        if isinstance(v.owner, MorphNode):
+            members = []
+            for conds, node in v.owner:
+                if isinstance(node, TreeNode):
+                    node = node.underlying_node
+                members.append((conds, node))
+            v = tracedLike(MorphNode(members=members))
+            v.owner.correct_self()
+        w_out_mophed_trees.append((u, v, link))
+
+    return ExecutionTree(w_out_mophed_trees)
