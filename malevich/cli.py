@@ -1,4 +1,7 @@
+import atexit
 import logging
+import sys
+from io import BytesIO, TextIOWrapper
 
 import typer
 import typer.core
@@ -198,10 +201,33 @@ app.add_typer(
 # _________________________________________________
 
 
+class StreamCapture(TextIOWrapper):
+    def __init__(self, original_stream, *args, **kwargs):
+        self.original_stream = original_stream
+        self.total = ""
+        super().__init__(BytesIO(), *args, **kwargs)
+
+    def flush(self):
+        super().flush()
+        output = self.buffer.getvalue().decode(self.encoding)
+        self.buffer.seek(0)
+        self.buffer.truncate(0)
+        self.total += output
+        self.write_to_stdout(output)
+
+    def write_to_stdout(self, output):
+        self.original_stream.write(output)
+
 class CLIContext:
     global_ = False
 
-@app.callback()
+cmd_artifact = {
+    'type': "cli_command",
+}
+stdout_capture = StreamCapture(sys.stdout, encoding='utf-8')
+stderr_capture = StreamCapture(sys.stderr, encoding='utf-8')
+
+@app.callback(invoke_without_command=True)
 def main_callback(
     ctx: typer.Context,
     global_: bool = typer.Option(
@@ -214,12 +240,28 @@ def main_callback(
     ctx.obj = CLIContext()
     ctx.obj.global_ = global_
 
+    cmd_artifact['command'] = ctx.command_path
+
+
+
+@atexit.register
+def write_cli_artifact():
+    cmd_artifact['stdout'] = stdout_capture.total
+    cmd_artifact['stderr'] = stderr_capture.total
+
+    from malevich._analytics import manager
+    manager.write_artifact(cmd_artifact)
+
 def main() -> None:
     """Entry point"""
+    sys.stdout.flush()
+    sys.stderr.flush()
+
     from malevich._cli.misc.manifest_to_env import manifest_as_env
     with manifest_as_env:
+        sys.stdout = stdout_capture
+        sys.stderr = stderr_capture
         app()
-
 
 if __name__ == "__main__":
     main()

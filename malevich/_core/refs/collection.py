@@ -1,5 +1,7 @@
 from typing import Generic, TypeVar
 
+from .artifact import capture_artifact
+
 from .base import BaseRef
 
 CreateFn = TypeVar('CreateFn', bound=callable)
@@ -25,4 +27,4 @@ class CollectionRef(
         get_table: GetTableFn | None = None,
     ) -> None:
         super().__init__(name, create, delete, update, get, list)
-        self.get_table = get_table
+        self.get_table = capture_artifact(get_table)

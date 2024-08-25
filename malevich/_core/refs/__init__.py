@@ -1,3 +1,4 @@
+from .artifact import capture_artifact
 from .base import BaseRef
 from .collection import CollectionRef
 from .asset import AssetRef

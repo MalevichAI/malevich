@@ -1,8 +1,7 @@
-from functools import partial
+from functools import partial, wraps
 from typing import Generic, TypeVar
 
 from ..._utility.core_logging import IgnoreCoreLogs
-
 from ..refs.base import BaseRef
 
 CreateFn = TypeVar('CreateFn', bound=callable)
@@ -21,7 +20,7 @@ def wrap_fn(
     get: bool = False,
     list: bool = False,
 ) -> T:
-
+    @wraps(fn)
     def wrapped(*args, **kwargs):
         if create:
             out = fn(*args, **kwargs)
@@ -35,7 +34,7 @@ def wrap_fn(
     return wrapped
 
 
-class ConfigRef(BaseRef[CreateFn, DeleteFn, UpdateFn, GetFn, ListFn], 
+class ConfigRef(BaseRef[CreateFn, DeleteFn, UpdateFn, GetFn, ListFn],
               Generic[CreateFn, DeleteFn, UpdateFn, GetFn, ListFn]):
 
     @property

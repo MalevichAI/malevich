@@ -8,6 +8,8 @@ from typing import Any, Callable, Literal, Optional, ParamSpec, TypeVar, overloa
 
 import pandas as pd
 
+from malevich._analytics import manager
+
 from ..models.nodes.morph import MorphNode
 
 from .._ast import boot_flow
@@ -247,6 +249,18 @@ def flow(
         function_name = name or function.__name__.replace("_", " ").title()
         description = description or function.__doc__
 
+        artifact = {
+            'type': 'flow_declaration',
+            'reverse_id': reverse_id,
+            'name': function_name,
+            'description': description,
+            'source': inspect.getsource(function),
+            'file': inspect.getsourcefile(function),
+            'id': id(function),
+        }
+
+        manager.write_artifact(artifact)
+
         if description is None:
             description = f"Meta flow: {function_name}"
 
@@ -386,6 +400,19 @@ def flow(
                     __results = boot_flow(function, globals_, {}, *args, **kwargs)
 
                 sub_tree = Flow.flow_ref()
+                dump_edges = []
+
+                try:
+                    for fnd, tnd, link in sub_tree.tree:
+                        dump_edges.append({
+                            "from": fnd.owner.model_dump(),
+                            "to": tnd.owner.model_dump(),
+                            "link": link.owner.model_dump()
+                        })
+
+                    manager.write_artifact(dump_edges)
+                except Exception as e:
+                    pass
 
                 sub_tree.cast_link_types(
                     lambda x: ArgumentLink(

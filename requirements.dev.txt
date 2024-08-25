@@ -34,3 +34,4 @@ duckdb-engine
 humanfriendly
 dill
 deepdiff
+sqlite3

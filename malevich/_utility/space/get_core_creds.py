@@ -4,7 +4,7 @@ from gql import gql
 from malevich_space.ops import SpaceOps
 from malevich_space.schema import SpaceSetup
 
-from malevich._db import cache_user, get_cached_users, get_db
+from malevich._db import cache_user, get_cached_users, Read
 from malevich._db.schema.core_creds import CoreCredentials
 from malevich.core_api import check_auth
 
@@ -116,10 +116,11 @@ def get_core_creds_from_setup(setup: SpaceSetup) -> tuple[str, str]:
         raise Exception("SA not found")
 
 def get_core_creds_from_db(user: str, host: str):
-    creds_ = get_db().query(CoreCredentials).where(
-        CoreCredentials.user == user,
-        CoreCredentials.host == host
-    ).one_or_none()
+    with Read() as session:
+        creds_ = session.query(CoreCredentials).where(
+            CoreCredentials.user == user,
+            CoreCredentials.host == host
+        ).one_or_none()
 
     if not creds_:
         return None

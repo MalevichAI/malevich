@@ -44,5 +44,12 @@ class Paths:
     def templates(*args: os.PathLike) -> str:
         return Paths.module('_templates', *args)
 
+    @staticmethod
+    def lock(name: str) -> str:
+        if not os.path.exists(Paths.home('.locks')):
+            os.makedirs(Paths.home('.locks'))
+        return Paths.home('.locks', name)
+
+
 
 

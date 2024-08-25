@@ -1,5 +1,7 @@
 from typing import Generic, TypeVar
 
+from .artifact import capture_artifact
+
 from .base import BaseRef
 
 CreateFn = TypeVar('CreateFn', bound=callable)
@@ -29,7 +31,7 @@ class PRSRef(
         stop: StopFn | None = None,
     ) -> None:
         super().__init__(name, create, delete, update, get, list)
-        self.run = run
-        self.prepare = prepare
-        self.stop = stop
+        self.run = capture_artifact(run)
+        self.prepare = capture_artifact(prepare)
+        self.stop = capture_artifact(stop)
 

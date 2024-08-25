@@ -19,7 +19,9 @@ from malevich._core.ops import (
     batch_upload_collections,
 )
 from malevich._utility import IgnoreCoreLogs, LogLevel, cout, upload_zip_asset
-from ...._utility.cache.manager import CacheManager
+from malevich._utility.cache.manager import CacheManager
+from malevich._utility.package import PackageManager
+from malevich._analytics.decorators import capture_caller_file
 from malevich.models import (
     Action,
     AssetNode,
@@ -35,11 +37,15 @@ from malevich.models import (
     TreeNode,
     VerbosityLevel,
 )
+from malevich.models.exceptions import NoPipelineFoundError, NoTaskToConnectError
+from malevich.models.overrides import (
+    AssetOverride,
+    CollectionOverride,
+    DocumentOverride,
+    Override,
+)
 from malevich.types import FlowOutput
 
-from ...._utility.package import PackageManager
-from ...exceptions import NoPipelineFoundError, NoTaskToConnectError
-from ...overrides import AssetOverride, CollectionOverride, DocumentOverride, Override
 from ..base import BaseTask
 
 
@@ -206,6 +212,7 @@ class CoreTask(BaseTask):
            self.get_pipeline(with_hash=False).model_dump_json().encode() 
         ).hexdigest()
 
+    @capture_caller_file
     def prepare(
         self,
         stage: PrepareStages = PrepareStages.ALL,
@@ -529,6 +536,7 @@ class CoreTask(BaseTask):
                 return proc_stub.config
         return None
 
+    @capture_caller_file
     def run(
         self,
         override: dict[str, Override] | None = None,
@@ -718,6 +726,7 @@ class CoreTask(BaseTask):
             raise e
         return self.run_id
 
+    @capture_caller_file
     def stop(
         self,
         *args,
@@ -738,6 +747,7 @@ class CoreTask(BaseTask):
             self.state.params.operation_id
         ).stop(*args, **kwargs)
 
+    @capture_caller_file
     def results(
         self,
         # returned: Iterable[traced[BaseNode]] | traced[BaseNode] | None,
@@ -941,6 +951,7 @@ class CoreTask(BaseTask):
             " instead."
         )
 
+    @capture_caller_file
     def connect(
         self,
         unique_task_hash: str | None = None,
@@ -994,6 +1005,7 @@ class CoreTask(BaseTask):
 
         return self
 
+    @capture_caller_file
     def publish(
         self,
         capture_results: list[str] | Literal['all'] | Literal['last'] = 'last',

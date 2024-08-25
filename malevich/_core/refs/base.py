@@ -1,6 +1,8 @@
+from functools import partial, wraps
 from typing import Generic, TypeVar
 
 from ..._utility.core_logging import IgnoreCoreLogs
+from .artifact import capture_artifact
 
 CreateFn = TypeVar('CreateFn', bound=callable)
 DeleteFn = TypeVar('DeleteFn', bound=callable)
@@ -19,6 +21,7 @@ def wrap_fn(
     list: bool = False,
 ) -> T:
 
+    @wraps(fn.func if isinstance(fn, partial) else fn)
     def wrapped(*args, **kwargs):
         if create:
             out = fn(*args, **kwargs)
@@ -31,6 +34,7 @@ def wrap_fn(
             ref._created = False
             return out
         return fn(*args, **kwargs)
+
     return wrapped
 
 
@@ -38,6 +42,7 @@ def create_if_not_exists(
     ref: 'BaseRef',
     create: CreateFn,
 ) -> CreateFn:
+    @wraps(create)
     def wrapped(*args, **kwargs):
         with IgnoreCoreLogs():
             if (_get := ref._try_get()):
@@ -50,6 +55,8 @@ def update_or_create(
     create: CreateFn,
     update: UpdateFn,
 ) -> UpdateFn:
+
+    @wraps(create)
     def wrapped(*args, **kwargs):
         if ref.update is not None:
             try:
@@ -81,11 +88,11 @@ class BaseRef(Generic[CreateFn, DeleteFn, UpdateFn, GetFn, ListFn]):
         list: ListFn | None = None,
     ) -> None:
         self.name = name
-        self.create = wrap_fn(create, self, create=True)
-        self.delete = wrap_fn(delete, self, delete=True)
-        self.update = update
-        self.get = get
-        self.list = list
+        self.create = capture_artifact(wrap_fn(create, self, create=True))
+        self.delete = capture_artifact(wrap_fn(delete, self, delete=True))
+        self.update = capture_artifact(update)
+        self.get = capture_artifact(get)
+        self.list = capture_artifact(list)
 
         self._created = None
         self._deleted = None
