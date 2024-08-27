@@ -19,6 +19,7 @@ from malevich._core.ops import (
     batch_upload_collections,
 )
 from malevich._utility import IgnoreCoreLogs, LogLevel, cout, upload_zip_asset
+from ...nodes.morph import MorphNode
 from ...._utility.cache.manager import CacheManager
 from malevich.models import (
     Action,
@@ -756,34 +757,60 @@ class CoreTask(BaseTask):
         if not self._returned:
             return None
 
+        demorphed_returned = []
+        for i in range(len(returned)):
+            if isinstance(returned[i][1].owner, MorphNode):
+                for morph_conditions, node in returned[i][1].owner.members:
+                    demorphed_returned.append(({
+                        **(returned[i][0] or {}),
+                        **(morph_conditions or {})
+                        }, node,
+                    ))
+            else:
+                demorphed_returned.append(returned[i])
+
+        returned = demorphed_returned
+
         if not run_id:
             run_id = self.run_id
 
-        if isinstance(self._returned, dict):
-            logs = core.logs(
-                self.state.params.operation_id,
-                run_id=run_id,
-                auth=self.state.params.core_auth,
-                conn_url=self.state.params.core_host,
-            )
-            key = {
-                key: value[min(value.keys()), value[min(value.keys())]] for key, value in
-                logs.pipeline.conditions.items()
-            }
-            if key in self._returned:
-                returned = self._returned[key]
-            else:
-                returned = self._returned[None]
+        logs = core.logs(
+            self.state.params.operation_id,
+            run_id=run_id,
+            auth=self.state.params.core_auth,
+            conn_url=self.state.params.core_host,
+        )
+        no_conditions_return = None
+        final_result = None
 
-        if isinstance(self._returned, traced):
+        condition_map = {}
+        for alias, info in logs.pipeline.conditions.items():
+            condition_map[alias] =  info[max(info.keys())]
+
+        for condition, return_map in returned:
+            if condition is None:
+                no_conditions_return = return_map
+            else:
+                matched = True
+                for node, value in condition.items():
+                    matched &= condition_map[node.alias] == value
+                if matched:
+                    final_result = return_map
+
+        if not condition_map:
+            final_result = no_conditions_return
+
+        returned = final_result
+
+        if isinstance(returned, BaseNode):
             returned = [returned]
 
-        def _deflat(li: list[traced[BaseNode]]) -> list[traced[BaseNode]]:
+        def _deflat(li: list[BaseNode]) -> list[BaseNode]:
             temp_returned = []
             for r in li:
-                if isinstance(r.owner, TreeNode):
+                if isinstance(r, TreeNode):
                     temp_returned.extend(
-                        _deflat(r.owner.results)
+                        _deflat(r.results)
                     )
                 else:
                     temp_returned.append(r)
@@ -792,8 +819,7 @@ class CoreTask(BaseTask):
         returned = _deflat(returned)
 
         results = []
-        for r in returned:
-            node = r.owner
+        for node in returned:
             if isinstance(node, CollectionNode):
                 results.append(
                     CoreLocalDFResult(
@@ -804,7 +830,7 @@ class CoreTask(BaseTask):
                 )
             elif isinstance(node, OperationNode):
                 results.append(CoreResult(
-                    core_group_name=r.owner.alias,
+                    core_group_name=node.alias,
                     core_operation_id=self.state.params.operation_id,
                     core_run_id=run_id,
                     auth=self.state.params.core_auth,
@@ -812,14 +838,14 @@ class CoreTask(BaseTask):
                 ))
             elif isinstance(node, AssetNode):
                 results.append(CoreResult(
-                    core_group_name=r.owner.alias,
+                    core_group_name=node.alias,
                     core_operation_id=self.state.params.operation_id,
                     core_run_id=run_id,
                     conn_url=self.state.params.core_host
                 ))
             else:
                 warnings.warn(
-                    f"Cannot interpret {type(r)} as a result."
+                    f"Cannot interpret {type(node)} as a result."
                 )
 
         # return results[0] if len(results) == 1 else results

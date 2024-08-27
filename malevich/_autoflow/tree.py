@@ -85,14 +85,14 @@ class ExecutionTree(Generic[T, LinkType]):
             key = id(mapper)
         self._edge_map[key] = mapper
 
-    def add_node(self, node: T) -> None:
+    def add_node(self, node: T, from_node: bool | None = None) -> None:
         """Add a node to the execution tree
 
         Args:
             node (T): The node to add
         """
-        for x in self._node_map.values():
-            x(node)
+        for mapper in self._node_map.values():
+            mapper(node, from_node=from_node)
 
         if node not in self.nodes_:
             self.nodes_.add(node)
@@ -118,11 +118,11 @@ class ExecutionTree(Generic[T, LinkType]):
         if caller == callee:
             raise BadEdgeError("Self-edge", (callee, caller, link))
 
-        self.add_node(callee)
-        self.add_node(caller)
+        self.add_node(callee, from_node=True)
+        self.add_node(caller, from_node=False)
 
-        for x in self._edge_map.values():
-            x(callee, caller, link)
+        for mapper in self._edge_map.values():
+            mapper(callee, caller, link)
         self.tree.append((callee, caller, link))
 
     def prune(self, outer_nodes: list[T]) -> None:

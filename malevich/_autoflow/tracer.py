@@ -2,7 +2,7 @@ from collections import defaultdict
 import uuid
 import weakref
 from hashlib import sha256
-from typing import Any, Generic, Optional, TypeVar
+from typing import Any, Callable, Generic, Optional, TypeVar
 
 from pydantic import BaseModel, Field
 
@@ -61,6 +61,7 @@ class autoflow(Generic[T]):  # noqa: N801
         new_tree_ref = autoflow.get_tree_ref(new_tree)
         for a in autoflow.get_trace_refs(old_tree):
             a._tree_ref = new_tree_ref
+            a._notify_spectators(old_tree, new_tree)
             autoflow._trace_map[new_tree_ref].add(a)
 
     def retrace_self(self, new_tree: ExecutionTree) -> 'autoflow':
@@ -68,6 +69,7 @@ class autoflow(Generic[T]):  # noqa: N801
 
         autoflow._trace_map[self._tree_ref].remove(self)
         self._tree_ref = new_tree_ref
+        self._notify_spectators(self._tree_ref(), new_tree)
         autoflow._trace_map[new_tree_ref].add(self)
         return self
 
@@ -76,10 +78,20 @@ class autoflow(Generic[T]):  # noqa: N801
         self._component_ref = None
         self._trace_map[self._tree_ref].add(self)
         self._tracers += 1
+        self._spectators = []
 
     def attach(self, component: T) -> None:
         """Attach the autoflow to a traced object"""
         self._component_ref = component
+
+    def _notify_spectators(self, old_tree: ExecutionTree, new_tree: ExecutionTree):
+        for spectator in self._spectators:
+            spectator(self, old_tree, new_tree)
+
+    def spectate_retrace(
+        self, callback: Callable[['autoflow', ExecutionTree, ExecutionTree], None]
+    ):
+        self._spectators.append(callback)
 
     def calledby(self, caller: 'traced', argument: Optional[str] = None) -> None:
         """Report a new dependency in the execution tree"""

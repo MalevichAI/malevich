@@ -8,6 +8,8 @@ from typing import Any, Callable, Literal, Optional, ParamSpec, TypeVar, overloa
 
 import pandas as pd
 
+from .._autoflow.tracer import autoflow
+
 from ..models.nodes.morph import MorphNode
 
 from .._ast import boot_flow
@@ -392,7 +394,7 @@ def flow(
                         index=x.index,
                         name=x.name,
                         in_sink=x.in_sink
-                    )
+                    ) if not isinstance(x, ArgumentLink) else x
                 )
 
                 t_node = TreeNode(
@@ -436,7 +438,8 @@ def flow(
                         )
 
                 morphed_results = []
-                for i in range(len(__results[0])):
+                len_ = len(__results[0][1]) if isinstance(__results[0][1], tuple) else 1
+                for i in range(len_):
                     morph = MorphNode()
                     for morphome in __results:
                         morph.members.append((morphome[0], morphome[1][i].owner))
@@ -454,7 +457,7 @@ def flow(
                 ]
 
                 assert all([o.owner.results is not None for o in outputs])
-                return outputs
+                return outputs if len(outputs) > 1 else outputs[0]
             else:
                 # Save t_node.tree
                 return PromisedTask(

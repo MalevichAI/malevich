@@ -116,9 +116,16 @@ def exec_flow(
         if isinstance(stmt, ast.Return):
             value = ast.Expression(body=stmt.value)
             return_value = eval(
-                compile(value, '<string>', 'eval'), state[0], state[1])
-            # That is safe to return as a I consider only one level
+                compile(value, '<string>', 'eval'), state[0], state[1]
+            )
+
+            return_map.append(({
+                **{s: True for s in should_be_true},
+                **{s: False for s in should_be_false}
+            } or None, return_value))
+
             return return_value, state, return_map
+
         elif isinstance(stmt, ast.If):
             if_expr = ast.Expression(body=stmt.test)
 
@@ -165,14 +172,12 @@ def exec_flow(
                     stmt.body,
                     cstate,
                     filename=filename,
-                    should_be_true=[*should_be_true, if_expr_value.owner.uuid],
+                    should_be_true=[*should_be_true, if_expr_value.owner],
                     should_be_false=should_be_false
                 )
 
                 if_tree = Flow.flow_ref()
 
-
-            return_map.extend(if_map)
 
             if stmt.orelse:
                 with Flow() as else_tree:
@@ -193,7 +198,7 @@ def exec_flow(
                         cstate,
                         filename=filename,
                         should_be_true=should_be_true,
-                        should_be_false=[*should_be_false, if_expr_value.owner.uuid]
+                        should_be_false=[*should_be_false, if_expr_value.owner]
                     )
 
                     else_tree = Flow.flow_ref()
@@ -226,23 +231,19 @@ def exec_flow(
                 Flow.flow_ref().register_node_mapper(
                     AddNegativeCondition(if_expr_value.owner.uuid)
                 )
+                return_map.extend(if_map)
 
-                return_map.append(({
-                    **{s: True for s in should_be_true},
-                    **{s: False for s in should_be_false},
-                    if_expr_value.owner: True
-                }, if_return))
+                if else_return is None:
+                    should_be_false.append(if_expr_value.owner)
 
             if else_return is not None:
                 Flow.flow_ref().register_node_mapper(
                     AddPositiveCondition(if_expr_value.owner.uuid)
                 )
                 return_map.extend(else_map)
-                return_map.append(({
-                    **{s: True for s in should_be_true},
-                    **{s: False for s in should_be_false},
-                    if_expr_value.owner: False
-                }, else_return))
+
+                if if_return:
+                    should_be_true.append(if_expr_value.owner)
 
 
             # merge_detached_tree_inplace(Flow.flow_ref(), if_tree)
@@ -317,6 +318,6 @@ def boot_flow(
         body, (__globals, __locals), inspect.getsourcefile(function)
     )
 
-    return_map.append((None, return_value))
+    # return_map.append((None, return_value))
 
     return return_map
