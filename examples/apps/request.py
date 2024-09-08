@@ -14,7 +14,7 @@ class Endpoint:
 
 @scheme()
 class Request:
-  """A scheme that defines request  s itself"""
+  """A scheme that defines requests itself"""
   verb: Literal['GET', 'PATCH', 'POST', 'DELETE']  # HTTP request verb
   body: Optional[dict[Any, Any] | list[Any]] = None  # Body for non-GET requests
   params: Optional[dict[str, Any]]  # Query params
