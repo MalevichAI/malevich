@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Iterator, Optional
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
@@ -26,3 +26,6 @@ class BaseNode(BaseModel):
 
     def __hash__(self) -> int:
         return hash(self.uuid)
+
+    def __iter__(self) -> Iterator[tuple[dict[str, bool] | None, 'BaseNode']]:
+        return iter({None: self}.items())

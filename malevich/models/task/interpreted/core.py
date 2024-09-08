@@ -19,6 +19,7 @@ from malevich._core.ops import (
     batch_upload_collections,
 )
 from malevich._utility import IgnoreCoreLogs, LogLevel, cout, upload_zip_asset
+from ...nodes.morph import MorphNode
 from ...._utility.cache.manager import CacheManager
 from malevich.models import (
     Action,
@@ -72,6 +73,8 @@ class CoreTask(BaseTask):
     Provides a user-friendly interfaces to interact with the task
     using Malevich Core API.
     """
+
+    supports_conditional_output = True
 
     @staticmethod
     def load(object_bytes: bytes) -> 'CoreTask':
@@ -240,16 +243,10 @@ class CoreTask(BaseTask):
         service = self.state.service
         for node in self.state.collection_nodes.values():
             collection = node.collection
-            try:
-                collection.core_id = (
-                    # No data request
-                    service.collection.name(collection.magic()).list().ownIds[-1]
-                )
-            except Exception:
-                collection.core_id = (
-                    service.collection.name(collection.magic())
-                    .create_if_not_exists(collection.collection_data)
-                )
+            collection.core_id = (
+                service.collection.name(collection.magic())
+                .update_or_create(collection.collection_data)
+            )
 
         for node in self.state.asset_nodes.values():
             if node.core_path is not None:
@@ -760,28 +757,69 @@ class CoreTask(BaseTask):
         if not self._returned:
             return None
 
+        demorphed_returned = []
+        for i in range(len(returned)):
+            if isinstance(returned[i][1].owner, MorphNode):
+                for morph_conditions, node in returned[i][1].owner.members:
+                    demorphed_returned.append(({
+                        **(returned[i][0] or {}),
+                        **(morph_conditions or {})
+                        }, node,
+                    ))
+            else:
+                demorphed_returned.append(returned[i])
+
+        returned = demorphed_returned
+
         if not run_id:
             run_id = self.run_id
 
-        if isinstance(self._returned, traced):
+        logs = core.logs(
+            self.state.params.operation_id,
+            run_id=run_id,
+            auth=self.state.params.core_auth,
+            conn_url=self.state.params.core_host,
+        )
+        no_conditions_return = None
+        final_result = None
+
+        condition_map = {}
+        for alias, info in logs.pipeline.conditions.items():
+            condition_map[alias] =  info[max(info.keys())]
+
+        for condition, return_map in returned:
+            if condition is None:
+                no_conditions_return = return_map
+            else:
+                matched = True
+                for node, value in condition.items():
+                    matched &= condition_map[node.alias] == value
+                if matched:
+                    final_result = return_map
+
+        if not condition_map:
+            final_result = no_conditions_return
+
+        returned = final_result
+
+        if not isinstance(returned, list):
             returned = [returned]
 
-        def _deflat(li: list[traced[BaseNode]]) -> list[traced[BaseNode]]:
+        def _deflat(li: list[BaseNode]) -> list[BaseNode]:
             temp_returned = []
             for r in li:
-                if isinstance(r.owner, TreeNode):
+                if isinstance(r, TreeNode):
                     temp_returned.extend(
-                        _deflat(r.owner.results)
+                        _deflat(r.results)
                     )
                 else:
                     temp_returned.append(r)
             return temp_returned
 
         returned = _deflat(returned)
-
+        returned = [x.owner for x in returned]
         results = []
-        for r in returned:
-            node = r.owner
+        for node in returned:
             if isinstance(node, CollectionNode):
                 results.append(
                     CoreLocalDFResult(
@@ -792,7 +830,7 @@ class CoreTask(BaseTask):
                 )
             elif isinstance(node, OperationNode):
                 results.append(CoreResult(
-                    core_group_name=r.owner.alias,
+                    core_group_name=node.alias,
                     core_operation_id=self.state.params.operation_id,
                     core_run_id=run_id,
                     auth=self.state.params.core_auth,
@@ -800,14 +838,14 @@ class CoreTask(BaseTask):
                 ))
             elif isinstance(node, AssetNode):
                 results.append(CoreResult(
-                    core_group_name=r.owner.alias,
+                    core_group_name=node.alias,
                     core_operation_id=self.state.params.operation_id,
                     core_run_id=run_id,
                     conn_url=self.state.params.core_host
                 ))
             else:
                 warnings.warn(
-                    f"Cannot interpret {type(r)} as a result."
+                    f"Cannot interpret {type(node)} as a result."
                 )
 
         # return results[0] if len(results) == 1 else results
@@ -905,7 +943,9 @@ class CoreTask(BaseTask):
     ) -> None:
         self.prepare(stage, *args, **kwargs)
 
-    def commit_returned(self, returned: FlowOutput) -> None:
+    def commit_returned(
+        self, returned: FlowOutput | dict[dict[str, bool], FlowOutput]
+    ) -> None:
         self._returned = returned
 
     def dump(self) -> bytes:

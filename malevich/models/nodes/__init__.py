@@ -4,4 +4,4 @@ from .operation import OperationNode
 from .tree import TreeNode
 from .asset import AssetNode
 from .document import DocumentNode
-from .joint import JointNode
+from .morph import MorphNode

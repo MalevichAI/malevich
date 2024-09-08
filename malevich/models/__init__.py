@@ -78,4 +78,7 @@ from .annotations import ConfigArgument
 from ._model import _Model
 
 
-
+from .mappers import (
+    AddPositiveCondition,
+    AddNegativeCondition
+)

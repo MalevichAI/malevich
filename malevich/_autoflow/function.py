@@ -13,8 +13,6 @@ R = TypeVar("R")
 
 
 def autotrace(func: Callable[C, R]) -> Callable[C, R]:
-    from malevich.models.nodes.joint import JointNode
-    
     """Function decorator that enables automatic dependency tracking
 
     The result is turned into :func:`traced <malevich._autoflow.tracer.traced>`
@@ -49,20 +47,15 @@ def autotrace(func: Callable[C, R]) -> Callable[C, R]:
 
         ]
         # tracing arguments, slicing up to known args
+        new_edges = 0
         for i, arg in enumerate(islice(args, 0, len(varnames))):
             argument_name = varnames[i]
             if isinstance(arg, gn.traced):
-                # FIXME: Temporal for AlternativeArgument
-                if isinstance(arg._owner, JointNode):
-                    raise ValueError(
-                        f"Processor {func.__name__} was called "
-                        "with joint node. Most probably you have a branch "
-                        "that modifies the variable declared outside the branch. "
-                    )
                 arg._autoflow.calledby(
                     result,
                     AutoflowLink(index=i, name=argument_name)
                 )
+                new_edges += 1
             else:
                 raise ValueError(
                     f"You passed invalid argument to {func.__name__} "
@@ -70,6 +63,9 @@ def autotrace(func: Callable[C, R]) -> Callable[C, R]:
                     "pass specific objects produced by Malevich operations."
                     # TODO: documentation ref
                 )
+
+        if not new_edges:
+            result._autoflow._tree_ref().add_node(result)
 
         return result
     return wrapper
@@ -93,11 +89,12 @@ def sinktrace(func: Callable[C, R]) -> Callable[C, R]:
                 inspect.Parameter.POSITIONAL_ONLY
             )
         ]
-
+        new_edges = 0
         for i, arg in enumerate(args):
             real_index = min(i, len(names) - 1)
             argument_name = names[real_index]
             if isinstance(arg, gn.traced):
+                new_edges += 1
                 arg._autoflow.calledby(result, AutoflowLink(
                         index=real_index,
                         name=argument_name,
@@ -109,6 +106,9 @@ def sinktrace(func: Callable[C, R]) -> Callable[C, R]:
                     "Ignoring non-traced argument in sinktrace function"
                     f" (argument index= {i})"
                 )
+        if not new_edges:
+            result._autoflow._tree_ref().add_node(result)
+
         return result
 
     return wrapper
