@@ -6,12 +6,16 @@ from typing import Literal
 
 @scheme()
 class ReadJSONConfig:
-    """A scheme """
+    """A scheme which defines processor output formats"""
     output_format: Literal['table', 'dict'] = 'table'
 
 @processor()
-def read_json(paths: OBJ, ctx: Context)-> DFS|Docs:
-    """T
+def read_json(paths: OBJ, ctx: Context[ReadJSONConfig])-> DFS|Docs:
+    """The processor reads .json files and returns data as tables/dictionaries.
+    
+    The processor input type is OBJ, which means that only filepaths might be passed to this processor.
+    
+    Depends on the app configuration, the processor may return either tables or dictionaries, so the return processor type can be DFS or Docs. 
     """
     
     output_type = ctx.app_cfg.get('output_format')
