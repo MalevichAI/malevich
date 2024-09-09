@@ -1,16 +1,26 @@
 import pandas as pd
 from malevich.square import processor, scheme, Context, Doc
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Any, Optional
 
 @scheme()
 class Genre(BaseModel):
-    """Model for desired genre
+    """Model for prompt and games metadata
 
     Fields:
         genre (str): genre of games to find
+        games (dict[str, dict[str, Any]]): metadata about games. Follows the format:
+        {
+            '<GAME_TITLE>': {
+                'genre': list[str],
+                'tags': list[str],
+                'rating': float,
+                'year': int
+            }
+        }
     """
     genre: str
+    games: dict[str, dict[str, Any]]
     
     
 @scheme()
@@ -30,8 +40,8 @@ class Games(BaseModel):
     
     
 @processor()
-def binary_search(data: Doc[Genre], context: Context) -> Doc[Games]:
-    """Processor for recommending games of prompted genre. Obtains the data from SteamDB
+def recommend_games(data: Doc[Genre], context: Context) -> Doc[Games]:
+    """Processor for recommending games of prompted genre. Obtains the data from input
 
     Args:
         data (Doc[Genre]): required genre

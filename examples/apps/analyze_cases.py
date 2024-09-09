@@ -64,9 +64,9 @@ def analyze_cases(data: DFS[DF[PersonalData], M[OBJ], DF[Cases]], context: Conte
         DFS[Docs[Suspect], M[OBJ]]: list of objects. Consists of JSON documents with possible culprits' data (motive, cues, alibis) for each case and their images
     """
     ... # Some calculations
-    return [[{
+    return ([{
         'name': 'Aaron', 'surname': 'DeAron', 
         'motives': ['Got offended by victim\'s statements'], 
         'cues': ['Possesses a gun', 'Scarily good at basketball'],
         'alibi': 'Was spotted in a local KFC spot'
-    }], None]
+    }], None)

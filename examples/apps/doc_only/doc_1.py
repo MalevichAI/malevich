@@ -19,15 +19,17 @@ class TransformedMethod(BaseModel):
     """Model for describing recreated methods
 
     Fields:
+        imports (list[str]): list of packages to import
         signature (str): signature of the function
-        args (dict[str, type]): dictionary of argument names and their types
-        output_type (type): output type
+        args (dict[str, str]): dictionary of argument names and their types
+        output_type (str): output type
         body (str): body of the function in plain text
     """
+    imports: list[str]
     decorator: str
     signature: str
-    args: dict[str, type] 
-    output_type: type
+    args: dict[str, str] 
+    output_type: str
     body: str
     
 @processor()
@@ -39,16 +41,17 @@ def generate_method(data: Doc[PackageData], context: Context) -> Doc[Transformed
         context (Context): context. Not used in the processor
 
     Returns:
-        Doc[Transformed Method]: a JSON object with a processor metadata, containing a decorator, function signature, dictionary of argument types that can be formatted into the function, output type and a function body itself.
+        Doc[Transformed Method]: a JSON object with a processor metadata, containing a list of packages to import, decorator, function signature, dictionary of argument types that can be formatted into the function, output type and a function body itself.
     """
     ... # Some calculations
     return {
+        'imports': ['asyncio', 'aiohttp'],
         'decorator': '@processor',
         'signature': 'async def post(headers: {headers}, data: {data}, ctx: Context) -> {output_type}', 
         'args': {
-            'headers': Doc,
-            'data': Doc
+            'headers': 'Doc',
+            'data': 'Doc'
         },
-        'output_type': Doc,
+        'output_type': 'Doc',
         'body': '...'
     }

@@ -96,9 +96,9 @@ def levenshtein_distance(data: DFS[DF[Strings], DF[Costs]], context: Context[Lev
             costs = data[1].iloc[id, :].to_list()
             from_str, to_str = data[0].iloc[id, :].to_list()
             distances.append(calculate_distance(from_str, to_str, costs))
-        return pd.DataFrame(data={
+        return (pd.DataFrame(data={
             'dist': distances
-        })
+        }))
     # Else calculate the distance for each cost
     else:
         # Assert that `calculate_all_costs` is True, so that dimensions match
@@ -113,4 +113,4 @@ def levenshtein_distance(data: DFS[DF[Strings], DF[Costs]], context: Context[Lev
             result.append(pd.DataFrame(data={
                 'dist': distances
             }))
-        return result
+        return tuple(result)

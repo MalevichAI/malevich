@@ -2,6 +2,7 @@ import pandas as pd
 from malevich.square import processor, scheme, Context, Doc
 from pydantic import BaseModel, Field
 from typing import Optional
+from haversine import haversine
 
 @scheme()
 class GeoPoint(BaseModel):
@@ -10,9 +11,13 @@ class GeoPoint(BaseModel):
     Fields:
         lat (float): latitude
         lon (float): longitude
+        radius (float): radius around the location for lookup
+        places (dict[str, tuple[float, float]]): places in the area and their coordinates
     """
     lat: float
     lon: float
+    radius: float
+    places: dict[str, tuple[float, float]]
     
 @scheme()
 class Places(BaseModel):
@@ -26,11 +31,11 @@ class Places(BaseModel):
     coords: list[tuple[tuple[float, float], float]]
     
 @processor()
-def calculate_distance(data: Doc[GeoPoint], context: Context) -> Doc[Places]:
+def recommend_places(data: Doc[GeoPoint], context: Context) -> Doc[Places]:
     """Processor for finding places of interest nearby a specified location
 
     Args:
-        data (Doc[GeoData]): latitude and longitude of a location in geographic coordinate system
+        data (Doc[GeoData]): latitude and longitude of a location in geographic coordinate system, radius around the location to look for places, places' coordinates and names
         context (Context): context. Not used in the processor
     Returns:
         Doc[Places]: names of the places nearby, their coordinates and the distance between the place and given location in kilometers

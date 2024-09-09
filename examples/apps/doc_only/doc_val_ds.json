@@ -1,0 +1,175 @@
+[{
+    "idea": "Transform the function from a python package into a Malevich processor",
+    "cues": [{
+        "content": "Given packages are present in pip",
+        "sentiment": "positive"
+    },{
+        "content": "Should satisfy the Malevich processor syntax",
+        "sentiment": "positive"
+    },{
+        "content": "Use of additional packages, as well as the given one, is allowed",
+        "sentiment": "positive"
+    }, {
+        "content": "Should produce a dictionary with the list of import packages, decorator, signature of the function with argument types enclosed in curly brackets, dictionary with argument types to be substituted into the signature, output type and the body of the function",
+        "sentiment": "positive"    
+    }],
+    "validationConfiguration": {},
+    "validationInput": [{
+        "type": "Doc",
+        "value": {
+            "package": "haversine",
+            "method": "haversine"
+        }
+    }],
+    "validationOutput": [{
+         "type": "Doc",
+         "value": {
+            "imports": ["haversine"],
+            "decorator": "@processor",
+            "signature": "def haversine(location_1: {location_1}, location_2: {location_2}, ctx: Context) -> {output_type}:",
+            "args": {
+                "location_1": "Doc",
+                "location_2": "Doc"
+            },
+            "output_type": "Doc",
+            "body": "loc_1 = location_1.parse()\nloc_2 = location_2.parse()\ncoords_1 = (loc_1['lat'], loc_1['lon'])\ncoords_2 = (loc_2['lat'], loc_2['lon'])\nresult = {\n\t'result': haversine(coords_1, coords_2)\n}\nreturn result"
+        }
+    }]
+}, {
+    "idea": "Find places of interest nearby a given location",
+    "cues": [{
+        "content": "Location is given in geographic coordinate system along with the radius of lookup and places' coordinates",
+        "sentiment": "positive"
+    },{
+        "content": "Should return a dictionary with a list of place names and a list of coordinates in geographic system along with the distance between the place and specified location",
+        "sentiment": "positive"
+    },{
+        "content": "Use of `haversine` package from pip is allowed",
+        "sentiment": "positive"
+    }],
+    "validationConfiguration": {},
+    "validationInput": [{
+        "type": "Doc",
+        "value": {
+            "lat": 50.667,
+            "lon": 30.665,
+            "radius": 10.0,
+            "places": {
+                "KFC": [50.543, 30.624],
+                "National Park": [50.6, 30.65]
+            }
+        }
+    }],
+    "validationOutput": [{
+         "type": "Doc",
+         "value": {
+            "names": ["National Park"],
+            "coords": [[[50.6, 30.65], 7.52480986]]
+        }
+    }]
+}, {
+"idea": "Calculate the distance between two locations",
+    "cues": [{
+        "content": "Locations are given in geographic coordinate system",
+        "sentiment": "positive"
+    },{
+        "content": "Should return a dictionary with a single key `dist` with the value equal to distance between the points",
+        "sentiment": "positive"
+    },{
+        "content": "Use of `haversine` package from pip is allowed",
+        "sentiment": "positive"
+    }],
+    "validationConfiguration": {},
+    "validationInput": [{
+        "type": "Doc",
+        "value": {
+            "start_lat": 50.667,
+            "start_lon": 30.665,
+            "end_lat": 50.543,
+            "end_lon": 30.624
+        }
+    }],
+    "validationOutput": [{
+         "type": "Doc",
+         "value": {
+            "dist": 14.088509
+        }
+    }]
+}, {
+"idea": "Find the closest less or equal number in the array for each prompt",
+    "cues": [{
+        "content": "No other packages are allowed, only native Python",
+        "sentiment": "negative"
+    },{
+        "content": "Input is given in the format of dictionary with two lists, one with the array and another one with prompts",
+        "sentiment": "positive"
+    },{
+        "content": "Should use binary search for lookup",
+        "sentiment": "positive"
+    },{
+        "content": "Use of additional packages, as well as the given one, is allowed",
+        "sentiment": "positive"
+    }],
+    "validationConfiguration": {},
+    "validationInput": [{
+        "type": "Doc",
+        "value": {
+            "array": [1, 2, 2, 3, 4, 5, 5, 7, 9, 10], 
+            "find": [6, 8, 10]
+        }
+    }],
+    "validationOutput": [{
+         "type": "Doc",
+         "value": {
+            "result": [[5, 6], [7, 7], [10, 9]]
+        }
+    }]
+}, {
+"idea": "Recommend games in a prompted genre",
+    "cues": [{
+        "content": "List of games and their respective title, genres, tags, rating and year is provided in the input",
+        "sentiment": "positive"
+    },{
+        "content": "Any game that has a prompted genre is qualified for recommendation",
+        "sentiment": "positive"
+    },{
+        "content": "No other packages are allowed, only native Python",
+        "sentiment": "negative"
+    }],
+    "validationConfiguration": {},
+    "validationInput": [{
+        "type": "Doc",
+        "value": {
+            "genre": "Action",
+            "games": {
+                "Raft": {
+                    "genre": ["Survival", "Co-op"],
+                    "tags": ["Water", "Islands", "Procedural generation"],
+                    "rating": 4.3,
+                    "year": 2017
+                },
+                "Devil May Cry 5": {
+                    "genre": ["Action", "Slasher"],
+                    "tags": ["Third-person"],
+                    "rating": 4.9,
+                    "year": 2019
+                }
+            }
+        }
+    }],
+    "validationOutput": [{
+        "type": "Doc",
+        "value": {
+            "names": ["Devil May Cry 5"],
+            "tags": {
+                "Devil May Cry 5": ["Third-person"]
+            },
+            "rating": {
+                "Devil May Cry 5": 4.9
+            },
+            "year": {
+                "Devil May Cry 5": 2019
+            }
+        }
+    }]
+}]
