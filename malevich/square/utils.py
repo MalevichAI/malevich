@@ -12,7 +12,7 @@ from botocore.response import StreamingBody
 
 from .df import OBJ
 
-WORKDIR = "/julius"
+WORKDIR = "/malevich"
 """
 Working directory from which the app is run.
 Equivalent to :code:`os.getcwd()` from within the app.
