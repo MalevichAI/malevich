@@ -1,21 +1,21 @@
 {% if args %}
- {% for arg in args -%}
+{% for arg in args -%}
 {{ arg[0] }}: {{ arg[1] or "Any"}},
- {%- endfor -%}
-{%- endif %}
+{% endfor -%}
+{%- endif -%}
 {% if sink -%}
- {%- if args|length > 0 -%}
+{%- if args|length > 0 -%}
 /,
 *{{sink[0]}}: Any,
- {%- else -%}
-*{{sink[0]}}: Any,
- {%- endif -%}
 {%- else -%}
- {%- if args|length > 0 -%}
+*{{sink[0]}}: Any,
+{%- endif -%}
+{%- else -%}
+{%- if args|length > 0 -%}
 /,
- {%- else -%}
+{%- else -%}
 *,
- {%- endif -%}
+{%- endif -%}
 {%- endif %}
 {%- if config_fields %}
 {%- for key, field in config_fields.items() %}
@@ -26,7 +26,8 @@
 {{rkey}}: Optional["{{rtype}}"] = None,
 {%- endfor %}
 {%- if config_model %}
-config: Optional["{{config_model}}"] = None
+config: Optional["{{config_model}}"] = None,
 {%- else %}
-config: Optional[dict] = None
-{%- endif -%}
+config: Optional[dict] = None,
+{% endif %}
+**kwargs: Any

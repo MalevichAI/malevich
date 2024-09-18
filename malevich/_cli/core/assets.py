@@ -88,6 +88,7 @@ def get(save: Optional[str] = None, **kwargs) -> None:
 @assets_app.command(name='upload')
 @wrap_command(update_collection_object, exclude=['data', 'zip'])
 def update(local_path: str, **kwargs) -> None:
+    local_path = os.path.abspath(os.path.expanduser(local_path))
     if not os.path.exists(local_path):
         rich.print("\nPath is invalid")
         exit(-1)

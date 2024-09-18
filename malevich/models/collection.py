@@ -13,7 +13,7 @@ class Collection(BaseModel):
     collection_id: PythonString
     core_id: Optional[str] = None
     collection_data: Optional[pd.DataFrame] = Field(
-        pd.DataFrame([]), repr=False, exclude=True
+        pd.DataFrame([]), repr=False
     )
 
     model_config = ConfigDict(

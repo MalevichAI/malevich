@@ -111,7 +111,7 @@ def proc(
     config_model: Type[ProcConfig] = BaseModel,
 ) -> Callable[
     [Callable[FnArgs, FnReturn]],
-    Callable | ProcessorFunction[ProcConfig, FnArgs, FnReturn]
+    Callable[FnArgs, FnReturn] | ProcessorFunction[ProcConfig, FnArgs, FnReturn]
 ]:
     def decorator(
         fn: Callable[FnArgs, FnReturn]

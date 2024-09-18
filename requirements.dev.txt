@@ -33,3 +33,5 @@ duckdb
 duckdb-engine
 humanfriendly
 dill
+deepdiff
+astor
