@@ -242,6 +242,7 @@ def flow(
         )
 
     globals_ = inspect.currentframe().f_back.f_globals
+    local_vars = inspect.currentframe().f_back.f_locals
 
     def wrapper(function: Callable[Args, T]) -> FlowFunction[Args, FlowDecoratorReturn]:
         nonlocal reverse_id, name, description
@@ -383,9 +384,9 @@ def flow(
                         name: traced_args[name] for name in kwargs
                         if name not in pos_arg_names
                     }
-                    __results = boot_flow(function, globals_, {}, *traced_pos_args, **traced_kwargs)
+                    __results = boot_flow(function, globals_, local_vars, *traced_pos_args, **traced_kwargs)
                 else:
-                    __results = boot_flow(function, globals_, {}, *args, **kwargs)
+                    __results = boot_flow(function, globals_, local_vars, *args, **kwargs)
 
                 sub_tree = Flow.flow_ref()
 
