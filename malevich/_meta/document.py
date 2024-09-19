@@ -7,7 +7,7 @@ from malevich._autoflow import traced
 from malevich.models import DocumentNode, DocumentOverride
 
 DocumentArgType = TypeVar('DocumentArgType', bound=BaseModel)
-
+_TypeOrValue = Type[DocumentArgType] | DocumentArgType | Type[dict] | dict
 class document:  # noqa: N801
     @staticmethod
     def override(
@@ -17,10 +17,14 @@ class document:  # noqa: N801
 
     def __new__(
         cls,
-        type_or_value: Type[DocumentArgType] | DocumentArgType | dict,
         reverse_id: str,
+        *,
+        type_or_value: _TypeOrValue,
         alias: str | None = None,
     ) -> traced[DocumentNode]:
+        if type_or_value is None:
+            type_or_value = dict
+
         if isclass(type_or_value):
             if issubclass(type_or_value, BaseModel):
                 return traced(
@@ -33,7 +37,6 @@ class document:  # noqa: N801
             else:
                 return traced(
                     DocumentNode(
-                        document=type_or_value.__dict__,
                         document_class=dict,
                         reverse_id=reverse_id,
                         alias=alias
