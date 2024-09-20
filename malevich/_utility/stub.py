@@ -18,6 +18,7 @@ import malevich
 from malevich.constants import reserved_config_fields
 from malevich.core_api import AppFunctionsInfo, ConditionFunctionInfo
 from malevich.models.dependency import Dependency
+from malevich.models.installers.local import LocalDependency
 
 from ..path import Paths
 
@@ -222,7 +223,6 @@ class Stub:
 
         @staticmethod
         def generate_context_schema(json_schema: str) -> tuple[str, str]:
-
             with (
                 tempfile.NamedTemporaryFile(mode='w+', suffix='.json') as f,
                 tempfile.NamedTemporaryFile(mode='w+', suffix='.py') as out

@@ -1,11 +1,14 @@
-from typing import Any, Callable, Literal, ParamSpec, Type, overload
+import re
 import warnings
+from typing import Any, Callable, Literal, ParamSpec, Type, overload
 
 from malevich_space.ops import SpaceOps
 from malevich_space.schema import SpaceSetup
 from rich.prompt import Prompt
 
 from malevich.core_api import check_auth
+from malevich.interpreter.local import LocalInterpreter
+from malevich.models.task.interpreted.local import LocalTask
 
 from ._cli.space.login import login
 from ._utility.space.auto_space_ops import get_auto_ops
@@ -219,4 +222,19 @@ class Space:
                 warnings.warn("Space(version=...) is not supported when @flow function is used.")  # noqa: E501
 
             task.interpret(interpreter)
+        return task.get_interpreted_task()
+
+
+class Local:
+    def __new__(
+        cls,
+        task: PromisedTask | TracedNode | TracedNodes | FlowFunction,
+        *task_args,
+        **task_kwargs
+    ) -> LocalTask:
+        interpreter = LocalInterpreter()
+        if isinstance(task, FlowFunction):
+            task: PromisedTask = task(*task_args, **task_kwargs)
+
+        task.interpret(interpreter)
         return task.get_interpreted_task()

@@ -17,7 +17,7 @@ from .constants import *
 from malevich_space.schema import VersionMode
 
 # For simple deployment
-from ._deploy import Core, Space
+from ._deploy import Core, Space, Local
 
 # Handy ops
 from ._utility import get_auto_ops

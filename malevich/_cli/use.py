@@ -1,3 +1,4 @@
+from pathlib import Path
 import re
 from typing import Annotated, Optional
 
@@ -12,6 +13,7 @@ from malevich.constants import (
     IMAGE_BASE,
 )
 from malevich.install import FlowInstaller, ImageInstaller, SpaceInstaller
+from malevich.install.local import LocalInstaller
 from malevich.manifest import ManifestManager
 from malevich.models.dependency import Integration
 
@@ -252,6 +254,48 @@ def _install_from_space(
             )
         raise err
 
+def _install_from_local(
+    package_name: str,
+    import_path: str,
+    progress: Progress = None,
+) -> None:
+    installer = LocalInstaller()
+    if progress:
+        task_ = progress.add_task(
+            f"Attempting to install [b blue]{package_name}[/b blue] with"
+            " [i yellow]local[/i yellow] installer",
+            total=1,
+        )
+
+    try:
+        manifest_entry = installer.install(
+            package_name=package_name,
+            app_path=Path(import_path)
+        )
+        manifest_manager = ManifestManager()
+        manifest_manager.put(
+            "dependencies",
+            package_name,
+            value=manifest_entry.model_dump(),
+        )
+        manifest_manager.save()
+        if progress:
+            progress.update(
+                task_,
+                description="\n[green]✔[/green] Package "
+                f"[blue]({package_name})[/blue] "
+                "installed successfully",
+                completed=1,
+            )
+        return True
+    except Exception as err:
+        if progress:
+            progress.update(
+                task_,
+                description="\n[red]✘[/red] Failed with "
+                "[yellow]local[/yellow] installer "
+            )
+        raise err
 
 @use.command("image", help=help['image --help'])
 def install_from_image(
@@ -379,3 +423,29 @@ def install_from_space(
         rich.print("\n\n[red]Installation failled[/red]")
         rich.print(err)
         exit(-1)
+
+
+@use.command("local", help=help['local --help'])
+def install_from_local(
+    package_name: Annotated[
+        str,
+        typer.Argument(help="Package name")
+    ],
+    path: Annotated[
+        str,
+        typer.Argument(help="Path to the package")
+    ],
+) -> None:
+    try:
+        return _install_from_local(
+            package_name=package_name,
+            import_path=path,
+            progress=Progress(
+                SpinnerColumn(), TextColumn("{task.description}")),
+        )
+    except Exception as err:
+        raise err
+        rich.print("\n\n[red]Installation failled[/red]")
+        rich.print(err)
+        exit(-1)
+

@@ -35,3 +35,4 @@ humanfriendly
 dill
 deepdiff
 astor
+malevich-app
