@@ -1,5 +1,6 @@
 import os
 
+import pandas as pd
 from pydantic import BaseModel, ConfigDict
 
 
@@ -16,7 +17,7 @@ class CollectionOverride(Override):
         arbitrary_types_allowed=True
     )
 
-    data: 'table'
+    data: pd.DataFrame
 
 class DocumentOverride(Override):
     data: BaseModel

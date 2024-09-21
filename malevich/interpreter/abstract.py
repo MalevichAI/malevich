@@ -270,14 +270,3 @@ class Interpreter(Generic[State, Return]):
             Task: Task to run
         """
         pass
-    # @abstractmethod
-    # def get_results(
-    #     self,
-    #     returned: Iterable[traced[BaseNode]] | traced[BaseNode] | None
-    # ) -> Iterable[pd.DataFrame] | pd.DataFrame:
-    #     """Returns the result of the interpretation process
-
-    #     Args:
-    #         state (State): Current state
-    #     """
-    #     pass

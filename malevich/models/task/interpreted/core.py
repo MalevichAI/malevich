@@ -530,26 +530,135 @@ class CoreTask(BaseTask):
                 return proc_stub.config
         return None
 
-    def run(
+    def _validate_extension(
+        self,
+        config_extension: dict[str, dict[str, Any] | BaseModel],
+    ) -> bool:
+        app_cfg_extensions = {}
+        for alias, extension in config_extension.items():
+            for x in self.state.operation_nodes.values():
+                if isinstance(x, OperationNode) and x.alias == alias:
+                    config_model: BaseModel | None = self._get_config_model(
+                        x.package_id,
+                        x.processor_id
+                    )
+                    if not isinstance(extension, BaseModel) and not isinstance(extension, dict):  # noqa: E501
+                        _expected = "dictionary"
+                        if config_model is not None and isinstance(config_model, BaseModel):  # noqa: E501
+                            _expected += f'or {type(config_model).__name__}'
+
+                        raise ValueError(
+                            "Invalid type for config extension. "
+                            f"Expected {_expected}, but found {type(extension).__name__} "  # noqa: E501
+                            f"for alias {x.alias}, processor {x.processor_id} and "
+                            f"package {x.package_id}."
+                        )
+
+                    if config_model is not None:
+                        try:
+                            config_model(**{
+                                **x.config,
+                                **(extension if isinstance(extension, dict)
+                                    else extension.model_dump()
+                                    )
+                            })
+                        except ValidationError as e:
+                            raise ValueError(
+                                "Failed to extend the configuration "
+                                f"for processor {x.processor_id} with alias"
+                                f" {x.alias}. New configuration do not comprise "
+                                "to the schema of the processor of the config. "
+                                "See validation errors above."
+                            ) from e
+                        if (
+                            config_model is not None
+                            and issubclass(config_model, BaseModel)
+                            and not issubclass(config_model,  type(extension))
+                        ):
+                            raise ValueError(
+                                "Failed to extend the configuration "
+                                f"for processor {x.processor_id} with alias"
+                                f" {x.alias}. Expected {config_model.__name__}, "
+                                f"but the configuration extenstion is {type(extension).__name__}"  # noqa: E501
+                            )
+
+                    if isinstance(extension, BaseModel):
+                        extension_json = extension.model_dump_json()
+                    elif isinstance(extension, dict):
+                        extension_json = json.dumps(extension)
+                    else:
+                        # ok, validates before
+                        pass
+                    app_cfg_extensions['$' + x.alias] = extension_json
+
+        return app_cfg_extensions
+
+    def _compile_overrides(
+        self,
+        override: dict[str, Override]
+    ):
+        collection_overrides = {
+                k: v for k, v in override.items()
+                if isinstance(v, CollectionOverride)
+            }
+        asset_overrides = {
+            k: v for k, v in override.items()
+            if isinstance(v, AssetOverride)
+        }
+
+        document_overrides = {
+            k: v for k, v in override.items()
+            if isinstance(v, DocumentOverride)
+        }
+
+        injectables = self.get_injectables()
+        real_overrides = {
+            **self._prepare_collection_overrides(
+                injectables,
+                collection_overrides
+            ),
+            **self._prepare_asset_overrides(
+                injectables,
+                asset_overrides
+            ),
+            **self._prepare_document_overrides(
+                injectables,
+                document_overrides
+            )
+        }
+
+        for k, v in real_overrides.items():
+            cout(
+                message=f"Override {k} with {v}",
+                action=Action.Run,
+                verbosity=VerbosityLevel.AllSteps,
+                level=LogLevel.Debug
+            )
+
+        return real_overrides
+
+
+    async def run(
         self,
         override: dict[str, Override] | None = None,
         config_extension: dict[str, dict[str, Any] | BaseModel] | None = None,
         run_id: Optional[str] = None,
         detached: bool = False,
+        stop_on_error: bool = False,
+        stop_on_interrupt: bool = False,
         *args,
         **kwargs
     ) -> str:
         """Runs the task on Malevich Core
 
-        Overrides is a dictionary of collection overrides within Malevich Core
-        in the following form:
+        You can supply new data or new configuration each run.
 
-        .. code-block:: json
+        New data is supplied using overrides. An override is a dictionary
+        that maps the alias of the data node (e.g. collection, asset, document)
+        to the new value via Override interface.
 
-            {
-                "collection_name": "new_collection_id"
-                // ...
-            }
+        Collections overrides are created using :class:`CollectionOverride`
+        class.
 
         Args:
             - overrides (dict[str, str], optional):
@@ -709,17 +818,17 @@ class CoreTask(BaseTask):
                     wait=not detached,
                     **kwargs
                 )
-        except (Exception, KeyboardInterrupt) as e:
-            # Cleanup
-            # core.task_stop(
-            #     self.state.params.operation_id,
-            #     auth=self.state.params.core_auth,
-            #     conn_url=self.state.params.core_host,
-            # )
+        except Exception as e:
+            if stop_on_error:
+                await self.stop()
             raise e
+        except KeyboardInterrupt:
+            if stop_on_interrupt:
+                await self.stop()
+            raise
         return self.run_id
 
-    def stop(
+    async def stop(
         self,
         *args,
         **kwargs
@@ -739,7 +848,7 @@ class CoreTask(BaseTask):
             self.state.params.operation_id
         ).stop(*args, **kwargs)
 
-    def results(
+    async def results(
         self,
         # returned: Iterable[traced[BaseNode]] | traced[BaseNode] | None,
         run_id: Optional[str] = None,
@@ -848,15 +957,7 @@ class CoreTask(BaseTask):
                     f"Cannot interpret {type(node)} as a result."
                 )
 
-        # return results[0] if len(results) == 1 else results
         return results
-
-        # return self.get_results(
-        #     task_id=self.state.params.operation_id,
-        #     # returned=returned,
-        #     returned=self._returned,
-        #     run_id=run_id
-        # )
 
     def get_injectables(
         self,
@@ -904,44 +1005,6 @@ class CoreTask(BaseTask):
             for x in self.state.operation_nodes.values()
         ]
 
-    def async_run(
-        self,
-        run_id: Optional[str] = None,
-        override: Optional[dict[str, str]] = None,
-        *args,
-        **kwargs
-    ) -> None:
-        self.run(
-            run_id=run_id,
-            override=override,
-            detached=True,
-            *args,
-            **kwargs
-        )
-
-    def async_stop(
-        self,
-        *args,
-        **kwargs
-    ) -> None:
-        self.stop(*args, **kwargs)
-
-    def async_results(
-        self,
-        returned: Iterable[traced[BaseNode]] | traced[BaseNode] | None,
-        run_id: Optional[str] = None,
-        *args,
-        **kwargs
-    ) -> Iterable[pd.DataFrame] | pd.DataFrame:
-        return self.results(returned, run_id, *args, **kwargs)
-
-    def async_prepare(
-        self,
-        stage: PrepareStages = PrepareStages.ALL,
-        *args,
-        **kwargs
-    ) -> None:
-        self.prepare(stage, *args, **kwargs)
 
     def commit_returned(
         self, returned: FlowOutput | dict[dict[str, bool], FlowOutput]
@@ -954,7 +1017,7 @@ class CoreTask(BaseTask):
     def get_interpreted_task(self) -> BaseTask:
         return self
 
-    def interpret(self, interpreter: 'Interpreter' = None) -> None:
+    def interpret(self, interpreter = None) -> None:
         raise Exception(
             "Trying to re-interpret task of type `CoreTask`. You can only interpret "
             "`PromisedTask`"

@@ -112,7 +112,7 @@ class PromisedTask(BaseTask[PromisedStage]):
            else:
                 raise e
 
-    def prepare(self, *args, **kwargs) -> None:
+    async def prepare(self, *args, **kwargs) -> None:
         """Prepares necessary data for the task to be executed (run)
 
         Accepts any arguments and keyword arguments and passes them to the
@@ -127,35 +127,9 @@ class PromisedTask(BaseTask[PromisedStage]):
                 "a particular platform"
             )
 
-        return self.__task.prepare(*args, **kwargs)
+        return await self.__task.prepare(*args, **kwargs)
 
-    def async_prepare(self, *args, **kwargs) -> None:
-        """Asynchronously prepares necessary data for the task to be executed (run)
-
-        The method is non-blocking
-
-        Accepts any arguments and keyword arguments and passes them to the
-        underlying callback created in the interpreter itself. For particular
-        arguments and keyword arguments, see the documentation of the interpreter
-        used before calling this method.
-        """
-        return self.__task.async_prepare(*args, **kwargs)
-
-    def async_run(self,*args, run_id: str | None = None, **kwargs) -> None:
-        """Asynchronously runs the task with the given run_id
-
-        The method is non-blocking. Beware that you need to call :meth:`prepare`
-        and ensure that the task is prepared before calling this method. In case,
-        you have used :meth:`async_prepare`, you need to wait for the task to be
-        prepared before calling this method.
-        """
-        return self.__task.async_run(*args, run_id=run_id, **kwargs)
-
-    def async_stop(self, *args, **kwargs) -> None:
-        return self.__task.async_stop(*args, **kwargs)
-
-
-    def run(
+    async def run(
         self,
         run_id: str | None = None,
         override: dict[str, Any] | None = None,
@@ -180,14 +154,14 @@ class PromisedTask(BaseTask[PromisedStage]):
             )
         # TODO: try/except with error on this level
         # if task is not prepared
-        return self.__task.run(
+        return await self.__task.run(
             *args,
             run_id=run_id,
             override=override,
             **kwargs
         )
 
-    def stop(self, *args, **kwargs) -> None:
+    async def stop(self, *args, **kwargs) -> None:
         """Stops the task
 
         Accepts any arguments and keyword arguments and passes them to the
@@ -203,9 +177,9 @@ class PromisedTask(BaseTask[PromisedStage]):
             )
         # TODO: try/except with error on this level
         # if task is not prepared
-        return self.__task.stop(*args, **kwargs)
+        return await self.__task.stop(*args, **kwargs)
 
-    def results(self, *args, **kwargs) -> list[Result]:
+    async def results(self, *args, **kwargs) -> list[Result]:
         """Retrieve results of the task
 
         Accepts any arguments and keyword arguments and passes them to the
@@ -220,7 +194,7 @@ class PromisedTask(BaseTask[PromisedStage]):
                 "a particular platform"
             )
 
-        return self.__task.results(*args, **kwargs)
+        return await self.__task.results(*args, **kwargs)
 
     def commit_returned(self, returned: FlowOutput) -> None:
         """Saves objects to determine the results of the task
