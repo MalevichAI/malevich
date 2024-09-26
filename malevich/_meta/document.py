@@ -18,8 +18,8 @@ class document:  # noqa: N801
     def __new__(
         cls,
         reverse_id: str,
-        *,
         type_or_value: _TypeOrValue,
+        *,
         alias: str | None = None,
     ) -> traced[DocumentNode]:
         if type_or_value is None:

@@ -222,7 +222,6 @@ class Stub:
 
         @staticmethod
         def generate_context_schema(json_schema: str) -> tuple[str, str]:
-
             with (
                 tempfile.NamedTemporaryFile(mode='w+', suffix='.json') as f,
                 tempfile.NamedTemporaryFile(mode='w+', suffix='.py') as out

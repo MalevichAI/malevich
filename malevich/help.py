@@ -37,6 +37,14 @@ use = {
 
             malevich use space openai my.openai.app
     """,
+    'local --help': """Install apps from a local code.
+
+    Usage examples:
+
+    1. Install an app from a local code
+
+            malevich use local app ./path/to/app
+    """,
 }
 
 install =  {

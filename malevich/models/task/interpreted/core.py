@@ -105,7 +105,6 @@ class CoreTask(BaseTask):
             force_overwrite=True
         )
 
-
     def get_active_tasks(self) -> list[str]:
         return self.state.service.run.active.list().ids
 
@@ -207,7 +206,7 @@ class CoreTask(BaseTask):
            self.get_pipeline(with_hash=False).model_dump_json().encode() 
         ).hexdigest()
 
-    def prepare(
+    async def prepare(
         self,
         stage: PrepareStages = PrepareStages.ALL,
         *args,
@@ -684,44 +683,7 @@ class CoreTask(BaseTask):
                             "Please, run `.prepare()` first.")
 
         if override:
-            collection_overrides = {
-                k: v for k, v in override.items()
-                if isinstance(v, CollectionOverride)
-            }
-            asset_overrides = {
-                k: v for k, v in override.items()
-                if isinstance(v, AssetOverride)
-            }
-
-            document_overrides = {
-                k: v for k, v in override.items()
-                if isinstance(v, DocumentOverride)
-            }
-
-            injectables = self.get_injectables()
-            real_overrides = {
-                **self._prepare_collection_overrides(
-                    injectables,
-                    collection_overrides
-                ),
-                **self._prepare_asset_overrides(
-                    injectables,
-                    asset_overrides
-                ),
-                **self._prepare_document_overrides(
-                    injectables,
-                    document_overrides
-                )
-            }
-
-            for k, v in real_overrides.items():
-                cout(
-                    message=f"Override {k} with {v}",
-                    action=Action.Run,
-                    verbosity=VerbosityLevel.AllSteps,
-                    level=LogLevel.Debug
-                )
-
+            real_overrides = self._compile_overrides(override)
         else:
             real_overrides = {}
 
@@ -729,61 +691,7 @@ class CoreTask(BaseTask):
 
         app_cfg_extensions = {}
         if config_extension:
-            for alias, extension in config_extension.items():
-                for x in self.state.operation_nodes.values():
-                    if isinstance(x, OperationNode) and x.alias == alias:
-                        config_model: BaseModel | None = self._get_config_model(
-                            x.package_id,
-                            x.processor_id
-                        )
-                        if not isinstance(extension, BaseModel) and not isinstance(extension, dict):  # noqa: E501
-                            _expected = "dictionary"
-                            if config_model is not None and isinstance(config_model, BaseModel):  # noqa: E501
-                                _expected += f'or {type(config_model).__name__}'
-
-                            raise ValueError(
-                                "Invalid type for config extension. "
-                                f"Expected {_expected}, but found {type(extension).__name__} "  # noqa: E501
-                                f"for alias {x.alias}, processor {x.processor_id} and "
-                                f"package {x.package_id}."
-                            )
-
-                        if config_model is not None:
-                            try:
-                                config_model(**{
-                                    **x.config,
-                                    **(extension if isinstance(extension, dict)
-                                       else extension.model_dump()
-                                       )
-                                })
-                            except ValidationError as e:
-                                raise ValueError(
-                                    "Failed to extend the configuration "
-                                    f"for processor {x.processor_id} with alias"
-                                    f" {x.alias}. New configuration do not comprise "
-                                    "to the schema of the processor of the config. "
-                                    "See validation errors above."
-                                ) from e
-                            if (
-                                config_model is not None
-                                and issubclass(config_model, BaseModel)
-                                and not issubclass(config_model,  type(extension))
-                            ):
-                                raise ValueError(
-                                    "Failed to extend the configuration "
-                                    f"for processor {x.processor_id} with alias"
-                                    f" {x.alias}. Expected {config_model.__name__}, "
-                                    f"but the configuration extenstion is {type(extension).__name__}"  # noqa: E501
-                                )
-
-                        if isinstance(extension, BaseModel):
-                            extension_json = extension.model_dump_json()
-                        elif isinstance(extension, dict):
-                            extension_json = json.dumps(extension)
-                        else:
-                            # ok, validates before
-                            pass
-                        app_cfg_extensions['$' + x.alias] = extension_json
+            app_cfg_extensions = self._validate_extension(config_extension)
 
         tref = self.state.service.run.operation_id(
             self.state.params.operation_id
@@ -1005,7 +913,6 @@ class CoreTask(BaseTask):
             for x in self.state.operation_nodes.values()
         ]
 
-
     def commit_returned(
         self, returned: FlowOutput | dict[dict[str, bool], FlowOutput]
     ) -> None:
@@ -1091,7 +998,6 @@ class CoreTask(BaseTask):
         *args,
         **kwargs
     ) -> MetaEndpoint:
-        raise NotImplementedError()
         from malevich_coretools import create_endpoint, update_endpoint
         if self.get_stage() not in [CoreTaskStage.BUILT, CoreTaskStage.ONLINE]:
             self.prepare(stage=PrepareStages.BUILD)
@@ -1109,7 +1015,7 @@ class CoreTask(BaseTask):
 
         if not hash:
             _hash = create_endpoint(
-                task_id=self.state.unique_task_hash,
+                pipeline_id=self.state.pipeline_id,
                 cfg_id=cfg_id,
                 auth=self.state.params.core_auth,
                 conn_url=self.state.params.core_host,
@@ -1124,7 +1030,7 @@ class CoreTask(BaseTask):
         else:
             _hash = update_endpoint(
                 hash,
-                task_id=self.state.unique_task_hash,
+                pipeline_id=self.state.pipeline_id,
                 cfg_id=cfg_id,
                 auth=self.state.params.core_auth,
                 conn_url=self.state.params.core_host,

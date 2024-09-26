@@ -44,5 +44,35 @@ class Paths:
     def templates(*args: os.PathLike) -> str:
         return Paths.module('_templates', *args)
 
+    @staticmethod
+    def local(*args: os.PathLike, create: bool = False, create_dir: bool = False) -> str:
+        return Paths.home('.local', *args, create=create, create_dir=create_dir)
 
+    @staticmethod
+    def local_results(
+        operation_id: str,
+        run_id: str,
+        index: int,
+        create: bool = False,
+        create_dir: bool = False,
+    ) -> str | None:
+        for path in os.listdir(
+            Paths.local(
+                'results',
+                operation_id,
+                run_id,
+                create=create,
+                create_dir=create_dir
+            )
+        ):
+            if path.startswith(str(index)):
+                return Paths.local(
+                    'results',
+                    operation_id,
+                    run_id,
+                    path,
+                    create=create,
+                    create_dir=create_dir
+                )
+        return None
 

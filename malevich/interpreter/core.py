@@ -13,7 +13,7 @@ from malevich_coretools import (
 )
 from malevich_space.schema import ComponentSchema
 
-from malevich._autoflow import traced, tracedLike
+from malevich._autoflow import traced
 from malevich._core import (
     result_collection_name,
 )
@@ -37,8 +37,6 @@ from malevich.models import (
     TreeNode,
     VerbosityLevel,
 )
-
-from ..models.nodes.morph import MorphNode
 
 cache = CacheManager()
 registry = Registry()
@@ -242,24 +240,24 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
     def create_node(
         self,
         state: CoreInterpreterState,
-        node: traced[BaseNode],
+        tracer: traced[BaseNode],
     ) -> CoreInterpreterState:
-        if isinstance(node.owner, OperationNode):
-            if node.owner.alias is None:
-                node.owner.alias = unique(node.owner.processor_id)
-            state.operation_nodes[node.owner.alias] = node.owner
+        if isinstance(tracer.owner, OperationNode):
+            if tracer.owner.alias is None:
+                tracer.owner.alias = unique(tracer.owner.processor_id)
+            state.operation_nodes[tracer.owner.alias] = tracer.owner
 
             extra = registry.get(
-                node.owner.operation_id,
+                tracer.owner.operation_id,
                 model=CoreRegistryEntry
             )
 
             if not extra.image_ref:
                 verbose_ = ""
-                if node.owner.processor_id is not None:
-                    verbose_ += f"processor: {node.owner.processor_id}, "
-                if node.owner.package_id is not None:
-                    verbose_ += f"package: {node.owner.package_id}."
+                if tracer.owner.processor_id is not None:
+                    verbose_ += f"processor: {tracer.owner.processor_id}, "
+                if tracer.owner.package_id is not None:
+                    verbose_ += f"package: {tracer.owner.package_id}."
                 if not verbose_:
                     verbose_ = \
                         "The processor and the package cannot be determined " \
@@ -272,15 +270,15 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
                     + verbose_
                 )
 
-            if node.owner.is_condition:
-                state.conditions[node.owner.alias] = Condition(
+            if tracer.owner.is_condition:
+                state.conditions[tracer.owner.alias] = Condition(
                     arguments={},
                     cfg=json.dumps({
-                        **node.owner.config,
+                        **tracer.owner.config,
                         CORE_INTERPRETER_IN_APP_INFO_KEY: InjectedAppInfo(
                             conn_url=self.__core_host,
                             auth=self.__core_auth,
-                            app_id=node.owner.alias, # NOTE: was processor_id
+                            app_id=tracer.owner.alias, # NOTE: was processor_id
                             image_auth=(extra.image_auth_user, extra.image_auth_pass),
                             image_ref=extra.image_ref
                         ).model_dump()
@@ -290,18 +288,18 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
                         user=extra.image_auth_user,
                         token=extra.image_auth_pass
                     ),
-                    conditionId=node.owner.processor_id,
+                    conditionId=tracer.owner.processor_id,
                 )
 
             else:
-                state.processors[node.owner.alias] = Processor(
+                state.processors[tracer.owner.alias] = Processor(
                     arguments={},
                     cfg=json.dumps({
-                        **node.owner.config,
+                        **tracer.owner.config,
                         CORE_INTERPRETER_IN_APP_INFO_KEY: InjectedAppInfo(
                             conn_url=self.__core_host,
                             auth=self.__core_auth,
-                            app_id=node.owner.alias, # NOTE: was processor_id
+                            app_id=tracer.owner.alias, # NOTE: was processor_id
                             image_auth=(extra.image_auth_user, extra.image_auth_pass),
                             image_ref=extra.image_ref
                         ).model_dump()
@@ -311,29 +309,29 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
                         user=extra.image_auth_user,
                         token=extra.image_auth_pass
                     ),
-                    processorId=node.owner.processor_id,
+                    processorId=tracer.owner.processor_id,
                 )
 
-            state.results[node.owner.alias] = [Result(name=node.owner.alias)]
+            state.results[tracer.owner.alias] = [Result(name=tracer.owner.alias)]
 
-        elif isinstance(node.owner, CollectionNode):
-            if node.owner.alias is None:
-                node.owner.alias = unique(node.owner.collection.collection_id)
-            state.collection_nodes[node.owner.alias] = node.owner
-        elif isinstance(node.owner, AssetNode):
-            if node.owner.alias is None:
-                node.owner.alias = unique(node.owner.name)
-            state.asset_nodes[node.owner.alias] = node.owner
-        elif isinstance(node.owner, TreeNode):
+        elif isinstance(tracer.owner, CollectionNode):
+            if tracer.owner.alias is None:
+                tracer.owner.alias = unique(tracer.owner.collection.collection_id)
+            state.collection_nodes[tracer.owner.alias] = tracer.owner
+        elif isinstance(tracer.owner, AssetNode):
+            if tracer.owner.alias is None:
+                tracer.owner.alias = unique(tracer.owner.name)
+            state.asset_nodes[tracer.owner.alias] = tracer.owner
+        elif isinstance(tracer.owner, TreeNode):
             # Cannot be the case, AbstractInterpreter
             # unwinds the tree is support_subtrees is False
             pass
-        elif isinstance(node.owner, DocumentNode):
-            if node.owner.alias is None:
-                node.owner.alias = unique(node.owner.reverse_id)
-            state.document_nodes[node.owner.alias] = node.owner
+        elif isinstance(tracer.owner, DocumentNode):
+            if tracer.owner.alias is None:
+                tracer.owner.alias = unique(tracer.owner.reverse_id)
+            state.document_nodes[tracer.owner.alias] = tracer.owner
 
-        _log(f"Node: {node.owner.uuid}, {node.owner.short_info()}", -1, 0, True)
+        _log(f"Node: {tracer.owner.uuid}, {tracer.owner.short_info()}", -1, 0, True)
         return state
 
     def _add_argument(
@@ -468,7 +466,6 @@ class CoreInterpreter(Interpreter[CoreInterpreterState, CoreTask]):
         return state
 
     def after_interpret(self, state: CoreInterpreterState) -> CoreInterpreterState:
-        _log("Flow is built. Uploading to Core", step=True)
         for operation in state.operation_nodes.values():
             if operation.is_condition:
                 continue
