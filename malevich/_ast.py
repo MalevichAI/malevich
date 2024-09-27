@@ -1,6 +1,8 @@
 import ast
+import enum
 import inspect
 import re
+import uuid
 import warnings
 import astor
 from copy import deepcopy
@@ -257,6 +259,81 @@ def exec_flow(
         ]), '<string>', 'exec'), state[0], state[1])
 
     return None, state, return_map
+
+
+def exec_synthetic_flow(
+    stmts: list[ast.stmt],
+    state,
+    filename: str | None = None,
+    function_name: str | None = None,
+    should_be_true: list[str] | None = None,
+    should_be_false: list[str] | None = None,
+):
+    collection_args = {}
+    document_nodes = {}
+
+    def synthetic_table(*args, **kwargs):
+        return ('__table__', args, kwargs)
+
+    def synthetic_collection(*args, **kwargs):
+        uid = uuid.uuid4().hex
+        collection_args[uid] = (args, kwargs)
+        return ('__collection__', uid)
+
+    def synthetic_document(*args, **kwargs):
+        uid = uuid.uuid4().hex
+        document_nodes[uid] = (args, kwargs)
+        return ('document', uid)
+
+    processor_nodes = {}
+    def create_synthetic_processor(name: str):
+        def synthetic_processor(*args, **kwargs):
+            uid = uuid.uuid4().hex
+            node = (name, uid)
+            for i, a in enumerate(args):
+                Flow.flow_ref().put_edge(a, node, i)
+            processor_nodes[uid] = (name, args, kwargs)
+            return (name, uid)
+        return synthetic_processor
+
+    globals_, locals_ = state
+
+    locals_['collection'] = synthetic_collection
+    locals_['document'] = synthetic_document
+    locals_['table'] = synthetic_table
+
+
+    class Synth(ast.NodeVisitor):
+        def visit_Call(self, node):
+            if isinstance(node.func, ast.Name):
+                if node.func.id not in locals_:
+                    locals_[node.func.id] = create_synthetic_processor(node.func.id)
+            self.generic_visit(node)
+
+    synth = Synth()
+    return_value = None
+
+    with Flow() as flow:
+        for stmt in stmts:
+            synth.visit(stmt)
+            if isinstance(stmt, ast.Return):
+                value = compile(ast.Expression(body=stmt.value), '<string>', 'eval')
+                return_value = eval(value, globals_, locals_)
+            elif isinstance(stmt, (ast.If, ast.While)):
+                raise RuntimeError(
+                    "You are not allowed to use 'if' or 'while' statements."
+                )
+            else:
+                exec(compile(ast.Module(body=[stmt], type_ignores=[
+        ]), '<string>', 'exec'), globals_, locals_)
+
+
+
+    return flow, return_value, (collection_args, document_nodes, processor_nodes)
+
+
+
+
 
 
 def boot_flow(
