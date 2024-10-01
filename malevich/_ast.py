@@ -1,12 +1,16 @@
 import ast
+from collections.abc import Iterator
 import enum
 import inspect
 import re
+import sys
+import traceback
+from unittest.mock import call
 import uuid
 import warnings
 import astor
 from copy import deepcopy
-from typing import Callable
+from typing import Callable, NoReturn
 
 from malevich._autoflow.flow import Flow
 from malevich._autoflow.tracer import autoflow, traced
@@ -260,6 +264,44 @@ def exec_flow(
 
     return None, state, return_map
 
+class synthetic_tuple(tuple):  # noqa: N801
+    def __getattr__(self, item) -> NoReturn:
+        if item == '__name__' or item == '__make_tuple':
+            return super().__getattribute__(item)
+        raise AttributeError(
+            "You cannot get an attribute of a result. "
+            "Results of function calls are only supposed to be passed as "
+            "positional arguments to other functions."
+        )
+
+    def __call__(self, *args, **kwargs) -> NoReturn:
+        raise TypeError(
+            f"You cannot call a result {self.__name__}. "
+            "Results of function calls are only supposed to be passed as "
+            "positional arguments to other functions."
+        )
+
+    def __getitem__(self, item) -> NoReturn:
+        raise TypeError(
+            "You cannot get an item from a result. "
+            "Results of function calls are only supposed to be passed as "
+            "positional arguments to other functions. Do not use `result[item]`"
+        )
+
+    def __iter__(self) -> Iterator:
+        if not self.__make_tuple:
+            raise TypeError(
+                "You cannot iterate over or unpack a result. "
+                "Results of function calls are only supposed to be passed as "
+                "positional arguments to other functions."
+            )
+        return super().__iter__()
+
+    def tuple(self) -> tuple:
+        self.__make_tuple = True
+        _t = tuple(self)
+        self.__make_tuple = False
+        return _t
 
 def exec_synthetic_flow(
     stmts: list[ast.stmt],
@@ -271,6 +313,7 @@ def exec_synthetic_flow(
 ):
     collection_args = {}
     document_nodes = {}
+    targets = {}
 
     def synthetic_table(*args, **kwargs):
         return ('__table__', args, kwargs)
@@ -278,12 +321,12 @@ def exec_synthetic_flow(
     def synthetic_collection(*args, **kwargs):
         uid = uuid.uuid4().hex
         collection_args[uid] = (args, kwargs)
-        return ('__collection__', uid)
+        return synthetic_tuple(('__collection__', uid,))
 
     def synthetic_document(*args, **kwargs):
         uid = uuid.uuid4().hex
         document_nodes[uid] = (args, kwargs)
-        return ('document', uid)
+        return synthetic_tuple(('document', uid,))
 
     processor_nodes = {}
     def create_synthetic_processor(name: str):
@@ -291,9 +334,11 @@ def exec_synthetic_flow(
             uid = uuid.uuid4().hex
             node = (name, uid)
             for i, a in enumerate(args):
+                if isinstance(a, synthetic_tuple):
+                    a = a.tuple()
                 Flow.flow_ref().put_edge(a, node, i)
             processor_nodes[uid] = (name, args, kwargs)
-            return (name, uid)
+            return synthetic_tuple((name, uid,))
         return synthetic_processor
 
     globals_, locals_ = state
@@ -319,17 +364,42 @@ def exec_synthetic_flow(
             if isinstance(stmt, ast.Return):
                 value = compile(ast.Expression(body=stmt.value), '<string>', 'eval')
                 return_value = eval(value, globals_, locals_)
+            elif isinstance(stmt, ast.Assign):
+                if not isinstance(stmt.value, ast.Call):
+                    raise RuntimeError(
+                        "You are not allowed to assign to variables "
+                        "to non-call expressions."
+                    )
+                call_value = eval(compile(ast.Expression(body=stmt.value), '<string>', 'eval'), globals_, locals_)
+                assert isinstance(call_value, synthetic_tuple)
+
+                for target in stmt.targets:
+                    if isinstance(target, ast.Name):
+                        if target.id not in targets:
+                            targets[target.id] = [call_value]
+                        else:
+                            targets[target.id].append(call_value.tuple())
+                exec(f"{stmt.targets[0].id} = {call_value!r}", globals_, locals_)
+
             elif isinstance(stmt, (ast.If, ast.While)):
                 raise RuntimeError(
                     "You are not allowed to use 'if' or 'while' statements."
                 )
             else:
-                exec(compile(ast.Module(body=[stmt], type_ignores=[
-        ]), '<string>', 'exec'), globals_, locals_)
+                try:
+                    code = ast.unparse(stmt)
+                    exec(compile(ast.Module(body=[stmt], type_ignores=[]), 'flow.py', 'exec'), globals_, locals_)
+                except Exception as e:
+                    # Create a new exception with the desired information
+                    raise RuntimeError(
+                        f"Could not execute the code in the flow.\n"
+                        f">>> {type(e).__name__}: {e.args[0]} in line\n"
+                        f">>> {code}\n"
+                    ) from None
 
 
 
-    return flow, return_value, (collection_args, document_nodes, processor_nodes)
+    return flow, return_value, (collection_args, document_nodes, processor_nodes), targets
 
 
 
