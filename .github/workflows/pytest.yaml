@@ -50,7 +50,7 @@ jobs:
     - name: Install Python
       uses: actions/setup-python@v4
       with:
-         python-version: '3.11'
+         python-version: '3.10'
 
     - name: Install Malevich
       run: |
@@ -62,10 +62,10 @@ jobs:
         cp malevich.yaml ~/.malevich/testing
         cp malevich.secrets.yaml ~/.malevich/testing
 
-    - name: Testing
+    - name: Library test
       run: |
         cp -rf ./malevich/tests ./tests && rm -rf ./malevich
-        pytest -s tests/units/
+        pytest -s tests/suite/
       env:
         TESTS_SPACE_PASSWORD: ${{ secrets.TESTS_SPACE_PASSWORD }}
         TESTS_SPACE_USER: ${{ secrets.TESTS_SPACE_USER }}
@@ -74,11 +74,11 @@ jobs:
         CORE_USER: ${{ secrets.CORE_USER }}
         CORE_PASS: ${{ secrets.CORE_PASS }}
 
-    - name: Test build app, endpoints and platforms
+    - name: Platform test
       run: |
         malevich use image simple_app ghcr.io/malevichai/test:simple_app malevichai ${{ secrets.TEST_GHCR_PACKAGE_PASSWORD }}
         malevich install utility
-        pytest -rP tests/app_build/
+        pytest -rP tests/non_suite/
       env:
         CORE_USER: ${{ secrets.CORE_USER }}
         CORE_PASS: ${{ secrets.CORE_PASS }}
