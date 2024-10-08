@@ -1,4 +1,4 @@
-git name: Pytest
+name: Tests
 on:
   push:
     branches:
