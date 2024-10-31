@@ -66,11 +66,12 @@ class LocalInterpreter(CoreInterpreter):
         state: LocalInterpreterState,
         tracer: traced[BaseNode]
     ) -> LocalInterpreterState:
-
         match tracer.owner:
             case OperationNode():
                 if tracer.owner.alias is None:
                     tracer.owner.alias = unique(tracer.owner.processor_id)
+                
+                state.operation_nodes[tracer.owner.alias] = tracer.owner
 
                 extra = registry.get(tracer.owner.operation_id)
                 if extra is not None:

@@ -440,7 +440,7 @@ class CoreTask(BaseTask):
         }
 
         return {
-            injectable.get_inject_data():
+            injectable.get_inject_key():
             key_to_core_id[injectable.get_inject_key()]
             for injectable in injectables
             if injectable.get_inject_key() in overrides
@@ -464,7 +464,7 @@ class CoreTask(BaseTask):
                     real_overrides[k] = v.path
 
         return {
-            injectable.get_inject_data():
+            injectable.get_inject_key():
             real_overrides[injectable.get_inject_key()]
             for injectable in injectables
             if injectable.get_inject_key() in real_overrides
@@ -479,13 +479,13 @@ class CoreTask(BaseTask):
 
         for k, v in overrides.items():
             name = hashlib.sha256(v.data.model_dump_json().encode()).hexdigest() + '_override'  # noqa: E501
-            id = self.state.service.document.name(name).update(
+            id = self.state.service.document.name(name).update_or_create(
                 data=v.data.model_dump_json(),
             )
             real_overrides[k] = f'#{id}'
 
         return {
-            injectable.get_inject_data():
+            injectable.get_inject_key():
             real_overrides[injectable.get_inject_key()]
             for injectable in injectables
             if injectable.get_inject_key() in real_overrides
@@ -532,8 +532,9 @@ class CoreTask(BaseTask):
     def _validate_extension(
         self,
         config_extension: dict[str, dict[str, Any] | BaseModel],
-    ) -> bool:
+    ) -> str:
         app_cfg_extensions = {}
+        print([*self.state.operation_nodes.values()])
         for alias, extension in config_extension.items():
             for x in self.state.operation_nodes.values():
                 if isinstance(x, OperationNode) and x.alias == alias:
@@ -703,6 +704,7 @@ class CoreTask(BaseTask):
                     **self.state.config.collections,
                     **real_overrides,
                 }
+                print(self.state.config.collections, real_overrides)
                 new_config.app_cfg_extension = app_cfg_extensions
                 new_config_id = self.state.config_id + \
                     '_' + uuid.uuid4().hex[:6]
@@ -712,7 +714,6 @@ class CoreTask(BaseTask):
                     cfg=new_config,
                 )
                 tref.run(
-                    self.state.params.operation_id,
                     cfg_id=new_config_id,
                     wait=not detached,
                     run_id=self.run_id,

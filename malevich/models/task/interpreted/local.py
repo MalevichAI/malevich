@@ -1,6 +1,7 @@
 from typing import Any, Optional
 import uuid
 
+from malevich.models import CoreInjectable
 import malevich_coretools as core
 from malevich_app import LocalRunner, LocalRunStruct, cfg_translate, pipeline_translate
 from pydantic import BaseModel
@@ -12,10 +13,12 @@ from malevich.models.nodes.base import BaseNode
 from malevich.models.nodes.collection import CollectionNode
 from malevich.models.nodes.morph import MorphNode
 from malevich.models.nodes.tree import TreeNode
-from malevich.models.overrides import Override
+from malevich.models.overrides import DocumentOverride, Override
 from malevich.models.results.local.infs import LocalResult
 from malevich.models.state.local import LocalInterpreterState
 from malevich.models.task.interpreted.core import CoreTask
+from malevich.models.overrides import DocumentOverride, CollectionOverride, AssetOverride
+from malevich.models.collection import Collection
 from malevich.path import Paths
 
 
@@ -77,9 +80,10 @@ class LocalTask(CoreTask):
                 obj_path=node.core_path,
                 path_from=node.real_path,
             )
+
         for node in self.state.document_nodes.values():
             node.core_id = self.runner.storage.data(
-                data=node.document,
+                data=node.document.model_dump() if isinstance(node.document, BaseModel) else node.document,
                 id=node.core_id,
             )
 
@@ -116,6 +120,28 @@ class LocalTask(CoreTask):
             cfg_translate(self.state.config),
             **kwargs
         )
+        
+    def _prepare_collection_overrides(
+        self,
+        injectables: list[CoreInjectable],
+        overrides: dict[str, CollectionOverride]
+    ) -> dict[str, str]:
+
+        return {
+            key: self.runner.storage.data(ref.data)
+            for key, ref in overrides.items()
+        }
+
+
+    def _prepare_document_overrides(
+        self,
+        injectables: list[CoreInjectable],
+        overrides: dict[str, DocumentOverride]
+    ) -> dict[str, str]:
+        return {
+            key: '#' + self.runner.storage.data(ref.data.model_dump() if isinstance(ref.data, BaseModel) else ref.data)
+            for key, ref in overrides.items()
+        }
 
     async def run(
         self,
@@ -133,6 +159,7 @@ class LocalTask(CoreTask):
             real_overrides = {}
 
         if config_extension:
+            print(config_extension, self._validate_extension(config_extension))
             app_cfg_extensions = self._validate_extension(config_extension)
         else:
             app_cfg_extensions = {}
@@ -143,7 +170,9 @@ class LocalTask(CoreTask):
                 **self.state.config.collections,
                 **real_overrides,
             }
+
             new_config.app_cfg_extension = app_cfg_extensions
+            print(new_config.app_cfg_extension)
             await self.runner.run(
                 *args,
                 run_id=self.run_id,
