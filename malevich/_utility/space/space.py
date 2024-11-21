@@ -1,9 +1,8 @@
 from malevich_space.schema import SpaceSetup
 
-from ...manifest import manf
-
 
 def resolve_setup(space: dict) -> SpaceSetup:
+    from malevich.manifest import manf
     space = SpaceSetup(**space)
 
     if manf.is_secret(space.password):

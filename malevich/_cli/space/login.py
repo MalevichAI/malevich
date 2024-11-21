@@ -7,9 +7,10 @@ from malevich_space.ops import SpaceOps
 from malevich_space.schema import HostSchema, SpaceSetup
 from rich.prompt import Prompt
 
-from ..._cli.prefs import prefs as prefs
-from ...constants import DEFAULT_CORE_HOST, PROD_SPACE_API_URL
-from ..manifest import ManifestManager
+from malevich.constants import DEFAULT_CORE_HOST, PROD_SPACE_API_URL
+from malevich.manifest import ManifestManager
+
+from ..prefs import prefs as prefs
 
 
 def login(
@@ -21,20 +22,21 @@ def login(
     password: Optional[str] = None,
     org_id: Optional[str] = None,
 ) -> None:
-    if not space_url:
-        domain = re.search(r"\/\/(.*)api\.(.+)\/?", api_url)
-        left = domain.group(1) if domain.group(1) else ''
-        right = '.' + domain.group(2) if domain.group(2) else ''
-        space_url = f'https://{left}space{right}/'
-        base_space_url = f'{left}space{right}'.rstrip('/')
-    else:
-        domain = re.search(r"\/\/(.*)space\.(.+)\/?", space_url)
-        left = domain.group(1) if domain.group(1) else ''
-        right = '.' + domain.group(2) if domain.group(2) else ''
-        base_space_url = f'{left}space{right}'.rstrip('/')
-        api_url = f'https://{left}api{right}/'
-
-
+    try:
+        if not space_url:
+            domain = re.search(r"\/\/(.*)api\.(.+)\/?", api_url)
+            left = domain.group(1) if domain.group(1) else ''
+            right = '.' + domain.group(2) if domain.group(2) else ''
+            space_url = f'https://{left}space{right}/'
+            base_space_url = f'https://{left}space{right}'.rstrip('/')
+        else:
+            domain = re.search(r"\/\/(.*)space\.(.+)\/?", space_url)
+            left = domain.group(1) if domain.group(1) else ''
+            right = '.' + domain.group(2) if domain.group(2) else ''
+            base_space_url = f'{left}space{right}'.rstrip('/')
+            api_url = f'https://{left}api{right.rstrip("/")}/'
+    except Exception:
+        base_space_url = api_url
     if no_input and (username is None or password is None):
         rich.print("[red]You have to set --username and --password parameters, "
                    "if --no-input is used[/red]")
@@ -61,11 +63,12 @@ def login(
 
     if not org_id and not no_input:
         org_id = Prompt.ask(
-            "Organization Slug (leave blank to use personal account)",
+            "Organization slug (leave blank to use personal account)",
             default=None,
         )
+
     setup = SpaceSetup(
-        api_url=api_url,
+        api_url=api_url.rstrip('/'),
         username=username,
         password=password,
         org=org_id,

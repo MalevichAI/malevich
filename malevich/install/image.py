@@ -7,13 +7,14 @@ import hashlib
 import re
 from typing import Optional
 
+from malevich._utility import Stub
+from malevich.constants import DEFAULT_CORE_HOST, IMAGE_BASE
+from malevich.install import Installer
+from malevich.manifest import ManifestManager
+from malevich.models import ImageDependency, ImageOptions
+from malevich.path import Paths
+
 from .._core.scan import scan_core
-from .._utility.stub import Stub
-from ..constants import DEFAULT_CORE_HOST, IMAGE_BASE
-from ..install.installer import Installer
-from ..manifest import ManifestManager
-from ..models.installers.image import ImageDependency, ImageOptions
-from ..path import Paths
 
 _pydantic_types = {
     "string": str.__name__,
@@ -36,7 +37,7 @@ DO NOT MODIFY THIS FILE MANUALLY.
 
     imports = """
 from malevich._autoflow.function import autotrace, sinktrace
-from malevich._utility.registry import Registry
+from malevich._utility import Registry
 from malevich.models.nodes import OperationNode
 
 from pydantic import BaseModel
@@ -129,12 +130,12 @@ class ImageInstaller(Installer):
 
         operation_ids = {
             str(op.id): hashlib.sha256(op.model_dump_json().encode()).hexdigest()
-            for op in app_info.processors.values()
+            for op in [*app_info.processors.values(), *app_info.conditions.values()]
         }
 
         operation_names = {
             str(op.id): op.name
-            for op in app_info.processors.values()
+            for op in [*app_info.processors.values(), *app_info.conditions.values()]
         }
 
         Stub.from_app_info(
@@ -146,7 +147,7 @@ class ImageInstaller(Installer):
             registry_records={
                 processor_id: {
                     "operation_id": operation_id,
-                    "image_ref": image_ref,
+                    "image_ref":  ('dependencies', package_name, 'options', 'image_ref'),  # noqa: E501
                     "image_auth_user": ('dependencies', package_name, 'options', 'image_auth_user'),  # noqa: E501
                     "image_auth_pass": ('dependencies', package_name, 'options', 'image_auth_pass'),  # noqa: E501
                     "processor_id": operation_names[processor_id],

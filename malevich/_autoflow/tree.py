@@ -1,4 +1,4 @@
-from collections import defaultdict, deque
+from collections import deque
 from typing import Any, Generic, Iterable, Iterator, Optional, TypeVar
 
 T = TypeVar("T")
@@ -46,6 +46,58 @@ class ExecutionTree(Generic[T, LinkType]):
             self.nodes_.add(u)
             self.nodes_.add(v)
 
+        self._node_map  = {}
+        self._edge_map  = {}
+
+    def remove_node_mapper(self, key: str) -> None:
+        self._node_map.pop(key)
+
+    def remove_edge_mapper(self, key: str) -> None:
+        self._edge_map.pop(key)
+
+    def clone_node_mappers(self, other: 'ExecutionTree') -> None:
+        self._node_map = {**other._node_map}
+
+    def clone_edge_mappers(self, other: 'ExecutionTree') -> None:
+        self._edge_map = {**other._edge_map}
+
+    def register_node_mapper(
+        self, mapper: 'BaseNodeMapper', key: str | None = None
+    ) -> None:
+        """Register a node mapper
+
+        Args:
+            mapper (BaseNodeMapper): The node mapper to register
+        """
+        if key is None:
+            key = id(mapper)
+        self._node_map[key] = mapper
+
+    def register_edge_mapper(
+        self, mapper: 'BaseEdgeMapper', key: str | None = None
+    ) -> None:
+        """Register an edge mapper
+
+        Args:
+            mapper (BaseEdgeMapper): The edge mapper to register
+        """
+        if key is None:
+            key = id(mapper)
+        self._edge_map[key] = mapper
+
+    def add_node(self, node: T, from_node: bool | None = None) -> None:
+        """Add a node to the execution tree
+
+        Args:
+            node (T): The node to add
+        """
+        for mapper in self._node_map.values():
+            mapper(node, from_node=from_node)
+
+        if node not in self.nodes_:
+            self.nodes_.add(node)
+
+
     def put_edge(self, callee: T, caller: T, link: LinkType = None) -> None:
         """Add an edge to the execution tree
 
@@ -59,15 +111,19 @@ class ExecutionTree(Generic[T, LinkType]):
         Raises:
             BadEdgeError: If the edge already exists, or if the edge is a self-edge
         """
-        if any(x[0] == callee and x[1] == caller for x in self.tree):
+        if any(x[0] == callee and x[1] == caller and x[2] == link for x in self.tree):
             raise BadEdgeError("Edge already exists", (callee, caller, link))
-        if any(x[0] == caller and x[1] == callee for x in self.tree):
+        if any(x[0] == caller and x[1] == callee and x[2] == link for x in self.tree):
             raise BadEdgeError("Edge already exists", (callee, caller, link))
         if caller == callee:
             raise BadEdgeError("Self-edge", (callee, caller, link))
+
+        self.add_node(callee, from_node=True)
+        self.add_node(caller, from_node=False)
+
+        for mapper in self._edge_map.values():
+            mapper(callee, caller, link)
         self.tree.append((callee, caller, link))
-        self.nodes_.add(callee)
-        self.nodes_.add(caller)
 
     def prune(self, outer_nodes: list[T]) -> None:
         """Removes specified nodes from the execution tree
@@ -94,6 +150,9 @@ class ExecutionTree(Generic[T, LinkType]):
     def edges_from(self, node: T) -> None:
         """Returns all edges starting from the specified node"""
         return [n for n in self.tree if n[0] == node]
+
+    def edges_to(self, node: T) -> None:
+        return [n for n in self.tree if n[1] == node]
 
     def traverse(self) -> Iterator[tuple[T, T, LinkType]]:
         """Traverse the execution tree
@@ -176,3 +235,8 @@ class ExecutionTree(Generic[T, LinkType]):
     def nodes(self) -> Iterable[T]:
         """Returns all nodes of the execution tree"""
         return list(self.nodes_)
+
+    def cast_link_types(self, type) -> None:
+        """Cast the link types in the tree"""
+        for i, (u, v, link) in enumerate(self.tree):
+            self.tree[i] = (u, v, type(link))

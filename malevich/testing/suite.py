@@ -5,20 +5,25 @@ from typing import Any, Type
 from pydantic import BaseModel
 from pytest import fixture
 
-from ..interpreter.abstract import Interpreter
-from ..models.flow_function import FlowFunction
-from ..models.installers.image import ImageDependency
-from ..models.installers.space import SpaceDependency
-from ..models.results.base import BaseResult
-from ..models.task.promised import PromisedTask
-from .env import EnvManager, test_manifest
+from malevich.constants import TEST_DIR
+from malevich.interpreter.abstract import Interpreter
+from malevich.manifest import OverrideManifest
+from malevich.models.flow_function import FlowFunction
+from malevich.models.installers.image import ImageDependency
+from malevich.models.installers.space import SpaceDependency
+from malevich.models.results.base import BaseResult
+from malevich.models.task.interpreted.space import SpaceTask
+from malevich.models.task.promised import PromisedTask
+
+from .env import EnvManager
 
 env_manager = EnvManager()
+manifest_override = OverrideManifest(TEST_DIR)
 
 @fixture(autouse=True, scope='session')
 def clean_env() -> None:
     global env_manager
-    env_manager.clean_env()
+    # env_manager.clean_env()
 
 class FlowTestEnv(BaseModel):
     dependencies: dict[str, ImageDependency | SpaceDependency] = []
@@ -87,22 +92,27 @@ class FlowTestSuite:
 
     @classmethod
     def test_flow(cls: Type['FlowTestSuite']) -> None:
-        old_stubs, _ = env_manager.get_current_env()
+        old_stubs, _ = env_manager.current_env()
         cls.__offload_modules(old_stubs)
-        stubs, _ = env_manager.request_env([*cls.environment.dependencies.values()])
+        env_manager.request_env([*cls.environment.dependencies.values()])
+        stubs, _ = env_manager.current_env()
         for k, v in cls.environment.env_vars.items():
             os.environ[k] = v
         cls.__offload_modules(stubs)
-        with test_manifest:
-            for attr in dir(cls):
-                f = getattr(cls, attr)
-                if isinstance(f, FlowFunction):
+        for attr in dir(cls):
+            f = getattr(cls, attr)
+            if isinstance(f, FlowFunction):
+                with manifest_override:
                     task: PromisedTask = f(
                         *cls.func_args,
                         **cls.func_kwargs
                     )
                     try:
                         task.interpret(cls.interpreter)
+                        if isinstance(t := task.get_interpreted_task(), SpaceTask):
+                            # FIXME: local fix for upload, remove later
+                            print("UPLOADING")
+                            t.upload()
                         cls.on_interpretation(task)
                     except Exception as e:
                         if e_ := cls.on_interpretation_error(task, e):
@@ -139,10 +149,10 @@ class FlowTestSuite:
                         if e_ := cls.on_run_error(f, e):
                             raise e_
 
-                    try:
-                        task.stop()
-                    except Exception:
-                        pass
+                    # try:
+                    #     task
+                    # except Exception:
+                    #     pass
 
                     try:
                         results = task.results(

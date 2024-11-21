@@ -5,13 +5,8 @@ import enum
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Generic, ParamSpec, TypeVar
 
-from ..endpoint import MetaEndpoint
-
-# from ...interpreter.abstract import Interpreter
-from ..injections import BaseInjectable
-from ..nodes.tree import TreeNode
-from ..results import Result
-from ..types import FlowOutput
+from malevich.models import BaseInjectable, MetaEndpoint, Result, TreeNode
+from malevich.types import FlowOutput
 
 State = TypeVar("State")
 CallbackParams = ParamSpec('CallbackParams')
@@ -20,6 +15,8 @@ StageClass = TypeVar("StageClass", bound=enum.Enum)
 
 
 class BaseTask(ABC, Generic[StageClass]):
+    supports_conditional_output: bool = False
+
     @property
     @abstractmethod
     def tree(self) -> TreeNode:
@@ -41,80 +38,22 @@ class BaseTask(ABC, Generic[StageClass]):
         pass
 
     @abstractmethod
-    def prepare(self, *args, **kwargs) -> None:
+    async def prepare(self, *args, **kwargs) -> None:
         """Prepares the task for execution"""
         pass
 
-    def async_prepare(
-        self,
-        *args,
-        callback: Callback = None,
-        cb_args: tuple = (),
-        cb_kwargs: dict = {},
-        **kwargs
-    ) -> None:
-        """Asynchronously prepares the task for execution
-        and calls the callback when done"""
-        (   # Executes sync code in a separate thread
-            asyncio.get_event_loop()
-            .run_in_executor(None, self.prepare, *args, **kwargs)
-            .add_done_callback(lambda _: callback(*cb_args, **cb_kwargs))
-        )
-        # self.prepare(self, *args, **kwargs)
-        # if callback:
-        #     callback(*cb_args, **cb_kwargs)
-
     @abstractmethod
-    def run(self, run_id: str | None = None, *args, **kwargs) -> None:
+    async def run(self, run_id: str | None = None, *args, **kwargs) -> None:
         """Performs a single run with a given ID"""
         pass
 
-    def async_run(
-        self,
-        *args,
-        callback: Callback = None,
-        cb_args: tuple = (),
-        cb_kwargs: dict = {},
-        run_id: str | None = None,
-        **kwargs
-    ) -> None:
-        """Asynchronously performs a single run with a given ID"""
-        (
-            asyncio.get_event_loop()
-            .run_in_executor(None, self.run, run_id, *args, **kwargs)
-            .add_done_callback(lambda _: callback(*cb_args, **cb_kwargs))
-        )
-        # await asyncio.sleep(0)
-        # self.run(self, *args, run_id=run_id, **kwargs)
-        # if callback:
-        #     callback(*cb_args, **cb_kwargs)
-
     @abstractmethod
-    def stop(self, *args, **kwargs) -> None:
+    async def stop(self, *args, **kwargs) -> None:
         """Stops the task preventing it from further execution"""
         pass
 
-    def async_stop(
-        self,
-        *args,
-        callback: Callback = None,
-        cb_args: tuple = (),
-        cb_kwargs: dict = {},
-        **kwargs
-    ) -> None:
-        """Asynchronously stops the task preventing it from further execution"""
-        (
-            asyncio.get_event_loop()
-            .run_in_executor(None, self.stop, *args, **kwargs)
-            .add_done_callback(lambda _: callback(*cb_args, **cb_kwargs))
-        )
-        # await asyncio.sleep(0)
-        # self.stop(self, *args, **kwargs)
-        # if callback:
-        #     callback(*cb_args, **cb_kwargs)
-
     @abstractmethod
-    def results(self, *args, **kwargs) -> list[Result]:
+    async def results(self, *args, **kwargs) -> list[Result]:
         """Retrieves results of the run"""
         pass
 
@@ -151,7 +90,14 @@ class BaseTask(ABC, Generic[StageClass]):
         pass
 
     @abstractmethod
-    def configure(self, operation: str, **kwargs) -> None:
+    def configure(
+        self,
+        *operations: str,
+        # Configurable parameters
+        platform: str = 'base',
+        platform_settings: dict[str, Any] | None = None,
+        **kwargs
+    )-> None:
         """Configures a given operation within the task"""
         pass
 

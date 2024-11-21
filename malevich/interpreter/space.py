@@ -3,44 +3,58 @@ from collections import defaultdict
 from typing import Literal, Optional, overload
 from uuid import uuid4
 
-from gql import gql
 from malevich_space.ops.component_manager import ComponentManager
 from malevich_space.ops.space import SpaceOps
 from malevich_space.schema import SpaceSetup, VersionMode
+from malevich_space.schema.asset import CreateAsset
+from malevich_space.schema.branch import BranchSchema
 from malevich_space.schema.cfg import CfgSchema
 from malevich_space.schema.collection_alias import CollectionAliasSchema
-from malevich_space.schema.component import ComponentSchema, LoadedComponentSchema
+from malevich_space.schema.component import (
+    ComponentSchema,
+    LoadedComponentSchema,
+)
 from malevich_space.schema.flow import (
     FlowSchema,
     InFlowAppSchema,
     InFlowComponentSchema,
     InFlowDependency,
+    LoadedFlowSchema,
     OpSchema,
     Terminal,
 )
 from malevich_space.schema.schema import SchemaMetadata
 
-from malevich.models.nodes.tree import TreeNode
+from malevich._autoflow import traced, tracedLike
+from malevich._utility import (
+    CacheManager,
+    LogLevel,
+    Registry,
+    cout,
+    get_space_leaves,
+    resolve_setup,
+    unique,
+    upload_zip_asset,
+)
+from malevich.interpreter import Interpreter
+from malevich.models import (
+    Action,
+    ArgumentLink,
+    BaseNode,
+    BaseTask,
+    CollectionNode,
+    InterpretationError,
+    OperationNode,
+    SpaceInterpreterState,
+    SpaceTask,
+    TreeNode,
+    VerbosityLevel,
+)
 
 from .._autoflow import tracer as gn
-from .._autoflow.tracer import traced, tracedLike
-from .._utility.cache.manager import CacheManager
-from .._utility.logging import LogLevel, cout
-from .._utility.registry import Registry
-from .._utility.space.space import resolve_setup
-from ..interpreter.abstract import Interpreter
 from ..manifest import ManifestManager
-from ..models.actions import Action
-from ..models.argument import ArgumentLink
-from ..models.exceptions import InterpretationError
-from ..models.nodes.base import BaseNode
-from ..models.nodes.collection import CollectionNode
-from ..models.nodes.operation import OperationNode
-from ..models.preferences import VerbosityLevel
-from ..models.state.space import NodeType, SpaceInterpreterState
-from ..models.task.base import BaseTask
-from ..models.task.interpreted.space import SpaceTask
-from ..models.types import TracedNode
+from ..models.nodes.asset import AssetNode
+from ..types import TracedNode
 
 manf = ManifestManager()
 reg = Registry()
@@ -115,7 +129,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
     -------
 
     Results is represented as a list of
-    :class:`malevich.results.space.SpaceCollectionResult`
+    :class:`malevich.results`
     objects.
     """
 
@@ -176,8 +190,8 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
 
     def __init__(
         self,
-        setup: SpaceSetup = None,
-        ops: SpaceOps = None,
+        setup: SpaceSetup | None = None,
+        ops: SpaceOps | None = None,
         version_mode: VersionMode = VersionMode.PATCH,
         update_collections: bool = False,
     ) -> None:
@@ -193,7 +207,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
             try:
                 setup = resolve_setup(manf.query("space", resolve_secrets=True))
             except Exception as e:
-                from malevich._cli.space.login import login
+                from malevich._cli import login
                 if login():
                     setup = resolve_setup(manf.query("space", resolve_secrets=True))
                 raise InterpretationError(
@@ -322,6 +336,29 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
 
         return uid
 
+    def _ensure_aliases(self, node: BaseNode):
+        if isinstance(node, TreeNode):
+            if not node.alias:
+                node.alias = unique(node.reverse_id)
+            for from_, to_, _ in node.tree.tree:
+                self._ensure_aliases(from_.owner)
+                self._ensure_aliases(to_.owner)
+        else:
+            if node.alias is None:
+                if isinstance(node, CollectionNode):
+                    node.alias = unique(node.collection.collection_id)
+                elif isinstance(node, OperationNode):
+                    node.alias = unique(node.processor_id)
+                elif isinstance(node, AssetNode):
+                    node.alias = unique(node.name)
+                else:
+                    raise InterpretationError(
+                        "Unexpected node type: " + str(type(node)),
+                        self,
+                        self.state,
+                    )
+
+
     def interpret(self, node: TreeNode, component: ComponentSchema) -> BaseTask:
         self._state.aux.tree = node
         if self._version_mode == VersionMode.DEFAULT:
@@ -343,6 +380,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
             task.commit_returned(returned)
             return task
 
+        self._ensure_aliases(node)
         return super().interpret(node, component)
 
     def before_interpret(self, state) -> SpaceInterpreterState:
@@ -363,18 +401,6 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
         """
 
         if isinstance(node.owner, CollectionNode):  # If the node is a collection
-            alias_base = node.owner.collection.collection_id
-
-            # _, path = cache.space.probe_new_entry(
-            #     node.owner.collection.collection_id, entry_group="collections/temp"
-            # )
-
-            # if not node.owner.collection.collection_data.empty:
-            #     node.owner.collection.collection_data.to_csv(path, index=False)
-            # else:
-            #     path = None
-
-            state.node_type[node.owner.uuid] = NodeType.COLLECTION
             # Try to get the collection component from the space
             component = state.space.get_parsed_component_by_reverse_id(
                 # Using the collection id as the reverse id
@@ -438,7 +464,6 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
                 )
 
         elif isinstance(node.owner, OperationNode):  # If the node is an operation
-            state.node_type[node.owner.uuid] = NodeType.OPERATION
 
             # All the required information to interpret the node
             # should be in the registry
@@ -455,8 +480,6 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
                     self,
                     state,
                 )
-
-            alias_base = extra["reverse_id"]
 
             # Get the component from the space (it should be there)
             component = (
@@ -483,108 +506,184 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
             state.node_to_operation[node.owner.uuid] = node.owner.operation_id
 
         elif isinstance(node.owner, TreeNode):
-            alias_base = node.owner.reverse_id
-            if not state.children_states.get(node.owner.uuid, None):
-                child_interpreter = SpaceInterpreter(
-                    name=node.owner.name, reverse_id=node.owner.reverse_id
-                )
+            if not node.owner.integrated:
+                if not state.children_states.get(node.owner.uuid, None):
+                    child_interpreter = SpaceInterpreter(
+                        setup=self.state.space.space_setup,
+                    )
 
-                child_interpreter.interpret(node.owner)
-                child_state: SpaceInterpreterState = child_interpreter.state
+                    comp = ComponentSchema(
+                        name=node.owner.name,
+                        reverse_id=node.owner.reverse_id,
+                    )
 
-                comp = ComponentSchema(
-                    name=node.owner.name,
-                    reverse_id=node.owner.reverse_id,
-                    flow=child_state.flow,
-                )
+                    task_ = child_interpreter.interpret(node.owner, comp)
+                    task_.upload()
+                    child_state: SpaceInterpreterState = child_interpreter.state
+                    comp.flow = child_state.flow
 
-                state.children_states[node.owner.uuid] = child_state
+                    state.children_states[node.owner.uuid] = child_state
+                else:
+                    child_state = state.children_states[node.owner.uuid]
+                    comp = ComponentSchema(
+                        name=node.owner.name,
+                        reverse_id=node.owner.reverse_id,
+                        flow=child_state.flow,
+                    )
             else:
-                child_state = state.children_states[node.owner.uuid]
+                comp = state.space.get_parsed_component_by_reverse_id(
+                    reverse_id=node.owner.reverse_id
+                )
+
+        elif isinstance(node.owner, AssetNode):
+            try:
+                comp = self.state.space.get_parsed_component_by_reverse_id(
+                    reverse_id=node.owner.name
+                )
+            except Exception:
+                comp = None
+
+            if comp is None or comp.asset.checksum != node.owner.magic():
+                asset_ = self.state.space.create_asset(
+                    asset=CreateAsset(
+                        core_path=node.owner.core_path,
+                        is_composite=node.owner.is_composite,
+                        checksum=node.owner.magic()
+                    )
+                )
                 comp = ComponentSchema(
                     name=node.owner.name,
-                    reverse_id=node.owner.reverse_id,
-                    flow=child_state.flow,
+                    reverse_id=node.owner.name,
+                    asset=asset_
                 )
+
+                asset_comp = self.state.space.parse_raw(comp, VersionMode.PATCH)
+                asset_comp = self.state.space.get_parsed_component_by_reverse_id(
+                    reverse_id=asset_comp.reverse_id
+                )
+
+                upload_zip_asset(
+                    url=asset_comp.asset.upload_url,
+                    file=node.owner.real_path if isinstance(node.owner.real_path, str) else None,
+                    files=node.owner.real_path if isinstance(node.owner.real_path, list) else None,
+                )
+
+
+
 
         if not comp:
             raise InterpretationError(
                 "Failed to interpret the node. This is a bug, please report it.",
             )
-
+        state.components_alias[node.owner.uuid] = node.owner.alias
         state.components[node.owner.uuid] = comp
-        state.components_alias[node.owner.uuid] = (
-            node.owner.alias or f"{alias_base} {_name(alias_base)}"
-        )
-        node.owner.alias = state.components_alias[node.owner.uuid]
         return state
 
     def create_dependency(
         self,
         state: SpaceInterpreterState,
-        caller: TracedNode,
-        callee: traced[OperationNode],
-        link: ArgumentLink,
+        from_node: TracedNode,
+        to_node: traced[OperationNode],
+        link: ArgumentLink[traced[BaseNode]],
     ) -> SpaceInterpreterState:
         """Creates a dependency between two nodes."""
 
-        # Case Collection / App -> Flow
-
-        if isinstance(callee.owner, TreeNode) and not isinstance(
-            caller.owner, TreeNode
+        if isinstance(to_node.owner, TreeNode) and not isinstance(
+            from_node.owner, TreeNode
         ):
-            child = state.children_states[callee.owner.uuid]
-            caller_alias = state.components_alias[caller.owner.uuid]
             inter_flow_map = {}
 
-            bridges = link.compressed_nodes
+            if to_node.owner.integrated:
+                bridges = link.compressed_nodes
 
-            for _, to in bridges:
-                inter_flow_map[caller_alias] = child.components_alias[to.owner.uuid]
+                for _, to in bridges:
+                    inter_flow_map[from_node.owner.alias] = to.owner.alias
 
-            dependency = InFlowDependency(
-                from_op_id=(
-                    # provided by space installer
-                    caller.owner.operation_id
-                    if isinstance(caller.owner, OperationNode)
-                    else None
-                ),
-                to_op_id=callee.owner.underlying_node.operation_id
-                if isinstance(callee.owner.underlying_node, OperationNode)
-                else None,
-                alias=state.components_alias[caller.owner.uuid],
-                order=link.index,
-                terminals=[
-                    Terminal(src=x, target=y) for x, y in inter_flow_map.items()
-                ],
-            )
-        elif isinstance(caller.owner, TreeNode) and not isinstance(
-            callee.owner, TreeNode
+                dependency = InFlowDependency(
+                    from_op_id=(
+                        # provided by space installer
+                        from_node.owner.operation_id
+                        if isinstance(from_node.owner, OperationNode)
+                        else None
+                    ),
+                    to_op_id=to_node.owner.underlying_node.operation_id
+                    if isinstance(to_node.owner.underlying_node, OperationNode)
+                    else None,
+                    alias=from_node.owner.alias,
+                    order=link.index,
+                    terminals=[
+                        Terminal(src=x, target=y) for x, y in inter_flow_map.items()
+                    ],
+                )
+            else:
+                caller_alias = from_node.owner.alias
+
+                bridges = link.compressed_nodes
+
+                for _, to in bridges:
+                    inter_flow_map[caller_alias] = link.shadow_collection.owner.alias
+
+
+                dependency = InFlowDependency(
+                    from_op_id=(
+                        # provided by space installer
+                        from_node.owner.operation_id
+                        if isinstance(from_node.owner, OperationNode)
+                        else None
+                    ),
+                    to_op_id=to_node.owner.underlying_node.operation_id
+                    if isinstance(to_node.owner.underlying_node, OperationNode)
+                    else None,
+                    alias=from_node.owner.alias,
+                    order=link.index,
+                    terminals=[
+                        Terminal(src=x, target=y) for x, y in inter_flow_map.items()
+                    ],
+                )
+
+        elif isinstance(from_node.owner, TreeNode) and not isinstance(
+            to_node.owner, TreeNode
         ):
-            child = state.children_states[caller.owner.uuid]
-            callee_alias = state.components_alias[callee.owner.uuid]
-            op: OperationNode = caller.owner.underlying_node
-            inter_flow_map = {child.components_alias[op.uuid]: callee_alias}
+            if from_node.owner.integrated:
+                dependency = InFlowDependency(
+                    from_op_id=from_node.owner.underlying_node.operation_id
+                    if isinstance(from_node.owner.underlying_node, OperationNode)
+                    else None,
+                    to_op_id=to_node.owner.operation_id,
+                    alias=from_node.owner.alias,
+                    order=link.index,
+                    terminals=[
+                        Terminal(
+                            src=from_node.owner.alias,
+                            target=to_node.owner.alias,
+                        )
+                    ]
+                )
+            else:
+                callee_alias = to_node.owner.alias
+                op: OperationNode = from_node.owner.underlying_node
+                inter_flow_map = {op.alias: callee_alias}
 
-            dependency = InFlowDependency(
-                from_op_id=op.operation_id,
-                to_op_id=(
-                    # provided by space installer
-                    callee.owner.operation_id
-                    if isinstance(callee.owner, OperationNode)
-                    else None
-                ),
-                alias=state.components_alias[caller.owner.uuid],
-                order=link.index,
-                terminals=[
-                    Terminal(src=x, target=y) for x, y in inter_flow_map.items()
-                ],
-            )
-        elif isinstance(caller.owner, TreeNode) and isinstance(callee.owner, TreeNode):
-            left_op = caller.owner.underlying_node
+                dependency = InFlowDependency(
+                    from_op_id=op.operation_id,
+                    to_op_id=(
+                        # provided by space installer
+                        to_node.owner.operation_id
+                        if isinstance(to_node.owner, OperationNode)
+                        else None
+                    ),
+                    alias=from_node.owner.alias,
+                    order=link.index,
+                    terminals=[
+                        Terminal(src=x, target=y) for x, y in inter_flow_map.items()
+                    ],
+                )
+
+        elif isinstance(from_node.owner, TreeNode) and isinstance(to_node.owner, TreeNode):  # noqa: E501
+            left_op = from_node.owner.underlying_node
             right_edges = link.compressed_nodes
             for rel, right_node in right_edges:
-                state.dependencies[callee.owner.uuid].append(
+                state.dependencies[to_node.owner.uuid].append(
                     InFlowDependency(
                         from_op_id=(
                             left_op.operation_id
@@ -596,16 +695,12 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
                             if isinstance(right_node.owner, OperationNode)
                             else None
                         ),
-                        alias=state.components_alias[caller.owner.uuid],
+                        alias=from_node.owner.alias,
                         order=rel.index,
                         terminals=[
                             Terminal(
-                                src=state.children_states[
-                                    caller.owner.uuid
-                                ].components_alias[left_op.uuid],
-                                target=state.children_states[
-                                    callee.owner.uuid
-                                ].components_alias[right_node.owner.uuid],
+                                src=left_op.alias,
+                                target=right_node.alias,
                             )
                         ],
                     )
@@ -615,16 +710,16 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
             dependency = InFlowDependency(
                 from_op_id=(
                     # provided by space installer
-                    caller.owner.operation_id
-                    if isinstance(caller.owner, OperationNode)
+                    from_node.owner.operation_id
+                    if isinstance(from_node.owner, OperationNode)
                     else None
                 ),
-                to_op_id=callee.owner.operation_id,
-                alias=state.components_alias[caller.owner.uuid],
+                to_op_id=to_node.owner.operation_id,
+                alias=from_node.owner.alias,
                 order=link.index,
             )
 
-        state.dependencies[callee.owner.uuid].append(dependency)
+        state.dependencies[to_node.owner.uuid].append(dependency)
 
         return state
 
@@ -678,7 +773,7 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
                 *state.flow.components,
                 InFlowComponentSchema(
                     reverse_id=component.reverse_id,
-                    alias=state.components_alias[uid],
+                    alias=self.state.components_alias[uid],
                     depends={dep.alias: dep for dep in state.dependencies[uid]},
                     app=InFlowAppSchema(
                         active_op=[
@@ -699,86 +794,80 @@ class SpaceInterpreter(Interpreter[SpaceInterpreterState, SpaceTask]):
 
         self._component.flow = state.flow
 
-        component = state.component_manager.component(
-            self._component,
-            self._version_mode,
-        )
+        def get_component(branch: str | None = None):
+            if branch:
+                self._component.branch = BranchSchema(name=branch)
 
-        if self._version_mode != VersionMode.DEFAULT:
-            state.space.auto_layout(flow=component.flow.uid)
+            component = state.component_manager.component(
+                self._component,
+                self._version_mode,
+            )
+            if self._version_mode != VersionMode.DEFAULT:
+                state.space.auto_layout(flow=component.flow.uid)
 
-        return SpaceTask(state=self.state, component=component)
+            return component
+
+        return SpaceTask(state=self.state, get_component=get_component)
 
     def attach(
         self,
         reverse_id: str | None = None,
+        flow_uid: str | None = None,
         deployment_id: str | None = None,
-        attach_to_last: bool = False,
+        search_deployments: bool = True,
     ) -> SpaceTask:
         assert (
-            reverse_id or deployment_id
-        ), "Either reverse_id or deployment_id should be set"
-
-        successful = False
-        if deployment_id:
-            try:
-                core_id, loaded_reverse_id = self._state.space.get_task_core_id(task_id=deployment_id)
-                self._state.aux.core_task_id = core_id
-                reverse_id = loaded_reverse_id
-                self._state.aux.task_id = deployment_id
-                successful |= True
-            except Exception:
-                if reverse_id is None:
-                    raise Exception(
-                        "Could not attach to the flow. "
-                        "`deployment_id` is not correct and "
-                        "`reverse_id` is either not correct or provided"
-                    )
-
-        elif attach_to_last:
-            deployments = self._state.space.get_deployments_by_reverse_id(reverse_id=reverse_id, status=["started"])
-            if len(deployments) == 0:
-                raise ValueError(
-                    "You have not supplied deployment ID "
-                    "and no deployments are available at the moment"
-                )
-            self._state.aux.task_id = deployments[0].uid
+            reverse_id or deployment_id or flow_uid
+        ), "Either reverse_id or deployment_id or uid should be set"
 
         component: LoadedComponentSchema | None = (
-            self._state.space.get_parsed_component_by_reverse_id(reverse_id=reverse_id)
+            self._state.space.get_parsed_component_by_reverse_id(
+                reverse_id=reverse_id
+            )
         )
 
+        if flow_uid and component.flow is not None:
+            component.flow = self._state.space.get_flow(flow_uid)
+
         if component is not None and component.flow is not None:
-            self._state.flow = component.flow
-            self._state.aux.flow_id = component.flow.uid
-            self._state.components_alias = {
-                x.uid: x.alias for x in component.flow.components
-            }
-            successful |= True
-            all_components = {x.uid for x in component.flow.components}
-            prev_components = set.union(
-                set(), *[{x.uid for x in y.prev} for y in component.flow.components]
-            )
-            leaves = all_components.difference(prev_components)
+            if deployment_id:
+                self.state.aux.task_id = deployment_id
+
+            elif search_deployments:
+                try:
+                    tasks = self._state.space.get_deployments_by_flow(
+                        flow_id=component.flow.uid,
+                        status=["started"]
+                    )
+                    if len(tasks) > 0:
+                        tasks = sorted(tasks, key=lambda x: x.last_runned_at, reverse=True)
+                        self.state.aux.task_id = tasks[0].uid
+                except:
+                    pass
+
+
+            flow: LoadedFlowSchema = component.flow
+
+            self._state.flow = flow
+            self._state.aux.flow_id = flow.uid
+
+            leaves = get_space_leaves(flow)
+
             # NOTE: there can be more leaves in future
             leave_aliasses = [
-                x.alias for x in component.flow.components if x.uid in (leaves)
+                x.alias for x in flow.components if x in leaves
             ]
 
-            leaf_nodes = [tracedLike(BaseNode(alias=x)) for x in leave_aliasses]
+            leaf_nodes = [
+                tracedLike(BaseNode(alias=x))
+                for x in leave_aliasses
+            ]
 
         else:
             raise Exception(
                 "Could not attach to the flow. Component failed to be parsed."
             )
 
-        if not successful:
-            raise Exception(
-                "Failed to attach to the task. Possible reasons are: "
-                "could not find neither component nor deployment."
-            )
-
         task = SpaceTask(state=self._state, component=component)
-
         task.commit_returned(leaf_nodes)
         return task

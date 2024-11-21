@@ -20,17 +20,30 @@ from ._cli.remove import remove
 from ._cli.restore import restore
 from ._cli.space.init import init
 from ._cli.space.login import login
+from ._cli.space.upload import upload
+from ._cli.space.whoami import get_user_on_space
 from ._cli.use import use as use_app
 from .constants import APP_HELP
 
 logging.getLogger("gql.transport.requests").setLevel(logging.ERROR)
-app = typer.Typer(help=APP_HELP, rich_markup_mode="rich")
+app = typer.Typer(
+    help=APP_HELP,
+    rich_markup_mode="rich",
+)
 
 # =============== Register Commands ===============
 # -------------------------------------------------
 
 # Malevich Commands
 # -------------------------------------------------
+
+groups = {
+    'dm': 'Dependency Management',
+    'pm': 'Project Management',
+    'space': 'Space Management',
+    'core': 'Engine (Core) API',
+    'cfg': 'User Settings'
+}
 
 # malevich install
 app.registered_commands.append(
@@ -39,6 +52,7 @@ app.registered_commands.append(
         help=help.install["--help"],
         callback=auto_use,
         cls=typer.core.TyperCommand,
+        rich_help_panel=groups['dm']
     )
 )
 
@@ -47,7 +61,8 @@ app.registered_commands.append(
     typer.models.CommandInfo(
         help=help.restore["--help"],
         callback=restore,
-        cls=typer.core.TyperCommand
+        cls=typer.core.TyperCommand,
+        rich_help_panel=groups['dm']
     )
 )
 
@@ -56,7 +71,8 @@ app.registered_commands.append(
     typer.models.CommandInfo(
         help=help.remove["--help"],
         callback=remove,
-        cls=typer.core.TyperCommand
+        cls=typer.core.TyperCommand,
+        rich_help_panel=groups['dm']
     )
 )
 
@@ -66,7 +82,8 @@ app.registered_commands.append(
         name="list",
         help=help.list_["--help"],
         callback=list_packages,
-        cls=typer.core.TyperCommand
+        cls=typer.core.TyperCommand,
+        rich_help_panel=groups['dm']
     )
 )
 
@@ -76,7 +93,8 @@ app.registered_commands.append(
         name="new",
         help=help.new["--help"],
         callback=new,
-        cls=typer.core.TyperCommand
+        cls=typer.core.TyperCommand,
+        rich_help_panel=groups['pm']
     )
 )
 
@@ -86,7 +104,8 @@ app.registered_commands.append(
         name="init",
         help="Initializes new Malevich project",
         callback=init_,
-        cls=typer.core.TyperCommand
+        cls=typer.core.TyperCommand,
+        rich_help_panel=groups['pm']
     )
 )
 
@@ -112,6 +131,25 @@ space_app.registered_commands.append(
         cls=typer.core.TyperCommand
     )
 )
+
+space_app.registered_commands.append(
+    typer.models.CommandInfo(
+        "whoami",
+        help=help.space["whoami --help"],
+        callback=get_user_on_space,
+        cls=typer.core.TyperCommand
+    )
+)
+
+
+space_app.registered_commands.append(
+    typer.models.CommandInfo(
+        "upload-flow",
+        help=help.space["upload-flow --help"],
+        callback=upload,
+        cls=typer.core.TyperCommand
+    )
+)
 # __________________________________________________
 
 
@@ -123,25 +161,40 @@ space_app.registered_commands.append(
 space_app.add_typer(flow_app, name="flow")
 
 # malevich use
-app.add_typer(use_app, name="use")
+app.add_typer(use_app, name="use", rich_help_panel=groups['dm'])
 
 # malevich manifest
-app.add_typer(manifest_app, name="manifest")
+app.add_typer(manifest_app, name="manifest", rich_help_panel=groups["pm"])
 
 # malevich space
-app.add_typer(space_app, name="space", help=help.space["--help"])
+app.add_typer(
+    space_app,
+    name="space",
+    help=help.space["--help"],
+    rich_help_panel=groups['space']
+)
 
 # malevich ci
-app.add_typer(ci_app, name="ci", help=help.ci["--help"])
+app.add_typer(
+    ci_app,
+    name="ci",
+    help=help.ci["--help"],
+    rich_help_panel=groups['pm']
+)
 
 # malevich prefs
-app.add_typer(prefs, name="prefs")
+app.add_typer(prefs, name="prefs", rich_help_panel=groups['cfg'])
 
 # malevich dev
-app.add_typer(dev_app, name='dev')
+app.add_typer(dev_app, name='dev', hidden=True)
 
 #malevich core
-app.add_typer(core_app, name='core', help=help.core['--help'])
+app.add_typer(
+    core_app,
+    name='core',
+    help=help.core['--help'],
+    rich_help_panel=groups['core']
+)
 # _________________________________________________
 
 

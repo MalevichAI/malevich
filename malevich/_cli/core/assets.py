@@ -9,6 +9,7 @@ from rich.progress import Progress
 from rich.tree import Tree
 from typer import Typer
 
+from ..._utility.asset_full_tree import get_asset_full_tree
 from malevich.core_api import (
     delete_collection_object,
     get_collection_object,
@@ -24,12 +25,17 @@ assets_app = Typer(name='assets')
 @assets_app.command(name='list')
 @wrap_command(get_collection_objects)
 def list_assets(
-    recursive: bool = True,
     sizes: bool = False,
     plain: bool = False,
     **kwargs
 ) -> None:
-    file_dirs = get_collection_objects(recursive=recursive, **kwargs)
+    kwargs.pop('path', None)
+    file_dirs = get_asset_full_tree(
+        base_path='/',
+        conn_url=kwargs.get('conn_url'),
+        auth=kwargs.get('auth'),
+    )
+
     if plain:
         if sizes:
             length_ = max(map(len, file_dirs.files.keys()))
@@ -82,6 +88,7 @@ def get(save: Optional[str] = None, **kwargs) -> None:
 @assets_app.command(name='upload')
 @wrap_command(update_collection_object, exclude=['data', 'zip'])
 def update(local_path: str, **kwargs) -> None:
+    local_path = os.path.abspath(os.path.expanduser(local_path))
     if not os.path.exists(local_path):
         rich.print("\nPath is invalid")
         exit(-1)

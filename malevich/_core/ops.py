@@ -11,9 +11,8 @@ from typing import Optional
 import malevich_coretools as core
 from malevich_coretools import FilesDirs
 
-from ..constants import DEFAULT_CORE_HOST
-from ..models.collection import Collection
-from ..models.nodes.asset import AssetNode
+from malevich.constants import DEFAULT_CORE_HOST
+from malevich.models import AssetNode, Collection
 
 executor = ProcessPoolExecutor(max_workers=cpu_count())
 
@@ -257,7 +256,7 @@ def _assure_asset(
                 auth=auth,
                 conn_url=conn_url,
             )
-            objs = FilesDirs(files=[asset.core_path])
+            objs = FilesDirs(files={asset.core_path: 0}, directories=[])
         else:
             objs = core.get_collection_objects(
                 asset.core_path,

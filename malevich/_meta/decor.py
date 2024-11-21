@@ -1,10 +1,16 @@
-from typing import Callable, Generic, ParamSpec, Type, TypeVar
+from typing import (
+    Callable,
+    Generic,
+    ParamSpec,
+    Type,
+    TypeVar,
+)
 
 from pydantic import BaseModel
 
-from .._autoflow.function import autotrace, sinktrace
-from ..constants import reserved_config_fields
-from ..models.type_annotations import ConfigArgument
+from malevich._autoflow.function import autotrace, sinktrace
+from malevich.constants import reserved_config_fields
+from malevich.models import ConfigArgument
 
 FnArgs = ParamSpec("FnArgs")
 FnReturn = TypeVar("FnReturn")
@@ -13,6 +19,14 @@ ProcConfig = TypeVar("ProcConfig", bound=BaseModel)
 
 ProcFunArgs = ParamSpec("ProcFunArgs")
 ProcFunReturn = TypeVar("ProcFunReturn")
+
+class ConfigStruct(dict):
+    def __new__(cls, **kwargs):
+        return dict(**kwargs)
+
+    def __init__(self, **kwargs) -> None:
+        """Creates a configuration from keyword arguments"""
+
 
 class ProcessorFunction(Generic[Config, ProcFunArgs, ProcFunReturn]):
     def __init__(
@@ -43,7 +57,7 @@ class ProcessorFunction(Generic[Config, ProcFunArgs, ProcFunReturn]):
             kwargs['config'] = {}
 
         if isinstance(kwargs['config'], BaseModel):
-            assert type(kwargs['config']) == self.__config_model, (
+            assert type(kwargs['config']) == self.__config_model, (  # noqa: E721
                 f"You have set config={kwargs['config']}, "
                 f"but it should be of type {self.__config_model}."
             )
@@ -51,18 +65,28 @@ class ProcessorFunction(Generic[Config, ProcFunArgs, ProcFunReturn]):
             kwargs['config'] = kwargs['config'].model_dump()
         else:
             assert isinstance(kwargs, dict)
-
+        reserved_keys = {
+            x[0] for x in reserved_config_fields
+        }
         extra_fields = {**kwargs}
         extra_fields.pop('config')
-        for reserved, _ in reserved_config_fields:
-            extra_fields.pop(reserved, None)
+        for reserved_keys, _ in reserved_config_fields:
+            extra_fields.pop(reserved_keys, None)
 
-        kwargs = {
+        kwargs['config'] = {
             **kwargs['config'],
             **extra_fields,
         }
 
-        if (diff_ := set.difference(set(self.__required_fields), kwargs.keys())) != set():  # noqa: E501
+        kwargs = {
+            'config': kwargs['config'],
+            **{
+                k: v for k, v in kwargs.items()
+                if k in reserved_keys
+            }
+        }
+
+        if (diff_ := set.difference(set(self.__required_fields), kwargs['config'].keys())) != set():  # noqa: E501
             fields_ = ', '.join([f"`{x}`" for x in diff_])
             raise Exception(
                 f"Missing required fields {fields_}"
@@ -74,8 +98,12 @@ class ProcessorFunction(Generic[Config, ProcFunArgs, ProcFunReturn]):
     __call__: Callable[ProcFunArgs, ProcFunReturn] = _fn_call
 
     @property
-    def config(self) -> Type[Config]:
-        return self.__config_model
+    def __doc__(self) -> str:
+        return self.base_fn.__doc__
+
+    @property
+    def config(self) -> Type[Config] | Type[ConfigStruct]:
+        return self.__config_model or ConfigStruct
 
 
 def proc(
@@ -83,7 +111,7 @@ def proc(
     config_model: Type[ProcConfig] = BaseModel,
 ) -> Callable[
     [Callable[FnArgs, FnReturn]],
-    ProcessorFunction[ProcConfig, FnArgs, FnReturn]
+    Callable[FnArgs, FnReturn] | ProcessorFunction[ProcConfig, FnArgs, FnReturn]
 ]:
     def decorator(
         fn: Callable[FnArgs, FnReturn]

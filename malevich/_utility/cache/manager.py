@@ -2,7 +2,7 @@ import os
 import shutil
 import uuid
 
-from ..singleton import SingletonMeta
+from malevich._dev.singleton import SingletonMeta
 
 
 class CacheController:

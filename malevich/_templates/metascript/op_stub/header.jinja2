@@ -1,0 +1,21 @@
+{% if description %}
+{{description}}
+
+---
+
+Third-party Malevich app. Use it in flow by importing any processor
+from this module and calling it within @flow decorated function.
+{% else %}
+Third-party Malevich app. Use it in flow by importing any processor
+from this module and calling it within @flow decorated function.
+{% endif %}
+
+import typing
+from typing import *
+
+import malevich.annotations
+from malevich.models import ConfigArgument
+from malevich._meta.decor import proc
+from malevich._utility import Registry
+from malevich.models.nodes import OperationNode
+from .scheme import *

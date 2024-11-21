@@ -1,6 +1,6 @@
 import malevich_coretools as core
 
-from .._utility.host import fix_host
+from malevich._utility import fix_host
 
 
 def scan_core(

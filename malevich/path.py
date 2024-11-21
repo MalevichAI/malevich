@@ -25,7 +25,11 @@ class Paths:
         return os.path.join(MALEVICH_CACHE, *path)
 
     @staticmethod
-    def pwd(*path) -> str:
+    def pwd(*path, create: bool = False) -> str:
+        if create:
+            p = _Path(os.path.join(os.getcwd(), *path))
+            p.touch()
+            return str(p)
         return os.path.join(os.getcwd(), *path)
 
     @staticmethod
@@ -35,4 +39,40 @@ class Paths:
     @staticmethod
     def db() -> str:
         return Paths.home(DB_PATH)
+
+    @staticmethod
+    def templates(*args: os.PathLike) -> str:
+        return Paths.module('_templates', *args)
+
+    @staticmethod
+    def local(*args: os.PathLike, create: bool = False, create_dir: bool = False) -> str:
+        return Paths.home('.local', *args, create=create, create_dir=create_dir)
+
+    @staticmethod
+    def local_results(
+        operation_id: str,
+        run_id: str,
+        index: int,
+        create: bool = False,
+        create_dir: bool = False,
+    ) -> str | None:
+        for path in os.listdir(
+            Paths.local(
+                'results',
+                operation_id,
+                run_id,
+                create=create,
+                create_dir=create_dir
+            )
+        ):
+            if path.startswith(str(index)):
+                return Paths.local(
+                    'results',
+                    operation_id,
+                    run_id,
+                    path,
+                    create=create,
+                    create_dir=create_dir
+                )
+        return None
 

@@ -5,9 +5,9 @@ from typing import Any, Iterable, Optional
 
 import pydantic_yaml as pydml
 
-from ._utility.singleton import SingletonMeta
-from .models.manifest import Manifest, Secret, Secrets
-from .path import Paths
+from malevich._dev.singleton import SingletonMeta
+from malevich.models.manifest import Manifest, Secret, Secrets
+from malevich.path import Paths
 
 
 class OverrideManifest:
@@ -59,7 +59,7 @@ class ManifestManager(metaclass=SingletonMeta):
     def __init__(self, workdir: str | None = None) -> None:
         if os.path.exists(Paths.pwd('malevich.yaml')):
             self.__path = Paths.pwd('malevich.yaml')
-            self.__secrets_path = Paths.pwd('malevich.secrets.yaml')
+            self.__secrets_path = Paths.pwd('malevich.secrets.yaml', create=True)
             self.local = True
         else:
             self.__path = Paths.home('malevich.yaml', create=True)
@@ -282,7 +282,7 @@ class ManifestManager(metaclass=SingletonMeta):
         return secrets
 
     def query_secret(self, key: str, only_value: bool = False) -> Secret | None:
-        _s = self.__secrets.secrets.get(key, key)
+        _s = self.__secrets.secrets.get(key, None)
         if _s and only_value:
             return _s.secret_value
         return _s

@@ -7,15 +7,12 @@ from typing import Any, Type
 
 from malevich_space.schema import ComponentSchema
 
-from malevich.models.endpoint import MetaEndpoint
+from malevich.types import FlowOutput
 
-from ...interpreter.abstract import Interpreter
-from ...interpreter.space import SpaceInterpreter
-from ...models.nodes.tree import TreeNode
-from ...models.task.base import BaseTask
-from ...models.types import FlowOutput
-from ..injections import BaseInjectable
+from ..endpoint import MetaEndpoint
+from ..nodes.tree import TreeNode
 from ..results import Result
+from .base import BaseInjectable, BaseTask
 
 
 class PromisedStage(Enum):
@@ -77,7 +74,10 @@ class PromisedTask(BaseTask[PromisedStage]):
         else:
             return PromisedStage
 
-    def interpret(self, interpreter: Interpreter = None) -> None:
+    def interpret(
+        self,
+        interpreter: 'malevich._interpreter.abstrct.Interpreter' = None
+    ) -> None:
         """Interprets the task with a particular interpreter
 
         Attaching a task to a particular platform and preparing it for execution.
@@ -92,6 +92,7 @@ class PromisedTask(BaseTask[PromisedStage]):
                 Interpreter to use. :class:`malevich.interprete.SpaceInterpreter`
                 is used when not specified. Defaults to None.
         """
+        from malevich.interpreter import SpaceInterpreter
         __interpreter = interpreter or SpaceInterpreter()
         try:
             task = __interpreter.interpret(self.__tree, self._component)
@@ -111,7 +112,7 @@ class PromisedTask(BaseTask[PromisedStage]):
            else:
                 raise e
 
-    def prepare(self, *args, **kwargs) -> None:
+    async def prepare(self, *args, **kwargs) -> None:
         """Prepares necessary data for the task to be executed (run)
 
         Accepts any arguments and keyword arguments and passes them to the
@@ -126,35 +127,9 @@ class PromisedTask(BaseTask[PromisedStage]):
                 "a particular platform"
             )
 
-        return self.__task.prepare(*args, **kwargs)
+        return await self.__task.prepare(*args, **kwargs)
 
-    def async_prepare(self, *args, **kwargs) -> None:
-        """Asynchronously prepares necessary data for the task to be executed (run)
-
-        The method is non-blocking
-
-        Accepts any arguments and keyword arguments and passes them to the
-        underlying callback created in the interpreter itself. For particular
-        arguments and keyword arguments, see the documentation of the interpreter
-        used before calling this method.
-        """
-        return self.__task.async_prepare(*args, **kwargs)
-
-    def async_run(self,*args, run_id: str | None = None, **kwargs) -> None:
-        """Asynchronously runs the task with the given run_id
-
-        The method is non-blocking. Beware that you need to call :meth:`prepare`
-        and ensure that the task is prepared before calling this method. In case,
-        you have used :meth:`async_prepare`, you need to wait for the task to be
-        prepared before calling this method.
-        """
-        return self.__task.async_run(*args, run_id=run_id, **kwargs)
-
-    def async_stop(self, *args, **kwargs) -> None:
-        return self.__task.async_stop(*args, **kwargs)
-
-
-    def run(
+    async def run(
         self,
         run_id: str | None = None,
         override: dict[str, Any] | None = None,
@@ -179,14 +154,14 @@ class PromisedTask(BaseTask[PromisedStage]):
             )
         # TODO: try/except with error on this level
         # if task is not prepared
-        return self.__task.run(
+        return await self.__task.run(
             *args,
             run_id=run_id,
             override=override,
             **kwargs
         )
 
-    def stop(self, *args, **kwargs) -> None:
+    async def stop(self, *args, **kwargs) -> None:
         """Stops the task
 
         Accepts any arguments and keyword arguments and passes them to the
@@ -202,9 +177,9 @@ class PromisedTask(BaseTask[PromisedStage]):
             )
         # TODO: try/except with error on this level
         # if task is not prepared
-        return self.__task.stop(*args, **kwargs)
+        return await self.__task.stop(*args, **kwargs)
 
-    def results(self, *args, **kwargs) -> list[Result]:
+    async def results(self, *args, **kwargs) -> list[Result]:
         """Retrieve results of the task
 
         Accepts any arguments and keyword arguments and passes them to the
@@ -219,7 +194,7 @@ class PromisedTask(BaseTask[PromisedStage]):
                 "a particular platform"
             )
 
-        return self.__task.results(*args, **kwargs)
+        return await self.__task.results(*args, **kwargs)
 
     def commit_returned(self, returned: FlowOutput) -> None:
         """Saves objects to determine the results of the task
@@ -296,7 +271,7 @@ class PromisedTask(BaseTask[PromisedStage]):
             )
         return self.__task.get_operations()
 
-    def configure(self, operation: str, **kwargs) -> None:
+    def configure(self, *operations: str, **kwargs) -> None:
         """Configures the task for a particular operation
 
         What is configurable and how it is configurable is defined by the
@@ -308,11 +283,12 @@ class PromisedTask(BaseTask[PromisedStage]):
             **kwargs (Any): Arguments to configure the operation
         """
         if not self.__task:
+            for op in operations:
             # Remember the configuration to apply it later
-            self.__conf_memory.append((operation, kwargs))
+                self.__conf_memory.append((op, kwargs))
             return None
         # Otherwise proxy directly
-        return self.__task.configure(operation, **kwargs)
+        return self.__task.configure(*operations, **kwargs)
 
     def get_interpreted_task(self) -> BaseTask:
         """Retrieves the interpreted task that is produced when calling :meth:`interpret`

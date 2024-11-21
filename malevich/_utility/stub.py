@@ -4,20 +4,22 @@ import os
 import re
 import tempfile
 import typing
-from contextlib import chdir
 from hashlib import sha256
 from pathlib import Path
 from typing import Type
 
 import pydantic_yaml as pydml
 from datamodel_code_generator import generate
+from deepdiff import DeepDiff
+from jinja2 import Environment, FileSystemLoader
 from pydantic import BaseModel, Field
 
 import malevich
-from malevich.core_api import AppFunctionsInfo
+from malevich.constants import reserved_config_fields
+from malevich.core_api import AppFunctionsInfo, ConditionFunctionInfo
+from malevich.models.dependency import Dependency
 
-from ..constants import reserved_config_fields
-from ..models.dependency import Dependency
+from ..path import Paths
 
 
 class Templates:
@@ -44,9 +46,9 @@ import typing
 from typing import *
 
 import malevich.annotations
-from malevich.models.type_annotations import ConfigArgument
+from malevich.models import ConfigArgument
 from malevich._meta.decor import proc
-from malevich._utility.registry import Registry
+from malevich._utility import Registry
 from malevich.models.nodes import OperationNode
 from .scheme import *
 """
@@ -56,17 +58,11 @@ Registry().register("{operation_id}", {registry_record})
 """
 
     processor = """
-@proc(use_sinktrace={use_sinktrace}, config_model={config_model})
 {definition}
-    return OperationNode(
-        operation_id="{operation_id}",
-        config=config,
-        processor_id="{name}",
-        package_id="{package_id}",
-        alias=alias,
-    )
-"""
 
+{processor_name} = proc(use_sinktrace={use_sinktrace}, config_model={config_model})(__{processor_name})
+\"""{docstrings}\"""
+"""  # noqa: E501
 
 def create_package_stub(
     package_name: str,
@@ -121,9 +117,11 @@ class StubFunction(BaseModel):
     docstrings: str | None = None
     config_schema: Type[BaseModel] | None = Field(None, exclude=True)
     definition: str | None = None
+    package_id: str
+    is_condition: bool = False
+    operation_id: str
 
     def generate_definition(self, config_model: str | None = None) -> str:
-
         """def processor_name(
             arg1: type1,
             arg2: type2,
@@ -134,25 +132,11 @@ class StubFunction(BaseModel):
             **kwargs
         ) -> RETURN_TYPE:
         """
-        # def processor_name(
-        def_ = "def " + self.name + "("
-        for arg in self.args:
-            # def processor_name(
-            #    ...
-            #    argX: typeX,
-            def_ += f'\n\t{arg[0]}: {arg[1] or "Any"}' + ","
-        # def processor_name(
-        #    ...
-        #    argX: typeX,
-        #    *,
-        if self.sink:
-            if len(self.args) > 0:
-                def_ += f'\n\t/,\n\t*{self.sink[0]}: Any, '
-            else:
-                def_ += f'\n\t*{self.sink[0]}: Any, '
-        else:
-            def_ += "\n\t/, "
-        if self.config_schema is not None:
+        environment = Environment(
+            loader=FileSystemLoader(Paths.templates('metascript', 'op_stub'))
+        )
+        extra_kwargs_ = {}
+        if self.config_schema:
             config_fields = self.config_schema.model_fields
             for field in config_fields:
                 if field == "config":
@@ -160,7 +144,6 @@ class StubFunction(BaseModel):
                         "Trying to generate a definition for "
                         "a function with a config field named 'config'"
                     )
-                is_required = config_fields[field].is_required()
                 annotation = config_fields[field].annotation
                 if (
                     hasattr(annotation, "__name__")
@@ -171,26 +154,25 @@ class StubFunction(BaseModel):
                 else:
                     # etc.
                     annotation = str(config_fields[field].annotation)
-                # if not config_fields[field].is_required() and 'Optional' not in str(annotation):  # noqa: E501
-                #     def_ += f'\n\t{field}: Optional["{annotation}"]' + " = None,"
-                # elif not config_fields[field].is_required():
-                #     def_ += f'\n\t{field}: "{annotation}"' + " = None,"
-                # else:
-                #     def_ += f'\n\t{field}: "{annotation}"' + ","
+                config_fields[field].annotation = annotation
 
-                def_ += f'\n\t{field}: Annotated["{annotation}", ConfigArgument(required={is_required})] = None,'  # noqa: E501
+            extra_kwargs_['config_fields'] = config_fields
+        if self.sink:
+            extra_kwargs_['sink'] = self.sink
 
-        for rkey, rtype in reserved_config_fields:
-            def_ += f'\n\t{rkey}: Optional["{rtype}"]' + " = None,"
+        data = environment.get_template('def.jinja2').render(
+            processor_name = self.name,
+            args = self.args,
+            docstrings = self.docstrings,
+            is_condition = self.is_condition,
+            package_id = self.package_id,
+            config_model=config_model,
+            reserved_config_fields=reserved_config_fields,
+            operation_id=self.operation_id,
+            **extra_kwargs_
+        )
 
-        if config_model:
-            def_ += f'\n\tconfig: Optional["{config_model}"] = None, '
-        else:
-            def_ += '\n\tconfig: Optional[dict] = None, '
-        def_ += '\n\t**extra_config_fields: dict[str, Any], '
-        def_ = def_[:-2] + ") -> malevich.annotations.OpResult:"
-        def_ += f'\n\t"""{self.docstrings}"""\n'
-        return def_.replace('\t', ' ' * 4)
+        return data
 
 
 class StubSchema(BaseModel):
@@ -210,6 +192,35 @@ class StubIndex(BaseModel):
 class Stub:
     class Utils:
         @staticmethod
+        def combine_schemas(schemas: list[str]) -> str:
+            schemas = [json.loads(schema) for schema in schemas]
+            all_defs = {}
+            for schema in schemas:
+                if not schema:
+                    continue
+
+                defs = schema.get('$defs', schema.get('definitions', {}))
+                for def_name, def_schema in defs.items():
+                    if def_name in all_defs:
+                        diff = DeepDiff(all_defs[def_name], def_schema)
+                        if diff:
+                            raise ValueError(
+                                "Duplicate schemas found with different content: "
+                                f"{def_name}"
+                            )
+                    else:
+                        all_defs[def_name] = def_schema
+
+                if 'title' in schema:
+                    all_defs[schema['title']] = schema
+
+            return json.dumps({
+                "$defs": all_defs,
+                "type": "object",
+            })
+
+
+        @staticmethod
         def generate_context_schema(json_schema: str) -> tuple[str, str]:
             with (
                 tempfile.NamedTemporaryFile(mode='w+', suffix='.json') as f,
@@ -221,17 +232,21 @@ class Stub:
                     Path(f.name),
                     output=Path(out.name),
                     use_annotated=False,
-                    input_file_type='jsonschema'
+                    input_file_type='jsonschema',
+                    base_class='malevich.models._model._Model', # cool
+                    collapse_root_models=True,
+                    disable_timestamp=True,
+                    custom_file_header='"""Malevich auto-generated schema"""',
                 )
                 out_script =  open(out.name).read().replace(
                     'from __future__ import annotations',
-                    '\n'
+                    ''
                 )
                 return (
-                    re.search(
+                    re.findall(
                         r'class (?P<ClassName>\w+)',
                         out_script
-                    ).group('ClassName'),   # 1
+                    ),   # 1
                     out_script              # 2
                 )
 
@@ -242,13 +257,12 @@ class Stub:
         malevich_app_name: str | None = None,
         dependency: Dependency | None = None
     ) -> None:
-        with chdir(path):
-            assert Path('index.yaml').exists(
-            ), "No index.yaml found in the package"
-            self.index = pydml.parse_yaml_file_as(StubIndex, 'index.yaml')
-            self.path = path
-            self.malevich_app_name = malevich_app_name
-            self.dependency = dependency
+        ipath = os.path.join(path, 'index.yaml')
+        assert Path(ipath).exists(), "No index.yaml found in the package"
+        self.index = pydml.parse_yaml_file_as(StubIndex, ipath)
+        self.path = path
+        self.malevich_app_name = malevich_app_name
+        self.dependency = dependency
 
     @staticmethod
     def from_app_info(
@@ -261,9 +275,8 @@ class Stub:
         description: str | None = None,
     ) -> "Stub":
         os.makedirs(path, exist_ok=True)
-
-        processors = app_info.processors
-        processors = {str(key): value for key, value in processors.items()}
+        operations = {**app_info.processors, **app_info.conditions}
+        operations = {str(key): value for key, value in operations.items()}
 
         index = StubIndex(
             dependency=dependency,
@@ -272,57 +285,50 @@ class Stub:
             schemes=[],
             schemes_index={},
         )
-
         config_stubs = {
             name: Stub.Utils.generate_context_schema(
                 json.dumps(processor.contextClass),
             ) if processor.contextClass is not None else (None, None)
-            for name, processor in processors.items()
+            for name, processor in operations.items()
         }
 
-        with chdir(path):
-            with open('scheme.py', 'w+') as f_scheme:
-                i = 0
-                for (name, (class_name, stub,)), proc in zip(
-                    config_stubs.items(), processors.values()
-                ):
-                    if class_name is None or stub is None:
-                        continue
+        schemes = [
+            *app_info.schemes.values(),
+            *[json.dumps(processor.contextClass) for processor in operations.values()]
+        ]
 
-                    j = f_scheme.write(stub + '\n')
-                    index.schemes.append(
-                        StubSchema(
-                            name=name,
-                            scheme=json.dumps(proc.contextClass),
-                            class_name=class_name,
-                        )
-                    )
-                    index.schemes_index[name] = (i, i + j)
-                    i += j
+        config_model_class = {}
+        for processor_name, (class_names, stub) in config_stubs.items():
+            if class_names:
+                for class_name in class_names:
+                    if class_name == operations[processor_name].contextClass['title']:
+                        config_model_class[processor_name] = class_name
+                        break
+                else:
+                    config_model_class[processor_name] = None
+            else:
+                config_model_class[processor_name] = None
 
-                for name, schema in app_info.schemes.items():
-                    stub_ = Stub.Utils.generate_context_schema(schema)
-                    j = f_scheme.write(stub_[1] + '\n')
-                    index.schemes.append(
-                        StubSchema(
-                            name=name,
-                            scheme=schema,
-                            class_name=stub_[0]
-                        )
-                    )
-                    index.schemes_index[name] = (i, i + j)
+
+        with open(os.path.join(path, 'scheme.py'), 'w+') as f_scheme:
+            f_scheme.write(
+                Stub.Utils.generate_context_schema(
+                    Stub.Utils.combine_schemas(schemes)
+                )[1]
+            )
+
 
         importlib.import_module(f'malevich.{package_name}.scheme')
         config_models = {
-            name: eval(f'malevich.{package_name}.scheme.{config_stubs[name][0]}')
-            if config_stubs[name][0] else None
-            for name in processors
+            name: eval(f'malevich.{package_name}.scheme.{config_model_class[name]}')
+            if config_model_class[name] else None
+            for name in operations
         }
 
         functions: dict[str, StubFunction] = {}
         schemes = {*app_info.schemes.values()}
 
-        for name, processor in processors.items():
+        for name, processor in operations.items():
             args = processor.arguments
             parsed = []
             sink = None
@@ -351,48 +357,51 @@ class Stub:
                 sink=sink,
                 docstrings=processor.doc,
                 config_schema=config_models[name],
+                package_id=package_name,
+                is_condition = isinstance(processor, ConditionFunctionInfo),
+                operation_id=operation_ids[name]
             )
             functions[name].definition = functions[name].generate_definition(
-                config_model=config_stubs[name][0]
+                config_model=config_model_class[name],
             )
 
-        with chdir(path):
-            with open('F.py', 'w+') as f_F:  # noqa: N806
-                i = f_F.write(Templates.imports)
+        with open(os.path.join(path, 'F.py'), 'w+') as f_F:  # noqa: N806
+            i = f_F.write(Templates.imports)
 
-                for name, function in functions.items():
-                    j = f_F.write(Templates.registry.format(
-                        operation_id=operation_ids[name],
-                        registry_record=registry_records[name]
-                    ))
+            for name, function in functions.items():
+                if name not in operation_ids:
+                    continue
 
-                    j += f_F.write(Templates.processor.format(
-                        name=name,
-                        package_id=package_name,
-                        operation_id=operation_ids[name],
-                        use_sinktrace=bool(function.sink),
-                        definition=function.definition,
-                        config_model=config_stubs[name][0],
-                    ))
-                    index.functions.append(function)
-                    index.functions_index[name] = (i, i + j)
-                    i += j
+                j = f_F.write(Templates.registry.format(
+                    operation_id=operation_ids[name],
+                    registry_record=registry_records[name]
+                ))
 
-            # yaml.dump(index.model_dump(), open('index.yaml', 'w+'))
-            pydml.to_yaml_file('index.yaml', index)
-            with open('__init__.py', 'w+') as init:
-                if description:
-                    init.write(Templates.module_specific_description.format(
-                        description=description
-                    ))
-                else:
-                    init.write(Templates.module_general_description)
+                j += f_F.write(Templates.processor.format(
+                    use_sinktrace=bool(function.sink),
+                    definition=function.definition,
+                    config_model=config_model_class[name],
+                    processor_name=function.name,
+                    docstrings=function.docstrings
+                ))
+                index.functions.append(function)
+                index.functions_index[name] = (i, i + j)
+                i += j
 
-                init.write(
-                    "\n"
-                    "from .F import *\n"
-                    "from .scheme import *\n"
-                )
+        pydml.to_yaml_file(os.path.join(path, 'index.yaml'), index)
+        with open(os.path.join(path, '__init__.py'), 'w+') as init:
+            if description:
+                init.write(Templates.module_specific_description.format(
+                    description=description
+                ))
+            else:
+                init.write(Templates.module_general_description)
+
+            init.write(
+                "\n"
+                "from .F import *\n"
+                "from .scheme import *\n"
+            )
 
         return Stub(
             path=path,

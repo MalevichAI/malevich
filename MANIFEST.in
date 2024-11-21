@@ -3,3 +3,4 @@ include VERSION
 recursive-include . *.yml
 recursive-include . *.yaml
 recursive-include . malevich/_templates/*
+recursive-include . malevich/_templates/metascript/op_stub/*

@@ -14,12 +14,8 @@ from malevich_space.schema.flow import (
 )
 from malevich_space.schema.host import LoadedHostSchema
 
-from ..nodes.tree import TreeNode
+from malevich.models import TreeNode
 
-
-class NodeType(Enum):
-    COLLECTION = 'collection'
-    OPERATION = 'operation'
 
 class SpaceAuxParams:
     task_id: str | None
@@ -60,13 +56,12 @@ class SpaceInterpreterState:
         # In flow components``
         self.components: dict[str, InFlowComponentSchema | ComponentSchema] = {}
         # In flow components aliases
+        # NOTE: deprecated in favor of node.alias
         self.components_alias: dict[str, str] = {}
         # In flow components configs
         self.components_config: dict[str, dict[str, str]] = {}
         # A mappping from node uuid to node type (collection or operation)
         self.node_to_operation: dict[str, str] = {}
-        # A mapping from node uuid to node type (collection or operation)
-        self.node_type: dict[str, NodeType] = {}
         # A mapping from node uuid to selected operation in the operation component
         self.selected_operation: dict[str, OpSchema] = {}
         # A mapping from collection uid to CA uid for override (if new data is provided)
@@ -78,7 +73,7 @@ class SpaceInterpreterState:
         # A dictionary for storing auxiliary information
         # task_id, flow_id, etc.
         self.aux: SpaceAuxParams = SpaceAuxParams()
-        self.children_states: dict[str, 'SpaceInterpreterState'] = {}
+        self.children_states: dict[str, SpaceInterpreterState] = {}
 
     def copy(self) -> 'SpaceInterpreterState':
         state = SpaceInterpreterState()
@@ -91,7 +86,6 @@ class SpaceInterpreterState:
         state.aux = self.aux
         state.space = self.space
         state.node_to_operation = self.node_to_operation
-        state.node_type = self.node_type
         state.selected_operation = self.selected_operation
         state.interpretation_id = self.interpretation_id
         state.collection_overrides = self.collection_overrides

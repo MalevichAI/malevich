@@ -1,4 +1,4 @@
-name: Pytest
+name: Tests
 on:
   push:
     branches:
@@ -32,7 +32,7 @@ jobs:
               docker push $tag
             fi
           done
-          cd ../app_build/
+          cd ../non_suite/
           docker build -q -t ghcr.io/malevichai/test:simple_app simple_app/
           docker push -q ghcr.io/malevichai/test:simple_app
   pytest:
@@ -50,7 +50,7 @@ jobs:
     - name: Install Python
       uses: actions/setup-python@v4
       with:
-         python-version: '3.11'
+         python-version: '3.10'
 
     - name: Install Malevich
       run: |
@@ -62,12 +62,10 @@ jobs:
         cp malevich.yaml ~/.malevich/testing
         cp malevich.secrets.yaml ~/.malevich/testing
 
-    - name: Testing
+    - name: Library test
       run: |
         cp -rf ./malevich/tests ./tests && rm -rf ./malevich
-        echo "Dummy" > dummy.txt
-        pytest -s tests/units/
-        rm dummy.txt
+        pytest -s tests/suite/
       env:
         TESTS_SPACE_PASSWORD: ${{ secrets.TESTS_SPACE_PASSWORD }}
         TESTS_SPACE_USER: ${{ secrets.TESTS_SPACE_USER }}
@@ -76,15 +74,20 @@ jobs:
         CORE_USER: ${{ secrets.CORE_USER }}
         CORE_PASS: ${{ secrets.CORE_PASS }}
 
-    - name: Test build app, endpoints and platforms
+    - name: Platform test
       run: |
         malevich use image simple_app ghcr.io/malevichai/test:simple_app malevichai ${{ secrets.TEST_GHCR_PACKAGE_PASSWORD }}
         malevich install utility
-        pytest -s tests/app_build/
+        pytest -rP tests/non_suite/
       env:
         CORE_USER: ${{ secrets.CORE_USER }}
         CORE_PASS: ${{ secrets.CORE_PASS }}
 
     - name: Clear core tasks
+      if: always()
       run: |
         echo "Not Implemented Yet. Waiting for core test account."
+        python .github/workflows/clean.py
+      env:
+        CORE_USER: ${{ secrets.CORE_USER }}
+        CORE_PASS: ${{ secrets.CORE_PASS }}

@@ -3,9 +3,9 @@ from typing import Annotated
 import rich
 import typer
 
-from .._utility.package import package_manager
-from ..manifest import manf
-from ..models.manifest import Dependency
+from malevich._utility.package import package_manager
+from malevich.manifest import manf
+from malevich.models import Dependency
 
 
 def list_packages(

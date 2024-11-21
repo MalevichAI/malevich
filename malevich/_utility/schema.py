@@ -22,3 +22,10 @@ def pd_to_json_schema(df: pd.DataFrame, format=False) -> dict:
 
 
     return schema
+
+def generate_empty_df_from_schema(schema: dict | None) -> pd.DataFrame:
+    if schema:
+        columns = list(schema['properties'].keys())
+    else:
+        columns = []
+    return pd.DataFrame(columns=columns)

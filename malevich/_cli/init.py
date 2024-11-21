@@ -1,6 +1,6 @@
 import rich
 
-from ..manifest import ManifestManager
+from malevich.manifest import ManifestManager
 
 
 def init():

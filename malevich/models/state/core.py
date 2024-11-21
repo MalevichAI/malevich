@@ -1,31 +1,20 @@
-import uuid
-from collections import defaultdict
+from copy import deepcopy
 from typing import Any
 
 import malevich_coretools as core
-from malevich_space.schema import ComponentSchema
+from pydantic import BaseModel, ConfigDict, Field, SkipValidation
 
-from ..._utility.registry import Registry
-from ...manifest import ManifestManager
-from ..argument import ArgumentLink
-from ..nodes.base import BaseNode
+from ..._core.service.service import CoreService
+from .base import BaseCoreState
 
 
-class CoreParams:
-    operation_id: str
-    task_id: str
-    core_host: str
-    core_auth: tuple[str, str]
-    base_config: core.Cfg
-    base_config_id: str
-
-    def __init__(self, **kwargs) -> None:
-        self.operation_id = kwargs.get('operation_id', None)
-        self.task_id = kwargs.get('task_id', None)
-        self.core_host = kwargs.get('core_host', None)
-        self.core_auth = kwargs.get('core_auth', None)
-        self.base_config = kwargs.get('base_config', None)
-        self.base_config_id = kwargs.get('base_config_id', None)
+class CoreParams(BaseModel):
+    operation_id: str | None = None
+    task_id: str | None = None
+    core_host: str | None = None
+    core_auth: tuple[str, str] | None = None
+    base_config: core.Cfg | None = None
+    base_config_id: str | None = None
 
     def __getitem__(self, key: str) -> Any:  # noqa: ANN401
         return getattr(self, key)
@@ -37,37 +26,20 @@ class CoreParams:
         return hasattr(self, str(key))
 
 
-class CoreInterpreterState:
-    """State of the CoreInterpreter"""
+class CoreInterpreterState(BaseCoreState):
+    """State of the CoreInterpreterV2"""
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True
+    )
 
-    def __init__(self) -> None:
-        # Involved operations
-        self.ops: dict[str, BaseNode] = {}
-        # Dependencies (same keys as in self.ops)
-        self.depends: dict[str, list[tuple[BaseNode, ArgumentLink]]] = defaultdict(list)
-        # Registry reference (just a shortcut)
-        self.reg = Registry()
-        # Manifest manager reference (just a shortcut)
-        self.manf = ManifestManager()
-        # Task configuration
-        self.cfg = core.Cfg()
-        # Collections (and assets) (key: operation_id, value: (local_id, core_id,))
-        self.collections: dict[str, tuple[str, str]] = {}
-        # Uploaded operations (key: operation_id, value: core_op_id)
-        self.core_ops: dict[str, BaseNode] = {}
-        # Interpreter parameters
-        self.params: CoreParams = CoreParams()
-        # Results
-        self.results: dict[str, str] = {}
-        # Interpretation ID
-        self.interpretation_id: str = uuid.uuid4().hex
-        # App args
-        self.app_args: dict[str, Any] = {}
-        # Collections
-        self.extra_colls: dict[str, dict[str, list]] = defaultdict(
-            lambda: defaultdict(list)
-        )
-        # Alias to task id
-        self.task_aliases: dict[str, str] = {}
-        # Component
-        self.component: ComponentSchema | None = None
+    service: SkipValidation[CoreService] | None = Field(default=None, exclude=True)
+    """CoreService instance"""
+
+    params: CoreParams = CoreParams()
+    """Interpreter parameters"""
+
+
+
+    def __deepcopy__(self, memo=None) -> "CoreInterpreterState":
+        # Deepcopy the state without the service
+        return CoreInterpreterState(**deepcopy(self.model_dump()), service=self.service)

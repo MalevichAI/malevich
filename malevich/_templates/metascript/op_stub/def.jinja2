@@ -1,0 +1,15 @@
+def __{{processor_name}} (
+    {%- filter indent(width=4)%}
+        {%- include "args.jinja2" -%}
+    {% endfilter -%},
+) -> malevich.annotations.OpResult:
+    """{{dosctrings}}"""
+    return OperationNode(
+        operation_id="{{operation_id}}",
+        config=config,
+        processor_id="{{processor_name}}",
+        package_id="{{package_id}}",
+        alias=alias,
+        is_condition={{is_condition}}
+    )
+

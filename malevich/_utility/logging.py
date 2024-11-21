@@ -3,13 +3,14 @@ from enum import Enum
 
 from rich.logging import RichHandler
 
-from ..manifest import manf
+from malevich.manifest import manf
+
 from ..models.actions import Action
 from ..models.preferences import LogFormat, UserPreferences, VerbosityLevel
 
 prefs = manf.query('preferences')
 prefs = UserPreferences(**prefs) if prefs else UserPreferences()
-logger = logging.getLogger("malevich.logging")
+logger = logging.getLogger('malevich')
 
 if not any([x.name == 'META_H' for x in logger.handlers]):
     for h in logger.handlers:
@@ -19,11 +20,11 @@ if not any([x.name == 'META_H' for x in logger.handlers]):
     handler = (
         logging.StreamHandler()
         if prefs.log_format == LogFormat.Plain
-        else RichHandler()
+        else RichHandler(markup=True)
     )
     handler.setLevel(logging.DEBUG)
     handler.set_name("META_H")
-    formatter = logging.Formatter("%(message)s", datefmt="[%X]")
+    formatter = logging.Formatter("[b](%(name)s)[/b] %(message)s", datefmt="[%X]")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     logger.propagate = False

@@ -3,7 +3,7 @@ import os
 import shutil
 import sys
 
-from .singleton import SingletonMeta
+from .._dev.singleton import SingletonMeta
 
 
 class PackageManager(metaclass=SingletonMeta):
@@ -49,13 +49,13 @@ class PackageManager(metaclass=SingletonMeta):
             raise Exception(f"Package {package_name} does not exist")
         shutil.rmtree(package_path)
 
-    def get_package(self, package_name: str) -> None:
+    def get_package(self, package_name: str) -> str:
         package_path = self.get_package_path(package_name)
         if not self.is_package(package_path):
             raise Exception(f"Package {package_name} does not exist")
         return package_path
 
-    def is_package(self, package_fol_path: str) -> None:
+    def is_package(self, package_fol_path: str) -> bool:
         is_package = os.path.exists(package_fol_path)
         is_package &= os.path.isdir(package_fol_path)
         init_py = os.path.join(package_fol_path, '__init__.py')

@@ -1,7 +1,7 @@
 # Malevich App
 
 Welcome to Malevich! You have just created a new Malevich App. The folder `./apps` contains Malevich-specific code, but
-you are free to rearrange the code as you wish. Just keep in mind, that whatever objects (processors, inits and etc.) you
+you are free to rearrange the code as you wish. Just keep in mind, that whatever objects (processors, inits, conditions and etc.) you
 create should be copied to `./apps` in Docker image.
 
 ## How to Build
