@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "malevich"
-version = "0.1.0"
+version = "0.4.1"
 description = ""
 authors = ["Aleksandr Lobanov <aleksandr.lobanov.official@gmail.com>"]
 readme = "README.md"
