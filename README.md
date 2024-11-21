@@ -1,6 +1,6 @@
 <div align="center">
     <h1>Malevich</h1>
-    <h4>Your toolkit for crafting AI-powered products effortlessly</h4>
+    <h4>Simplest framework to built AI-based workflows</h4>
     <a href="https://docs.malevich.ai"><img src="https://malevich-cdn.s3.amazonaws.com/github/github_readme_docs.svg"/></a>
     <a href="https://github.com/malevichAI/malevich-library"><img src="https://malevich-cdn.s3.amazonaws.com/github/github_readme_library.svg"/></a>
     <a href="https://docs.malevich.ai"><img src="https://malevich-cdn.s3.amazonaws.com/github/github_readme_try.svg"/></a>
@@ -8,19 +8,19 @@
 
 ---
 
-Malevich is an innovative platform for building, iterating and deploying AI-driven products:
+Malevich is a platform for building, iterating and deploying AI-driven products:
 
-- A rich set of pre-built components greatly shortens the gap between an idea and a first run.
-- You are not limited to our components: easily implement and integrate your own codebase.
-- Deploying on GPU in a matter of setting one parameter.
+- Vast library of pre-built components shortens the gap between the system design and first run
+- You are not limited to our components: easily implement and integrate your own codebase
+- Deploying on GPU with 1 line of code
 
 # Getting Started
 
-Malevich offers a Python package that help you to build your apps and flows. Dive deep into our [documentation](https://docs.malevich.ai) and explore the enormous possibilities. Let's walkthrough how you can create mesmerizing products with simple lines of code.
+Malevich is a Python package that help you to build your components and product flows. Dive deeper into our [documentation here](https://docs.malevich.ai). Let's walkthrough how you can create an AI-based product with couple lines of code.
 
 ## Installation
 
-To install Malevich, you should have Python 3.11+ and `pip` package manager installed. Run the following command to install our package:
+To install Malevich, you should have Python 3.10 and `pip` package manager installed. Run the following command to install our package:
 
 ```bash
 python3 -m pip install malevich
@@ -32,19 +32,19 @@ Make sure everything is set up:
 malevich --help
 ```
 
-## Install Apps
+## Install Components
 
-Malevich works like a package manager allowing you to install apps and use them from within the code. Let's install some apps that will constitute our pipeline:
+Malevich works like a package manager allowing you to install components and use them from within the code. Let's install some components for our pipeline:
 
 ```bash
 malevich install spacy openai scrape
 ```
 
-Our shelf has plenty to offer, browse through our [library](https://space.malevich.ai/workspace?tab=public&filter=app) and find the apps that meet your needs.
+Browse through our [library here](https://space.malevich.ai/workspace?tab=public&filter=app) and find the components that meet your needs.
 
-## Connect Apps
+## Connect Components
 
-The real magic happens when apps are interconnected into a complex and useful pipeline. Let's do it by writing a few lines of code:
+The real magic happens when components are interconnected into a more complex and useful pipeline. Let's do it by writing a few more lines of code:
 
 ```python
 # flow.py
@@ -148,13 +148,13 @@ if __name__ == '__main__':
 
 ## Execute
 
-Before executing the code, make sure you have the Open AI API key in your environment:
+Before executing this demo code, make sure you have the Open AI API key in your environment:
 
 ```bash
 export OPENAI_API_KEY=<YOUR KEY>
 ```
 
-Now, all you need is a simple command to run the script:
+Now, all you need is a 1 command to run the deployemnt:
 
 ```bash
 python flow.py
@@ -163,7 +163,7 @@ Your results are stored in `text.csv` and `brief.csv` files.
 
 ## Deploy
 
-Running scripts is cool, but what if you want to integrate this flow into your own app? That's done by adding just one line:
+Running this as a script is cool, but what if you want to integrate this flow into your own system with a production deployment? That's done by adding just one line:
 
 ```python
 # ...
@@ -185,4 +185,4 @@ if __name__ == '__main__':
     # Deploy the flow
     print(pipeline.publish().get_url())
 ```
-By running this script, you will get a link to an HTTP endpoint hosted by Malevich, which can be integrated into your application, be it a desktop, mobile, web app, or any other program. Enjoy the ride!
+By running this script, you will get a link to an HTTP endpoint hosted by Malevich Core, which can be integrated into your application, be it a desktop, mobile, web app, or any other program. Enjoy the ride!
