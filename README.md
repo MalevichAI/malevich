@@ -185,4 +185,4 @@ if __name__ == '__main__':
     # Deploy the flow
     print(pipeline.publish().get_url())
 ```
-By running this script, you will get a link to an HTTP endpoint hosted by Malevich Core, which can be integrated into your application, be it a desktop, mobile, web app, or any other program. Enjoy the ride!
+By running this script, you will get a link to an HTTP endpoint hosted by [Malevich Core](https://docs.malevich.ai/API/interpreter/core.html), which can be integrated into your application, be it a desktop, mobile, web app, or any other program. Enjoy the ride!
