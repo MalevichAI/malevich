@@ -12,7 +12,7 @@ Malevich is a platform for building, iterating and deploying AI-driven products:
 
 - Vast library of pre-built components shortens the gap between the system design and first run
 - You are not limited to our components: easily implement and integrate your own codebase
-- Deploying on GPU with 1 line of code
+- Deploy on GPU and production with 1 line of code
 
 # Getting Started
 
