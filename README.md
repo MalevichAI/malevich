@@ -8,7 +8,7 @@
 
 ---
 
-Malevich is a platform for building, iterating and deploying AI-driven products:
+Malevich is a platform for building, iterating and deploying AI-driven product backends:
 
 - Vast library of pre-built components shortens the gap between the system design and first run
 - You are not limited to our components: easily implement and integrate your own codebase
