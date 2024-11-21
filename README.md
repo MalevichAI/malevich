@@ -1,6 +1,6 @@
 <div align="center">
     <h1>Malevich</h1>
-    <h4>Simplest framework to built AI-based workflows</h4>
+    <h4>Simplest framework to built AI backend</h4>
     <a href="https://docs.malevich.ai"><img src="https://malevich-cdn.s3.amazonaws.com/github/github_readme_docs.svg"/></a>
     <a href="https://github.com/malevichAI/malevich-library"><img src="https://malevich-cdn.s3.amazonaws.com/github/github_readme_library.svg"/></a>
     <a href="https://docs.malevich.ai"><img src="https://malevich-cdn.s3.amazonaws.com/github/github_readme_try.svg"/></a>
@@ -8,7 +8,7 @@
 
 ---
 
-Malevich is a platform for building, iterating and deploying AI-driven product backends:
+Malevich is a platform for building, iterating and deploying AI-driven product flows:
 
 - Vast library of pre-built components shortens the gap between the system design and first run
 - You are not limited to our components: easily implement and integrate your own codebase
