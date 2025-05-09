@@ -1,16 +1,18 @@
 
+import asyncio
 import json
 import logging
 import pickle
-from typing import Any, Dict, Generic, List, Optional, Tuple, TypeVar, Union
+from typing import Any, Dict, Generic, List, Optional, Tuple, Type, TypeVar, Union
 
 import boto3
 import jsonpickle
 import numpy as np
 import pandas as pd
 from botocore.response import StreamingBody
+from pydantic import BaseModel
 
-from .df import OBJ
+from .df import DFS, OBJ, Docs, Sink
 
 WORKDIR = "/malevich"
 """
@@ -24,6 +26,7 @@ Directory into which the user code is copied during app construction.
 """
 
 MinimalCfg = TypeVar('MinimalCfg')
+T = TypeVar('T', bound=BaseModel)
 
 class Context(Generic[MinimalCfg]):
     """
@@ -34,7 +37,7 @@ class Context(Generic[MinimalCfg]):
     dealing with common objects (:attr:`common`),
     access to the key-value storage (:attr:`dag_key_value`),
     and object storage (:attr:`object_storage`).
-    """
+    """ # noqa: E501
 
     class _DagKeyValue:
         """
@@ -188,7 +191,7 @@ class Context(Generic[MinimalCfg]):
 
             Returns:
                 List[str]: Keys from local mount or remote object storage.
-            """
+            """ # noqa: E501
             pass
 
         async def async_get_keys(self, local: bool = False, all_apps: bool = False) -> List[str]:  # noqa: E501
@@ -207,7 +210,7 @@ class Context(Generic[MinimalCfg]):
 
             Returns:
                 List[str]: Keys from local mount or remote object storage.
-            """
+            """ # noqa: E501
             pass
 
         def get(self, keys: List[str], force: bool = False, all_apps: bool = True) -> List[str]:    # noqa: E501
@@ -231,7 +234,7 @@ class Context(Generic[MinimalCfg]):
             Returns:
                 List[str]: Keys by which it was possible
                 to obtain the value and load it into the mount
-            """
+            """ # noqa: E501
             pass
 
         async def async_get(self, keys: List[str], force: bool = False, all_apps: bool = True) -> List[str]:    # noqa: E501
@@ -255,7 +258,7 @@ class Context(Generic[MinimalCfg]):
             Returns:
                 List[str]: Keys by which it was possible
                 to obtain the value and load it into the mount
-            """
+            """ # noqa: E501
             pass
 
         def get_all(
@@ -287,7 +290,7 @@ class Context(Generic[MinimalCfg]):
             Returns:
                 List[str]: All keys in the mount or all apps mounts if `all_apps` is True,
                 otherwise load all keys from remote object storage.
-            """
+            """ # noqa: E501
             pass
 
         async def async_get_all(
@@ -319,7 +322,7 @@ class Context(Generic[MinimalCfg]):
             Returns:
                 List[str]: All keys in the mount or all apps mounts if `all_apps` is True,
                 otherwise load all keys from remote object storage.
-            """
+            """ # noqa: E501
             pass
 
         def update(
@@ -619,7 +622,7 @@ class Context(Generic[MinimalCfg]):
 
         Returns:
             str: Readable file path or None (if :code:`not_exist_ok` is set to :code:`True`)
-        """
+        """ # noqa: E501
         pass
 
     def delete_share(
@@ -757,14 +760,14 @@ class Context(Generic[MinimalCfg]):
         """  # noqa: E501
         pass
 
-    def get_scale_part(self, df: pd.DataFrame) -> pd.DataFrame:
+    def get_scale_part(self, df: Union[pd.DataFrame, DFS, Docs, Sink]) -> Union[pd.DataFrame, DFS, Docs, Sink]: # noqa: E501
         """Gets scale part of df (`index` and `index count` used for that) - all apps app get different data
 
         Args:
-            df (pd.DataFrame): df to scale
+            df (pd.DataFrame | DFS | Docs | Sink): df to scale
 
         Returns:
-            pd.DataFrame: scale part of df
+            pd.DataFrame | DFS | Docs | Sink: scale part of df
         """  # noqa: E501
         pass
 
@@ -828,25 +831,21 @@ class Context(Generic[MinimalCfg]):
         """ # noqa: E501
         pass
 
+    @property
+    def pause(self) -> 'Pause':
+        return Pause(self.__pauses)
+
 
 def to_binary(smth: Any) -> bytes:  # noqa: ANN401
     """Converts object to binary
-<<<<<<< HEAD
-=======
-
->>>>>>> f9049b55f1efeadd27e32843d9c0d8c4431a7405
     Args:
         smth (Any): object to convert
     """
     return pickle.dumps(smth)
 
 
-def from_binary(smth: bytes) -> Any:
+def from_binary(smth: bytes) -> Any:    # noqa: ANN401
     """Converts binary to object
-<<<<<<< HEAD
-=======
-
->>>>>>> f9049b55f1efeadd27e32843d9c0d8c4431a7405
     Args:
         smth (bytes): binary to convert
     """
@@ -964,6 +963,33 @@ class SmtpSender:
             message (str): message text
         """
         pass
+
+
+class PauseModel(Generic[T]):
+    def __init__(self, pauses: Dict[str, asyncio.Future], model: Optional[Type[T]] = None) -> None: # noqa: E501
+        self.__pauses = pauses
+        self.__model: Optional[Type[T]] = model
+
+    async def __call__(self, id: str = "continue") -> T:
+        fut = asyncio.Future()
+        assert id not in self.__pauses, f"already set pause by id={id}"
+        self.__pauses[id] = fut
+        data = await fut
+
+        if self.__model is not None and issubclass(self.__model, BaseModel):
+            return self.__model.model_validate_json(data)
+        return data
+
+
+class Pause:
+    def __init__(self, pauses: Dict[str, asyncio.Future]) -> None:
+        self.__pauses = pauses
+
+    def __getitem__(self, model: Type[T]) -> PauseModel[T]:
+        return PauseModel(self.__pauses, model)
+
+    async def __call__(self, id: str = "continue") -> T:
+        return await PauseModel(self.__pauses).__call__(id)
 
 
 _Tensor = TypeVar('_Tensor', bound='torch.Tensor')
@@ -1123,7 +1149,7 @@ def _tensor_from_df(x: pd.DataFrame) -> list:
     return _out
 
 
-def to_df(x: Any, force: bool = False) -> pd.DataFrame:
+def to_df(x: Any, force: bool = False) -> pd.DataFrame: # noqa: ANN401
     """Creates a data frame from an arbitrary object
     - `torch.Tensor`: Tensor is serialized using torch.save and then encoded using base112. Autograd information is preserved.
     - `numpy`, `list`, `tuple`, `range`, `bytearray`: Data is serialized using pickle and stored as is in `data` column.
@@ -1143,7 +1169,7 @@ def to_df(x: Any, force: bool = False) -> pd.DataFrame:
     """ # noqa: E501
     if force:
         return pd.DataFrame({"data": [jsonpickle.encode(x)]})
-    elif type(x).__name__ == "Tensor" or (isinstance(x, list) and len(x) > 0 and type(x[0]).__name__ == "Tensor"):
+    elif type(x).__name__ == "Tensor" or (isinstance(x, list) and len(x) > 0 and type(x[0]).__name__ == "Tensor"):  # noqa: E501
         return _tensor_to_df(x)
     elif isinstance(x, (np.ndarray, list, tuple, range, bytearray)):
         return pd.DataFrame({"data": x})
@@ -1170,7 +1196,7 @@ def from_df(x: pd.DataFrame, type_name: Optional[str] = None, force: bool = Fals
 
     Returns:
         Any: Object of type :code:`type_name` or inferred type
-    """
+    """ # noqa: E501
     if force:
         return jsonpickle.decode(x.data[0])
     elif type_name == 'ndarray':
@@ -1181,7 +1207,7 @@ def from_df(x: pd.DataFrame, type_name: Optional[str] = None, force: bool = Fals
         return tuple(x.data.values.tolist())
     elif type_name == 'range':
         return x.data.values.tolist()
-    elif type_name == 'Tensor' or ('__shape__' in x.columns and '__tensor__' in x.columns):
+    elif type_name == 'Tensor' or ('__shape__' in x.columns and '__tensor__' in x.columns): # noqa: E501
         # import torch  # not in requirements
         # return torch.from_numpy(x.values).float().to(torch.device('cpu'))   # can't work with gpu from inside yet  # noqa: E501
         return _tensor_from_df(x)
