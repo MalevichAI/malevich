@@ -9,7 +9,6 @@ from typing import (
     Iterator,
     List,
     Optional,
-    Type,
     TypeVar,
     Union,
 )
@@ -66,7 +65,7 @@ class DF(Generic[Scheme], pd.DataFrame):
                 return pd.DataFrame(...)
 
     """
-    def __init__(self, df: Union[pd.DataFrame, Type[BaseModel], Dict, List, 'Doc', 'Docs']) -> None:    # noqa: E501
+    def __init__(self, df: Union[pd.DataFrame, BaseModel, Dict, List, 'Doc', 'Docs']) -> None:    # noqa: E501
         if df is None:
             super().__init__(df)
             return
@@ -125,7 +124,7 @@ class DFS(Generic[Unpack[Schemes]]):
         self.__dfs: List[Union[DF, DFS, OBJ, Doc, Docs, None]] = []
         self.__inited = False
 
-    def init(self, *dfs: Union[str, pd.DataFrame, Type[BaseModel], Dict, List], nested: bool = False) -> 'DFS': # noqa: E501
+    def init(self, *dfs: Union[str, pd.DataFrame, BaseModel, Dict, List], nested: bool = False) -> 'DFS': # noqa: E501
         """must be called after __init__, nested should be False"""
         assert not self.__inited, "DFS already inited"
         self.__inited = True
@@ -133,7 +132,7 @@ class DFS(Generic[Unpack[Schemes]]):
             self.__init(list(dfs), nested)
         return self
 
-    def __add_jdf(self, df: Union[str, pd.DataFrame, Type[BaseModel], Dict, List], type) -> None: # noqa: E501
+    def __add_jdf(self, df: Union[str, pd.DataFrame, BaseModel, Dict, List], type) -> None: # noqa: E501
         if isinstance(df, str):
             self.__dfs.append(OBJ(df))
         elif (hasattr(type, "__origin__") and type.__origin__ is DF) or type is DF:
@@ -149,7 +148,7 @@ class DFS(Generic[Unpack[Schemes]]):
         else:
             self.__dfs.append(DF[type](df))
 
-    def __init(self, dfs: List[Union[str, pd.DataFrame, Type[BaseModel], Dict, List]], nested: bool = False) -> None:   # noqa: E501
+    def __init(self, dfs: List[Union[str, pd.DataFrame, BaseModel, Dict, List]], nested: bool = False) -> None:   # noqa: E501
         types = self.__orig_class__.__args__ if hasattr(self, "__orig_class__") else [Any for _ in dfs]  # noqa: E501
         many_df_index = None
         for i, type in enumerate(types):
@@ -238,14 +237,14 @@ class Sink(Generic[Unpack[Schemes]]):
         self.__data: List[Union[DFS, DF, Docs, Doc]] = []
         self.__inited = False
 
-    def init(self, *list_data: List[Union[str, pd.DataFrame, Type[BaseModel], Dict, List]]) -> 'Sink':  # noqa: E501
+    def init(self, *list_data: List[Union[str, pd.DataFrame, BaseModel, Dict, List]]) -> 'Sink':  # noqa: E501
         """must be called after __init__"""
         assert not self.__inited, "Sink already inited"
         self.__inited = True
         self.__init(list(list_data))
         return self
 
-    def __init(self, list_data: List[List[Union[str, pd.DataFrame, Type[BaseModel], Dict, List]]]) -> None:  # noqa: E501
+    def __init(self, list_data: List[List[Union[str, pd.DataFrame, BaseModel, Dict, List]]]) -> None:  # noqa: E501
         types = self.__orig_class__.__args__ if hasattr(self, "__orig_class__") else None   # noqa: E501
 
         if types is not None and len(types) == 1:
@@ -268,23 +267,23 @@ class Sink(Generic[Unpack[Schemes]]):
             return
         self.__init_common(list_data, types)
 
-    def __init_DFS(self, list_data: List[List[Union[str, pd.DataFrame, Type[BaseModel], Dict, List]]], type: Any) -> None:  # noqa: N802, E501, ANN401
+    def __init_DFS(self, list_data: List[List[Union[str, pd.DataFrame, BaseModel, Dict, List]]], type: Any) -> None:  # noqa: N802, E501, ANN401
         for data in list_data:
             self.__data.append(type().init(*data))
 
-    def __init_DF(self, list_data: List[List[Union[str, pd.DataFrame, Type[BaseModel], Dict, List]]], type: Any) -> None:   # noqa: N802, E501, ANN401
+    def __init_DF(self, list_data: List[List[Union[str, pd.DataFrame, BaseModel, Dict, List]]], type: Any) -> None:   # noqa: N802, E501, ANN401
         for data in list_data:
             self.__data.append(type(*data))
 
-    def __init_Docs(self, list_data: List[List[Union[str, pd.DataFrame, Type[BaseModel], Dict, List]]], type: Any) -> None: # noqa: N802, E501, ANN401
+    def __init_Docs(self, list_data: List[List[Union[str, pd.DataFrame, BaseModel, Dict, List]]], type: Any) -> None: # noqa: N802, E501, ANN401
         for data in list_data:
             self.__data.append(type(*data).init())
 
-    def __init_Doc(self, list_data: List[List[Union[str, pd.DataFrame, Type[BaseModel], Dict, List]]], type: Any) -> None:  # noqa: N802, E501, ANN401
+    def __init_Doc(self, list_data: List[List[Union[str, pd.DataFrame, BaseModel, Dict, List]]], type: Any) -> None:  # noqa: N802, E501, ANN401
         for data in list_data:
             self.__data.append(type(*data).init())
 
-    def __init_common(self, list_data: List[List[Union[str, pd.DataFrame, Type[BaseModel], Dict, List]]], types: Optional[Any]) -> None:    # noqa: E501, ANN401
+    def __init_common(self, list_data: List[List[Union[str, pd.DataFrame, BaseModel, Dict, List]]], types: Optional[Any]) -> None:    # noqa: E501, ANN401
         if types is not None:
             for data in list_data:
                 self.__data.append(DFS[types]().init(*data))
@@ -370,9 +369,9 @@ class Doc(Generic[Scheme]):
             assert data.shape[0] == 1, f"Doc create: too big pd.DataFrame, expected size=1, found={data.shape[0]}"  # noqa: E501
             data = data.to_dict(orient="records")[0]
         assert data is None or isinstance(data, Dict) or issubclass(data.__class__, BaseModel), f"wrong Doc data type: expected Dict, pd.DataFrame or subclass of BaseModel, found {type(data)}"    # noqa: E501
-        self.__data: Union[Scheme, Type[BaseModel], Dict] = data
+        self.__data: Union[Scheme, BaseModel, Dict] = data
 
-    def parse(self) -> Union[Scheme, Type[BaseModel], Dict]:
+    def parse(self) -> Union[Scheme, BaseModel, Dict]:
         return self.__data
 
     def init(self) -> 'Doc':
@@ -457,7 +456,7 @@ class Docs(Generic[Scheme]):
         self.__data: List[Doc[Scheme]] = data
 
     @cache
-    def parse(self, *, recursive: bool = False) -> Union[List[Doc[Scheme]], List[Union[Scheme, Type[BaseModel], Dict]]]:    # noqa: E501
+    def parse(self, *, recursive: bool = False) -> Union[List[Doc[Scheme]], List[Union[Scheme, BaseModel, Dict]]]:    # noqa: E501
         if recursive:
             return [doc.parse() for doc in self.__data]
         return self.__data
