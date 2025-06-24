@@ -3,6 +3,7 @@ import asyncio
 import json
 import logging
 import pickle
+from functools import cached_property
 from typing import Any, Dict, Generic, List, Optional, Tuple, Type, TypeVar, Union
 
 import boto3
@@ -805,29 +806,76 @@ class Context(Generic[MinimalCfg]):
         """
         pass
 
+    @cached_property
+    def object_prefix(self) -> str:
+        """return objects path prefix"""
+        pass
 
     def as_object(
+        self,
+        path_from: str,
+        path_to: str,
+        path_prefix: Optional[str] = None,
+        *,
+        dir: Optional[str] = None,
+        move: bool = False,
+        replace_strategy: bool = False,
+        allow_update_dir: bool = True,
+        ignore_not_exist: bool = False,
+    ) -> Optional[OBJ]:
+        """Creates an assets (OBJ) by copying path to specific directory and creating :class:`OBJ` by this result
+
+        Assets (:class:`OBJ`) are simply a path within a directory accessible from within container
+        by a certain user. This function creates a new asset by copying specified files into separate directory
+        and creating an asset pointing to copied.
+
+        Args:
+            path_from (str): path to an actual object
+            path_to (str): subpath in asset directory
+            path_prefix (Optional[str], optional): prefix for `paths` key if not None
+            dir (Optional[str], optional): target directory name. If not set, it is generated. Defaults to None
+            move (bool): move instead copy
+            replace_strategy (bool): replace each path, otherwise merge
+            allow_update_dir (bool): raise exception if `dir` already exist and it set to False
+            ignore_not_exist (bool): raise exception if copy/move failed, just log otherwise
+
+        Returns:
+            OBJ: OBJ with created path or None if operation failed (possible on ignore_not_exist=True)
+        """ # noqa: E501
+        pass
+
+    def as_objects(
         self,
         paths: Dict[str, str],
         path_prefix: Optional[str] = None,
         *,
         dir: Optional[str] = None,
-        allow_update_dir: bool = True
-    ) -> OBJ:
-        """Creates an asset (OBJ) by copying paths to specific directory and creating :class:`OBJ` by this dir.
+        move: bool = False,
+        replace_strategy: bool = False,
+        allow_update_dir: bool = True,
+        ignore_not_exist: bool = False,
+        return_dir: bool = False
+    ) -> Union[List[OBJ], OBJ]:
+        """Creates an assets (OBJ) by copying paths to specific directory and creating :class:`OBJ` by this dir (return_dir=True) or List[OBJ] by each path otherwise.
 
         Assets (:class:`OBJ`) are simply a path within a directory accessible from within container
         by a certain user. This function creates a new asset by copying specified files into separate directory
-        and creating an asset pointing to whole folder.
+        and creating an asset pointing to whole folder (or for each file - depends of return_dir).
 
         Args:
             paths (Dict[str, str]): Path to an actual object -> subpath in asset directory
             path_prefix (Optional[str], optional): prefix for `paths` key if not None
             dir (Optional[str], optional): target directory name. If not set, it is generated. Defaults to None
+            move (bool): move instead copy
+            replace_strategy (bool): replace each path, otherwise merge
             allow_update_dir (bool): raise exception if `dir` already exist and it set to False
+            ignore_not_exist (bool): raise exception if copy/move failed, just log otherwise
+            return_dir (bool): return OBJ where it was written or an OBJ for each path
 
         Returns:
             OBJ: OBJ with created directory captured
+            or
+            List[OBJ] with each path copied/moved
         """ # noqa: E501
         pass
 
