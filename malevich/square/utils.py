@@ -4,6 +4,7 @@ import json
 import logging
 import pickle
 from functools import cached_property
+from pathlib import Path
 from typing import Any, Dict, Generic, List, Optional, Tuple, Type, TypeVar, Union
 
 import boto3
@@ -477,11 +478,12 @@ class Context(Generic[MinimalCfg]):
         self.app_cfg: Union[MinimalCfg, Dict[str, Any]] = {}        # configuration given to the app at startup  # noqa: E501
         self.msg_url: str = ""                                      # default url for msg operation              # noqa: E501
         self.email: Optional[str] = None                            # email for email_send operation             # noqa: E501
-        self.dag_key_value = Context._DagKeyValue(
-            self.run_id)      # key-value storage
+        self.dag_key_value = Context._DagKeyValue(self.run_id)      # key-value storage
         self.object_storage = Context._ObjectStorage()              # object storage
         self.common = None                                          # arbitrary common variable between app runs # noqa: E501
         self.logger = logging.getLogger(f"{self.operation_id}${self.run_id}")
+        self.journal = JournalProxy(CollectBuffer(""))
+        self.state = StateProxy()
 
     def share(
         self,
@@ -1038,6 +1040,45 @@ class Pause:
 
     async def __call__(self, id: str = "continue") -> T:
         return await PauseModel(self.__pauses).__call__(id)
+
+
+class CollectBuffer:
+    def __init__(self, base_path: Union[str, Path], flush_interval: float = 1.0, buffer_limit: int = 10) -> None:   # noqa: E501
+        pass
+
+    def collect(self, key: str, payload: Union[BaseModel, Dict, List, str]) -> None:
+        pass
+
+    def flush(self, key: str) -> None:
+        pass
+
+
+class JournalEntry:
+    def __init__(self, key: str, buffer: CollectBuffer) -> None:
+        self.__key = key
+        self.__buffer = buffer
+
+    def append(self, data) -> None:
+        self.__buffer.collect(self.__key, data)
+
+
+class JournalProxy:
+    def __init__(self, buffer: CollectBuffer) -> None:
+        self.__buffer = buffer
+
+    def __getitem__(self, key: str) -> JournalEntry:
+        return JournalEntry(key, self.__buffer)
+
+
+class StateProxy:
+    def __init__(self) -> None:
+        self._data = {}
+
+    def __setitem__(self, key: str, value: Any) -> None:    # noqa: ANN401
+        self._data[key] = value
+
+    def __getitem__(self, key) -> Any:  # noqa: ANN401
+        return self._data.get(key)
 
 
 _Tensor = TypeVar('_Tensor', bound='torch.Tensor')
