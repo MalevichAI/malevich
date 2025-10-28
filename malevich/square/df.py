@@ -9,7 +9,6 @@ from typing import (
     Iterator,
     List,
     Optional,
-    Type,
     TypeVar,
     Union,
 )
@@ -66,7 +65,7 @@ class DF(Generic[Scheme], pd.DataFrame):
                 return pd.DataFrame(...)
 
     """
-    def __init__(self, df: Union[pd.DataFrame, Type[BaseModel], Dict, List, 'Doc', 'Docs']) -> None:    # noqa: E501
+    def __init__(self, df: Union[pd.DataFrame, BaseModel, Dict, List, 'Doc', 'Docs']) -> None:    # noqa: E501
         if df is None:
             super().__init__(df)
             return
@@ -92,7 +91,7 @@ class DF(Generic[Scheme], pd.DataFrame):
     @cached_property
     def scheme_name(self) -> Optional[str]:
         """Returns the name of the scheme of the data frame."""
-        scheme = self._scheme_cls()
+        scheme = self._scheme_cls
         if scheme is None:
             return None
         if hasattr(scheme, "__name__"):
@@ -125,24 +124,31 @@ class DFS(Generic[Unpack[Schemes]]):
         self.__dfs: List[Union[DF, DFS, OBJ, Doc, Docs, None]] = []
         self.__inited = False
 
-    def init(self, *dfs: Union[str, pd.DataFrame, Type[BaseModel], Dict, List], nested: bool = False) -> 'DFS': # noqa: E501
+    def init(self, *dfs: Union[str, pd.DataFrame, BaseModel, Dict, List], nested: bool = False) -> 'DFS': # noqa: E501
         """must be called after __init__, nested should be False"""
         assert not self.__inited, "DFS already inited"
         self.__inited = True
-        self.__init(list(dfs), nested)
+        if len(dfs) > 0:
+            self.__init(list(dfs), nested)
         return self
 
-    def __add_jdf(self, df: Union[str, pd.DataFrame, Type[BaseModel], Dict, List], type) -> None: # noqa: E501
+    def __add_jdf(self, df: Union[str, pd.DataFrame, BaseModel, Dict, List], type) -> None: # noqa: E501
         if isinstance(df, str):
             self.__dfs.append(OBJ(df))
+        elif (hasattr(type, "__origin__") and type.__origin__ is DF) or type is DF:
+            self.__dfs.append(type(df))
         elif (hasattr(type, "__origin__") and type.__origin__ is Doc) or type is Doc:
             self.__dfs.append(type(df).init())
-        elif (type is Any or type is None) and (isinstance(df, Dict) or issubclass(df.__class__, BaseModel)):   # noqa: E501
-            self.__dfs.append(Doc[type](df))
+        elif (hasattr(type, "__origin__") and type.__origin__ is Docs) or type is Docs:
+            self.__dfs.append(type(df).init())
+        elif isinstance(df, Dict) or issubclass(df.__class__, BaseModel):
+            self.__dfs.append(Doc[type](df).init())
+        elif isinstance(df, List):
+            self.__dfs.append(Docs[type](df).init())
         else:
             self.__dfs.append(DF[type](df))
 
-    def __init(self, dfs: List[Union[str, pd.DataFrame, Type[BaseModel], Dict, List]], nested: bool = False) -> None:   # noqa: E501
+    def __init(self, dfs: List[Union[str, pd.DataFrame, BaseModel, Dict, List]], nested: bool = False) -> None:   # noqa: E501
         types = self.__orig_class__.__args__ if hasattr(self, "__orig_class__") else [Any for _ in dfs]  # noqa: E501
         many_df_index = None
         for i, type in enumerate(types):
@@ -163,10 +169,10 @@ class DFS(Generic[Unpack[Schemes]]):
             count = len(dfs) + 1 - len(types)
             if count != 0:
                 type_many = types[many_df_index].__args__[0]
-                temp = DFS[tuple([type_many] * count)]().init(*dfs[many_df_index:many_df_index + count], nested=True)  # noqa: E501
-                self.__dfs.append(temp)
+                temp = DFS[tuple([type_many] * count)]().init(*dfs[many_df_index:many_df_index + count], nested=True)   # noqa: E501
             else:
-                self.__dfs.append(None)
+                temp = DFS[Any]().init(nested=True)
+            self.__dfs.append(temp)
             for df, type in zip(dfs[many_df_index + count:], types[many_df_index + 1:]):
                 self.__add_jdf(df, type)
 
@@ -183,7 +189,11 @@ class DFS(Generic[Unpack[Schemes]]):
         return iter(self.__dfs)
 
     def __repr__(self) -> str:
+        if len(self.__dfs) == 0:
+            return "empty DFS"
         return f"\n{DELIMITER}\n".join(map(lambda x: str(x), self))
+
+    __str__ = __repr__
 
 
 class Sink(Generic[Unpack[Schemes]]):
@@ -224,33 +234,76 @@ class Sink(Generic[Unpack[Schemes]]):
     """
     def __init__(self) -> None:
         """set sink with init"""
-        self.__data: List[DFS] = []
+        self.__data: List[Union[DFS, DF, Docs, Doc]] = []
         self.__inited = False
 
-    def init(self, *list_dfs: List[Union[str, pd.DataFrame, Type[BaseModel], Dict, List]]) -> 'Sink':   # noqa: E501
+    def init(self, *list_data: List[Union[str, pd.DataFrame, BaseModel, Dict, List]]) -> 'Sink':  # noqa: E501
         """must be called after __init__"""
         assert not self.__inited, "Sink already inited"
         self.__inited = True
-        self.__init(list(list_dfs))
+        self.__init(list(list_data))
         return self
 
-    def __init(self, list_dfs: List[List[Union[str, pd.DataFrame, Type[BaseModel], Dict, List]]]) -> None:  # noqa: E501
+    def __init(self, list_data: List[List[Union[str, pd.DataFrame, BaseModel, Dict, List]]]) -> None:  # noqa: E501
         types = self.__orig_class__.__args__ if hasattr(self, "__orig_class__") else None   # noqa: E501
-        for dfs in list_dfs:
-            cur_types = [Any for _ in dfs] if types is None else types
-            self.__data.append(DFS[cur_types]().init(*dfs))
+
+        if types is not None and len(types) == 1:
+            type = types[0]
+            ##### real implementation
+            # if _is_DFS(type):
+            #     self.__init_DFS(list_data, type)
+            #     return
+            # if _is_DF(type):
+            #     self.__init_DF(list_data, type)
+            #     return
+            # if _is_Docs(type):
+            #     self.__init_Docs(list_data, type)
+            #     return
+            # if _is_Doc(type):
+            #     self.__init_Doc(list_data, type)
+            #     return
+            ##### simplified implementation
+            self.__init_DFS(list_data, type)
+            return
+        self.__init_common(list_data, types)
+
+    def __init_DFS(self, list_data: List[List[Union[str, pd.DataFrame, BaseModel, Dict, List]]], type: Any) -> None:  # noqa: N802, E501, ANN401
+        for data in list_data:
+            self.__data.append(type().init(*data))
+
+    def __init_DF(self, list_data: List[List[Union[str, pd.DataFrame, BaseModel, Dict, List]]], type: Any) -> None:   # noqa: N802, E501, ANN401
+        for data in list_data:
+            self.__data.append(type(*data))
+
+    def __init_Docs(self, list_data: List[List[Union[str, pd.DataFrame, BaseModel, Dict, List]]], type: Any) -> None: # noqa: N802, E501, ANN401
+        for data in list_data:
+            self.__data.append(type(*data).init())
+
+    def __init_Doc(self, list_data: List[List[Union[str, pd.DataFrame, BaseModel, Dict, List]]], type: Any) -> None:  # noqa: N802, E501, ANN401
+        for data in list_data:
+            self.__data.append(type(*data).init())
+
+    def __init_common(self, list_data: List[List[Union[str, pd.DataFrame, BaseModel, Dict, List]]], types: Optional[Any]) -> None:    # noqa: E501, ANN401
+        if types is not None:
+            for data in list_data:
+                self.__data.append(DFS[types]().init(*data))
+        else:
+            for data in list_data:
+                self.__data.append(DFS[tuple([Any for _ in data])]().init(*data))
 
     def __len__(self) -> int:
         return len(self.__data)
 
-    def __getitem__(self, key: int) -> DFS:
+    def __getitem__(self, key: int) -> Union[DFS, DF, 'Docs', 'Doc']:
         return self.__data[key]
 
-    def __iter__(self) -> Iterator[DFS]:
+    def __iter__(self) -> Iterator[Union[DFS, DF, 'Docs', 'Doc']]:
         return iter(self.__data)
 
     def __repr__(self) -> str:
         return f"\n{DELIMITER * 2}\n".join(map(lambda x: str(x), self))
+
+    __str__ = __repr__
 
 
 class OBJ:
@@ -293,10 +346,16 @@ class OBJ:
         Raises:
             Exception: If asset is not pointed to a .csv file
         """
-        return pd.read_csv(self.__path)
+        try:
+            df = pd.read_csv(self.__path)
+        except pd.errors.EmptyDataError:
+            df = pd.DataFrame()
+        return df
 
     def __repr__(self) -> str:
         return f"OBJ(path={self.__path})"
+
+    __str__ = __repr__
 
 
 class Doc(Generic[Scheme]):
@@ -310,9 +369,9 @@ class Doc(Generic[Scheme]):
             assert data.shape[0] == 1, f"Doc create: too big pd.DataFrame, expected size=1, found={data.shape[0]}"  # noqa: E501
             data = data.to_dict(orient="records")[0]
         assert data is None or isinstance(data, Dict) or issubclass(data.__class__, BaseModel), f"wrong Doc data type: expected Dict, pd.DataFrame or subclass of BaseModel, found {type(data)}"    # noqa: E501
-        self.__data: Union[Scheme, Type[BaseModel], Dict] = data
+        self.__data: Union[Scheme, BaseModel, Dict] = data
 
-    def parse(self) -> Union[Scheme, Type[BaseModel], Dict]:
+    def parse(self) -> Union[Scheme, BaseModel, Dict]:
         return self.__data
 
     def init(self) -> 'Doc':
@@ -324,8 +383,14 @@ class Doc(Generic[Scheme]):
         if scheme is Any:
             assert isinstance(self.__data, Dict) or issubclass(self.__data.__class__, BaseModel), f"wrong Doc data type: expected Dict or subclass of BaseModel, found {type(self.__data)}" # noqa: E501
             return self
-        if scheme is None or scheme.__name__ == "NoneType":
+        if scheme is None or getattr(scheme, "__name__", None) == "NoneType":
             return self
+        if isinstance(scheme, str):
+            # json_scheme = schemes[scheme]
+            raise Exception(f"Doc not yet work with user json schemes: {scheme}")
+        if isinstance(scheme, ForwardRef):
+            # json_scheme = schemes[scheme]
+            raise Exception(f"Doc not yet work with user json schemes: {scheme.__forward_arg__}")   # noqa: E501
         if issubclass(scheme, BaseModel):
             if isinstance(self.__data, Dict):
                 self.__data = scheme(**self.__data)
@@ -333,15 +398,32 @@ class Doc(Generic[Scheme]):
                 pass
             else:
                 self.__data = scheme(**self.__data.model_dump())
-        elif isinstance(scheme, str):
-            # json_scheme = schemes[scheme]
-            raise Exception(f"Doc not yet work with user json schemes: {scheme}")
         else:
             raise Exception(f"Unknown Doc type: {scheme}")
         return self
 
-    def __repr__(self) -> str:
+    def __getitem__(self, k) -> None:
+        return self.__data[k]
+
+    def __repr__(self) -> None:
         return f"Doc(__data={{{self.__data}}})"
+
+    __str__ = __repr__
+
+    @cached_property
+    def scheme_name(self) -> Optional[str]:
+        scheme = self._scheme_cls
+        if scheme is None:
+            return None
+        if hasattr(scheme, "__name__"):
+            return scheme.__name__
+        if hasattr(scheme, "_name"):
+            return scheme._name
+        if isinstance(scheme, str):
+            return scheme
+        if isinstance(scheme, ForwardRef):
+            return scheme.__forward_arg__
+        return scheme
 
     @cached_property
     def _scheme_cls(self) -> Optional[Any]: # noqa: ANN401
@@ -374,7 +456,7 @@ class Docs(Generic[Scheme]):
         self.__data: List[Doc[Scheme]] = data
 
     @cache
-    def parse(self, *, recursive: bool = False) -> Union[List[Doc[Scheme]], List[Union[Scheme, Type[BaseModel], Dict]]]:    # noqa: E501
+    def parse(self, *, recursive: bool = False) -> Union[List[Doc[Scheme]], List[Union[Scheme, BaseModel, Dict]]]:    # noqa: E501
         if recursive:
             return [doc.parse() for doc in self.__data]
         return self.__data
@@ -407,6 +489,23 @@ class Docs(Generic[Scheme]):
             return f"Docs(__data={self.__data[:_docs_first_k_show]}, len={len(self.__data)})"   # noqa: E501
         return f"Docs(__data=[{', '.join(map(str, self.__data[:_docs_first_k_show]))}, ...], len={len(self.__data)})"   # noqa: E501
 
+    __str__ = __repr__
+
+    @cached_property
+    def scheme_name(self) -> Optional[str]:
+        scheme = self._scheme_cls
+        if scheme is None:
+            return None
+        if hasattr(scheme, "__name__"):
+            return scheme.__name__
+        if hasattr(scheme, "_name"):
+            return scheme._name
+        if isinstance(scheme, str):
+            return scheme
+        if isinstance(scheme, ForwardRef):
+            return scheme.__forward_arg__
+        return scheme
+
     @cached_property
     def _scheme_cls(self) -> Optional[Any]: # noqa: ANN401
         if hasattr(self, "__orig_class__"):
@@ -415,3 +514,18 @@ class Docs(Generic[Scheme]):
 
     def json(self) -> str:
         return json.dumps([doc.dict() for doc in self.__data])
+
+
+class Stream:
+    def __init__(self, f) -> None:
+        if not callable(f):
+            raise TypeError("stream should be callable")
+        self.f = f
+
+    def __call__(self) -> None:
+        return self.f()
+
+    def __repr__(self) -> None:
+        return f"Stream(f={self.f})"
+
+    __str__ = __repr__
