@@ -884,6 +884,9 @@ class Context(Generic[MinimalCfg]):
     @property
     def pause(self) -> 'Pause':
         return Pause(self.__pauses)
+    
+    def secret(self, key: str, ignore_not_exist: bool = False) -> Optional[str]:
+        pass
 
 
 def to_binary(smth: Any) -> bytes:  # noqa: ANN401
